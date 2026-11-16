@@ -1,9 +1,18 @@
 import { serve } from '@hono/node-server';
+import { createRemoteJWKSet } from 'jose';
 
 import { createApp } from './app.js';
+import { createDb } from './db/client.js';
+import { createUsersStore } from './db/users.js';
 import { loadEnv } from './env.js';
 
 const env = loadEnv();
-serve({ fetch: createApp().fetch, port: env.PORT }, (info) => {
+const { db } = createDb(env.DATABASE_URL);
+const app = createApp({
+  keys: createRemoteJWKSet(new URL('/auth/v1/.well-known/jwks.json', env.SUPABASE_URL)),
+  issuer: env.SUPABASE_JWT_ISSUER,
+  users: createUsersStore(db),
+});
+serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`server on http://localhost:${info.port}`);
 });

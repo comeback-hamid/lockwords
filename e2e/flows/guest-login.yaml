@@ -1,0 +1,24 @@
+# Needs the local stack: `npm run dev:up` (Supabase + server). Dev build only (the user id line shows in dev builds).
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: local-backend-and-guest-login
+- assertVisible: "New words"
+# Silent guest sign-in: no login screen, and the server knows us.
+- extendedWaitUntil:
+    visible:
+      id: "dev-user-id"
+    timeout: 20000
+- copyTextFrom:
+    id: "dev-user-id"
+- stopApp
+- launchApp
+# Same user after a restart.
+- extendedWaitUntil:
+    visible: ${maestro.copiedText}
+    timeout: 20000
+- stopRecording

@@ -9,7 +9,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 |---|---|---|---|
 | 0.1 | Repo skeleton | AGENTS.md, CLAUDE.md files, OpenSpec, docs, theme tokens from Figma, 3 empty tabs, server `/health`, e2e runner, pre-push hook. All checks green. | ✅ 2026-11-16 |
 | 0.2 | Hooks, Ponytail, CI | Claude hooks + plugins in `.claude/settings.json`. GitHub Actions for both apps. Three databases (prod, `lockwords_dev`, `lockwords_test`). | ✅ 2026-11-16 (CI green on PR #1 and #2; the prod database is made in 0.3) |
-| 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | ⬜ needs Hamid's accounts |
+| 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | 🟨 local half ✅ 2026-11-16 (`local-backend-and-guest-login`: guest login + token check + `/v1/me`, all on this Mac). Cloud half (DigitalOcean, Supabase cloud, Apple, Google) needs Hamid's accounts. |
 | 0.4 | `widget-spike` | One word from the server on the iPhone lock screen (SwiftUI WidgetKit via config plugin). **If this fails, everything else waits.** | ✅ tested 2026-11-16, not merged (draft PR #3, `expo-widgets`; notes in `docs/spikes/widget/` on that branch). Real widgets = epic 6. |
 
 ## Phase 1: Features in order (then daily)

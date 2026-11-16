@@ -11,8 +11,15 @@ while [[ $# -gt 0 ]]; do
 done
 command -v maestro >/dev/null || { echo "maestro is not installed: brew install mobile-dev-inc/tap/maestro" >&2; exit 1; }
 xcrun simctl list devices booted | grep -q Booted || { echo "No booted iOS simulator. Run: cd apps/mobile && npm run ios" >&2; exit 1; }
+# Maestro saves recordings under a dated run folder. We copy them to e2e/videos/<name>.mp4 afterwards.
+run=$(mktemp -d)
+status=0
 if [[ -n "$areas" ]]; then
-  exec maestro test e2e/flows --include-tags="$areas"
+  maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test e2e/flows --include-tags="$areas" --test-output-dir "$run" || status=$?
 else
-  exec maestro test e2e/flows
+  maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test e2e/flows --test-output-dir "$run" || status=$?
 fi
+mkdir -p e2e/videos
+find "$run" -name '*.mp4' -exec cp {} e2e/videos/ \;
+rm -rf "$run"
+exit $status

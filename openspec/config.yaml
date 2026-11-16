@@ -19,12 +19,12 @@ rules:
     - About a day of work. More than ~10 tasks means split the change.
   specs:
     - Every requirement has WHEN/THEN scenarios that a test can check.
-    - Screens list their states: loading, empty, error, locked.
+    - "Screens list their states: loading, empty, error, locked."
   tasks:
     - Group as "1. Server", "2. Mobile", "3. Docs", "4. Rollout". Drop a group the change does not need.
     - Start each group with "Tests first ... run them, see them fail".
     - Mobile includes a Maestro flow with exactly one area tag that records e2e/videos/<change-name>.mp4.
-    - A skipped part is written as "Not done: <what>, <why>".
+    - 'A skipped part is written as "Not done: <what>, <why>".'
 
 operations:
   apply:
