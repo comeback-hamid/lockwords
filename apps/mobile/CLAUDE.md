@@ -18,6 +18,7 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - `src/app/`: screens only (Expo Router). `(tabs)/`: New words · Review · Speak. My words is a top-bar button, not a tab.
 - `src/components/`: shared UI. Copy Figma component names (Chat bubble, Reply option, Composer, Kai header, Level square…).
 - `src/theme/theme.ts`: all tokens from Figma. No raw colors or sizes anywhere else.
+- `src/theme/fonts.ts`: the fonts loaded at start (Mona Sans 400/500/600, JetBrains Mono 500/700). Use `type.*` styles; never set `fontWeight` (the weight is in the font name).
 - `src/kai/character-spec.json`: Kai's data. Never type Kai numbers into code. Port `createCharacter()` from `docs/design/CHARACTER.html` (Skia on the phone).
 - `src/api/` (added with the first server call): generated from the server's OpenAPI. Never hand-write API shapes.
 - `assets/kai/`: still SVG poses for widgets.

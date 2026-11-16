@@ -8,9 +8,9 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | # | Epic / change | What "done" means | Status |
 |---|---|---|---|
 | 0.1 | Repo skeleton | AGENTS.md, CLAUDE.md files, OpenSpec, docs, theme tokens from Figma, 3 empty tabs, server `/health`, e2e runner, pre-push hook. All checks green. | ✅ 2026-11-16 |
-| 0.2 | Hooks, Ponytail, CI | Claude hooks + plugins in `.claude/settings.json`. GitHub Actions for both apps. Three databases (prod, `lockwords_dev`, `lockwords_test`). | 🟨 hooks + CI files written; first CI run not seen yet |
+| 0.2 | Hooks, Ponytail, CI | Claude hooks + plugins in `.claude/settings.json`. GitHub Actions for both apps. Three databases (prod, `lockwords_dev`, `lockwords_test`). | ✅ 2026-11-16 (CI green on PR #1 and #2; the prod database is made in 0.3) |
 | 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | ⬜ needs Hamid's accounts |
-| 0.4 | `widget-spike` | One word from the server on the iPhone lock screen (SwiftUI WidgetKit via config plugin). **If this fails, everything else waits.** | ⬜ |
+| 0.4 | `widget-spike` | One word from the server on the iPhone lock screen (SwiftUI WidgetKit via config plugin). **If this fails, everything else waits.** | ✅ tested 2026-11-16, not merged (draft PR #3, `expo-widgets`; notes in `docs/spikes/widget/` on that branch). Real widgets = epic 6. |
 
 ## Phase 1: Features in order (then daily)
 
@@ -32,7 +32,7 @@ Offline review · Android widget · Easy mode · photo / link / YouTube in the c
 ## Open decisions (ask Hamid, do not invent)
 From `docs/product.md` section 9, plus what came up while setting up the repo:
 1. Final app name (Lockwords is the working name).
-2. **Bundle ID**: set to `com.comebackhamid.lockwords` for now. It is hard to change after the first TestFlight build.
+2. ~~Bundle ID~~ decided 2026-11-16: `com.comebackhamid.lockwords` (Hamid OK).
 3. Launch languages (suggested: Japanese, Korean, Spanish, Quranic Arabic).
 4. Final prices and free limits (current plan: Pro $6.99/month or $39.99/year, 7-day trial).
 5. Easy on a brand-new card: Stage 1 or Stage 2.
