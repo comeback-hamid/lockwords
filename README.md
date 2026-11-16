@@ -11,8 +11,7 @@ A minimal flashcard app for any language. Personal decks made by chatting with *
 ```bash
 npm install            # also turns on the git hooks (.githooks/)
 npm run db:setup       # local databases lockwords_dev + lockwords_test
-cp apps/server/.env.example apps/server/.env
-npm run dev -w @lockwords/server        # server on :8787
+npm run dev:up         # needs Docker Desktop: local Supabase (login) + .env files + migrations + server on :8787
 cd apps/mobile && npm run ios           # dev build on the iOS simulator
 ```
 

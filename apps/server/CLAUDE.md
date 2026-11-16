@@ -11,7 +11,9 @@ npm run typecheck
 npm run lint
 npm run db:generate        # new migration from src/db/schema.ts
 npm run db:migrate
+npm run openapi            # rewrite openapi.json after any route change (a test fails if you forget)
 ```
+Whole local stack (Supabase login + migrations + this server): `npm run dev:up` from the repo root.
 Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` and `lockwords_test`.
 
 ## Layers
@@ -25,5 +27,6 @@ Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` a
 - AI keys live only here. Every model call has a timeout and a user message. A failed call saves nothing.
 - Tests never call a real model. One fixture replaces Langfuse and the model.
 - Each user reads only their own rows. Keep Speak text, never audio.
-- The server checks the Supabase token. No other Supabase parts.
+- The server checks the Supabase token (`src/auth.ts`) on every `/v1/*` route. No other Supabase parts. Never log a token.
+- New routes use `@hono/zod-openapi` (`createRoute`) so they land in `openapi.json`. Tests sign their own tokens: `test/helpers/tokens.ts`.
 - `GET /health` must stay fast: the deploy rolls back if it fails for 60 s.

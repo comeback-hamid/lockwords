@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import { bootSession } from '@/auth/boot';
 import { fonts } from '@/theme/fonts';
 
 SplashScreen.preventAutoHideAsync();
@@ -17,6 +18,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
   }, [ready]);
+
+  useEffect(() => {
+    bootSession(); // silent guest sign-in; the tabs never wait for it
+  }, []);
 
   if (!ready) return null;
   return <Stack screenOptions={{ headerShown: false }} />;

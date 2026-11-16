@@ -20,7 +20,8 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - `src/theme/theme.ts`: all tokens from Figma. No raw colors or sizes anywhere else.
 - `src/theme/fonts.ts`: the fonts loaded at start (Mona Sans 400/500/600, JetBrains Mono 500/700). Use `type.*` styles; never set `fontWeight` (the weight is in the font name).
 - `src/kai/character-spec.json`: Kai's data. Never type Kai numbers into code. Port `createCharacter()` from `docs/design/CHARACTER.html` (Skia on the phone).
-- `src/api/` (added with the first server call): generated from the server's OpenAPI. Never hand-write API shapes.
+- `src/api/`: `schema.ts` is generated from `apps/server/openapi.json` (`npm run api:gen`); `client.ts` is the one place that calls the server. Never hand-write API shapes.
+- `src/auth/`: silent guest sign-in at start (`boot.ts`), Supabase client, session kept in SecureStore (`session-storage.ts`).
 - `assets/kai/`: still SVG poses for widgets.
 
 ## Rules
@@ -30,4 +31,5 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - A native package needs a new dev build (`npm run ios`).
 - RN Testing Library v14: `render` is async. Write `await render(...)`.
 - Every screen test covers its states: loading, empty, error, locked.
-- iOS Keychain survives deleting the app: list every secure key in one `SECURE_KEYS` list and clear them on a fresh install.
+- iOS Keychain survives deleting the app: every secure key is in `SECURE_KEYS` (`src/auth/session-storage.ts`) and is cleared on a fresh install.
+- Env values: `.env.local` (git-ignored, written by `npm run dev:up`); names in `.env.example`.

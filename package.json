@@ -1,7 +1,9 @@
 {
   "name": "lockwords",
   "private": true,
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces",
     "lint": "npm run lint --workspaces",
@@ -10,7 +12,10 @@
     "e2e": "bash scripts/e2e.sh",
     "db:setup": "bash scripts/db-setup.sh",
     "spec:validate": "openspec validate --all --strict",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "dev:up": "bash scripts/dev-up.sh"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }
