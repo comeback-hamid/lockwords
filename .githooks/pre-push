@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Before every push that changes the app: a Maestro pass on the iOS simulator for this exact code.
+# Areas: set LOCKWORDS_E2E_AREAS=review,speak to run only some areas. Shared code changed → run all (default).
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+base=$(git merge-base HEAD origin/main 2>/dev/null || echo "")
+if [[ -n "$base" ]] && ! git diff --name-only "$base"...HEAD | grep -qE '^(apps/mobile|e2e)/'; then
+  echo "pre-push: no app changes, skipping Maestro"; exit 0
+fi
+echo "pre-push: running Maestro (${LOCKWORDS_E2E_AREAS:-all areas})"
+if [[ -n "${LOCKWORDS_E2E_AREAS:-}" ]]; then npm run e2e -- --areas "$LOCKWORDS_E2E_AREAS"; else npm run e2e; fi

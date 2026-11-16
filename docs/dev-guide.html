@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lockwords Dev Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #f0eee8;
+  --text: #1c1b19;
+  --muted: #6b6860;
+  --line: #e3e0d8;
+  --accent: #1f883d;
+  --accent-soft: #e6f4ea;
+  --blue: #1971c2;
+  --blue-soft: #e7f1fb;
+  --green: #2f9e44;
+  --green-soft: #e9f7ec;
+  --violet: #7048e8;
+  --violet-soft: #f0ebfe;
+  --code-bg: #1e1d1b;
+  --code-text: #f1efe9;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141412;
+    --surface: #1d1c1a;
+    --surface-2: #262522;
+    --text: #efede8;
+    --muted: #a19d94;
+    --line: #34322e;
+    --accent: #3fb950;
+    --accent-soft: #15301c;
+    --blue: #5ea8f0;
+    --blue-soft: #16273a;
+    --green: #5cc46f;
+    --green-soft: #17301d;
+    --violet: #a58cff;
+    --violet-soft: #251e3d;
+    --code-bg: #0e0e0d;
+    --code-text: #efede8;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141412; --surface: #1d1c1a; --surface-2: #262522; --text: #efede8;
+  --muted: #a19d94; --line: #34322e; --accent: #3fb950; --accent-soft: #15301c;
+  --blue: #5ea8f0; --blue-soft: #16273a; --green: #5cc46f; --green-soft: #17301d;
+  --violet: #a58cff; --violet-soft: #251e3d; --code-bg: #0e0e0d; --code-text: #efede8;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .88em; }
+code { background: var(--surface-2); padding: .1em .4em; border-radius: 5px; }
+a { color: var(--blue); }
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+/* Hero */
+header.hero { padding: 72px 0 40px; }
+.eyebrow {
+  display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+  padding: 6px 12px; border-radius: 999px;
+}
+h1 {
+  font-size: clamp(36px, 6vw, 60px); line-height: 1.05; letter-spacing: -.03em;
+  margin: 20px 0 16px; font-weight: 800;
+}
+.lead { font-size: 19px; color: var(--muted); max-width: 680px; margin: 0; }
+.oneliner {
+  margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.chip {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 14px; font-weight: 600; font-size: 14px; box-shadow: var(--shadow);
+}
+.arrow { color: var(--muted); font-weight: 700; }
+
+/* Nav */
+nav.toc {
+  position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+nav.toc .wrap { display: flex; gap: 4px; overflow-x: auto; padding-top: 10px; padding-bottom: 10px; scrollbar-width: none; }
+nav.toc a {
+  white-space: nowrap; text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500;
+  padding: 6px 10px; border-radius: 8px;
+}
+nav.toc a:hover { background: var(--surface-2); color: var(--text); }
+
+/* Sections */
+section { padding: 56px 0 8px; scroll-margin-top: 56px; }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
+.num {
+  font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 14px;
+  color: var(--accent); border: 1.5px solid var(--accent); border-radius: 8px;
+  padding: 2px 8px; flex-shrink: 0; position: relative; top: -4px;
+}
+h2 { font-size: 30px; letter-spacing: -.02em; margin: 0; font-weight: 700; }
+.sub { color: var(--muted); margin: -8px 0 24px; max-width: 680px; }
+
+.grid { display: grid; gap: 16px; }
+.grid > * { min-width: 0; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 820px) { .g3, .g4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 22px; box-shadow: var(--shadow);
+}
+.card h3 { margin: 0 0 8px; font-size: 17px; font-weight: 700; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.card ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 15px; }
+.card li { margin: 4px 0; }
+.card li strong, .card p strong { color: var(--text); }
+.icon {
+  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+  margin-bottom: 14px; font-size: 18px;
+}
+.i-orange { background: var(--accent-soft); color: var(--accent); }
+.i-blue { background: var(--blue-soft); color: var(--blue); }
+.i-green { background: var(--green-soft); color: var(--green); }
+.i-violet { background: var(--violet-soft); color: var(--violet); }
+
+/* Core idea */
+.core {
+  background: var(--text); color: var(--bg); border-radius: 20px; padding: 32px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+}
+.core div b { display: block; font-size: 20px; margin-bottom: 6px; letter-spacing: -.01em; }
+.core div span { opacity: .75; font-size: 15px; }
+@media (max-width: 720px) { .core { grid-template-columns: 1fr; } }
+
+/* Table */
+.table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 480px; }
+th, td { text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; }
+
+/* Loop */
+.loop { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; position: relative; }
+.step {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px;
+  box-shadow: var(--shadow); position: relative;
+}
+.step .n {
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: 700; margin-bottom: 10px; color: #fff;
+}
+.step .cmd { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--accent); font-weight: 500; display: block; margin-bottom: 4px; }
+.step b { font-size: 15px; display: block; margin-bottom: 4px; }
+.step p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.step.human { border: 1.5px dashed var(--blue); }
+.who { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-top: 10px; display: inline-block; }
+.who.h { color: var(--blue); } .who.a { color: var(--accent); }
+@media (max-width: 960px) { .loop { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 600px) { .loop { grid-template-columns: repeat(2, 1fr); } }
+.loop-note { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; font-size: 14px; color: var(--muted); }
+.legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+
+.callout {
+  border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0;
+  padding: 14px 18px; margin-top: 20px; font-size: 15px;
+}
+.callout.warn { border-color: #e03131; background: color-mix(in srgb, #e03131 10%, var(--surface)); }
+
+/* Verify ladder */
+.ladder { display: grid; gap: 12px; }
+.rung {
+  display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; box-shadow: var(--shadow);
+}
+.rung .big { font-size: 28px; font-weight: 800; color: var(--green); font-family: "JetBrains Mono", monospace; }
+.rung h3 { margin: 0 0 2px; font-size: 16px; }
+.rung p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.tag { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+@media (max-width: 560px) { .rung { grid-template-columns: 40px 1fr; } .rung .tag { display: none; } }
+.final {
+  margin-top: 12px; text-align: center; padding: 16px; border-radius: 14px;
+  border: 1.5px dashed var(--blue); color: var(--blue); font-weight: 600; background: var(--blue-soft);
+}
+
+/* Repo tree */
+pre.tree {
+  background: var(--code-bg); color: var(--code-text); border-radius: 16px; padding: 22px 24px;
+  font-family: "JetBrains Mono", monospace; font-size: 13.5px; line-height: 1.75; overflow-x: auto; margin: 0;
+}
+pre.tree .c { color: #8f8a80; }
+pre.tree .d { color: #ffb37a; }
+
+/* Phases */
+.phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+.phase { padding: 20px; border-top: 3px solid var(--violet); background: var(--surface); border-right: 1px solid var(--line); }
+.phase:first-child { border-radius: 0 0 0 16px; }
+.phase:last-child { border-right: 0; border-radius: 0 0 16px 0; }
+.phase small { color: var(--violet); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.phase h3 { margin: 6px 0 6px; font-size: 16px; }
+.phase p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.phases-wrap { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+@media (max-width: 760px) { .phases { grid-template-columns: 1fr 1fr; } .phase { border-bottom: 1px solid var(--line); } }
+@media (max-width: 480px) { .phases { grid-template-columns: 1fr; } }
+
+/* Pyramid */
+.pyramid { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pyr {
+  border-radius: 10px; padding: 12px 10px; text-align: center; font-weight: 700; font-size: 15px;
+  min-width: 220px; max-width: 100%;
+}
+.pyr small { display: block; font-weight: 500; font-size: 12.5px; opacity: .8; }
+table.tests { min-width: 720px; font-size: 14px; }
+table.tests td:nth-child(2) { color: var(--muted); }
+table.tests tr.grp td {
+  background: var(--surface-2); font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--accent); padding: 8px 18px;
+}
+
+/* Quality loop */
+.cycle { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.cstep {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: var(--shadow);
+}
+.cstep .cn {
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px;
+  font-weight: 700; color: #fff; background: var(--green); margin-bottom: 10px;
+}
+.cstep b { display: block; margin-bottom: 4px; }
+.cstep p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.cycle-back {
+  margin-top: 10px; text-align: center; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 14px;
+  color: var(--green); background: var(--green-soft); border: 1.5px dashed var(--green);
+}
+.cycle.c3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 860px) { .cycle, .cycle.c3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .cycle { grid-template-columns: 1fr; } }
+ul.checks { list-style: none; padding-left: 0; }
+ul.checks li { padding-left: 24px; position: relative; }
+ul.checks li::before { content: "✓"; position: absolute; left: 2px; color: var(--green); font-weight: 700; }
+
+/* Footer */
+footer { margin: 72px 0 0; padding: 40px 0 56px; border-top: 1px solid var(--line); }
+.summary {
+  font-size: clamp(20px, 3vw, 26px); font-weight: 700; letter-spacing: -.01em; line-height: 1.35; margin: 0 0 20px;
+}
+.summary em { font-style: normal; color: var(--accent); }
+footer p { color: var(--muted); font-size: 14.5px; margin: 6px 0; }
+
+.theme-btn {
+  position: fixed; right: 16px; bottom: 16px; z-index: 20; width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer;
+  box-shadow: var(--shadow); font-size: 18px;
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Lockwords · How we build · v1 · 2026-11-16</span>
+    <h1>Building Lockwords,<br>the AI-native way</h1>
+    <p class="lead">One repo is the truth. Hamid decides <strong>what</strong> and what "done" means. Agents build, test and check. Fatima keeps the code clean. We ship a small piece almost every day. Rules here are settled.</p>
+    <div class="oneliner">
+      <span class="chip">Spec in a draft PR</span><span class="arrow">→</span>
+      <span class="chip">Tests first</span><span class="arrow">→</span>
+      <span class="chip">Agent builds</span><span class="arrow">→</span>
+      <span class="chip">Fresh agent + CI check</span><span class="arrow">→</span>
+      <span class="chip">Video approval</span><span class="arrow">→</span>
+      <span class="chip">Archive + merge</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#stack">1 · Stack</a>
+    <a href="#repo">2 · Repo</a>
+    <a href="#rules">3 · Agent rules</a>
+    <a href="#loop">4 · Daily loop</a>
+    <a href="#git">5 · Git</a>
+    <a href="#tests">6 · Tests</a>
+    <a href="#verify">7 · Verify</a>
+    <a href="#ai">8 · AI features</a>
+    <a href="#speak">9 · Testing Speak</a>
+    <a href="#ship">10 · Ship</a>
+    <a href="#learn">11 · Learn</a>
+    <a href="#start">12 · Start here</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- 1 STACK -->
+  <section id="stack">
+    <div class="sec-head"><span class="num">01</span><h2>The stack</h2></div>
+    <p class="sub">TypeScript everywhere: app, web and server share one language and the same types. Available worldwide; iOS first.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Part</th><th>Choice</th><th>Why / notes</th></tr></thead>
+        <tbody>
+          <tr><td>App (iOS, Android, web)</td><td>React Native + <strong>Expo</strong>, TypeScript strict, Expo Router</td><td>One codebase for 3 platforms. Agents write TypeScript/React best.</td></tr>
+          <tr><td>Lock-screen + home widgets</td><td>Native: SwiftUI WidgetKit (iOS), Android later</td><td>Native in every option. Added through a config plugin, never by hand. <strong>Build a tiny widget test first.</strong></td></tr>
+          <tr><td>Kai (pixel character)</td><td>One JSON pixel spec (<code>CHARACTER.html</code>) → Skia on the phone, canvas on the web, still images on the widget</td><td>One source, three renderers</td></tr>
+          <tr><td>Server</td><td><strong>TypeScript + Node</strong>: Hono, Drizzle ORM (+ migrations), Zod, pg-boss for background jobs</td><td>Shares types with the app. Reuses the deck and picture code from <code>lockwords-fn</code>. SRS lives here only.</td></tr>
+          <tr><td>Login</td><td><strong>Supabase Auth only</strong></td><td>Apple + Google + email code; guest first, account linked later. The server checks the Supabase token. No other Supabase parts.</td></tr>
+          <tr><td>Database</td><td><strong>DigitalOcean Managed Postgres</strong></td><td>Daily backups. Region Frankfurt (FRA1). Background jobs (pg-boss) live in the same database.</td></tr>
+          <tr><td>Files</td><td><strong>DigitalOcean Spaces</strong> + its CDN</td><td>Deck and card pictures. Fast downloads worldwide.</td></tr>
+          <tr><td>Hosting</td><td><strong>DigitalOcean App Platform</strong>, deploy from GitHub</td><td>Everything except login in one DigitalOcean account. No droplet, no nginx by hand. Health check: a failed deploy keeps the old version live.</td></tr>
+          <tr><td>Speak (live voice)</td><td>Phone connects directly to the voice AI (WebRTC)</td><td>The server only gives a short-lived key and saves the transcript</td></tr>
+          <tr><td>Payments</td><td>RevenueCat</td><td>Behind <code>premium.ts</code>; test store when there is no key</td></tr>
+          <tr><td>Analytics, flags</td><td>PostHog</td><td>No key = off; mocked in tests</td></tr>
+          <tr><td>Builds, updates, push</td><td>Expo EAS</td><td>Release builds on GitHub Actions only</td></tr>
+          <tr><td>Marketing funnel</td><td>Stays on Netlify as it is</td><td>Separate from the app</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><div class="icon i-orange">⚡</div><h3>v1 is online</h3><p>Review needs a connection; the server owns SRS. The widget still shows the last words it got. Offline review comes later.</p></div>
+      <div class="card"><div class="icon i-blue">▣</div><h3>Pictures</h3><p>Made on the server, cut into one file per card, saved in DigitalOcean Spaces, cached on the phone. The app copies today's pictures to the widget's folder.</p></div>
+      <div class="card"><div class="icon i-green">$</div><h3>Cost while building</h3><p>About <strong>$150–300 / month</strong>, mostly the Claude plan. Speak is the feature that grows with users: measure cost per talk.</p></div>
+    </div>
+  </section>
+
+  <!-- 2 REPO -->
+  <section id="repo">
+    <div class="sec-head"><span class="num">02</span><h2>The repo</h2></div>
+    <p class="sub">One repo for everything.</p>
+    <div class="grid g2">
+      <pre class="tree"><span class="d">apps/mobile/</span>        <span class="c"># Expo app + widget (CLAUDE.md)</span>
+<span class="d">apps/server/</span>        <span class="c"># Hono + Drizzle (CLAUDE.md)</span>
+<span class="d">docs/</span>
+  product.md        <span class="c"># from LOCKWORDS-V1.md: why, who, scope</span>
+  screens.md        <span class="c"># screens + Figma links</span>
+  design.md         <span class="c"># code design for all features</span>
+  architecture.md   <span class="c"># tables, endpoints</span>
+  roadmap.md        <span class="c"># epics + status</span>
+  events.md         <span class="c"># analytics plan</span>
+  clean-code.md     <span class="c"># refactors, no behavior change</span>
+  tech-debt.md      <span class="c"># fixes that change behavior</span>
+<span class="d">openspec/</span>
+  specs/&lt;domain&gt;/spec.md          <span class="c"># rules all apps follow</span>
+  specs/&lt;domain&gt;/server/spec.md   <span class="c"># endpoints, tables</span>
+  specs/&lt;domain&gt;/mobile/spec.md   <span class="c"># screens, flows</span>
+  specs/&lt;domain&gt;/widget/spec.md   <span class="c"># widget only</span>
+  changes/  config.yaml
+<span class="d">.githooks/</span>pre-push    <span class="c"># needs a Maestro pass</span>
+<span class="d">.claude/</span>settings.json <span class="c"># hooks + shared plugins</span>
+AGENTS.md  CLAUDE.md (@AGENTS.md)</pre>
+      <div class="table-wrap" style="align-self:start">
+        <table>
+          <thead><tr><th>Detail</th><th>Lives in</th></tr></thead>
+          <tbody>
+            <tr><td>Why, who, scope, pricing</td><td><code>docs/product.md</code></td></tr>
+            <tr><td>What a feature does</td><td>Spec scenarios (WHEN/THEN)</td></tr>
+            <tr><td>Rules for all features</td><td>Shared specs: errors, accessibility, clip/picture loading</td></tr>
+            <tr><td>How one feature is built</td><td><code>design.md</code> in the change</td></tr>
+            <tr><td>The look</td><td>Figma + <code>theme.ts</code> tokens</td></tr>
+            <tr><td>Prompts</td><td>Langfuse + a draft in <code>server/llm/drafts/</code></td></tr>
+            <tr><td>Epics / steps / bugs</td><td>roadmap.md / tasks.md / GitHub Issues</td></tr>
+            <tr><td>Test results</td><td>CI and the pass record, never by hand</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="callout"><strong>One name per thing.</strong> Code says <code>card</code>, <code>deck</code>, <code>review</code>, <code>kai</code>; users see "word", "deck", "Kai". Never mix. Write the final list in AGENTS.md (Fatima confirms).</div>
+  </section>
+
+  <!-- 3 RULES -->
+  <section id="rules">
+    <div class="sec-head"><span class="num">03</span><h2>Agent rules</h2></div>
+    <p class="sub">Short, always on. <code>AGENTS.md</code> for everything; each app's <code>CLAUDE.md</code> for its commands and layers. Add a line only when an agent makes the same mistake twice.</p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="icon i-green">✓</div>
+        <h3>Always</h3>
+        <ul class="checks">
+          <li><strong>Tests first:</strong> write the test, run it, see it fail for the expected reason, then build.</li>
+          <li><strong>Agents run the checks themselves</strong> and report. Never ask a human to run them.</li>
+          <li>Planning is not permission to build. Stop after the proposal.</li>
+          <li>"(open)" means not decided. Ask, never invent.</li>
+          <li>Check the docs for <strong>our Expo SDK version</strong> (and <code>docs.expo.dev/llms.txt</code>), not memory.</li>
+          <li><code>npx expo install</code>, never <code>npm install</code>.</li>
+          <li>Colors and sizes come from <code>theme.ts</code>. No raw values.</li>
+          <li>Plain English in docs and specs. Short sentences.</li>
+          <li><strong>Better idea? Suggest it, don't just do it.</strong> If the agent thinks there is a better way than this guide, it tells Hamid what and why, then waits for his OK. Never change the plan quietly.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon i-orange">✕</div>
+        <h3>Never</h3>
+        <ul>
+          <li>Edit or delete a test to make it pass. If it looks wrong, stop and ask.</li>
+          <li>Commit secrets, <code>.env</code> files or <code>*.p8</code> keys.</li>
+          <li>Log tokens, emails or secrets. Store tokens only in secure storage.</li>
+          <li>Push to <code>main</code> or force-push.</li>
+          <li>Edit <code>ios/</code>, <code>android/</code> (generated) or <code>openspec/changes/archive/</code>.</li>
+          <li>Add a package without saying why. A native one needs a new dev build.</li>
+          <li>Invent API shapes. They follow the server's OpenAPI document.</li>
+          <li>Re-build SRS rules in the app. The server decides.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><div class="icon i-violet">⚡</div><h3>Claude hooks</h3><p><strong>Stop:</strong> run the app's tests, typecheck, lint; fail = keep working. <strong>PreToolUse:</strong> block test edits during apply, and edits to <code>.env</code> and the archive. <strong>SessionStart:</strong> print active changes.</p></div>
+      <div class="card"><div class="icon i-violet">✂</div><h3>Ponytail</h3><p>Shared in <code>.claude/settings.json</code>. Level <strong>full</strong> when building, <strong>ultra</strong> only while exploring. Our tests-first rule wins over "trivial needs no test".</p></div>
+      <div class="card"><div class="icon i-violet">🔑</div><h3>iOS Keychain</h3><p>It survives deleting the app. List every secure key in one <code>SECURE_KEYS</code> list and clear them on a fresh install.</p></div>
+    </div>
+  </section>
+
+  <!-- 4 LOOP -->
+  <section id="loop">
+    <div class="sec-head"><span class="num">04</span><h2>The daily loop</h2></div>
+    <p class="sub">One feature = one branch = <strong>one PR with two checkpoints</strong>. About a day of work; more than ~10 tasks → split it. Tiny fixes skip OpenSpec.</p>
+    <div class="loop">
+      <div class="step"><div class="n" style="background:var(--muted)">1</div><span class="cmd">/opsx:explore</span><b>Think</b><p>Optional. Ponytail ultra fits here.</p><span class="who a">Agent + you</span></div>
+      <div class="step"><div class="n" style="background:var(--accent)">2</div><span class="cmd">/opsx:propose</span><b>Draft</b><p>Proposal, delta specs, design, tasks. Push → <strong>draft PR</strong>.</p><span class="who a">Agent</span></div>
+      <div class="step human"><div class="n" style="background:var(--blue)">3</div><span class="cmd">checkpoint 1</span><b>Approve spec</b><p>Hamid + Fatima review the scenarios in the PR. No code before this.</p><span class="who h">You</span></div>
+      <div class="step"><div class="n" style="background:var(--accent)">4</div><span class="cmd">/opsx:apply</span><b>Tests, then code</b><p>Failing tests first, then build until green. Same branch.</p><span class="who a">Agent</span></div>
+      <div class="step"><div class="n" style="background:var(--green)">5</div><span class="cmd">verify</span><b>Check</b><p>Fresh agent + Maestro + CI (section 7). Maestro <strong>records a video</strong> of the feature.</p><span class="who a">Agent + CI</span></div>
+      <div class="step human"><div class="n" style="background:var(--blue)">6</div><span class="cmd">checkpoint 2</span><b>Watch + approve</b><p>The agent sends Hamid the Maestro video. Hamid approves or asks for changes. Phone / TestFlight, designer or payment sandbox when needed.</p><span class="who h">You</span></div>
+      <div class="step"><div class="n" style="background:var(--accent)">7</div><span class="cmd">/opsx:archive</span><b>Merge</b><p>Archive as the last commit, PR ready, squash merge.</p><span class="who a">Agent → you merge</span></div>
+    </div>
+    <div class="callout"><strong>Video for every feature.</strong> The feature's Maestro flow uses <code>startRecording</code> / <code>stopRecording</code> and saves <code>e2e/videos/&lt;change-name&gt;.mp4</code>. The agent sends the video to Hamid and links it in the PR. No approval of the video, no merge.</div>
+    <div class="callout"><strong>Exception:</strong> a check that only works after the production deploy (live payment, App Store) → merge without archiving, then one tiny archive PR after the check.</div>
+    <h3 style="margin:32px 0 12px; font-size:18px">tasks.md shape</h3>
+    <div class="grid g2">
+      <pre class="tree"><span class="d">## 1. Server</span>
+- [ ] 1.1 Tests first: … run them, see them fail
+- [ ] 1.2 Model, crud, migration (add-only)
+- [ ] 1.3 Service + route. Tests pass
+<span class="d">## 2. Mobile</span>
+- [ ] 2.1 Tests first: Jest … see them fail
+- [ ] 2.2 Maestro first: flow (area <span class="d">review</span>) … fails
+- [ ] 2.3 Build screens. Jest, typecheck, lint pass
+- [ ] 2.4 Commit, <span class="d">npm run e2e -- --areas review</span> passes
+<span class="d">## 3. Docs</span>
+- [ ] 3.1 product.md / screens.md / events.md
+<span class="d">## 4. Rollout</span>
+- [ ] 4.1 After deploy: real call, timing, result
+         written here</pre>
+      <div class="grid" style="gap:16px">
+        <div class="card"><h3>Honest "Not done:" notes</h3><p>A skipped part is written inside the task with its reason, e.g. <em>"Not done: Figma check, the Figma connection needed sign-in."</em> No silent gaps.</p></div>
+        <div class="card"><h3>Proposal rules (config.yaml)</h3><p>Name the epic · state what is out of scope · list analytics events · add the Figma frame link · say what changes for Easy mode / other languages.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 GIT -->
+  <section id="git">
+    <div class="sec-head"><span class="num">05</span><h2>Git rules</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Branch</th><th>PR title</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>feature/&lt;name&gt;</code></td><td><code>&lt;emoji&gt; &lt;Name&gt;</code></td><td>🔒 Lock-Screen Widget</td></tr>
+          <tr><td><code>fix/&lt;name&gt;</code></td><td><code>🔧 Fix | &lt;emoji&gt; &lt;Name&gt;</code></td><td>🔧 Fix | 🃏 Swipe Undo</td></tr>
+          <tr><td><code>refactor/&lt;name&gt;</code></td><td><code>🚧 Refactor | &lt;emoji&gt; &lt;Name&gt;</code></td><td>🚧 Refactor | 🧩 Deck Services</td></tr>
+          <tr><td><code>clean-code/&lt;name&gt;</code></td><td><code>🧹 Clean Code | …</code></td><td>🧹 Clean Code | 🪓 Split Mappers</td></tr>
+          <tr><td><code>docs/&lt;name&gt;</code></td><td><code>🗂️ Docs | …</code></td><td>🗂️ Docs | 🌿 Git Rules</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Squash merge only</h3><p>The squash title = the PR title, so <code>main</code> reads like a feature log.</p></div>
+      <div class="card"><h3>Never merge red</h3><p>GitHub Free can't enforce it on a private repo, so it is a team rule.</p></div>
+      <div class="card"><h3>Fresh branch each time</h3><p>Start from the new <code>origin/main</code>. Never reuse a merged branch. Commits: <code>feat:</code> <code>fix:</code> <code>test:</code> <code>docs:</code> <code>refactor:</code>.</p></div>
+    </div>
+  </section>
+
+  <!-- 6 TESTS -->
+  <section id="tests">
+    <div class="sec-head"><span class="num">06</span><h2>Tests</h2></div>
+    <p class="sub">Only what pays off for two people shipping daily. More can come later.</p>
+    <div class="table-wrap">
+      <table class="tests">
+        <thead><tr><th>Test</th><th>Catches</th><th>Tool</th><th>When</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="4">Every change</td></tr>
+          <tr><td>Static</td><td>Type errors, bad patterns</td><td><code>tsc --strict</code>, ESLint (app + server)</td><td>Every commit + CI</td></tr>
+          <tr><td>Unit (server)</td><td>SRS steps, limits, deck rules. <code>now</code> passed in.</td><td>Vitest, no DB, no network</td><td>Every commit + CI</td></tr>
+          <tr><td>Integration (server)</td><td>Endpoints with a real database</td><td>Vitest on <code>lockwords_test</code> (wiped each run)</td><td>Every PR. <strong>CI fails if skipped.</strong></td></tr>
+          <tr><td>Component (app)</td><td>Each screen in every state: loading, empty, error, locked</td><td>Jest + React Native Testing Library, API mocked</td><td>Every commit + CI</td></tr>
+          <tr><td>Analytics</td><td>Missing or wrong events</td><td>Jest: each event in <code>events.md</code> fires</td><td>Every commit</td></tr>
+          <tr class="grp"><td colspan="4">On the device</td></tr>
+          <tr><td>Maestro flows</td><td>Real flows: onboarding → deck → review → Use it</td><td><code>npm run e2e -- --areas …</code>; seed helper sets up state</td><td>Before every app push (pre-push hook). Each feature flow records a video for approval.</td></tr>
+          <tr><td>Widget</td><td>The lock screen shows today's words</td><td>Maestro + screenshot, iOS simulator</td><td>Widget changes</td></tr>
+          <tr><td>Design check</td><td>Screen doesn't match Figma</td><td><code>figma-design-extract</code> before, <code>design-fidelity-verify</code> after: layout values, not pixels</td><td>Every UI change</td></tr>
+          <tr><td>Accessibility</td><td>Missing labels, small taps, large text breaks</td><td>ESLint a11y + one large-text flow</td><td>Every UI change</td></tr>
+          <tr class="grp"><td colspan="4">Safety</td></tr>
+          <tr><td>Security</td><td>Leaked keys, risky packages</td><td>gitleaks, <code>npm audit</code></td><td>CI</td></tr>
+          <tr><td>Exploratory</td><td>Bugs nobody wrote a test for</td><td>Verifier agent + Maestro MCP</td><td>Every feature</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Three databases</h3><p>Production · <code>lockwords_dev</code> (local, for the app) · <code>lockwords_test</code> (name must contain "test"). Dev servers never use production settings.</p></div>
+      <div class="card"><h3>AI is always faked</h3><p>One fixture replaces Langfuse and the model. Real model calls are switched off for the whole suite. Flows get seeded answers.</p></div>
+      <div class="card"><h3>Flow areas</h3><p>Each flow has exactly one tag: <code>onboarding</code>, <code>new-words</code>, <code>review</code>, <code>my-words</code>, <code>speak</code>, <code>widget</code>. Shared code changed → run all.</p></div>
+    </div>
+    <div class="callout">Every bug a person or the verifier finds becomes a <strong>new test first</strong>, then the fix. <strong>Later, not now:</strong> mutation testing, contract fuzzing, coverage targets, nightly performance runs (do one performance check before launch).</div>
+  </section>
+
+  <!-- 7 VERIFY -->
+  <section id="verify">
+    <div class="sec-head"><span class="num">07</span><h2>Verify</h2></div>
+    <p class="sub">The agent does not say "done". The checks say "done". The builder never grades its own work alone.</p>
+    <div class="ladder">
+      <div class="rung"><span class="big">1</span><div><h3>Spec check</h3><p>Checkpoint 1: are the scenarios clear and testable?</p></div><span class="tag">Draft PR</span></div>
+      <div class="rung"><span class="big">2</span><div><h3>Self-check</h3><p>Builder runs tests, typecheck, lint. The <code>Stop</code> hook won't let it stop on red.</p></div><span class="tag">Builder</span></div>
+      <div class="rung"><span class="big">3</span><div><h3>Fresh verifier</h3><p>A new agent runs <code>/opsx:verify</code>, <code>/ponytail-review</code> (reads code around the diff) and the Maestro areas. Reports bugs with screenshots.</p></div><span class="tag">Separate agent</span></div>
+      <div class="rung"><span class="big">4</span><div><h3>Pre-push + CI</h3><p>Pre-push: an iOS Maestro pass for this exact code. CI: unit, integration, typecheck, lint, <code>openspec validate --strict</code>, security.</p></div><span class="tag">Automatic</span></div>
+      <div class="rung"><span class="big">5</span><div><h3>Video + real check</h3><p>Checkpoint 2: Hamid watches the Maestro video and approves; phone or TestFlight when needed.</p></div><span class="tag">Human</span></div>
+    </div>
+    <div class="cycle-back" style="margin-top:14px">↺ Verifier finds bugs → builder adds a failing test per bug → fixes → re-check. <strong>Max 3 rounds</strong>, then ask a human: the spec is probably unclear.</div>
+    <div class="callout">Weekly: <code>/ponytail-audit</code> on the whole repo. Findings go to <code>clean-code.md</code> or <code>tech-debt.md</code>.</div>
+  </section>
+
+  <!-- 8 AI -->
+  <section id="ai">
+    <div class="sec-head"><span class="num">08</span><h2>Building AI features</h2></div>
+    <p class="sub">Decks, Use it feedback, Kai's replies, deck pictures, the Speak judge. One pattern for every AI task.</p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="icon i-blue">⌁</div>
+        <h3>Code</h3>
+        <ul>
+          <li><strong>One client</strong> (<code>server/src/llm/client.ts</code>) for every model call: fetch prompt, run it, force JSON, validate, send back once if invalid, trace.</li>
+          <li><strong>One module per task:</strong> <code>make_deck</code>, <code>use_it_feedback</code>, <code>kai_reply</code>, <code>speak_judge</code>, <code>deck_picture</code>. Returns nothing on a bad answer; the <strong>service decides the fallback</strong>.</li>
+          <li><strong>Every call has a timeout</strong> and a message for the user. Failed = nothing saved. Good answers are saved, so the same request never pays twice.</li>
+          <li>AI keys only on the server. The app never holds one.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon i-violet">✎</div>
+        <h3>Prompts</h3>
+        <ul>
+          <li>Live in <strong>Langfuse</strong>, versioned, label <code>production</code>.</li>
+          <li>A <strong>draft file</strong> per prompt in the repo: text, model + settings, and <strong>the test results that chose the model</strong> (pass rate, median time, slow cases, cost per call).</li>
+          <li>A small <strong>eval set</strong> per prompt (10–20 cases): deck fits the level, corrections are right and kind. Rerun before promoting a new version.</li>
+          <li>Batch jobs (ready-made decks, picture sheets) have <code>--dry-run</code> and <code>--limit</code>: 20 → read → 1,000 → check → all. Print the cost.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 SPEAK -->
+  <section id="speak">
+    <div class="sec-head"><span class="num">09</span><h2>Testing Speak</h2></div>
+    <p class="sub">A 3-minute voice talk with Kai. Answers are never the same twice, so test in layers.</p>
+    <div class="cycle c3">
+      <div class="cstep"><span class="cn">1</span><b>Logic + screens</b><p>Unit tests: 3:00 timer, word ticks (also "ordered" for "order"), mute sends nothing. Maestro with a <strong>fake Kai</strong>: every state, mic denied, internet drops.</p></div>
+      <div class="cstep"><span class="cn">2</span><b>Student bot + judge</b><p>An LLM plays a learner (mistakes, own-language words, short answers), a voice in <em>its own</em> language gives the accent, ffmpeg adds noise. It talks to the real Kai. A judge AI scores level fit, target words, kind corrections, understood the accent, student talks more.</p></div>
+      <div class="cstep"><span class="cn">3</span><b>Numbers + you</b><p>Reply under ~1 s, Kai stops when interrupted, transcript accuracy per language, <strong>cost per talk</strong>. Plus 10–20 real recordings, and you talking to Kai weekly.</p></div>
+    </div>
+    <div class="callout warn"><strong>Ship rule:</strong> 20–30 bot talks after every Kai prompt change. If the average or any language drops, don't ship. Start with layer 1; add the bot + judge before launch.</div>
+  </section>
+
+  <!-- 10 SHIP -->
+  <section id="ship">
+    <div class="sec-head"><span class="num">10</span><h2>Ship safely, often</h2></div>
+    <div class="grid g3">
+      <div class="card"><div class="icon i-orange">↻</div><h3>Updates</h3><p>Expo EAS Update sends JS fixes the same day. Store releases only for native changes (widget, new native package).</p></div>
+      <div class="card"><div class="icon i-orange">⚑</div><h3>Feature flags</h3><p>PostHog. Unfinished work hidden. Safe default = off. Delete a flag at 100%.</p></div>
+      <div class="card"><div class="icon i-orange">✈</div><h3>TestFlight per feature</h3><p>Built on GitHub Actions from the branch, so checkpoint 2 happens before merge.</p></div>
+      <div class="card"><div class="icon i-green">⬆</div><h3>Add-only migrations</h3><p>Only add tables and columns. Drop or rename in a later deploy, so a rollback always works.</p></div>
+      <div class="card"><div class="icon i-green">♥</div><h3>Health check + rollback</h3><p>Deploy → migrate → <code>GET /health</code> for 60 s → back to the old version if it fails.</p></div>
+      <div class="card"><div class="icon i-green">✓</div><h3>Builds check themselves</h3><p>Release build fails if the API address or the RevenueCat key is missing or wrong, and checks the final app contains them.</p></div>
+    </div>
+    <div class="callout">Two agents at once only with <strong>worktrees</strong> (one folder per branch) and only when they touch different files. Start with 2. Your review time is the real limit.</div>
+  </section>
+
+  <!-- 11 LEARN -->
+  <section id="learn">
+    <div class="sec-head"><span class="num">11</span><h2>Learn from users</h2></div>
+    <div class="grid g3">
+      <div class="card"><div class="icon i-blue">◔</div><h3>Events</h3><p><code>object_action</code>, lowercase, past tense: <code>deck_created</code>, <code>card_swiped</code>, <code>widget_added</code>, <code>talk_finished</code>. Context in properties. Listed in <code>events.md</code>.</p></div>
+      <div class="card"><div class="icon i-blue">☺</div><h3>Speak score</h3><p>Per language: one-tap rating + finished 3:00 + came back in 7 days + judge score on a consented sample. Alert when it drops.</p></div>
+      <div class="card"><div class="icon i-blue">⚙</div><h3>Privacy</h3><p>Store little: login, name, languages, level, goals. Keep Speak text only, never audio. Delete account in the app removes everything. Each user reads only their own rows.</p></div>
+    </div>
+  </section>
+
+  <!-- 12 START -->
+  <section id="start">
+    <div class="sec-head"><span class="num">12</span><h2>Start here</h2></div>
+    <p class="sub">In this order. Steps 1–3 are setup; 4 is the riskiest part, so it comes first among features.</p>
+    <div class="ladder">
+      <div class="rung"><span class="big">1</span><div><h3>Repo skeleton</h3><p>AGENTS.md, app CLAUDE.md files, <code>openspec/config.yaml</code>, <code>.githooks/pre-push</code>, e2e runner, server layers + <code>llm/</code>. <code>product.md</code> from LOCKWORDS-V1.md.</p></div><span class="tag">Day 1</span></div>
+      <div class="rung"><span class="big">2</span><div><h3>Hooks, Ponytail, CI</h3><p>Claude hooks + plugins in <code>.claude/settings.json</code>. CI for both apps. Three databases.</p></div><span class="tag">Day 1–2</span></div>
+      <div class="rung"><span class="big">3</span><div><h3>DigitalOcean + login + dev build</h3><p>App Platform server, managed Postgres, Spaces. Supabase Auth: guest, Apple, Google, email code; the server checks its token. Dev builds on the simulator.</p></div><span class="tag">Day 2–3</span></div>
+      <div class="rung"><span class="big">4</span><div><h3>Widget spike</h3><p>One word from the server on the iPhone lock screen. If this fails, everything else waits.</p></div><span class="tag">Day 3–4</span></div>
+      <div class="rung"><span class="big">5</span><div><h3>Features in roadmap order</h3><p>Onboarding + first deck → Review → My words → Use it → Speak → Paywall. One PR each.</p></div><span class="tag">Then daily</span></div>
+    </div>
+    <div class="callout"><strong>Later:</strong> offline review · Android widget · Easy mode · the product agent (spec site → Figma check → Q&amp;A box).</div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="summary">Spec in a draft PR <em>→</em> tests first <em>→</em> agent builds <em>→</em> fresh agent, Maestro and CI check <em>→</em> video approval <em>→</em> archive and merge. <em>Every day.</em></p>
+    <p>Sources: <code>LOCKWORDS-V1.md</code> (product) · <code>ai-native-process.html</code> (general guide)</p>
+    <p>To confirm with Fatima: code vocabulary list.</p>
+  </div>
+</footer>
+
+<button class="theme-btn" id="themeBtn" aria-label="Switch light or dark">◐</button>
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('themeBtn');
+  try { var saved = localStorage.getItem('theme'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  btn.addEventListener('click', function () {
+    var dark = root.getAttribute('data-theme') === 'dark' ||
+      (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    var next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

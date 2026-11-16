@@ -1,0 +1,16 @@
+{
+  "name": "lockwords",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "test:integration": "npm run test:integration -w @lockwords/server",
+    "e2e": "bash scripts/e2e.sh",
+    "db:setup": "bash scripts/db-setup.sh",
+    "spec:validate": "openspec validate --all --strict",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "engines": { "node": ">=22" }
+}

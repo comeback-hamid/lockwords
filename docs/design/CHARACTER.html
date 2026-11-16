@@ -1,0 +1,1562 @@
+<!doctype html>
+<!--
+  LOCKWORDS CHARACTER SPEC v1.1: "Pixel Sprout" (chat form) + "Sound bars" (voice call form)
+  New in 1.1: 34 more animations (26 chat, 8 call), timelines ("keys"), new pose numbers, loop motions, bindings and effects.
+
+  HOW TO READ THIS FILE (for people and for AI agents)
+  1. All numbers live in ONE place: <script type="application/json" id="character-spec">.
+     Geometry, colors, every state, the morph and the timing rules are there.
+  2. The reference renderer is the function createCharacter() in the last <script>.
+     It reads only the JSON. Port that function to your platform (SwiftUI Canvas, Compose, etc.).
+  3. The visible page is generated from the same JSON, so text and demos cannot drift apart.
+  4. Section 11 tells you how to build it natively (iOS, Android), in Flutter and in React Native.
+  Units: 1 unit = 1 "pixel cell" of the character. x goes right, y goes down. Time is in milliseconds.
+-->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lockwords Character Spec</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--text);
+    font:15px/1.55 "Mona Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;padding:28px 16px 64px}
+  main{max-width:1040px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:20px;margin:44px 0 6px;padding-top:18px;border-top:1px solid var(--line)}
+  h3{font-size:15px;margin:22px 0 6px}
+  p{margin:0 0 10px;max-width:760px} p.sub,.muted{color:var(--muted)}
+  code,kbd,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+  code{background:var(--chip);padding:1px 5px;border-radius:4px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .box{border:1px solid var(--line);background:var(--surface);border-radius:10px}
+  .note{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--surface);border-radius:6px;padding:10px 14px;margin:14px 0;max-width:760px}
+  button{font:600 13px inherit;font-family:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);
+    border-radius:6px;padding:6px 12px;cursor:pointer}
+  button:hover{border-color:var(--muted)}
+  button.active{background:var(--button);border-color:var(--button);color:#fff}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .row .lab{font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);min-width:52px}
+
+  .play{display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:0;overflow:hidden;margin-top:14px}
+  .play .stage{background:var(--canvas);border-right:1px solid var(--line);padding:10px 10px 16px;text-align:center}
+  .play .ctrl{padding:14px 16px}
+  @media (max-width:720px){.play{grid-template-columns:1fr}.play .stage{border-right:0;border-bottom:1px solid var(--line)}}
+  .chip{display:inline-block;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;
+    border-radius:20px;padding:2px 10px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
+  .meter{height:6px;border-radius:3px;background:var(--chip);margin:12px auto 0;max-width:220px;overflow:hidden}
+  .meter i{display:block;height:100%;width:0;background:var(--accent)}
+  .desc{margin-top:14px;font-size:13.5px}
+  .desc b{display:block;font-size:15px;margin-bottom:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px;margin-top:14px}
+  .card{overflow:hidden}
+  .card .stage{background:var(--canvas);border-bottom:1px solid var(--line);padding:4px}
+  .card .meta{padding:10px 12px 12px;font-size:13px}
+  .card .meta b{font-size:15px} .card .meta > code{float:right}
+  .card dl{margin:6px 0 0} .card dt{font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  .card dd{margin:0}
+
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{text-align:left;padding:7px 10px;border-top:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(128,128,128,.25)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px} @media (max-width:720px){.two{grid-template-columns:1fr}}
+  pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:12px;line-height:1.45;max-height:520px}
+  details summary{cursor:pointer;font-weight:600;margin:10px 0}
+
+  /* ---------- character: effects layer (CSS). Everything else is drawn by createCharacter() ---------- */
+  .char svg{display:block;width:100%;height:auto;--lvl:0}
+  .fx{opacity:0;transition:opacity .3s}
+  .fx *{transform-box:fill-box;transform-origin:center}
+  .px,.dot{fill:var(--accent)} .t{font:700 4.5px ui-monospace,SFMono-Regular,Menlo,monospace;fill:var(--accent)}
+  svg[data-fx="in"] .fx-in{opacity:calc(.2 + var(--lvl) * 1.2)}
+  svg[data-fx="out"] .fx-out{opacity:calc(.1 + var(--lvl) * 1.3)}
+  svg[data-fx="dots"] .fx-dots,svg[data-fx="zzz"] .fx-zzz,svg[data-fx="squares"] .fx-squares,
+  svg[data-fx="sparkle"] .fx-sparkle,svg[data-fx="q"] .fx-q,svg[data-fx="bang"] .fx-bang,svg[data-fx="off"] .fx-off{opacity:1}
+  @keyframes inl{0%{opacity:0;transform:translateX(0)}30%{opacity:1}100%{opacity:0;transform:translateX(3.5px)}}
+  @keyframes inr{0%{opacity:0;transform:translateX(0)}30%{opacity:1}100%{opacity:0;transform:translateX(-3.5px)}}
+  @keyframes outl{0%{opacity:0;transform:translateX(0)}25%{opacity:1}100%{opacity:0;transform:translateX(-3.5px)}}
+  @keyframes outr{0%{opacity:0;transform:translateX(0)}25%{opacity:1}100%{opacity:0;transform:translateX(3.5px)}}
+  @keyframes dot{0%,15%{opacity:0}30%,85%{opacity:1}100%{opacity:0}}
+  @keyframes zzz{0%{opacity:0;transform:translate(0,0)}25%{opacity:1}100%{opacity:0;transform:translate(2.5px,-5px)}}
+  @keyframes rise{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:1;transform:translateY(-2.5px) scale(1)}100%{opacity:0;transform:translateY(-13px) scale(1)}}
+  @keyframes twinkle{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-.6px)}}
+  @keyframes slowblink{0%,60%{opacity:1}80%{opacity:.25}100%{opacity:1}}
+  .inl{animation:inl 1.3s linear infinite} .inr{animation:inr 1.3s linear infinite}
+  .outl{animation:outl 1s linear infinite} .outr{animation:outr 1s linear infinite}
+  .dot{animation:dot 1.8s infinite} .z{animation:zzz 3s ease-out infinite}
+  .sq{animation:rise 1.8s ease-out infinite} .sp{animation:twinkle 1s ease-in-out infinite}
+  .fx-q .t,.fx-bang .t{animation:floaty 1.2s ease-in-out infinite}
+  .fx-off .t{fill:var(--muted);animation:slowblink 2s infinite}
+  /* ---------- v1.1 effects. Loop effects run all the time. "Synced" effects play once per cycle; the renderer restarts them. ---------- */
+  svg[data-fx="rain"] .fx-rain,svg[data-fx="levelup"] .fx-levelup,svg[data-fx="star"] .fx-star,svg[data-fx="tree"] .fx-tree,
+  svg[data-fx="stack"] .fx-stack,svg[data-fx="plant"] .fx-plant,svg[data-fx="toss"] .fx-toss,svg[data-fx="idea"] .fx-idea,
+  svg[data-fx="note"] .fx-note,svg[data-fx="heart"] .fx-heart,svg[data-fx="lines"] .fx-lines,svg[data-fx="scan"] .fx-scan{opacity:1}
+  .lf2{fill:var(--leaf)} .lfh2,.idb,.scn{fill:var(--leafHi)} .mut{fill:var(--muted)} .ph{fill:none;stroke:var(--accent);stroke-width:.35}
+  @keyframes rain{0%{opacity:0;transform:translateY(0) rotate(0)}12%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateY(21px) rotate(90deg)}}
+  @keyframes stk{0%{opacity:0;transform:translateY(-4px)}12%{opacity:1;transform:translateY(0)}78%{opacity:1}88%,100%{opacity:0}}
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}45%{transform:scale(1.12)}60%{transform:scale(1) translateY(-.4px)}}
+  @keyframes lnin{0%{opacity:0;transform:translateX(0)}25%{opacity:1}100%{opacity:0;transform:translateX(5px)}}
+  @keyframes scan{0%{transform:translateY(0);opacity:0}8%{opacity:.95}46%,54%{transform:translateY(7px);opacity:.95}92%{transform:translateY(0);opacity:.95}100%{transform:translateY(0);opacity:0}}
+  .rn{animation:rain 2.2s linear infinite} .stk{animation:stk 2.6s linear infinite both} .nt{animation:zzz 2.2s ease-out infinite}
+  .hrt{animation:beat 1.4s ease-in-out infinite} .ln{animation:lnin 1.5s linear infinite} .scn{animation:scan 2.2s ease-in-out infinite}
+  @keyframes lvup{0%,14%{opacity:0;transform:scale(0);fill:var(--sq1)}24%{opacity:1;transform:scale(1.25);fill:var(--sq1)}30%,36%{opacity:1;transform:scale(1);fill:var(--sq1)}
+    42%{transform:scale(1.3);fill:var(--sq3)}50%{transform:scale(1);fill:var(--sq3)}86%{opacity:1;transform:translateY(0);fill:var(--sq3)}100%{opacity:0;transform:translateY(-2px);fill:var(--sq3)}}
+  @keyframes lvs{0%,38%{opacity:0;transform:scale(0)}46%{opacity:1;transform:scale(1.2)}62%,100%{opacity:0;transform:scale(.4)}}
+  @keyframes starpop{0%,40%{opacity:0;transform:scale(0) rotate(-90deg)}55%{opacity:1;transform:scale(1.25) rotate(0)}64%,86%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(.6) rotate(45deg)}}
+  @keyframes treeb{0%,24%{opacity:0;transform:scale(0)}29%{opacity:1;transform:scale(1.25)}33%,62%{opacity:1;transform:scale(1)}68%,100%{opacity:0;transform:scale(0)}}
+  @keyframes plant{0%,28%{opacity:0;transform:scale(0)}36%{opacity:1;transform:scale(1.2)}42%,90%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+  @keyframes tossb{0%,8%{opacity:0;transform:translate(0,0) scale(.3)}13%{opacity:1;transform:translate(0,0) scale(1)}24%{transform:translate(-.8px,.5px) scale(1)}
+    31%{transform:translate(2px,-3px) scale(.85)}38%,88%{opacity:1;transform:translate(3.75px,-4.05px) scale(.7)}96%,100%{opacity:0;transform:translate(3.75px,-4.05px) scale(.7)}}
+  @keyframes tossp{0%,10%{opacity:0;transform:scale(.8)}18%,37%{opacity:1;transform:scale(1)}41%{transform:scale(1.14)}46%,88%{opacity:1;transform:scale(1)}96%,100%{opacity:0}}
+  @keyframes ideab{0%,10%{opacity:0;transform:scale(0)}17%{opacity:1;transform:scale(1.3)}23%,85%{opacity:1;transform:scale(1)}95%,100%{opacity:0;transform:scale(1)}}
+  @keyframes idear{0%,16%{opacity:0}22%{opacity:1}34%{opacity:.2}46%{opacity:1}58%{opacity:.2}70%,85%{opacity:1}95%,100%{opacity:0}}
+  svg[data-fx="levelup"] .lv{animation:lvup var(--cyc,2s) linear 1 both} svg[data-fx="levelup"] .lvs{animation:lvs var(--cyc,2s) linear 1 both}
+  svg[data-fx="star"] .stg{animation:starpop var(--cyc,1.5s) linear 1 both} svg[data-fx="star"] .st2{animation:lvs var(--cyc,1.5s) linear 1 both}
+  svg[data-fx="tree"] .tb{animation:treeb var(--cyc,3.4s) linear 1 both}
+  svg[data-fx="plant"] .plt{animation:plant var(--cyc,2.6s) linear 1 both;transform-origin:50% 100%}
+  svg[data-fx="toss"] .tb2{animation:tossb var(--cyc,2.4s) linear 1 both} svg[data-fx="toss"] .ph{animation:tossp var(--cyc,2.4s) linear 1 both}
+  svg[data-fx="idea"] .idb{animation:ideab var(--cyc,2.4s) linear 1 both} svg[data-fx="idea"] .idr{animation:idear var(--cyc,2.4s) linear 1 both}
+  .grid .grp{grid-column:1/-1;margin:18px 0 0;font-size:16px} .grid .grp span{font-weight:400;font-size:13px;margin-left:6px}
+  .grpl{flex-basis:100%;margin-top:6px} .grpl:first-child{margin-top:0}
+  @media (prefers-reduced-motion:reduce){.fx *{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+
+<div class="top">
+  <div>
+    <h1>Lockwords character spec</h1>
+    <p class="sub">One character, two forms. <b>Pixel Sprout</b> for chat. <b>Sound bars with eyes</b> for voice calls.
+      This file holds the design, every state, the change between forms, and a working reference renderer.
+      <b>Version 1.1</b> adds 34 animations: celebrations, work, feelings, touch and moments.</p>
+  </div>
+  <div class="row" id="themeRow"><span class="lab">Theme</span>
+    <button data-theme="light" class="active">Light (app)</button><button data-theme="dark">Dark</button></div>
+</div>
+
+<div class="note"><b>For an AI agent or developer:</b> read the JSON block <code>#character-spec</code> first. It is the single source of truth.
+  Then port the function <code>createCharacter()</code> at the bottom of this file. Do not copy numbers from the prose; take them from the JSON.</div>
+
+<h2>1. Overview</h2>
+<div class="two">
+  <div>
+    <h3>Chat form: Pixel Sprout</h3>
+    <p>A green pixel block with two eyes, two small arms, two feet and a seedling leaf on top. It shows feelings with its body: arms, leaves, eyes and a small mouth.</p>
+    <p class="muted">Used in the Sprout tab: home greeting, Make a deck, and Talk (text chat).</p>
+  </div>
+  <div>
+    <h3>Call form: Sound bars with eyes</h3>
+    <p>The body splits into seven bars. The two eyes stay. The bars show sound: low and soft when it listens, tall and strong when it speaks.</p>
+    <p class="muted">Used when the user starts a voice call. When the call ends, the bars join back into Sprout.</p>
+  </div>
+</div>
+<p><b>One rule for all states:</b> listening is calm and motion flows <b>in</b>. Speaking is strong and motion flows <b>out</b>.</p>
+
+<h2>2. Playground</h2>
+<p class="sub">Try every state. "Auto demo" plays a chat turn, then a full voice call, then goes back. <b>Tap Sprout</b> to poke it. In <b>Curious</b> its eyes follow your pointer.</p>
+<div class="box play">
+  <div class="stage">
+    <div class="char" id="playChar"></div>
+    <span class="chip" id="playChip">chat · idle</span>
+    <div class="meter"><i id="playMeter"></i></div>
+  </div>
+  <div class="ctrl">
+    <div class="row"><span class="lab">Form</span><button data-form="chat">Chat</button><button data-form="call">Voice call</button></div>
+    <div class="row" id="playStates"><span class="lab">State</span></div>
+    <div class="row"><span class="lab">Input</span><button id="autoBtn" class="active">Auto demo</button><button id="micBtn">Use my microphone</button></div>
+    <div class="desc" id="playDesc"></div>
+  </div>
+</div>
+
+<h2>3. Colors</h2>
+<p>Two palettes with the same token names. <b>Light</b> uses the Lockwords greens (GitHub Primer light). <b>Dark</b> uses GitHub's dark greens. No gradients on the character.</p>
+<div id="paletteTables" class="two"></div>
+
+<h2>4. Shape and parts</h2>
+<p>The character sits on a grid. The body is always drawn as <b>7 slabs</b>, each 2 units wide. In chat form the slabs touch, so they look like one block. In call form each slab gets thinner and becomes a bar. This is why the change between forms is smooth.</p>
+<div id="geometryTables" class="two"></div>
+
+<h2>5. Chat form states</h2>
+<p class="sub">Each card is live. "When" tells you the moment in the app. One-shot states list how long to hold them before going back. States are in groups. A state with a <b>timeline</b> is a short planned move; on this page it plays again after a short rest.</p>
+<div class="grid" id="chatGrid"></div>
+
+<h2>6. Voice call states</h2>
+<div class="grid" id="callGrid"></div>
+
+<h2>7. Changing form: chat to call and back</h2>
+<p>The change takes <span id="morphMs"></span> ms. It has three overlapping steps. Going back to chat plays the same steps in reverse.</p>
+<div class="box play">
+  <div class="stage"><div class="char" id="morphChar"></div><span class="chip" id="morphChip">chat</span></div>
+  <div class="ctrl">
+    <table id="morphTable"></table>
+    <div class="row"><button id="morphBtn">Change form</button><span class="muted">It also changes by itself every few seconds.</span></div>
+  </div>
+</div>
+
+<h2>8. State flow</h2>
+<div class="two">
+  <div>
+    <h3>Chat</h3>
+    <table>
+      <tr><th>Event in the app</th><th>Go to</th></tr>
+      <tr><td>Sprout tab opens</td><td><code>greeting</code>, then <code>idle</code></td></tr>
+      <tr><td>User starts typing or dictating</td><td><code>listening</code></td></tr>
+      <tr><td>User sends the message</td><td><code>thinking</code></td></tr>
+      <tr><td>First part of the reply arrives</td><td><code>speaking</code></td></tr>
+      <tr><td>Reply ends</td><td><code>idle</code></td></tr>
+      <tr><td>A checklist word is used well</td><td><code>wordUsed</code>, then back</td></tr>
+      <tr><td>Sentence not right, or off-topic request</td><td><code>gentleNo</code>, then <code>speaking</code></td></tr>
+      <tr><td>Input not understood</td><td><code>confused</code></td></tr>
+      <tr><td>Talk summary, words moved up</td><td><code>celebrate</code>, then <code>idle</code></td></tr>
+      <tr><td>Words are due, or a suggestion</td><td><code>nudge</code></td></tr>
+      <tr><td>No use for a long time</td><td><code>sleeping</code>. Any touch: <code>idle</code></td></tr>
+      <tr><td>No network or server error</td><td><code>offline</code></td></tr>
+      <tr><td>Sprout shows up on a screen</td><td><code>enter</code>, then <code>idle</code>. Going away: <code>leave</code></td></tr>
+      <tr><td>User returns after a long break</td><td><code>wake</code>, then <code>idle</code>. Quiet hours start: <code>goodnight</code>, then <code>sleeping</code></td></tr>
+      <tr><td>A word moved up one level</td><td><code>levelUp</code>, then back</td></tr>
+      <tr><td>Daily star collected</td><td><code>streak</code>, then <code>idle</code></td></tr>
+      <tr><td>Deck fully learned</td><td><code>deckDone</code>, then <code>idle</code></td></tr>
+      <tr><td>100, 500, 1,000 words</td><td><code>milestone</code>, then <code>idle</code></td></tr>
+      <tr><td>Inbox zero</td><td><code>allDone</code></td></tr>
+      <tr><td>After a hard card or a gentle no</td><td><code>cheer</code>, then back</td></tr>
+      <tr><td>Link, text or word list sent</td><td><code>reading</code>. Video or topic: <code>searching</code>. Photo: <code>scanning</code></td></tr>
+      <tr><td>Deck is being made, progress known</td><td><code>making</code> (pass the progress), then <code>planting</code></td></tr>
+      <tr><td>Word marked Hard</td><td><code>sendHard</code>, then back</td></tr>
+      <tr><td>Sprout has a tip</td><td><code>idea</code>, then <code>speaking</code></td></tr>
+      <tr><td>Sprout confirms something</td><td><code>yes</code>. Playful hint: <code>wink</code></td></tr>
+      <tr><td>User says thanks</td><td><code>shy</code>, then <code>idle</code></td></tr>
+      <tr><td>Summary or result is shown</td><td><code>proud</code></td></tr>
+      <tr><td>Sprout's own mistake, or a retry</td><td><code>oops</code>, then <code>thinking</code></td></tr>
+      <tr><td>User's turn, nothing for 20 seconds</td><td><code>waiting</code></td></tr>
+      <tr><td>Speaker button plays a word</td><td><code>audio</code> while it plays</td></tr>
+      <tr><td>Finger near Sprout, or dragging a card</td><td><code>curious</code> (pass the touch position). Tap on Sprout: <code>poke</code></td></tr>
+      <tr><td>User taps Call</td><td>change form, then call <code>connecting</code></td></tr>
+    </table>
+  </div>
+  <div>
+    <h3>Voice call</h3>
+    <table>
+      <tr><th>Event in the app</th><th>Go to</th></tr>
+      <tr><td>Form change ends, audio not ready</td><td><code>connecting</code></td></tr>
+      <tr><td>Audio ready, nobody talks</td><td><code>idle</code></td></tr>
+      <tr><td>User's voice is detected</td><td><code>listening</code></td></tr>
+      <tr><td>User stops talking</td><td><code>thinking</code></td></tr>
+      <tr><td>Sprout's audio starts</td><td><code>speaking</code></td></tr>
+      <tr><td>User talks over Sprout</td><td><code>listening</code> at once</td></tr>
+      <tr><td>A checklist word is used well</td><td><code>wordUsed</code>, then back</td></tr>
+      <tr><td>User turns the mic off</td><td><code>muted</code></td></tr>
+      <tr><td>Network is weak or lost</td><td><code>reconnecting</code></td></tr>
+      <tr><td>Sprout calls the user</td><td><code>ringing</code> until the user answers</td></tr>
+      <tr><td>Call on hold</td><td><code>paused</code></td></tr>
+      <tr><td>Last 30 seconds</td><td><code>timer</code> (pass the time left)</td></tr>
+      <tr><td>Short 'mm-hm' while the user talks</td><td><code>agree</code>, then back</td></tr>
+      <tr><td>Something funny</td><td><code>laugh</code>, then back</td></tr>
+      <tr><td>Sprout has a tip</td><td><code>idea</code>, then <code>speaking</code></td></tr>
+      <tr><td>A word moved up one level</td><td><code>levelUp</code>, then back</td></tr>
+      <tr><td>All checklist words used</td><td><code>cheer</code>, then <code>idle</code></td></tr>
+      <tr><td>Call ends</td><td><code>ending</code>, change form, chat <code>idle</code></td></tr>
+    </table>
+  </div>
+</div>
+
+<h2>9. Motion rules</h2>
+<table id="rulesTable"></table>
+<h3>Timelines (new in 1.1)</h3>
+<p id="timelineText"></p>
+<table id="easeTable"></table>
+<h3>Loop motions</h3>
+<table id="motionTable"></table>
+<h3>Bindings: parts driven by a live value</h3>
+<table id="bindTable"></table>
+<h3>Effects</h3>
+<p class="muted">"Synced" effects play once per cycle and start together with the body move. All party effects use only the 5 word-level greens.</p>
+<table id="fxTable"></table>
+
+<h2>10. Build notes</h2>
+<table>
+  <tr><th>Topic</th><th>Note</th></tr>
+  <tr><td>iOS drawing</td><td>Use SwiftUI <code>TimelineView(.animation)</code> with <code>Canvas</code>. Draw plain rectangles from the JSON numbers. Turn off antialiasing so pixels stay sharp.</td></tr>
+  <tr><td>Size</td><td>The view box is 28 by 20 units. Pick a whole number of points per unit (for example 6 pt per unit = 168 by 120 pt). Smallest good size: 3 pt per unit.</td></tr>
+  <tr><td>Voice level, listening</td><td>Tap the mic with <code>AVAudioEngine</code>. Level = min(1, RMS × 6). Pass it to the character every frame.</td></tr>
+  <tr><td>Voice level, speaking</td><td>Tap the audio player that plays Sprout's voice, same formula. In text chat with no audio, use the fake voice from the reference renderer while text is streaming.</td></tr>
+  <tr><td>Per-bar levels</td><td>Simple way: one level × the bar shape × a little random jitter (this is what the demo does). Better way: 4 frequency bands, low sounds in the middle bar, high sounds at the edges.</td></tr>
+  <tr><td>Reduce Motion</td><td>Stop all loops. Keep the poses, the eye changes and the bar heights. Replace the form change with a 200 ms cross-fade.</td></tr>
+  <tr><td>Brand feel</td><td>Calm, flat, precise. Party effects (rising squares, falling squares, the pixel tree, the level square) use only the 5 word-level greens. No colored confetti, no gradients, no outlines.</td></tr>
+  <tr><td>Changing the shape</td><td>All shape numbers are in <code>geometry</code> in the JSON. You can change the leaf, feet or arms there without touching any state.</td></tr>
+</table>
+
+<h2>11. How to build it on each platform</h2>
+<p>The plan is the same everywhere. Only the drawing and audio calls change. API names below were correct when this was written; check the current docs of each library before you use them.</p>
+
+<h3>11.1 Same on every platform</h3>
+<table>
+  <tr><th>Step</th><th>What to do</th></tr>
+  <tr><td>1. Ship the spec</td><td>Copy the JSON from <code>#character-spec</code> into the app as a file (for example <code>character-spec.json</code>). Load it once at start. Never type the numbers into code.</td></tr>
+  <tr><td>2. Make a model</td><td>One plain object that holds: <code>form</code>, <code>state</code>, <code>m</code> (form change, 0 to 1), <code>P</code> (the current pose numbers), <code>bars[7]</code>, <code>barColor[7]</code>, <code>lvl</code>, and the blink timers. It is not UI state. Changing it must not rebuild the screen.</td></tr>
+  <tr><td>3. Port <code>step(t, dt)</code></td><td>Copy the numbered steps (0 to 11) inside <code>createCharacter()</code> in this file, in the same order. At the end, the model gives a list of rectangles: x, y, width, height, color, opacity.</td></tr>
+  <tr><td>4. Draw</td><td>Once per screen frame: call <code>step</code>, then draw the rectangles in this order: shadow, effects, leaf and stem, feet, arms, 7 slabs, highlight row, shade row, cheeks, eyes, mouth, and last the scan line. The body group (everything except shadow and effects) gets one transform: move, rotate around the pivot, scale from the pivot, then spin around the body center.</td></tr>
+  <tr><td>5. Keep pixels sharp</td><td>Use a whole number of screen points per unit. Turn antialiasing off. The view box is 28 by 20 units and starts at x −5, y −6, so shift the drawing by 5 and 6 units.</td></tr>
+  <tr><td>6. Effects</td><td>The small effects (sound pixels, dots, zzz, sparkles, squares, ? ! ×) are simple loops. Their positions are in the <code>markup()</code> function and their timing is in the CSS <code>@keyframes</code> at the top of this file. Port each one as a few lines of math on time. Effects in <code>syncedEffects</code> play once per cycle: start them when the timeline or the loop motion starts.</td></tr>
+  <tr><td>7. Public API</td><td>Give the rest of the app five calls: <code>setState(form, state)</code>, <code>setLevel(0…1)</code>, <code>setProgress(0…1)</code> (for <code>making</code> and <code>timer</code>), <code>setLook(x, y)</code> (for <code>curious</code>) and <code>setTheme(light | dark)</code>. The chat and call code call these when events happen (see section 8).</td></tr>
+  <tr><td>8. Voice level</td><td>Listening: level from the microphone. Speaking: level from the audio that is playing. Level = min(1, RMS × 6) for raw samples. If you only get decibels, use level = clamp((dB + 50) / 50, 0, 1). With no audio, use the fake voice rule.</td></tr>
+  <tr><td>9. Reduce Motion</td><td>If the user turned on Reduce Motion: stop the loops, keep poses and bar heights, and cross-fade the form change in 200 ms.</td></tr>
+  <tr><td>10. Check</td><td>Open this page next to your build. Put both in the same state and compare. They should look the same.</td></tr>
+</table>
+
+<p class="muted">The code samples below are short on purpose. They show the frame loop and the drawing call. They leave out the body transform from step 4: wrap the body rectangles in save, move, rotate, scale, restore.</p>
+
+<h3>11.2 Native iOS (SwiftUI)</h3>
+<table>
+  <tr><th>Topic</th><th>Use</th></tr>
+  <tr><td>Drawing</td><td><code>Canvas</code> inside <code>TimelineView(.animation)</code>. Draw with Core Graphics through <code>withCGContext</code> so you can turn antialiasing off.</td></tr>
+  <tr><td>Spec</td><td>Decode the JSON with <code>Codable</code> structs.</td></tr>
+  <tr><td>Mic level</td><td><code>AVAudioEngine</code>: install a tap on <code>inputNode</code>, compute RMS of each buffer.</td></tr>
+  <tr><td>Voice level</td><td>Install a tap on the player node or on <code>mainMixerNode</code>. With <code>AVAudioPlayer</code>, turn on <code>isMeteringEnabled</code> and read <code>averagePower</code> (decibels).</td></tr>
+  <tr><td>Reduce Motion</td><td><code>@Environment(\.accessibilityReduceMotion)</code></td></tr>
+</table>
+<pre>struct CharacterView: View {
+  let model: CharacterModel                      // plain class, holds the spec and the state
+  @Environment(\.accessibilityReduceMotion) var reduceMotion
+
+  var body: some View {
+    TimelineView(.animation(paused: reduceMotion)) { timeline in
+      Canvas { ctx, size in
+        let u = floor(size.width / 28)           // whole points per unit
+        model.step(now: timeline.date)           // the 11 steps of createCharacter()
+        ctx.withCGContext { cg in
+          cg.setShouldAntialias(false)
+          cg.translateBy(x: 5 * u, y: 6 * u)     // view box starts at -5, -6
+          for r in model.rects {                 // already in draw order
+            cg.setFillColor(r.cgColor)
+            cg.fill(r.frame(unit: u))
+          }
+        }
+      }
+    }
+    .aspectRatio(28.0 / 20.0, contentMode: .fit)
+  }
+}</pre>
+
+<h3>11.3 Native Android (Jetpack Compose)</h3>
+<table>
+  <tr><th>Topic</th><th>Use</th></tr>
+  <tr><td>Drawing</td><td>Compose <code>Canvas</code>. Drive frames with <code>withFrameNanos</code>. Draw through <code>drawIntoCanvas</code> with a <code>Paint</code> that has <code>isAntiAlias = false</code>.</td></tr>
+  <tr><td>Spec</td><td>Put the JSON in <code>assets</code> and decode it with <code>kotlinx.serialization</code>.</td></tr>
+  <tr><td>Mic level</td><td><code>AudioRecord</code>: read PCM samples and compute RMS. Needs the <code>RECORD_AUDIO</code> permission.</td></tr>
+  <tr><td>Voice level</td><td>If you play PCM yourself (<code>AudioTrack</code>), compute RMS on the samples you write. With ExoPlayer / Media3, add an audio processor that reads the samples. The <code>Visualizer</code> class also works but needs the record permission.</td></tr>
+  <tr><td>Reduce Motion</td><td>Read <code>Settings.Global.ANIMATOR_DURATION_SCALE</code>. A value of 0 means animations are off.</td></tr>
+</table>
+<pre>@Composable
+fun CharacterView(model: CharacterModel, modifier: Modifier = Modifier) {
+  var frameMs by remember { mutableLongStateOf(0L) }
+  LaunchedEffect(Unit) { while (true) withFrameNanos { frameMs = it / 1_000_000 } }
+  val paint = remember { Paint().apply { isAntiAlias = false } }
+
+  Canvas(modifier.aspectRatio(28f / 20f)) {
+    val u = floor(size.width / 28f)              // whole pixels per unit
+    model.step(frameMs.toDouble())               // reading frameMs here redraws every frame
+    drawIntoCanvas { canvas -&gt;
+      canvas.translate(5 * u, 6 * u)
+      for (r in model.rects) {
+        paint.color = r.color
+        canvas.drawRect(r.toRect(u), paint)
+      }
+    }
+  }
+}</pre>
+
+<h3>11.4 Flutter</h3>
+<table>
+  <tr><th>Topic</th><th>Use</th></tr>
+  <tr><td>Drawing</td><td><code>CustomPaint</code> with a <code>CustomPainter</code>. Drive it with a <code>Ticker</code> and pass a <code>Listenable</code> as <code>repaint</code>, so only the painter redraws (no <code>setState</code> per frame). Use <code>Paint()..isAntiAlias = false</code>.</td></tr>
+  <tr><td>Spec</td><td>Add the JSON to <code>assets</code> in <code>pubspec.yaml</code>, load it with <code>rootBundle.loadString</code> and <code>jsonDecode</code>.</td></tr>
+  <tr><td>Mic level</td><td>The <code>record</code> package gives the amplitude in decibels (<code>onAmplitudeChanged</code>). Convert with the decibel formula in 11.1.</td></tr>
+  <tr><td>Voice level</td><td>Most player packages do not give a level. If the voice arrives as PCM chunks, compute RMS on the chunks you play. If not, use the fake voice while audio is playing.</td></tr>
+  <tr><td>Reduce Motion</td><td><code>MediaQuery.of(context).disableAnimations</code></td></tr>
+  <tr><td>Note</td><td>One Flutter build covers iOS and Android. Nothing in the character needs platform code except audio.</td></tr>
+</table>
+<pre>class CharacterPainter extends CustomPainter {
+  CharacterPainter(this.model, Listenable tick) : super(repaint: tick);
+  final CharacterModel model;
+  final Paint _paint = Paint()..isAntiAlias = false;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final u = (size.width / 28).floorToDouble();  // whole pixels per unit
+    canvas.translate(5 * u, 6 * u);
+    for (final r in model.rects) {
+      _paint.color = r.color;
+      canvas.drawRect(r.toRect(u), _paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CharacterPainter old) =&gt; false;
+}
+
+// In the widget State (with SingleTickerProviderStateMixin):
+//   final tick = ValueNotifier&lt;int&gt;(0);
+//   late final Ticker ticker = createTicker((elapsed) {
+//     model.step(elapsed.inMicroseconds / 1000);   // ms
+//     tick.value++;
+//   })..start();
+//   AspectRatio(aspectRatio: 28 / 20, child: CustomPaint(painter: CharacterPainter(model, tick)))</pre>
+
+<h3>11.5 React Native</h3>
+<table>
+  <tr><th>Topic</th><th>Use</th></tr>
+  <tr><td>Drawing</td><td><code>@shopify/react-native-skia</code> with <code>react-native-reanimated</code>. Build one Skia <code>Picture</code> per frame on the UI thread. Do not use React state per frame, and do not use <code>react-native-svg</code> for this: both are too slow for many moving parts.</td></tr>
+  <tr><td>Spec</td><td><code>import spec from './character-spec.json'</code></td></tr>
+  <tr><td>Step function</td><td>Write <code>stepCharacter()</code> as a worklet (a pure function with <code>'worklet'</code> at the top) so it can run on the UI thread. Keep <code>form</code>, <code>state</code> and <code>level</code> in shared values.</td></tr>
+  <tr><td>Mic level</td><td>Expo audio recording with metering turned on gives decibels. Convert with the decibel formula in 11.1.</td></tr>
+  <tr><td>Voice level</td><td>Playback metering is usually not available. If the voice arrives as PCM chunks, compute RMS on them. If not, use the fake voice while audio is playing.</td></tr>
+  <tr><td>Reduce Motion</td><td><code>useReducedMotion()</code> from Reanimated, or <code>AccessibilityInfo.isReduceMotionEnabled()</code>.</td></tr>
+</table>
+<pre>import { Canvas, Picture, Skia, createPicture, useClock } from '@shopify/react-native-skia';
+import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
+import spec from './character-spec.json';
+
+export function CharacterView({ width }) {
+  const u = Math.floor(width / 28);              // whole points per unit
+  const clock = useClock();                      // time in ms, runs on the UI thread
+  const input = useSharedValue({ form: 'chat', state: 'idle', level: 0 });
+  const memory = useSharedValue(newCharacterMemory(spec));   // m, pose, bars, blink timers
+
+  const picture = useDerivedValue(() =&gt; {
+    'worklet';
+    const rects = stepCharacter(spec, memory, input.value, clock.value);  // port of step()
+    return createPicture((canvas) =&gt; {
+      const paint = Skia.Paint();
+      paint.setAntiAlias(false);
+      canvas.translate(5 * u, 6 * u);
+      for (const r of rects) {
+        paint.setColor(Skia.Color(r.color));
+        canvas.drawRect(Skia.XYWHRect(r.x * u, r.y * u, r.w * u, r.h * u), paint);
+      }
+    });
+  });
+
+  return (
+    &lt;Canvas style={{ width: 28 * u, height: 20 * u }}&gt;
+      &lt;Picture picture={picture} /&gt;
+    &lt;/Canvas&gt;
+  );
+}</pre>
+
+<h3>11.6 Which one to pick</h3>
+<table>
+  <tr><th>If the app is built with</th><th>Do this</th></tr>
+  <tr><td>Swift only</td><td>11.2. Smallest and fastest.</td></tr>
+  <tr><td>Swift and Kotlin</td><td>Port <code>step()</code> twice (11.2 and 11.3). It is about 150 lines each. Keep one shared JSON file so both stay the same.</td></tr>
+  <tr><td>Flutter</td><td>11.4. One port for both phones.</td></tr>
+  <tr><td>React Native</td><td>11.5. One port for both phones. The step function in this file is JavaScript already, so most of it can be copied.</td></tr>
+</table>
+
+<h2>12. Machine-readable spec</h2>
+<details><summary>Show the JSON</summary><pre id="specDump"></pre></details>
+
+</main>
+
+<script type="application/json" id="character-spec">
+{
+  "name": "Lockwords character",
+  "version": "1.1",
+  "units": "1 unit = 1 pixel cell. x right, y down. Angles in degrees. Time in ms. level = voice volume from 0 to 1.",
+  "viewBox": [-5, -6, 28, 20],
+  "groups": {
+    "Core": "The basic loop of a chat or a call.",
+    "Celebrate": "Wins, small and big.",
+    "Work": "Sprout is doing a job for the user.",
+    "Feelings": "Small reactions that make it feel alive.",
+    "Touch": "Reacts to the user's finger.",
+    "Moments": "Arriving, leaving, waiting, pausing."
+  },
+  "forms": {
+    "chat": "Pixel Sprout. Used for text chat in the Sprout tab.",
+    "call": "Sound bars with eyes. Used during a voice call."
+  },
+  "palette": {
+    "light": {
+      "canvas": "#f6f8fa", "surface": "#ffffff", "chip": "#eff2f5", "line": "#d1d9e0", "text": "#1f2328", "muted": "#59636e", "button": "#1f883d",
+      "body": "#2da44e", "hi": "#4ac26b", "shade": "#1f883d", "leaf": "#4ac26b", "leafHi": "#6fdd8b",
+      "eye": "#1f2328", "accent": "#1f883d", "dimTo": "#c5ced7", "shadow": "#d1d9e0",
+      "barsStrong": ["#4ac26b", "#2da44e", "#2da44e", "#1f883d", "#2da44e", "#2da44e", "#4ac26b"],
+      "barsSoft": ["#aceebb", "#6fdd8b", "#4ac26b", "#4ac26b", "#4ac26b", "#6fdd8b", "#aceebb"],
+      "barsMuted": "#c5ced7",
+      "barsSweep": ["#1f883d", "#4ac26b", "#aceebb"],
+      "squares": ["#aceebb", "#6fdd8b", "#4ac26b", "#2da44e", "#116329"]
+    },
+    "dark": {
+      "canvas": "#0d1117", "surface": "#161b22", "chip": "#21262d", "line": "#30363d", "text": "#e6edf3", "muted": "#8b949e", "button": "#238636",
+      "body": "#3fb950", "hi": "#56d364", "shade": "#2ea043", "leaf": "#56d364", "leafHi": "#7ee787",
+      "eye": "#0d1117", "accent": "#39d353", "dimTo": "#484f58", "shadow": "#010409",
+      "barsStrong": ["#26a641", "#2ea043", "#3fb950", "#56d364", "#3fb950", "#2ea043", "#26a641"],
+      "barsSoft": ["#006d32", "#1f8a3c", "#26a641", "#2ea043", "#26a641", "#1f8a3c", "#006d32"],
+      "barsMuted": "#484f58",
+      "barsSweep": ["#56d364", "#2ea043", "#238636"],
+      "squares": ["#0e4429", "#006d32", "#26a641", "#39d353", "#56d364"]
+    }
+  },
+  "paletteRoles": {
+    "body": "main body color (chat form slabs)", "hi": "top highlight row", "shade": "bottom shade row and feet",
+    "leaf": "leaves and stem", "leafHi": "small top part of each leaf", "eye": "eyes and mouth",
+    "accent": "effect pixels: sound pixels, dots, zzz, ? and !", "dimTo": "body mixes toward this when a state has dim > 0",
+    "barsStrong": "call form, speaking and idle: one color per bar, left to right", "barsSoft": "call form, listening and connecting",
+    "barsMuted": "call form, mic off or no signal", "barsSweep": "call form, thinking: [bright bar, next to it, the rest]",
+    "squares": "celebrate effect: the 5 word-level greens"
+  },
+  "geometry": {
+    "slabCount": 7,
+    "pivot": [9, 10.5],
+    "spinCenter": [9, 5.5],
+    "chat": {
+      "slab": {"x0": 2, "step": 2, "width": 2, "centerY": 5.5, "height": 7, "outerHeight": 5, "note": "slab i starts at x0 + i*step. Slabs 0 and 6 are shorter (outerHeight) so the block has stepped corners."},
+      "hiRow": [4, 2, 10, 1],
+      "loRow": [4, 8, 10, 1],
+      "eyes": {"x": [6.5, 10.5], "centerY": 5, "width": 1, "height": 2},
+      "mouth": {"center": [9, 6.9], "width": 2, "height": 1},
+      "arms": {"left": [0, 5, 2, 2], "right": [16, 5, 2, 2]},
+      "feet": [[5, 9, 2, 1.5], [11, 9, 2, 1.5]],
+      "cheeks": [[4.6, 6.2, 1.4, 0.9], [12, 6.2, 1.4, 0.9]],
+      "stem": [8.5, -0.5, 1, 2.5],
+      "leafLeft": [[5.5, -1.5, 3, 1], [6.5, -2.5, 2, 1]],
+      "leafRight": [[9.5, -1.5, 3, 1], [9.5, -2.5, 2, 1]],
+      "leafPivot": [9, -0.5],
+      "shadow": {"center": [9, 10.7], "rx": 6.5, "ry": 0.45}
+    },
+    "call": {
+      "bar": {"x0": 2.2, "step": 2, "width": 1.6, "centerY": 5.5, "fullHeight": 6, "note": "bar height = fullHeight * scale. Scale comes from the state."},
+      "eyes": {"x": [6.5, 10.5], "centerY": 5.5, "width": 1, "height": 2, "note": "eyes sit on bars 2 and 4 (counting from 0). Those bars never get shorter than the eyes."},
+      "barShape": [0.55, 0.75, 0.9, 1, 0.9, 0.75, 0.55]
+    }
+  },
+  "poseDefaults": {
+    "lean": 0, "lift": 0, "sx": 1, "sy": 1, "armL": 0, "armR": 0, "armSy": 1, "leaf": 0,
+    "eyeSy": 1, "eyeDx": 0, "eyeDy": 0, "mouth": 0, "mouthW": 1, "mouthH": 0.4, "dim": 0,
+    "x": 0, "spin": 0, "eyeLSy": 1, "eyeRSy": 1, "footL": 0, "footR": 0, "cheek": 0, "stem": 1, "leafS": 1, "leafTilt": 0,
+    "armLx": 0, "armRx": 0, "flat": 0
+  },
+  "poseFields": {
+    "lean": "rotate the whole body around the pivot, degrees", "lift": "move the body up (negative) or down, units",
+    "sx": "body width scale", "sy": "body height scale (scales from the pivot, at the feet)",
+    "armL": "left arm y offset, negative = up", "armR": "right arm y offset", "armSy": "arm height scale (1.5 = stretched into an ear)",
+    "leaf": "leaf angle. Positive = leaves lift up, negative = leaves droop", "eyeSy": "eye height scale (1.3 = wide, 0.15 = closed line)",
+    "eyeDx": "eye x offset", "eyeDy": "eye y offset", "mouth": "mouth visible, 0 or 1", "mouthW": "mouth width scale", "mouthH": "mouth height scale",
+    "dim": "0 to 1, how far the body color mixes toward palette.dimTo",
+    "x": "move the body left (negative) or right, units", "spin": "turn the whole body around geometry.spinCenter, degrees (360 = one flip)",
+    "eyeLSy": "extra height scale for the left eye only", "eyeRSy": "extra height scale for the right eye only (0.12 = wink)",
+    "footL": "lift the left foot by this many units (it tucks under the body)", "footR": "lift the right foot",
+    "cheek": "0 to 1, how visible the two light cheeks are", "stem": "stem height scale (1.5 = the sprout grows taller)",
+    "leafS": "leaf size scale (0 = no leaves)", "leafTilt": "turn both leaves the same way, degrees. Positive = left leaf up, right leaf down",
+    "armLx": "stretch the left arm outward by this many units", "armRx": "stretch the right arm outward",
+    "flat": "0 to 1, hides the highlight and shade rows (used when the slabs show progress)"
+  },
+  "motionTypes": {
+    "breathe": "body rises by amp and comes back, once per period",
+    "hop": "body jumps up by amp for 60% of the period, then squashes on landing",
+    "shake": "quick left-right shake of amp at the start of each period, then still",
+    "sway": "lean swings by ±amp degrees",
+    "sleep": "body height shrinks by amp and comes back, slowly",
+    "nod": "two quick dips of amp in the first half of the period, eyes follow, then still",
+    "dance": "steps from foot to foot: lean ±5°, the lifted foot tucks, the arm on that side pumps up, leaves swing, small bounce of amp × 0.4",
+    "float": "hovers amp units above the ground and drifts ±22% of amp; feet tuck a little, leaves drift, the shadow gets smaller",
+    "tap": "the right foot taps two times in the first half of the period, then rests",
+    "look": "turns left and right: lean ±amp degrees, eyes ±0.7, body ±0.5 units",
+    "read": "eyes move left to right along 3 lines per period, then jump to the next line",
+    "work": "left and right arm go up by amp one after the other, fast",
+    "flip": "crouch (first 14%), jump amp units high with one full 360° turn (14% to 70%), land with a squash (70% to 84%), then rest"
+  },
+  "bindings": {
+    "ears": "both arms move up by value × level",
+    "mouth": "mouthH = 0.3 + 2.1 × level, mouthW = 1 + 0.5 × level",
+    "lift": "body moves up by value × level",
+    "arms": "left arm up by value × level, right arm up by 0.8 × value × (1 - level)",
+    "fill": "chat form. progress 0 to 1 lights the 7 slabs from left to right; slabs not reached yet mix 80% toward palette.dimTo. Left arm follows slab 0, right arm follows slab 6",
+    "look": "chat form. touch position x, y from -1 to 1: eyes move 0.7 × x and 0.5 × y, lean 3° × x, leaves tilt -8° × x. Smoothed 15% per frame",
+    "drain": "call form. time left 1 to 0: bars turn muted and low (0.22) one by one from the right"
+  },
+  "effects": {
+    "in": "6 small pixels fly toward the character. Brightness follows level.",
+    "out": "6 small pixels fly away from the character. Brightness follows level.",
+    "dots": "3 growing squares, top right, appear one after another",
+    "zzz": "3 letters z float up, top right",
+    "sparkle": "4 pixels twinkle around the body",
+    "squares": "10 small squares in the 5 word-level greens rise from the bottom",
+    "q": "a floating question mark, top right",
+    "bang": "a floating exclamation mark, top right",
+    "off": "a gray × that blinks slowly, top right",
+    "rain": "12 small squares in the 5 word-level greens fall from the top and turn a little",
+    "levelup": "synced. One level square, top right: pops in at 14% of the cycle in a light green, turns two greens darker at 42% with a small bump and two side pixels, floats away at the end",
+    "star": "synced. A plus-shaped pixel star, top right, pops and turns into place at 40% to 55% of the cycle, with two small side pixels",
+    "tree": "synced. 12 word squares pop in above the stem, bottom row first (6, then 4, then 2), from 24% of the cycle; they hold, then shrink away at 62% to 68%",
+    "stack": "4 word squares drop in and stack up at the right, one every 0.4 s, then fade",
+    "plant": "synced. A tiny sprout (stem and two leaves) grows out of the ground at the right at 28% to 42% of the cycle",
+    "toss": "synced. A word square appears above the right hand at 8%, flies in an arc into a small phone outline (top right) at 24% to 38%; the phone bumps and both fade at the end",
+    "idea": "synced. A small pixel light bulb, top right, pops on at 10% to 23% of the cycle; 5 ray pixels blink",
+    "note": "two music notes float up, top right",
+    "heart": "a small pixel heart, top right, beats twice per 1.4 s",
+    "lines": "3 short text lines flow in from the left, toward the eyes",
+    "scan": "4 frame corners around the body; a light line moves down and up over the body, drawn on top of it"
+  },
+  "syncedEffects": ["levelup", "star", "tree", "plant", "toss", "idea"],
+  "timeline": {
+    "text": "A state with 'keys' is a short planned move. frames[i].at is a time from 0 to 1 inside durationMs. Each frame lists only the pose numbers that differ from the state's base pose (poseDefaults + pose). Between two frames every number is blended with the easing of the later frame. After durationMs the last frame holds for restMs, then this page plays it again. In the app, play it once and go to returnsTo.",
+    "ease": {
+      "smooth": "smoothstep. The default.",
+      "out": "fast start, soft stop: 1 - (1 - x)³. Use it for jumps going up and for pops.",
+      "in": "soft start, fast end: x³. Use it for falling.",
+      "linear": "steady speed"
+    },
+    "snapStart": "if true, the pose jumps to the first frame when the timeline starts (enter uses it, because it starts out of view)",
+    "h": "call form only: a frame can set the bar scale h (one number, or 7 numbers)"
+  },
+  "chat": {
+    "order": ["idle", "greeting", "listening", "thinking", "speaking", "wordUsed", "gentleNo", "confused", "celebrate", "nudge", "sleeping", "offline",
+      "levelUp", "streak", "deckDone", "milestone", "allDone", "cheer",
+      "reading", "searching", "scanning", "making", "planting", "sendHard", "idea",
+      "yes", "wink", "shy", "proud", "oops", "waiting", "audio",
+      "curious", "poke",
+      "enter", "leave", "wake", "goodnight"],
+    "states": {
+      "idle": {
+        "label": "Idle", "when": "Nothing is happening. This is the default.",
+        "look": "Breathes slowly and blinks.", "driven": "Loop",
+        "motion": {"type": "breathe", "amp": 0.45, "period": 2200}
+      },
+      "greeting": {
+        "label": "Greeting", "when": "The Sprout tab opens, or a new session starts.",
+        "look": "Right arm goes up and waves. Body sways. Small open mouth.", "driven": "Loop",
+        "pose": {"armR": -2.2, "mouth": 1, "mouthH": 0.7, "leaf": 8},
+        "armWave": {"amp": 0.8, "period": 450},
+        "motion": {"type": "sway", "amp": 3, "period": 1800},
+        "holdMs": 2000, "returnsTo": "idle"
+      },
+      "listening": {
+        "label": "Listening", "when": "The user is typing or dictating.",
+        "look": "Leans in. Arms slide up and stretch into ears. Leaves lift. Eyes open wide. Sound pixels fly in.",
+        "driven": "Mic or typing level: ears twitch, pixels get brighter",
+        "pose": {"lean": -4, "armL": -2.3, "armR": -2.3, "armSy": 1.5, "eyeSy": 1.3, "leaf": 22},
+        "bind": {"ears": 0.8}, "fx": "in"
+      },
+      "thinking": {
+        "label": "Thinking", "when": "Message sent, waiting for the reply. Also while a deck is being made.",
+        "look": "Eyes look up. Three dots grow. Slow breathing. No blinking.", "driven": "Loop",
+        "pose": {"eyeDx": 0.4, "eyeDy": -0.6, "leaf": -6},
+        "motion": {"type": "breathe", "amp": 0.3, "period": 3000},
+        "fx": "dots", "noBlink": true
+      },
+      "speaking": {
+        "label": "Speaking", "when": "The reply is streaming as text or playing as audio.",
+        "look": "A mouth appears and moves. Body bounces a little. Arms gesture. Sound pixels fly out.",
+        "driven": "Voice level: mouth height, bounce, arms",
+        "pose": {"mouth": 1},
+        "bind": {"mouth": 1, "lift": 0.7, "arms": 1.2}, "fx": "out"
+      },
+      "wordUsed": {
+        "label": "Word used", "when": "The user used a checklist word well, or got a review right.",
+        "look": "Small happy hop. Both arms up. Eyes squint. Sparkles.", "driven": "Loop",
+        "pose": {"armL": -2, "armR": -2, "eyeSy": 0.5, "mouth": 1, "mouthW": 1.5, "mouthH": 1, "leaf": 25},
+        "motion": {"type": "hop", "amp": 1.6, "period": 700},
+        "fx": "sparkle", "holdMs": 1400, "returnsTo": "previous"
+      },
+      "gentleNo": {
+        "label": "Gentle no", "when": "The sentence was not right, or the request is off-topic. Always kind, never harsh.",
+        "look": "A short shake. Eyes look down. Arms and leaves droop. Flat mouth.", "driven": "Loop",
+        "pose": {"eyeDy": 0.5, "eyeSy": 0.8, "armL": 0.6, "armR": 0.6, "mouth": 1, "mouthW": 1.3, "mouthH": 0.3, "leaf": -14},
+        "motion": {"type": "shake", "amp": 0.5, "period": 2400},
+        "holdMs": 1200, "returnsTo": "speaking"
+      },
+      "confused": {
+        "label": "Confused", "when": "The input was not understood. Sprout asks the user to say it another way.",
+        "look": "Tilts to one side. One arm up. A question mark floats.", "driven": "Loop",
+        "pose": {"lean": 7, "armR": -1.4, "eyeDx": -0.3, "leaf": -4},
+        "motion": {"type": "sway", "amp": 1.5, "period": 2600},
+        "fx": "q"
+      },
+      "celebrate": {
+        "label": "Celebrate", "when": "Talk summary: words moved up. Words reached long-term. A deck is finished.",
+        "look": "Big hops. Arms and leaves up. Open mouth. Word squares rise.", "driven": "Loop",
+        "pose": {"armL": -3, "armR": -3, "mouth": 1, "mouthW": 1.6, "mouthH": 1.6, "eyeSy": 0.5, "leaf": 30},
+        "motion": {"type": "hop", "amp": 3, "period": 620},
+        "fx": "squares", "holdMs": 2400, "returnsTo": "idle"
+      },
+      "nudge": {
+        "label": "Nudge", "when": "Sprout wants attention: words are due, or it has a suggestion.",
+        "look": "Small hop now and then. Right arm waves. An exclamation mark floats.", "driven": "Loop",
+        "pose": {"armR": -2.4, "eyeSy": 1.2, "leaf": 12},
+        "armWave": {"amp": 0.7, "period": 500},
+        "motion": {"type": "hop", "amp": 1, "period": 1500},
+        "fx": "bang"
+      },
+      "sleeping": {
+        "label": "Sleeping", "when": "The app was not used for a long time, or it is quiet hours.",
+        "look": "Eyes closed. Slow deep breath. Leaves droop. z z z.", "driven": "Loop",
+        "pose": {"eyeSy": 0.15, "dim": 0.2, "armL": 0.5, "armR": 0.5, "leaf": -24},
+        "motion": {"type": "sleep", "amp": 0.06, "period": 3200},
+        "fx": "zzz", "noBlink": true
+      },
+      "offline": {
+        "label": "Offline", "when": "No network, or the server returned an error.",
+        "look": "Body turns gray. Eyes closed. Everything droops. A gray × blinks.", "driven": "Still",
+        "pose": {"dim": 0.85, "eyeSy": 0.15, "armL": 0.8, "armR": 0.8, "leaf": -30},
+        "fx": "off", "noBlink": true
+      },
+      "levelUp": {
+        "group": "Celebrate", "label": "Level up", "when": "One word moved up a level, in review or in a talk.",
+        "look": "Crouches, then stretches tall with arms and leaves up. A level square pops next to it and turns one step darker.", "driven": "Timeline, 1100 ms",
+        "pose": {"mouth": 1, "mouthW": 1.3, "mouthH": 0.8},
+        "keys": {"durationMs": 1100, "restMs": 900, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.18, "pose": {"sy": 0.86, "sx": 1.08, "leaf": -10, "eyeSy": 0.8}},
+          {"at": 0.42, "ease": "out", "pose": {"sy": 1.12, "sx": 0.95, "lift": -1.4, "leaf": 32, "armL": -2.6, "armR": -2.6, "eyeSy": 1.2, "eyeDx": 0.5, "eyeDy": -0.5}},
+          {"at": 0.7, "pose": {"leaf": 22, "armL": -2.2, "armR": -2.2, "eyeSy": 0.5, "eyeDx": 0.3, "eyeDy": -0.3}},
+          {"at": 1, "pose": {"leaf": 14, "armL": -1, "armR": -1, "eyeSy": 0.5}}]},
+        "fx": "levelup", "holdMs": 1100, "returnsTo": "previous"
+      },
+      "streak": {
+        "group": "Celebrate", "label": "Streak", "when": "The daily star is collected. The streak goes up by one.",
+        "look": "Crouches, jumps and does one full flip in the air, then lands with a small squash. A pixel star pops.", "driven": "Loop, one flip per 1500 ms",
+        "pose": {"mouth": 1, "mouthW": 1.5, "mouthH": 1.2, "eyeSy": 0.5, "armL": -2.4, "armR": -2.4, "leaf": 24},
+        "motion": {"type": "flip", "amp": 3.2, "period": 1500},
+        "fx": "star", "holdMs": 1500, "returnsTo": "idle"
+      },
+      "deckDone": {
+        "group": "Celebrate", "label": "Deck grown", "when": "Every word of a deck is learned. The deck's tree is fully grown.",
+        "look": "Looks up. Its own leaf grows into a small pixel tree made of word squares. Arms up. Then the tree turns back into the leaf.", "driven": "Timeline, 2600 ms",
+        "keys": {"durationMs": 2600, "restMs": 800, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.1, "pose": {"sy": 0.9, "sx": 1.06, "eyeDy": 0.3}},
+          {"at": 0.24, "ease": "out", "pose": {"sy": 1.05, "sx": 0.97, "eyeDy": -0.7, "eyeSy": 1.2, "leafS": 0, "stem": 1.5, "armL": -1.5, "armR": -1.5}},
+          {"at": 0.36, "pose": {"eyeDy": -0.7, "eyeSy": 1.25, "leafS": 0, "stem": 1.5, "armL": -3, "armR": -3, "mouth": 1, "mouthW": 1.5, "mouthH": 1.4}},
+          {"at": 0.8, "pose": {"eyeDy": -0.5, "eyeSy": 0.5, "leafS": 0, "stem": 1.5, "armL": -3, "armR": -3, "mouth": 1, "mouthW": 1.5, "mouthH": 1.2}},
+          {"at": 0.92, "pose": {"leafS": 1, "stem": 1, "armL": -1, "armR": -1, "eyeSy": 0.5, "mouth": 1, "mouthW": 1.4, "mouthH": 0.8, "leaf": 20}},
+          {"at": 1, "pose": {"mouth": 1, "mouthW": 1.3, "mouthH": 0.6, "leaf": 12}}]},
+        "fx": "tree", "holdMs": 2600, "returnsTo": "idle"
+      },
+      "milestone": {
+        "group": "Celebrate", "label": "Milestone", "when": "A big number is reached: 100, 500 or 1,000 words.",
+        "look": "Dances: steps from foot to foot, arms pump one after the other, leaves swing. Word squares fall like rain.", "driven": "Loop",
+        "pose": {"mouth": 1, "mouthW": 1.6, "mouthH": 1.3, "eyeSy": 0.5, "leaf": 20},
+        "motion": {"type": "dance", "amp": 1, "period": 760},
+        "fx": "rain", "holdMs": 3000, "returnsTo": "idle"
+      },
+      "allDone": {
+        "group": "Celebrate", "label": "All done", "when": "Inbox zero: every card due today is reviewed.",
+        "look": "Floats above the ground with closed happy eyes and a small smile. Feet hang. The shadow gets smaller. Calm sparkles.", "driven": "Loop",
+        "pose": {"eyeSy": 0.3, "mouth": 1, "mouthW": 1.4, "mouthH": 0.5, "armL": -0.6, "armR": -0.6, "leaf": 16, "cheek": 0.7},
+        "motion": {"type": "float", "amp": 1.6, "period": 3200},
+        "fx": "sparkle", "noBlink": true
+      },
+      "cheer": {
+        "group": "Celebrate", "label": "Cheer on", "when": "After a hard card or a gentle no: 'You can do it, try again.'",
+        "look": "Leans in and pumps the right arm up two times. Open mouth.", "driven": "Timeline, 1000 ms",
+        "pose": {"mouth": 1, "mouthW": 1.4, "mouthH": 1, "eyeSy": 1.1, "lean": -3, "leaf": 14},
+        "keys": {"durationMs": 1000, "restMs": 800, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.2, "ease": "out", "pose": {"armR": -3.4, "lift": -0.6}},
+          {"at": 0.4, "pose": {"armR": -1.2}},
+          {"at": 0.6, "ease": "out", "pose": {"armR": -3.4, "lift": -0.6}},
+          {"at": 0.8, "pose": {"armR": -1.2}},
+          {"at": 1, "pose": {"armR": -2.4}}]},
+        "holdMs": 1000, "returnsTo": "previous"
+      },
+      "reading": {
+        "group": "Work", "label": "Reading", "when": "Sprout reads a web link, a pasted text or a word list.",
+        "look": "Leans in. Eyes move along three lines, left to right, then jump to the next line. Short text lines flow in from the left.", "driven": "Loop",
+        "pose": {"lean": -3, "leaf": 10, "eyeSy": 1.1, "armL": -0.4, "armR": -0.4},
+        "motion": {"type": "read", "amp": 0.7, "period": 2400},
+        "fx": "lines"
+      },
+      "searching": {
+        "group": "Work", "label": "Searching", "when": "Sprout looks for good words: in a video, on the web, or for a topic.",
+        "look": "One arm goes up like a hand above the eyes. The body turns slowly left and right. Eyes look far to each side.", "driven": "Loop",
+        "pose": {"armL": -2.3, "eyeSy": 1.2, "leaf": 6},
+        "motion": {"type": "look", "amp": 6, "period": 2600}
+      },
+      "scanning": {
+        "group": "Work", "label": "Scanning", "when": "The user took a photo of a word list, a page or an object.",
+        "look": "Stands still with wide eyes inside four frame corners. A light line moves down and up over the body.", "driven": "Loop",
+        "pose": {"eyeSy": 1.2, "armL": -0.8, "armR": -0.8, "leaf": 12},
+        "motion": {"type": "breathe", "amp": 0.2, "period": 2200},
+        "fx": "scan", "noBlink": true
+      },
+      "making": {
+        "group": "Work", "label": "Making", "when": "A deck is being made. Use it when you know the progress (18 of 30 words).",
+        "look": "The body is the progress bar: the 7 slabs light up from left to right. Arms work one after the other. Squares stack up next to it.", "driven": "Progress from 0 to 1",
+        "pose": {"eyeDy": 0.3, "eyeSy": 0.9, "flat": 1, "leaf": 8},
+        "motion": {"type": "work", "amp": 1.1, "period": 420},
+        "bind": {"fill": 1}, "fx": "stack"
+      },
+      "planting": {
+        "group": "Work", "label": "Planting", "when": "A new deck was added. Its tree is planted in the meadow.",
+        "look": "Bends to the right, reaches down and pats the ground. A small sprout pops up there. Sprout stands up and smiles at it.", "driven": "Timeline, 1700 ms",
+        "keys": {"durationMs": 1700, "restMs": 900, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.2, "pose": {"lean": 12, "lift": 0.5, "armR": 1.6, "armRx": 1, "eyeDx": 0.6, "eyeDy": 0.6, "leaf": -8}},
+          {"at": 0.36, "pose": {"lean": 12, "lift": 0.5, "armR": 1.2, "armRx": 1, "eyeDx": 0.6, "eyeDy": 0.6, "leaf": -8}},
+          {"at": 0.45, "ease": "in", "pose": {"lean": 13, "lift": 0.6, "armR": 2, "armRx": 1, "eyeDx": 0.6, "eyeDy": 0.6, "leaf": -10}},
+          {"at": 0.7, "ease": "out", "pose": {"armR": -1.5, "eyeDx": 0.6, "eyeDy": 0.5, "eyeSy": 0.5, "mouth": 1, "mouthW": 1.4, "mouthH": 0.9, "leaf": 22}},
+          {"at": 1, "pose": {"eyeDx": 0.6, "eyeDy": 0.5, "mouth": 1, "mouthW": 1.3, "mouthH": 0.7, "leaf": 16}}]},
+        "fx": "plant", "holdMs": 1700, "returnsTo": "idle"
+      },
+      "sendHard": {
+        "group": "Work", "label": "To lock screen", "when": "A word was marked Hard. It goes to the lock screen widget.",
+        "look": "Holds a word square in the right hand, leans back, then throws it up into a small phone. The phone gives a little bump. Sprout watches it land.", "driven": "Timeline, 1500 ms",
+        "keys": {"durationMs": 1500, "restMs": 900, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.15, "pose": {"armR": -2.6, "eyeDx": 0.5, "eyeDy": -0.3}},
+          {"at": 0.32, "pose": {"lean": -8, "armR": -2.2, "eyeDx": 0.5, "eyeDy": -0.2}},
+          {"at": 0.45, "ease": "out", "pose": {"lean": 9, "armR": -3, "armRx": 1.6, "eyeDx": 0.7, "eyeDy": -0.7}},
+          {"at": 0.62, "pose": {"lean": 3, "armR": -1.5, "eyeDx": 0.7, "eyeDy": -0.9, "eyeSy": 1.2}},
+          {"at": 0.85, "pose": {"armR": -0.5, "eyeDx": 0.7, "eyeDy": -0.9, "eyeSy": 1.1, "mouth": 1, "mouthW": 1.3, "mouthH": 0.6, "leaf": 14}},
+          {"at": 1, "pose": {"eyeDx": 0.6, "eyeDy": -0.7, "mouth": 1, "mouthW": 1.3, "mouthH": 0.5, "leaf": 12}}]},
+        "fx": "toss", "holdMs": 1500, "returnsTo": "previous"
+      },
+      "idea": {
+        "group": "Work", "label": "Idea", "when": "Sprout has a tip, a memory trick or a deck suggestion.",
+        "look": "Thinks for a moment, then pops up: leaves snap high, eyes open wide, one arm points up. A small pixel light turns on.", "driven": "Timeline, 1000 ms",
+        "keys": {"durationMs": 1000, "restMs": 1400, "frames": [
+          {"at": 0, "pose": {"eyeDx": 0.4, "eyeDy": -0.5, "leaf": -6}},
+          {"at": 0.3, "pose": {"eyeDx": 0.4, "eyeDy": -0.5, "leaf": -8, "sy": 0.95}},
+          {"at": 0.42, "ease": "out", "pose": {"lift": -1, "leaf": 36, "eyeSy": 1.35, "armR": -2.8, "mouth": 1, "mouthH": 1}},
+          {"at": 0.6, "pose": {"leaf": 28, "eyeSy": 1.2, "armR": -2.6, "mouth": 1, "mouthH": 0.8}},
+          {"at": 1, "pose": {"leaf": 24, "eyeSy": 1.1, "armR": -2.4, "mouth": 1, "mouthW": 1.2, "mouthH": 0.6}}]},
+        "fx": "idea", "holdMs": 1000, "returnsTo": "speaking"
+      },
+      "yes": {
+        "group": "Feelings", "label": "Yes", "when": "Sprout agrees or confirms: 'Got it', 'Saved', 'Good question'.",
+        "look": "Nods two times with a small smile, then waits a moment.", "driven": "Loop",
+        "pose": {"mouth": 1, "mouthW": 1.3, "mouthH": 0.5, "leaf": 10},
+        "motion": {"type": "nod", "amp": 0.9, "period": 1500},
+        "holdMs": 800, "returnsTo": "previous"
+      },
+      "wink": {
+        "group": "Feelings", "label": "Wink", "when": "A playful hint, a joke, or 'this one is easy for you'.",
+        "look": "Tilts, lifts one arm and closes the right eye for a moment. The leaves tip to one side.", "driven": "Timeline, 900 ms",
+        "pose": {"lean": 5, "armR": -1.6, "mouth": 1, "mouthW": 1.4, "mouthH": 0.5, "leaf": 10, "leafTilt": 6},
+        "keys": {"durationMs": 900, "restMs": 1300, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.25, "pose": {"eyeRSy": 0.12, "lift": -0.3}},
+          {"at": 0.6, "pose": {"eyeRSy": 0.12}},
+          {"at": 0.8, "pose": {}},
+          {"at": 1, "pose": {}}]},
+        "noBlink": true, "holdMs": 900, "returnsTo": "previous"
+      },
+      "shy": {
+        "group": "Feelings", "label": "Shy", "when": "The user says thanks or something kind to Sprout.",
+        "look": "Looks down and away. Light cheeks show. Arms close to the body, leaves tip over. A small pixel heart beats.", "driven": "Loop",
+        "pose": {"cheek": 1, "eyeDx": -0.4, "eyeDy": 0.5, "eyeSy": 0.8, "armL": 0.5, "armR": 0.5, "leaf": -6, "leafTilt": -10, "lean": -3, "mouth": 1, "mouthW": 0.8, "mouthH": 0.4},
+        "motion": {"type": "sway", "amp": 2, "period": 2400},
+        "fx": "heart", "holdMs": 1800, "returnsTo": "idle"
+      },
+      "proud": {
+        "group": "Feelings", "label": "Proud", "when": "Sprout shows a result: the talk summary, a finished deck, your week.",
+        "look": "Chest out, hands on hips, eyes closed and a wide smile. Breathes slowly.", "driven": "Loop",
+        "pose": {"sx": 1.06, "lift": -0.3, "armL": 0.9, "armR": 0.9, "eyeSy": 0.3, "leaf": 20, "mouth": 1, "mouthW": 1.5, "mouthH": 0.5, "cheek": 0.5, "lean": -2},
+        "motion": {"type": "breathe", "amp": 0.35, "period": 2600},
+        "noBlink": true
+      },
+      "oops": {
+        "group": "Feelings", "label": "Oops", "when": "Sprout made a mistake, or something failed and it will try again.",
+        "look": "Jumps back with wide eyes and arms up, wobbles two times, then stands with a flat mouth and low leaves. An exclamation mark floats.", "driven": "Timeline, 1200 ms",
+        "keys": {"durationMs": 1200, "restMs": 1000, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.12, "ease": "out", "pose": {"x": -1.4, "lean": -8, "lift": -0.8, "eyeSy": 1.45, "armL": -2, "armR": -2, "mouth": 1, "mouthW": 0.9, "mouthH": 1.3, "leaf": 30}},
+          {"at": 0.35, "pose": {"x": -1, "lean": -5, "eyeSy": 1.4, "armL": -1.5, "armR": -1.5, "mouth": 1, "mouthW": 0.9, "mouthH": 1.2, "leaf": 20}},
+          {"at": 0.5, "pose": {"x": 0.5, "lean": 4, "eyeSy": 1.2, "mouth": 1, "mouthW": 1, "mouthH": 0.8, "leaf": 8}},
+          {"at": 0.65, "pose": {"x": -0.3, "lean": -2, "mouth": 1, "mouthW": 1.1, "mouthH": 0.5}},
+          {"at": 0.8, "pose": {"eyeDy": 0.3, "armL": 0.4, "armR": 0.4, "mouth": 1, "mouthW": 1.2, "mouthH": 0.3, "leaf": -8}},
+          {"at": 1, "pose": {"eyeDy": 0.3, "armL": 0.4, "armR": 0.4, "mouth": 1, "mouthW": 1.2, "mouthH": 0.3, "leaf": -8}}]},
+        "fx": "bang", "holdMs": 1200, "returnsTo": "thinking"
+      },
+      "waiting": {
+        "group": "Feelings", "label": "Waiting", "when": "It is the user's turn and nothing has happened for a while.",
+        "look": "Looks to the side and taps its right foot two times, then stops, then taps again.", "driven": "Loop",
+        "pose": {"eyeDx": 0.6, "eyeDy": -0.2, "armL": 0.5, "armR": 0.5, "leaf": -4, "lean": 2},
+        "motion": {"type": "tap", "amp": 0.9, "period": 1600}
+      },
+      "audio": {
+        "group": "Feelings", "label": "Playing audio", "when": "A word or sentence is played aloud (the speaker button).",
+        "look": "Sways to the sound with closed happy eyes and a round mouth. Notes float up.", "driven": "Loop",
+        "pose": {"mouth": 1, "mouthW": 0.9, "mouthH": 0.9, "eyeSy": 0.5, "leaf": 12},
+        "motion": {"type": "sway", "amp": 4, "period": 900},
+        "fx": "note"
+      },
+      "curious": {
+        "group": "Touch", "label": "Curious", "when": "The user's finger is near, or drags a card or a word across the screen.",
+        "look": "Eyes follow the finger. The body leans a little toward it and the leaves tip the other way.", "driven": "Touch position, x and y from -1 to 1",
+        "pose": {"eyeSy": 1.2, "leaf": 14},
+        "bind": {"look": 1}
+      },
+      "poke": {
+        "group": "Touch", "label": "Poke", "when": "The user taps Sprout.",
+        "look": "Squashes flat with big eyes, bounces up once and settles. Fast and soft.", "driven": "Timeline, 520 ms",
+        "keys": {"durationMs": 520, "restMs": 900, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.2, "ease": "out", "pose": {"sy": 0.78, "sx": 1.14, "eyeSy": 1.4, "leaf": -14, "armL": 0.8, "armR": 0.8}},
+          {"at": 0.5, "ease": "out", "pose": {"sy": 1.1, "sx": 0.94, "lift": -1.2, "eyeSy": 1.3, "leaf": 26}},
+          {"at": 0.8, "ease": "in", "pose": {"sy": 0.96, "sx": 1.03, "eyeSy": 1.1}},
+          {"at": 1, "pose": {"eyeSy": 1.1}}]},
+        "holdMs": 520, "returnsTo": "previous"
+      },
+      "enter": {
+        "group": "Moments", "label": "Enter", "when": "Sprout arrives: first app open, or a screen where it was not visible before.",
+        "look": "Pops up from below, goes a little too high, lands with a squash, then waves.", "driven": "Timeline, 1000 ms",
+        "keys": {"durationMs": 1000, "restMs": 1200, "snapStart": true, "frames": [
+          {"at": 0, "pose": {"lift": 18, "leaf": -20}},
+          {"at": 0.45, "ease": "out", "pose": {"lift": -1.4, "sy": 1.08, "sx": 0.95, "leaf": 30, "eyeSy": 1.2}},
+          {"at": 0.62, "ease": "in", "pose": {"sy": 0.92, "sx": 1.06, "leaf": 10}},
+          {"at": 0.75, "pose": {"armR": -2.4, "mouth": 1, "mouthH": 0.7}},
+          {"at": 0.85, "pose": {"armR": -1.6, "mouth": 1, "mouthH": 0.7}},
+          {"at": 0.95, "pose": {"armR": -2.4, "mouth": 1, "mouthH": 0.7}},
+          {"at": 1, "pose": {"armR": -2, "mouth": 1, "mouthH": 0.6}}]},
+        "holdMs": 1000, "returnsTo": "idle"
+      },
+      "leave": {
+        "group": "Moments", "label": "Leave", "when": "Sprout goes away: the chat closes, or it makes room for another screen.",
+        "look": "Waves, bends its knees, makes a small hop and drops out of view.", "driven": "Timeline, 1100 ms",
+        "keys": {"durationMs": 1100, "restMs": 1100, "frames": [
+          {"at": 0, "pose": {"armR": -2.4, "mouth": 1, "mouthH": 0.6}},
+          {"at": 0.15, "pose": {"armR": -1.6, "mouth": 1, "mouthH": 0.6}},
+          {"at": 0.3, "pose": {"armR": -2.4, "mouth": 1, "mouthH": 0.6}},
+          {"at": 0.45, "pose": {"sy": 0.9, "sx": 1.06}},
+          {"at": 0.6, "ease": "out", "pose": {"lift": -1.5, "sy": 1.06, "leaf": 20}},
+          {"at": 1, "ease": "in", "pose": {"lift": 18, "leaf": 30}}]},
+        "noBlink": true, "holdMs": 1100, "returnsTo": "hidden"
+      },
+      "wake": {
+        "group": "Moments", "label": "Wake up", "when": "The user comes back after a long break. Plays between sleeping and idle.",
+        "look": "Eyes open a little, then a big stretch with both arms up and a wide yawn, a quick shake, and it is awake.", "driven": "Timeline, 2000 ms",
+        "keys": {"durationMs": 2000, "restMs": 900, "frames": [
+          {"at": 0, "pose": {"eyeSy": 0.15, "dim": 0.2, "leaf": -24, "armL": 0.5, "armR": 0.5, "sy": 0.95}},
+          {"at": 0.2, "pose": {"eyeSy": 0.3, "dim": 0.1, "leaf": -10, "armL": 0.5, "armR": 0.5}},
+          {"at": 0.45, "pose": {"sy": 1.14, "sx": 0.94, "armL": -3.2, "armR": -3.2, "armSy": 1.3, "eyeSy": 0.15, "mouth": 1, "mouthW": 1.2, "mouthH": 2, "leaf": 30, "lift": -0.3}},
+          {"at": 0.65, "pose": {"sy": 1.14, "sx": 0.94, "armL": -3.2, "armR": -3.2, "armSy": 1.3, "eyeSy": 0.15, "mouth": 1, "mouthW": 1.2, "mouthH": 2, "leaf": 30, "lift": -0.3}},
+          {"at": 0.78, "pose": {"eyeSy": 0.6, "mouth": 1, "mouthH": 0.4, "leaf": 10}},
+          {"at": 0.84, "ease": "linear", "pose": {"x": -0.4, "eyeSy": 0.8, "leaf": 12}},
+          {"at": 0.9, "ease": "linear", "pose": {"x": 0.4, "leaf": 12}},
+          {"at": 0.95, "ease": "linear", "pose": {"leaf": 12}},
+          {"at": 1, "pose": {"leaf": 12}}]},
+        "noBlink": true, "holdMs": 2000, "returnsTo": "idle"
+      },
+      "goodnight": {
+        "group": "Moments", "label": "Good night", "when": "Quiet hours start, or the user ends the day. Plays between idle and sleeping.",
+        "look": "Waves, yawns, the eyes close slowly and the leaves sink.", "driven": "Timeline, 2400 ms",
+        "keys": {"durationMs": 2400, "restMs": 1200, "frames": [
+          {"at": 0, "pose": {"armR": -2.4, "mouth": 1, "mouthH": 0.5}},
+          {"at": 0.12, "pose": {"armR": -1.6, "mouth": 1, "mouthH": 0.5}},
+          {"at": 0.24, "pose": {"armR": -2.4, "mouth": 1, "mouthH": 0.5}},
+          {"at": 0.4, "pose": {"eyeSy": 0.5, "mouth": 1, "mouthW": 1.1, "mouthH": 1.8, "leaf": -8}},
+          {"at": 0.58, "pose": {"eyeSy": 0.3, "mouth": 1, "mouthW": 1.1, "mouthH": 1.6, "leaf": -14}},
+          {"at": 0.75, "pose": {"eyeSy": 0.15, "leaf": -22, "dim": 0.1, "sy": 0.96}},
+          {"at": 1, "pose": {"eyeSy": 0.15, "leaf": -24, "dim": 0.2, "sy": 0.95, "armL": 0.5, "armR": 0.5}}]},
+        "noBlink": true, "holdMs": 2400, "returnsTo": "sleeping"
+      }
+    }
+  },
+  "call": {
+    "order": ["connecting", "idle", "listening", "thinking", "speaking", "wordUsed", "muted", "reconnecting", "ending",
+      "ringing", "paused", "timer", "agree", "laugh", "idea", "levelUp", "cheer"],
+    "fields": {
+      "h": "base bar scale. One number for all bars, or 7 numbers.",
+      "ripple": "a small wave on top of h. type travel = left to right, inward = edges to middle, outward = middle to edges.",
+      "pulse": "a big wave from the middle outward: h += amp × max(0, sin(2π·t/period − distanceFromMiddle × 0.9))",
+      "gain": "how much the voice level adds: h += gain × level × barShape[i] × jitter[i]",
+      "sweep": "thinking: one bright bar moves left to right, msPerBar per bar, and grows by hop",
+      "signal": "reconnecting: bar i has height base + step × i; bars light up one by one over period",
+      "pal": "which bar colors to use: strong, soft, muted, sweep, or levels (the 5 word-level greens, moving one bar to the right every 140 ms)",
+      "ring": "the whole character shakes ±amp units sideways for the first 45% of each period, like a ringing phone",
+      "keys": "a timeline (see 'timeline'). Frames can set h and pose"
+    },
+    "states": {
+      "connecting": {
+        "label": "Connecting", "when": "Right after the change to call form, until audio is ready.",
+        "look": "Soft colors. A pulse runs from the middle out, again and again.", "driven": "Loop",
+        "h": 0.45, "pulse": {"amp": 0.35, "period": 1000}, "pal": "soft"
+      },
+      "idle": {
+        "label": "Idle", "when": "The call is open and nobody is talking.",
+        "look": "Medium height. A slow soft wave. Eyes blink.", "driven": "Loop",
+        "h": 0.5, "ripple": {"type": "travel", "amp": 0.06, "period": 4400}, "pal": "strong"
+      },
+      "listening": {
+        "label": "Listening", "when": "The user is talking.",
+        "look": "Soft colors. A ripple runs from the edges to the middle. Eyes open wide. Sound pixels fly in.",
+        "driven": "Mic level: bars lift with the user's voice",
+        "h": 0.5, "ripple": {"type": "inward", "amp": 0.07, "period": 1630}, "pal": "soft", "gain": 0.45,
+        "pose": {"eyeSy": 1.2}, "fx": "in"
+      },
+      "thinking": {
+        "label": "Thinking", "when": "The user stopped talking. Sprout is getting its answer ready.",
+        "look": "All bars the same height. One bright bar hops across. Eyes look up.", "driven": "Loop",
+        "h": 0.52, "sweep": {"msPerBar": 150, "hop": 0.16}, "pal": "sweep",
+        "pose": {"eyeDx": 0.25, "eyeDy": -0.2}, "noBlink": true
+      },
+      "speaking": {
+        "label": "Speaking", "when": "Sprout's voice is playing.",
+        "look": "Strong colors. Bars jump tall, biggest in the middle. Sound pixels fly out.",
+        "driven": "Voice level, one value per bar",
+        "h": [0.45, 0.45, 0.6, 0.45, 0.6, 0.45, 0.45], "gain": 1.15, "pal": "strong", "fx": "out"
+      },
+      "wordUsed": {
+        "label": "Word used", "when": "The user said a checklist word well during the call.",
+        "look": "Quick strong pulses from the middle out. Eyes squint.", "driven": "Loop",
+        "h": 0.6, "pulse": {"amp": 0.6, "period": 700}, "pal": "strong",
+        "pose": {"eyeSy": 0.5}, "holdMs": 1400, "returnsTo": "previous"
+      },
+      "muted": {
+        "label": "Muted", "when": "The user turned their microphone off.",
+        "look": "Bars go low, flat and gray. Eyes closed.", "driven": "Still",
+        "h": 0.3, "pal": "muted", "pose": {"eyeSy": 0.15}, "noBlink": true
+      },
+      "reconnecting": {
+        "label": "Reconnecting", "when": "The network is weak or lost during a call.",
+        "look": "Bars form steps like a signal icon and light up one by one.", "driven": "Loop",
+        "signal": {"base": 0.25, "step": 0.1, "period": 1400}, "pal": "strong"
+      },
+      "ending": {
+        "label": "Ending", "when": "The call ends. Hold, then change back to chat form.",
+        "look": "Bars drop to a thin line. Eyes close.", "driven": "Still",
+        "h": 0.14, "pal": "soft", "pose": {"eyeSy": 0.15}, "noBlink": true,
+        "holdMs": 500, "returnsTo": "chat.idle"
+      },
+      "ringing": {
+        "group": "Moments", "label": "Ringing", "when": "Sprout calls the user for a planned talk, before the user answers.",
+        "look": "Bars pulse fast and the whole character shakes like a ringing phone, then rests, then rings again. Wide eyes.", "driven": "Loop",
+        "h": 0.5, "pulse": {"amp": 0.25, "period": 520}, "ring": {"amp": 0.5, "period": 1600}, "pal": "strong",
+        "pose": {"eyeSy": 1.2}
+      },
+      "paused": {
+        "group": "Moments", "label": "Paused", "when": "The call is on hold: the user left the screen or tapped pause.",
+        "look": "The bars make a pause sign: two tall bars, the rest very low. The eyes sit on the two tall bars.", "driven": "Still",
+        "h": [0.12, 0.12, 0.8, 0.12, 0.8, 0.12, 0.12], "pal": "soft", "pose": {"eyeSy": 0.9}
+      },
+      "timer": {
+        "group": "Moments", "label": "Time left", "when": "The last 30 seconds of a talk.",
+        "look": "Bars turn gray and low one by one from the right, like a timer that runs out.", "driven": "Time left, from 1 to 0",
+        "h": 0.5, "ripple": {"type": "travel", "amp": 0.04, "period": 3000}, "bind": {"drain": 1}, "pal": "strong"
+      },
+      "agree": {
+        "group": "Feelings", "label": "Agree", "when": "A short 'mm-hm' while the user talks, or 'yes, right'.",
+        "look": "All bars dip two times together, like a nod.", "driven": "Timeline, 700 ms",
+        "keys": {"durationMs": 700, "restMs": 900, "frames": [
+          {"at": 0, "h": 0.5}, {"at": 0.25, "h": 0.3}, {"at": 0.5, "h": 0.55}, {"at": 0.75, "h": 0.3}, {"at": 1, "h": 0.5}]},
+        "pal": "strong", "pose": {"eyeSy": 0.8}, "holdMs": 700, "returnsTo": "previous"
+      },
+      "laugh": {
+        "group": "Feelings", "label": "Laugh", "when": "Something funny happened in the talk.",
+        "look": "All bars bounce fast together. Eyes squint.", "driven": "Loop",
+        "h": 0.55, "ripple": {"type": "unison", "amp": 0.14, "period": 190}, "pal": "strong",
+        "pose": {"eyeSy": 0.4}, "noBlink": true, "holdMs": 1200, "returnsTo": "previous"
+      },
+      "idea": {
+        "group": "Feelings", "label": "Idea", "when": "Sprout has a tip during the call.",
+        "look": "Bars go a little low, then the middle bar jumps up tall. Wide eyes. A small pixel light turns on.", "driven": "Timeline, 800 ms",
+        "keys": {"durationMs": 800, "restMs": 1600, "frames": [
+          {"at": 0, "h": 0.45}, {"at": 0.3, "h": 0.38},
+          {"at": 0.5, "ease": "out", "h": [0.4, 0.4, 0.5, 1, 0.5, 0.4, 0.4]},
+          {"at": 1, "h": [0.45, 0.45, 0.55, 0.85, 0.55, 0.45, 0.45]}]},
+        "pal": "strong", "pose": {"eyeSy": 1.3, "eyeDy": -0.2}, "fx": "idea", "holdMs": 800, "returnsTo": "speaking"
+      },
+      "levelUp": {
+        "group": "Celebrate", "label": "Level up", "when": "A word moved up a level during the call.",
+        "look": "Bars build a staircase from left to right, fill up to the top, then settle. Their color runs through the 5 word-level greens.", "driven": "Timeline, 1200 ms",
+        "keys": {"durationMs": 1200, "restMs": 800, "frames": [
+          {"at": 0, "h": 0.3},
+          {"at": 0.35, "h": [0.2, 0.32, 0.44, 0.56, 0.68, 0.8, 0.92]},
+          {"at": 0.55, "ease": "out", "h": 0.95},
+          {"at": 0.75, "h": 0.6}, {"at": 1, "h": 0.5}]},
+        "pal": "levels", "pose": {"eyeSy": 0.5}, "fx": "levelup", "holdMs": 1200, "returnsTo": "previous"
+      },
+      "cheer": {
+        "group": "Celebrate", "label": "Cheer", "when": "Every checklist word was used. The talk goal is reached.",
+        "look": "Strong pulses from the middle out. Bar colors run through the 5 word-level greens. Word squares rise.", "driven": "Loop",
+        "h": 0.55, "pulse": {"amp": 0.5, "period": 560}, "pal": "levels",
+        "pose": {"eyeSy": 0.5}, "fx": "squares", "holdMs": 2400, "returnsTo": "idle"
+      }
+    }
+  },
+  "morph": {
+    "durationMs": 700,
+    "progress": "m goes from 0 (chat) to 1 (call) at a steady speed. Each step uses smoothstep on its own part of m.",
+    "steps": [
+      {"name": "A. Pull in", "from": 0, "to": 0.3, "does": "Arms, feet, leaf and mouth shrink into the body. The body squashes a little (down to 88% height) like it takes a breath. Lean and lift go back to zero."},
+      {"name": "B. Split", "from": 0.2, "to": 0.7, "does": "Each slab gets thinner (2 to 1.6 units) so gaps open. All slabs go to the same height. Colors change from body color to bar colors. Highlight row, shade row and shadow fade out. Eyes move down half a unit."},
+      {"name": "C. Come alive", "from": 0.65, "to": 1, "does": "Bars move from the same height to the heights of the current call state."}
+    ],
+    "squash": 0.12
+  },
+  "rules": {
+    "poseSmoothing": {"value": 0.18, "text": "Every frame, each pose number moves 18% of the way to its target. This makes all state changes soft with no extra code."},
+    "barSmoothing": {"value": 0.25, "speaking": 0.4, "text": "Bars move 25% of the way per frame, 40% while speaking so they feel fast."},
+    "levelSmoothing": {"value": 0.3, "text": "The voice level is smoothed 30% per frame before it is used."},
+    "colorSmoothing": {"value": 0.2, "text": "Bar colors mix 20% per frame toward the target color."},
+    "blink": {"closedMs": 130, "everyMs": [2500, 5500], "closedScale": 0.12, "text": "Eyes close for 130 ms at a random time every 2.5 to 5.5 seconds. States with noBlink skip this."},
+    "eyeFit": {"text": "In call form, bars 2 and 4 are never shorter than (2 × eyeSy + 0.5) / 6, so the eyes always sit on a bar."},
+    "fakeVoice": {"text": "When there is no real audio: pick a new target level every 70 to 180 ms, between 0.35 and 1. 18% of the time make a pause (0.04) for 180 to 400 ms. Each bar also gets its own jitter from 0.55 to 1, changed every 60 to 150 ms."},
+    "listeningGain": {"value": 0.8, "text": "With the fake voice, listening uses 80% of the level so it looks calmer than speaking."},
+    "oneShot": {"text": "States with holdMs are short. Hold them for holdMs, then go to returnsTo. 'previous' means the state before."},
+    "keySmoothing": {"value": 0.45, "text": "While a timeline plays, pose numbers move 45% of the way per frame, so key moves stay crisp but never jump."},
+    "localTime": {"text": "Timelines and loop motions start counting when the state is set, so a move always starts from its beginning."},
+    "fakeProgress": {"value": 5000, "periodMs": 5000, "text": "When no real progress is given: count from 0 to 1 in 5000 ms, hold a moment, start again. 'making' fills up with it, 'timer' runs out with it."},
+    "shadow": {"text": "The shadow follows the body sideways. When the body is in the air it gets narrower: width × (1 - 0.5 × min(1, height / 6)). It fades when the body is below the ground (enter, leave)."},
+    "spinReset": {"text": "A flip ends at 360°, which is the same as 0°. No pose number is left turned."}
+  }
+}
+</script>
+
+<script>
+/* ===================================================================================
+   REFERENCE RENDERER. Reads only the JSON above.
+   createCharacter(host) returns { set(form, state), form, state, lvl, mic }.
+   One shared animation loop calls step(t, dt) on every character.
+   =================================================================================== */
+const SPEC = JSON.parse(document.getElementById('character-spec').textContent);
+const G = SPEC.geometry, R = SPEC.rules, N = G.slabCount, MID = (N - 1) / 2;
+let THEME = 'light', PAL = SPEC.palette[THEME], PALRGB = {};
+
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const css = a => `rgb(${a.map(Math.round).join(',')})`;
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = x => Math.max(0, Math.min(1, x));
+const ease = x => x * x * (3 - 2 * x);                       // smoothstep
+const part = (m, from, to) => ease(clamp((m - from) / (to - from)));
+const TAU = Math.PI * 2;
+const EASE = { smooth: ease, linear: x => x, out: x => 1 - Math.pow(1 - x, 3), in: x => x * x * x };
+const SYNC = new Set(SPEC.syncedEffects);
+let POINTER = null;                                             // last pointer position, for the "look" binding
+addEventListener('pointermove', e => { POINTER = {x: e.clientX, y: e.clientY, at: performance.now()}; });
+
+/* timeline: blend the two frames around time u (0 to 1). base = poseDefaults + state.pose */
+function sampleKeys(K, u, base){
+  const F = K.frames; let i = 0;
+  while (i < F.length - 2 && u >= F[i + 1].at) i++;
+  const A = F[i], Z = F[i + 1], w = EASE[Z.ease || 'smooth'](clamp((u - A.at) / (Z.at - A.at)));
+  const pose = {};
+  for (const key in base) { const a = A.pose?.[key] ?? base[key], z = Z.pose?.[key] ?? base[key]; pose[key] = a + (z - a) * w; }
+  let h = null;
+  if (A.h != null || Z.h != null) { const a = A.h ?? .5, z = Z.h ?? .5;
+    h = Array.from({length: N}, (_, j) => lerp(Array.isArray(a) ? a[j] : a, Array.isArray(z) ? z[j] : z, w)); }
+  return {pose, h};
+}
+
+function applyTheme(name){
+  THEME = name; PAL = SPEC.palette[name]; PALRGB = {};
+  for (const k in PAL) {
+    const v = PAL[k];
+    PALRGB[k] = Array.isArray(v) ? v.map(hex2rgb) : hex2rgb(v);
+    if (!Array.isArray(v)) document.documentElement.style.setProperty('--' + k, v);
+  }
+  PAL.squares.forEach((c, i) => document.documentElement.style.setProperty('--sq' + i, c));
+  document.documentElement.dataset.theme = name;
+}
+
+/* fake voice, shared by all characters (rules.fakeVoice) */
+const voice = { target: 0, next: 0, jit: Array(N).fill(1), jn: Array(N).fill(0),
+  update(t){
+    if (t > this.next) {
+      const pause = Math.random() < .18;
+      this.target = pause ? .04 : .35 + Math.random() * .65;
+      this.next = t + (pause ? 180 + Math.random() * 220 : 70 + Math.random() * 110);
+    }
+    for (let i = 0; i < N; i++) if (t > this.jn[i]) { this.jit[i] = .55 + Math.random() * .45; this.jn[i] = t + 60 + Math.random() * 90; }
+  } };
+
+const rect = (cls, r = [0, 0, 0, 0], extra = '') =>
+  `<rect class="${cls}" x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" ${extra}/>`;
+const pixels = (cls, x, dx) => [2, 4.6, 7.2].map((y, i) =>
+  rect('px ' + cls, [x + (i % 2) * dx, y, .8, .8], `style="animation-delay:${(-i * .43).toFixed(2)}s"`)).join('');
+
+function markup(){
+  const c = G.chat, vb = SPEC.viewBox.join(' ');
+  const squares = Array.from({length: 10}, (_, i) =>
+    rect('sq', [-3.5 + (i * 7.3 % 24), 8 + (i % 3), 1.2, 1.2], `rx=".2" style="fill:var(--sq${i % 5});animation-delay:${(-i * .37 % 1.8).toFixed(2)}s"`)).join('');
+  const sparkle = [[-2.5, 0], [20.5, 1], [-1.5, 7.5], [20, 7]].map((p, i) =>
+    rect('px sp', [p[0], p[1], 1, 1], `style="animation-delay:${-i * .25}s"`)).join('');
+  /* v1.1 effects */
+  const rain = Array.from({length: 12}, (_, i) =>
+    rect('rn', [-4 + (i * 5.3 % 26), -7.6 - (i % 3), 1.2, 1.2], `rx=".2" style="fill:var(--sq${i % 5});animation-delay:${(-i * .29 % 2.2).toFixed(2)}s;animation-duration:${(1.9 + (i % 4) * .25).toFixed(2)}s"`)).join('');
+  let tn = 0;
+  const tree = [[-3.1, [4.85, 6.25, 7.65, 9.05, 10.45, 11.85]], [-4.5, [6.25, 7.65, 9.05, 10.45]], [-5.9, [7.65, 9.05]]].map(([y, xs]) =>
+    xs.map(x => rect('tb', [x, y, 1.3, 1.3], `rx=".25" style="fill:var(--sq${1 + (tn * 3) % 4});animation-delay:${tn++ * 45}ms"`)).join('')).join('');
+  const stack = [0, 1, 2, 3].map(i => rect('stk', [19.6, 8.9 - i * 1.7, 1.5, 1.5], `rx=".25" style="fill:var(--sq${i + 1});animation-delay:${i * .4}s"`)).join('');
+  const star = `<g class="stg">${[[18.5, -3.5], [18.5, -4.6], [18.5, -2.4], [17.4, -3.5], [19.6, -3.5]].map(p => rect('px', [p[0], p[1], 1, 1])).join('')}</g>` +
+    rect('px st2', [-2.6, -1.2, .8, .8]) + rect('px st2', [21.2, 1.4, .8, .8], 'style="animation-delay:120ms"');
+  const heart = ['.XX.XX.', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'].map((row, r) =>
+    [...row].map((v, q) => v === 'X' ? rect('px', [16.8 + q * .7, -5 + r * .7, .72, .72]) : '').join('')).join('');
+  const idea = rect('idb', [17.4, -4.6, 2.2, 2.2], 'rx=".4"') + rect('idb mut', [18, -2.3, 1, .6]) +
+    [[16, -3.8], [16.5, -5.4], [18.2, -5.9], [19.9, -5.4], [20.4, -3.8]].map(p => rect('px idr', [p[0], p[1], .6, .6])).join('');
+  const lines = [[2.6, 2.6], [4.6, 1.8], [6.6, 2.2]].map(([y, w], i) => rect('px ln', [-4.6, y, w, .7], `style="animation-delay:${-i * .5}s"`)).join('');
+  const corners = [[.2, .4, 1.6, .4], [.2, .4, .4, 1.6], [16.2, .4, 1.6, .4], [17.4, .4, .4, 1.6],
+    [.2, 10.3, 1.6, .4], [.2, 9.1, .4, 1.6], [16.2, 10.3, 1.6, .4], [17.4, 9.1, .4, 1.6]].map(r => rect('px', r)).join('');
+  return `<svg viewBox="${vb}" shape-rendering="crispEdges" role="img">
+    <ellipse class="shadow" cx="${c.shadow.center[0]}" cy="${c.shadow.center[1]}" rx="${c.shadow.rx}" ry="${c.shadow.ry}"/>
+    <g class="fx fx-in">${pixels('inl', -4.6, .5)}${pixels('inr', 21.8, -.5)}</g>
+    <g class="fx fx-out">${pixels('outl', -1.2, .4)}${pixels('outr', 18.4, -.4)}</g>
+    <g class="fx fx-dots">${rect('dot', [17, 0, 1, 1])}${rect('dot', [18.6, -2, 1.4, 1.4], 'style="animation-delay:.25s"')}${rect('dot', [20.4, -4.6, 2, 2], 'style="animation-delay:.5s"')}</g>
+    <g class="fx fx-zzz">${[2.4, 3.2, 4].map((s, i) => `<text class="t z" x="17" y="1" style="font-size:${s}px;animation-delay:${i}s">z</text>`).join('')}</g>
+    <g class="fx fx-squares">${squares}</g><g class="fx fx-sparkle">${sparkle}</g>
+    <g class="fx fx-q"><text class="t" x="18" y="0.5">?</text></g>
+    <g class="fx fx-bang"><text class="t" x="18" y="0.5">!</text></g>
+    <g class="fx fx-off"><text class="t" x="18" y="0.5">×</text></g>
+    <g class="fx fx-rain">${rain}</g><g class="fx fx-tree">${tree}</g><g class="fx fx-stack">${stack}</g><g class="fx fx-star">${star}</g>
+    <g class="fx fx-levelup">${rect('lv', [17.6, -4, 2.6, 2.6], 'rx=".5"')}${rect('px lvs', [20.9, -4.6, .7, .7])}${rect('px lvs', [16.4, -1.6, .7, .7])}</g>
+    <g class="fx fx-plant"><g class="plt">${rect('lf2', [20, 8.4, .8, 2.1])}${rect('lfh2', [18.9, 7.9, 1.3, .8])}${rect('lfh2', [20.6, 7.9, 1.3, .8])}</g></g>
+    <g class="fx fx-toss"><rect class="ph" x="19.4" y="-5.4" width="3" height="5" rx=".7"/>${rect('px tb2', [16.4, .4, 1.5, 1.5], 'rx=".25"')}</g>
+    <g class="fx fx-idea">${idea}</g>
+    <g class="fx fx-note">${[0, 1].map(i => `<text class="t nt" x="17.2" y="1.5" style="font-size:4px;animation-delay:${i * 1.1}s">♪</text>`).join('')}</g>
+    <g class="fx fx-heart"><g class="hrt">${heart}</g></g><g class="fx fx-lines">${lines}</g><g class="fx fx-scan">${corners}</g>
+    <g class="pose">
+      <g class="sprout">${rect('stem', c.stem)}
+        <g class="leaf ll">${rect('lf', c.leafLeft[0])}${rect('lfh', c.leafLeft[1])}</g>
+        <g class="leaf lr">${rect('lf', c.leafRight[0])}${rect('lfh', c.leafRight[1])}</g></g>
+      ${rect('foot', c.feet[0])}${rect('foot', c.feet[1])}
+      ${rect('arm al')}${rect('arm ar')}
+      ${Array(N).fill(rect('slab')).join('')}
+      ${rect('hi', c.hiRow)}${rect('lo', c.loRow)}${rect('cheek', c.cheeks[0])}${rect('cheek', c.cheeks[1])}
+      ${rect('eye')}${rect('eye')}${rect('mouth')}
+    </g>
+    <g class="fx fx-scan">${rect('scn', [1.4, 2, 15.2, .5])}</g></svg>`;
+}
+
+const characters = [];
+/* characters that are off screen do not step (this page has many of them) */
+const VIS = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { e.target._c.visible = e.isIntersecting; }), {rootMargin: '300px'}) : null;
+function createCharacter(host, form = 'chat', state = 'idle'){
+  host.innerHTML = markup();
+  const $ = s => host.querySelector(s), $$ = s => [...host.querySelectorAll(s)];
+  const el = { svg: $('svg'), shadow: $('.shadow'), pose: $('.pose'), sprout: $('.sprout'), ll: $('.ll'), lr: $('.lr'),
+    stem: $('.stem'), lf: $$('.lf'), lfh: $$('.lfh'), feet: $$('.foot'), al: $('.al'), ar: $('.ar'),
+    slabs: $$('.slab'), hi: $('.hi'), lo: $('.lo'), eyes: $$('.eye'), mouth: $('.mouth'), cheeks: $$('.cheek') };
+  const set = (e, o) => { for (const k in o) e.setAttribute(k, typeof o[k] === 'number' ? +o[k].toFixed(3) : o[k]); };
+
+  const c = { form, state, m: form === 'call' ? 1 : 0, lvl: 0, mic: null,
+    value: null,                                                // optional () => progress 0..1, for the fill and drain bindings
+    lx: 0, ly: 0, t0: null, cycle: -1, visible: true,
+    look(){                                                     // () => {x, y} from -1 to 1, or null. Default: the pointer on this page
+      if (!POINTER || performance.now() - POINTER.at > 3000) return null;
+      const r = host.getBoundingClientRect(), f = v => Math.max(-1, Math.min(1, v));
+      return {x: f((POINTER.x - r.left - r.width / 2) / 140), y: f((POINTER.y - r.top - r.height / 2) / 140)}; },
+    P: {...SPEC.poseDefaults}, bars: Array(N).fill(1), barCol: null, nextBlink: 1500 + Math.random() * 3000, blinkEnd: 0,
+    set(f, s){ c.form = f; c.state = s; c.t0 = null; c.cycle = -1; el.svg.dataset.fx = SPEC[f].states[s].fx || ''; } };
+  c.set(form, state);
+
+  c.step = (t, dt) => {
+    const S = SPEC[c.form].states[c.state], ch = G.chat, ca = G.call;
+
+    /* 0. local time. Timelines (keys) and loop motions start when the state is set. One cycle = one play. */
+    if (c.t0 == null) c.t0 = t;
+    const lt = t - c.t0, K = S.keys, M = S.motion;
+    const cyc = K ? K.durationMs + (K.restMs ?? 900) : M ? M.period : 0;
+    if (cyc) {
+      const n = Math.floor(lt / cyc);
+      if (n !== c.cycle) {
+        c.cycle = n;
+        if (K && K.snapStart) Object.assign(c.P, SPEC.poseDefaults, S.pose || {}, K.frames[0].pose || {});
+        if (S.fx && SYNC.has(S.fx)) {                           // restart a synced effect so it starts with the body move
+          el.svg.style.setProperty('--cyc', cyc + 'ms'); el.svg.dataset.fx = ''; el.svg.getBoundingClientRect(); el.svg.dataset.fx = S.fx;
+        }
+      }
+    }
+    const prog = c.value ? clamp(c.value()) : clamp((lt % R.fakeProgress.periodMs) / R.fakeProgress.periodMs * 1.2);
+
+    /* 1. form change progress m, and its three steps a, b, cc */
+    const goal = c.form === 'call' ? 1 : 0;
+    c.m += Math.sign(goal - c.m) * Math.min(Math.abs(goal - c.m), dt / SPEC.morph.durationMs);
+    const st = SPEC.morph.steps, a = part(c.m, st[0].from, st[0].to), b = part(c.m, st[1].from, st[1].to), cc = part(c.m, st[2].from, st[2].to);
+    const k = 1 - a;                                            // how much "chat body" is left
+
+    /* 2. voice level */
+    let lvGoal = 0;
+    if (S.bind || S.gain) lvGoal = c.mic ? c.mic() : voice.target * (c.state === 'listening' ? R.listeningGain.value : 1);
+    c.lvl += (lvGoal - c.lvl) * R.levelSmoothing.value;
+    const lvl = c.lvl;
+
+    /* 3. pose: move every number toward the state's target */
+    let T = {...SPEC.poseDefaults, ...(S.pose || {})}, keyH = null, smooth = R.poseSmoothing.value;
+    if (K) { const s = sampleKeys(K, Math.min(1, (lt % cyc) / K.durationMs), T); T = s.pose; keyH = s.h; smooth = R.keySmoothing.value; }
+    for (const key in T) c.P[key] += (T[key] - c.P[key]) * smooth;
+    let {lean, lift, sx, sy, armL, armR, armSy, leaf, eyeSy, eyeDx, eyeDy, mouth, mouthW, mouthH, dim,
+         x, spin, eyeLSy, eyeRSy, footL, footR, cheek, stem, leafS, leafTilt, armLx, armRx, flat} = c.P, xc = 0;
+
+    /* 4. looping motion */
+    if (M) {
+      const ph = (lt % M.period) / M.period;
+      if (M.type === 'breathe') lift -= M.amp * (.5 - .5 * Math.cos(TAU * ph));
+      if (M.type === 'sway') lean += M.amp * Math.sin(TAU * ph);
+      if (M.type === 'shake') x += M.amp * Math.sin(t / 40) * Math.max(0, 1 - ph * 3);
+      if (M.type === 'sleep') { const u = .5 - .5 * Math.cos(TAU * ph); sy *= 1 - M.amp * u; sx *= 1 + M.amp * .5 * u; }
+      if (M.type === 'hop') {
+        if (ph < .6) { const u = Math.sin(Math.PI * ph / .6); lift -= M.amp * u; sy *= 1 + .06 * u; sx *= 1 - .04 * u; }
+        else { const u = Math.sin(Math.PI * (ph - .6) / .4); sy *= 1 - .12 * u; sx *= 1 + .08 * u; }
+      }
+      if (M.type === 'nod') { const u = ph < .5 ? Math.sin(Math.PI * ph * 4) ** 2 : 0; lift += M.amp * u; eyeDy += .35 * u; leaf -= 10 * u; }
+      if (M.type === 'dance') { const s = Math.sin(TAU * ph); lift -= M.amp * .4 * Math.abs(s); lean += 5 * s; x += .8 * s; leafTilt += 10 * s;
+        footL += .9 * Math.max(0, s); footR += .9 * Math.max(0, -s); armL -= .6 + 2.2 * Math.max(0, s); armR -= .6 + 2.2 * Math.max(0, -s); }
+      if (M.type === 'float') { const s = Math.sin(TAU * ph); lift -= M.amp * (1 + .22 * s); leafTilt += 5 * Math.sin(TAU * ph + 1); footL += .35 + .2 * s; footR += .35 - .2 * s; }
+      if (M.type === 'tap') footR += M.amp * (ph < .5 ? Math.max(0, Math.sin(TAU * ph * 4)) : 0);
+      if (M.type === 'look') { const s = Math.sin(TAU * ph); lean += M.amp * s; eyeDx += .7 * s; x += .5 * s; leafTilt -= 6 * s; }
+      if (M.type === 'read') { const line = (ph * 3) % 1; eyeDx += M.amp * (2 * ease(clamp(line * 1.25)) - 1); eyeDy += .25 * (Math.floor(ph * 3) - 1); }
+      if (M.type === 'work') { const s = Math.sin(TAU * ph); armL -= M.amp * Math.max(0, s); armR -= M.amp * Math.max(0, -s); lift += .12 * Math.abs(s); }
+      if (M.type === 'flip') {
+        if (ph < .14) { const u = Math.sin(Math.PI * ph / .14); sy *= 1 - .16 * u; sx *= 1 + .1 * u; }
+        else if (ph < .7) { const u = (ph - .14) / .56; lift -= M.amp * 4 * u * (1 - u); spin += 360 * u; sy *= 1 + .05 * Math.sin(Math.PI * u); }
+        else if (ph < .84) { const u = Math.sin(Math.PI * (ph - .7) / .14); sy *= 1 - .14 * u; sx *= 1 + .09 * u; }
+      }
+    }
+    if (S.ring) { const rp = (lt % S.ring.period) / S.ring.period; xc = rp < .45 ? S.ring.amp * Math.sin(lt / 28) : 0; }
+    if (S.armWave) armR += S.armWave.amp * Math.sin(TAU * t / S.armWave.period);
+
+    /* 5. things that follow the voice level */
+    const B = S.bind || {};
+    if (B.ears) { armL -= B.ears * lvl; armR -= B.ears * lvl; }
+    if (B.mouth) { mouthH = .3 + 2.1 * lvl; mouthW = 1 + .5 * lvl; }
+    if (B.lift) lift -= B.lift * lvl;
+    if (B.arms) { armL -= B.arms * lvl; armR -= B.arms * .8 * (1 - lvl); }
+    if (B.look) {
+      const L = c.look() || {x: Math.sin(t / 900), y: .5 * Math.sin(t / 1300)};
+      c.lx += (L.x - c.lx) * .15; c.ly += (L.y - c.ly) * .15;
+      eyeDx += .7 * c.lx; eyeDy += .5 * c.ly; lean += 3 * c.lx; x += .3 * c.lx; leafTilt -= 8 * c.lx;
+    }
+
+    /* 6. blink */
+    let blink = 1;
+    if (!S.noBlink) {
+      if (t > c.nextBlink) { c.blinkEnd = t + R.blink.closedMs; c.nextBlink = t + R.blink.everyMs[0] + Math.random() * (R.blink.everyMs[1] - R.blink.everyMs[0]); }
+      if (t < c.blinkEnd) blink = R.blink.closedScale;
+    }
+
+    /* 7. during the form change the chat pose fades to neutral, with a small squash */
+    lean *= k; lift *= k; x *= k; spin *= k; sx = lerp(1, sx, k); sy = lerp(1, sy, k);
+    sy *= 1 - SPEC.morph.squash * Math.sin(Math.PI * clamp(c.m / .4));
+    const [px, py] = G.pivot, [qx, qy] = G.spinCenter;
+    el.pose.setAttribute('transform',
+      `translate(${(x + xc).toFixed(3)} ${lift.toFixed(3)}) rotate(${lean.toFixed(2)} ${px} ${py}) translate(${px} ${py}) scale(${sx.toFixed(3)} ${sy.toFixed(3)}) translate(${-px} ${-py}) rotate(${spin.toFixed(2)} ${qx} ${qy})`);
+
+    /* 8. colors */
+    const body = mix(PALRGB.body, PALRGB.dimTo, dim);
+    const tint = key => css(mix(PALRGB[key], PALRGB.dimTo, dim));
+    const dimmed = mix(body, PALRGB.dimTo, .8), fillOn = B.fill ? i => mix(dimmed, body, clamp(prog * N - i)) : () => body;
+    set(el.shadow, {fill: PAL.shadow, cx: ch.shadow.center[0] + x, rx: ch.shadow.rx * (1 - .5 * clamp(-lift / 6)),
+      opacity: (1 - b) * (1 - clamp((lift - 2) / 4))});
+
+    /* 9. limbs and leaf (shrink away with k) */
+    const [lx, ly, lw, lh] = ch.arms.left, [rx] = ch.arms.right, armH = lh * armSy;
+    set(el.al, {x: lx + lw * (1 - k) - armLx * k, y: ly + lh / 2 + armL - armH / 2, width: (lw + armLx) * k, height: armH, fill: css(fillOn(0))});
+    set(el.ar, {x: rx, y: ly + lh / 2 + armR - armH / 2, width: (lw + armRx) * k, height: armH, fill: css(fillOn(N - 1))});
+    el.feet.forEach((f, i) => set(f, {y: ch.feet[i][1] - (i ? footR : footL), height: ch.feet[i][3] * k, fill: tint('shade')}));
+    const [sxp, syp] = [ch.stem[0] + ch.stem[2] / 2, ch.stem[1] + ch.stem[3]], [lpx, lpy] = ch.leafPivot;
+    el.sprout.setAttribute('transform', `translate(${sxp} ${syp}) scale(${k.toFixed(3)}) translate(${-sxp} ${-syp})`);
+    const grow = ch.stem[3] * (stem - 1), leafAt = `translate(0 ${(-grow).toFixed(3)}) translate(${lpx} ${lpy}) scale(${Math.max(0, leafS).toFixed(3)})`;
+    el.ll.setAttribute('transform', `${leafAt} rotate(${(leaf + leafTilt).toFixed(2)}) translate(${-lpx} ${-lpy})`);
+    el.lr.setAttribute('transform', `${leafAt} rotate(${(-leaf + leafTilt).toFixed(2)}) translate(${-lpx} ${-lpy})`);
+    set(el.stem, {y: ch.stem[1] - grow, height: ch.stem[3] * stem, fill: tint('leaf')});
+    el.lf.forEach(e => e.setAttribute('fill', tint('leaf'))); el.lfh.forEach(e => e.setAttribute('fill', tint('leafHi')));
+
+    /* 10. bars: target height and color for the current call state */
+    const inCall = c.form === 'call';
+    if (!c.barCol) c.barCol = PALRGB.barsStrong.map(v => v.slice());
+    const sweepPos = S.sweep ? (t / S.sweep.msPerBar) % (N + 2) - 1 : 0;
+    const eyeMin = (ca.eyes.height * eyeSy + .5) / ca.bar.fullHeight;
+    for (let i = 0; i < N; i++) {
+      const d = Math.abs(i - MID);
+      let h = 1, col = PALRGB.barsStrong[i];
+      if (inCall) {
+        h = keyH ? keyH[i] : Array.isArray(S.h) ? S.h[i] : (S.h ?? .5);
+        col = S.pal === 'soft' ? PALRGB.barsSoft[i] : S.pal === 'muted' ? PALRGB.barsMuted
+            : S.pal === 'levels' ? PALRGB.squares[(i + Math.floor(t / 140)) % 5] : PALRGB.barsStrong[i];
+        if (S.ripple) { const p = S.ripple.type === 'travel' ? i * .6 : S.ripple.type === 'inward' ? d * 1.1 : S.ripple.type === 'unison' ? 0 : -d * 1.1;
+          h += S.ripple.amp * Math.sin(TAU * t / S.ripple.period + p); }
+        if (S.pulse) h += S.pulse.amp * Math.max(0, Math.sin(TAU * t / S.pulse.period - d * .9));
+        if (S.gain) h += S.gain * lvl * ca.barShape[i] * voice.jit[i];
+        if (S.sweep) { const near = Math.abs(i - sweepPos); if (near < .6) h += S.sweep.hop; col = PALRGB.barsSweep[Math.min(2, Math.round(near))]; }
+        if (S.signal) { h = S.signal.base + S.signal.step * i;
+          const lit = Math.floor((t % S.signal.period) / S.signal.period * (N + 1)); if (i >= lit) col = PALRGB.barsMuted; }
+        if (B.drain) { const lit = Math.ceil((1 - prog) * N - 1e-6); if (i >= lit) { col = PALRGB.barsMuted; h = Math.min(h, .22); } }
+        if (i === 2 || i === 4) h = Math.max(h, eyeMin);
+      }
+      c.bars[i] += (h - c.bars[i]) * (c.state === 'speaking' ? R.barSmoothing.speaking : R.barSmoothing.value);
+      c.barCol[i] = mix(c.barCol[i], col, R.colorSmoothing.value);
+
+      /* draw slab i: blend chat slab and call bar with b, then bring in the state height with cc */
+      const chatH = (i === 0 || i === N - 1) ? ch.slab.outerHeight : ch.slab.height;
+      const w = lerp(ch.slab.width + .02, ca.bar.width, b);     // +0.02 hides hairline seams in chat form
+      const H = lerp(chatH, ca.bar.fullHeight * lerp(1, c.bars[i], cc), b);
+      set(el.slabs[i], {x: lerp(ch.slab.x0 + i * ch.slab.step, ca.bar.x0 + i * ca.bar.step, b), y: ca.bar.centerY - H / 2,
+        width: w, height: H, fill: css(mix(fillOn(i), c.barCol[i], b))});
+    }
+    set(el.hi, {fill: tint('hi'), opacity: (1 - b) * (1 - flat)}); set(el.lo, {fill: tint('shade'), opacity: (1 - b) * (1 - flat)});
+    el.cheeks.forEach(e => set(e, {fill: tint('leafHi'), opacity: clamp(cheek) * k}));
+
+    /* 11. eyes and mouth */
+    const ey = lerp(ch.eyes.centerY, ca.eyes.centerY, b) + eyeDy;
+    el.eyes.forEach((e, i) => { const eh = ch.eyes.height * eyeSy * (i ? eyeRSy : eyeLSy) * blink;
+      set(e, {x: ch.eyes.x[i] + eyeDx, y: ey - eh / 2, width: ch.eyes.width, height: eh, fill: PAL.eye}); });
+    const mw = ch.mouth.width * mouthW, mh = ch.mouth.height * mouthH;
+    set(el.mouth, {x: ch.mouth.center[0] - mw / 2, y: ch.mouth.center[1] - mh / 2, width: mw, height: mh, fill: PAL.eye, opacity: mouth * k});
+
+    el.svg.style.setProperty('--lvl', lvl.toFixed(3));
+  };
+  characters.push(c);
+  host._c = c; if (VIS) VIS.observe(host);
+  return c;
+}
+
+let last = 0;
+function loop(t){
+  const dt = Math.min(50, t - last); last = t;
+  voice.update(t);
+  for (const c of characters) if (c.visible) c.step(t, dt);
+  if (window.onFrame) window.onFrame(t);
+  requestAnimationFrame(loop);
+}
+
+/* ===================================================================================
+   PAGE: everything below only builds this document from the JSON.
+   =================================================================================== */
+applyTheme('light');
+const byId = id => document.getElementById(id);
+
+/* state galleries */
+for (const form of ['chat', 'call']) {
+  let lastGroup = '';
+  byId(form + 'Grid').innerHTML = SPEC[form].order.map(id => {
+    const s = SPEC[form].states[id], g = s.group || 'Core';
+    const head = g === lastGroup ? '' : `<h3 class="grp">${g}<span class="muted">${SPEC.groups[g] || ''}</span></h3>`;
+    lastGroup = g;
+    return head + `<div class="box card"><div class="stage"><div class="char" data-form="${form}" data-state="${id}"></div></div>
+      <div class="meta"><code>${form}.${id}</code><b>${s.label}</b>
+      <dl><dt>When</dt><dd>${s.when}</dd><dt>Look</dt><dd>${s.look}</dd><dt>Driven by</dt><dd>${s.driven}</dd>
+      ${s.keys ? `<dt>Timeline</dt><dd>${s.keys.durationMs} ms, ${s.keys.frames.length} key frames${s.fx && SYNC.has(s.fx) ? `, effect <code>${s.fx}</code> starts with it` : ''}.</dd>` : ''}
+      ${s.holdMs ? `<dt>One-shot</dt><dd>Hold ${s.holdMs} ms, then go to <code>${s.returnsTo}</code>.</dd>` : ''}</dl></div></div>`;
+  }).join('');
+}
+document.querySelectorAll('.card .char').forEach(h => createCharacter(h, h.dataset.form, h.dataset.state));
+
+/* palette tables */
+byId('paletteTables').innerHTML = ['light', 'dark'].map(th => {
+  const p = SPEC.palette[th];
+  const rows = Object.keys(SPEC.paletteRoles).map(k => {
+    const v = [].concat(p[k]);
+    return `<tr><td><code>${k}</code></td><td>${v.map(c => `<span class="sw" style="background:${c}" title="${c}"></span>`).join('')}<span class="mono">${v.length > 1 ? '' : v[0]}</span>
+      ${v.length > 1 ? `<div class="mono muted">${v.join(' ')}</div>` : ''}</td><td>${SPEC.paletteRoles[k]}</td></tr>`;
+  }).join('');
+  return `<div><h3>${th === 'light' ? 'Light (the app)' : 'Dark'}</h3><table><tr><th>Token</th><th>Color</th><th>Use</th></tr>${rows}</table></div>`;
+}).join('');
+
+/* geometry tables */
+const gc = G.chat, gb = G.call;
+const r4 = r => `x ${r[0]}, y ${r[1]}, w ${r[2]}, h ${r[3]}`;
+byId('geometryTables').innerHTML = `
+  <div><h3>Chat form parts</h3><table><tr><th>Part</th><th>Position and size (units)</th></tr>
+    <tr><td>Body slabs</td><td>7 slabs. Slab i: x ${gc.slab.x0} + i × ${gc.slab.step}, w ${gc.slab.width}. Height ${gc.slab.height}, centered at y ${gc.slab.centerY}. Slabs 0 and 6: height ${gc.slab.outerHeight}.</td></tr>
+    <tr><td>Highlight row</td><td>${r4(gc.hiRow)}</td></tr><tr><td>Shade row</td><td>${r4(gc.loRow)}</td></tr>
+    <tr><td>Eyes</td><td>x ${gc.eyes.x.join(' and ')}, w ${gc.eyes.width}, h ${gc.eyes.height}, centered at y ${gc.eyes.centerY}</td></tr>
+    <tr><td>Mouth</td><td>center ${gc.mouth.center.join(', ')}; w ${gc.mouth.width}, h ${gc.mouth.height}. Hidden unless the state shows it.</td></tr>
+    <tr><td>Arms</td><td>left: ${r4(gc.arms.left)}<br>right: ${r4(gc.arms.right)}</td></tr>
+    <tr><td>Feet</td><td>${gc.feet.map(r4).join('<br>')}</td></tr>
+    <tr><td>Stem</td><td>${r4(gc.stem)}</td></tr>
+    <tr><td>Leaves</td><td>left: ${gc.leafLeft.map(r4).join(' + ')}<br>right: ${gc.leafRight.map(r4).join(' + ')}<br>They turn around the point ${gc.leafPivot.join(', ')}.</td></tr>
+    <tr><td>Pivot</td><td>${G.pivot.join(', ')}. Lean and squash use this point (between the feet).</td></tr></table></div>
+  <div><h3>Call form parts</h3><table><tr><th>Part</th><th>Position and size (units)</th></tr>
+    <tr><td>Bars</td><td>7 bars. Bar i: x ${gb.bar.x0} + i × ${gb.bar.step}, w ${gb.bar.width}. Height = ${gb.bar.fullHeight} × scale, centered at y ${gb.bar.centerY}.</td></tr>
+    <tr><td>Eyes</td><td>x ${gb.eyes.x.join(' and ')}, centered at y ${gb.eyes.centerY}. They sit on bars 2 and 4 (counting from 0).</td></tr>
+    <tr><td>Bar shape</td><td>${gb.barShape.join(', ')}. The voice lifts the middle bar most.</td></tr>
+    <tr><td>View box</td><td>x ${SPEC.viewBox[0]}, y ${SPEC.viewBox[1]}, w ${SPEC.viewBox[2]}, h ${SPEC.viewBox[3]}. Same for both forms.</td></tr></table>
+    <h3>Pose numbers (chat form)</h3><table><tr><th>Field</th><th>Meaning</th></tr>
+    ${Object.entries(SPEC.poseFields).map(([k, v]) => `<tr><td><code>${k}</code></td><td>${v}</td></tr>`).join('')}</table></div>`;
+
+/* morph + rules */
+byId('morphMs').textContent = SPEC.morph.durationMs;
+byId('morphTable').innerHTML = `<tr><th>Step</th><th>Part of the time</th><th>What happens</th></tr>` +
+  SPEC.morph.steps.map(s => `<tr><td><b>${s.name}</b></td><td class="mono">${s.from * 100}% to ${s.to * 100}%</td><td>${s.does}</td></tr>`).join('');
+byId('rulesTable').innerHTML = `<tr><th>Rule</th><th>Value</th><th>Meaning</th></tr>` +
+  Object.entries(R).map(([k, v]) => `<tr><td><code>${k}</code></td><td class="mono">${v.value ?? ''}</td><td>${v.text}</td></tr>`).join('');
+const kv = (id, head, obj, extra = () => '') => byId(id).innerHTML = `<tr><th>${head}</th><th>What it does</th></tr>` +
+  Object.entries(obj).map(([k, v]) => `<tr><td><code>${k}</code>${extra(k)}</td><td>${v}</td></tr>`).join('');
+byId('timelineText').textContent = SPEC.timeline.text;
+kv('easeTable', 'Easing', SPEC.timeline.ease);
+kv('motionTable', 'Motion type', SPEC.motionTypes);
+kv('bindTable', 'Binding', SPEC.bindings);
+kv('fxTable', 'Effect', SPEC.effects, k => SYNC.has(k) ? ' <span class="chip">synced</span>' : '');
+byId('specDump').textContent = JSON.stringify(SPEC, null, 2);
+
+/* morph demo */
+const morphC = createCharacter(byId('morphChar'), 'chat', 'idle');
+let morphTimer;
+function toggleMorph(){
+  const toCall = morphC.form === 'chat';
+  morphC.set(toCall ? 'call' : 'chat', toCall ? 'speaking' : 'idle');
+  byId('morphChip').textContent = toCall ? 'call' : 'chat';
+  clearTimeout(morphTimer); morphTimer = setTimeout(toggleMorph, 2600);
+}
+byId('morphBtn').onclick = toggleMorph; morphTimer = setTimeout(toggleMorph, 2000);
+
+/* playground */
+const play = createCharacter(byId('playChar'), 'chat', 'idle');
+let auto = true, autoTimer, analyser, timeBuf;
+function showPlay(form, state){
+  play.set(form, state);
+  const s = SPEC[form].states[state];
+  byId('playChip').textContent = `${form} · ${state}`;
+  byId('playDesc').innerHTML = `<b>${s.label}</b><span class="muted">When:</span> ${s.when}<br><span class="muted">Look:</span> ${s.look}<br><span class="muted">Driven by:</span> ${s.driven}`;
+  document.querySelectorAll('[data-form]').forEach(b => b.tagName === 'BUTTON' && b.classList.toggle('active', b.dataset.form === form));
+  let lg = '';
+  byId('playStates').innerHTML = SPEC[form].order.map(id => {
+    const st = SPEC[form].states[id], g = st.group || 'Core', head = g === lg ? '' : `<span class="lab grpl">${g}</span>`;
+    lg = g;
+    return head + `<button data-s="${id}" class="${id === state ? 'active' : ''}">${st.label}</button>`; }).join('');
+}
+const script = [['chat','enter',2100],['chat','listening',3000],['chat','thinking',1600],['chat','idea',2200],['chat','speaking',3200],['chat','wordUsed',1500],['chat','levelUp',2000],
+  ['call','connecting',2400],['call','listening',3000],['call','agree',1500],['call','thinking',1700],['call','speaking',3600],['call','levelUp',2000],['call','cheer',2400],['call','ending',900],
+  ['chat','streak',3000],['chat','deckDone',3400],['chat','idle',1800]];
+function runAuto(i = 0){
+  if (!auto) return;
+  showPlay(script[i][0], script[i][1]);
+  autoTimer = setTimeout(() => runAuto((i + 1) % script.length), script[i][2]);
+}
+function stopAuto(){ auto = false; clearTimeout(autoTimer); byId('autoBtn').classList.remove('active'); }
+byId('autoBtn').onclick = () => { if (auto) return stopAuto(); auto = true; byId('autoBtn').classList.add('active'); runAuto(); };
+document.querySelector('.play .ctrl').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.form) { stopAuto(); showPlay(b.dataset.form, b.dataset.form === 'call' ? 'connecting' : 'idle'); }
+  if (b.dataset.s) { stopAuto(); showPlay(play.form, b.dataset.s); }
+});
+byId('micBtn').onclick = async () => {
+  if (analyser) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = ctx.createAnalyser(); analyser.fftSize = 512; timeBuf = new Uint8Array(analyser.fftSize);
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    play.mic = () => { analyser.getByteTimeDomainData(timeBuf); let s = 0;
+      for (const v of timeBuf) { const x = (v - 128) / 128; s += x * x; } return Math.min(1, Math.sqrt(s / timeBuf.length) * 6); };
+    byId('micBtn').classList.add('active'); byId('micBtn').textContent = 'Microphone on';
+    stopAuto(); showPlay(play.form, 'listening');
+  } catch (e) { byId('micBtn').textContent = 'No microphone here'; }
+};
+/* tap Sprout to poke it */
+byId('playChar').style.cursor = 'pointer';
+byId('playChar').onclick = () => {
+  if (play.form !== 'chat' || play.state === 'poke') return;
+  stopAuto(); const prev = play.state; showPlay('chat', 'poke');
+  setTimeout(() => { if (play.state === 'poke') showPlay('chat', prev); }, SPEC.chat.states.poke.holdMs + 250);
+};
+window.onFrame = () => { byId('playMeter').style.width = (play.lvl * 100).toFixed(1) + '%'; };
+
+byId('themeRow').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  applyTheme(b.dataset.theme);
+  document.querySelectorAll('#themeRow button').forEach(x => x.classList.toggle('active', x === b));
+});
+
+runAuto();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

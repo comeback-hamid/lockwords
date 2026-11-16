@@ -1,0 +1,13 @@
+appId: com.comebackhamid.lockwords
+tags:
+  - platform
+---
+- launchApp:
+    clearState: true
+- assertVisible: "New words"
+- tapOn: "Review"
+- assertVisible:
+    text: "Review"
+- tapOn: "Speak"
+- assertVisible:
+    text: "Speak"

@@ -1,0 +1,5 @@
+# Illustration style
+
+Minimal flat line illustration in a clean doodle style. Uniform near-black outlines (#1f2328), medium even weight, rounded line ends, smooth and steady hand-drawn lines; simple closed shapes. Flat fills only: no shading, no gradients, no texture, no shadows. Palette limited to near-black, white and light gray (#e6e9ec, #d1d9e0) on an off-white background (#f6f8fa), plus one green accent in #1f883d / #2da44e / #4ac26b with a very light green (#aceebb) for soft highlights. Green is used sparingly: one key object and 3–5 short dash strokes radiating around it. Simple cartoon people: solid flat black hair, small dot eyes, short eyebrow lines, simple expressive mouths, clothes in flat light gray or white with black outline. Speech bubbles and props drawn with the same outline weight. Generous white space, uncluttered, centered composition.
+
+**Avoid:** photorealism, 3D, gradients, shading, textures, watercolor, extra colors, busy backgrounds, thick cartoon outlines, anime.

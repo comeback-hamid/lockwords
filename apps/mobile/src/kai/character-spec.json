@@ -1,0 +1,2454 @@
+{
+  "name": "Lockwords character",
+  "version": "1.1",
+  "units": "1 unit = 1 pixel cell. x right, y down. Angles in degrees. Time in ms. level = voice volume from 0 to 1.",
+  "viewBox": [
+    -5,
+    -6,
+    28,
+    20
+  ],
+  "groups": {
+    "Core": "The basic loop of a chat or a call.",
+    "Celebrate": "Wins, small and big.",
+    "Work": "Sprout is doing a job for the user.",
+    "Feelings": "Small reactions that make it feel alive.",
+    "Touch": "Reacts to the user's finger.",
+    "Moments": "Arriving, leaving, waiting, pausing."
+  },
+  "forms": {
+    "chat": "Pixel Sprout. Used for text chat in the Sprout tab.",
+    "call": "Sound bars with eyes. Used during a voice call."
+  },
+  "palette": {
+    "light": {
+      "canvas": "#f6f8fa",
+      "surface": "#ffffff",
+      "chip": "#eff2f5",
+      "line": "#d1d9e0",
+      "text": "#1f2328",
+      "muted": "#59636e",
+      "button": "#1f883d",
+      "body": "#2da44e",
+      "hi": "#4ac26b",
+      "shade": "#1f883d",
+      "leaf": "#4ac26b",
+      "leafHi": "#6fdd8b",
+      "eye": "#1f2328",
+      "accent": "#1f883d",
+      "dimTo": "#c5ced7",
+      "shadow": "#d1d9e0",
+      "barsStrong": [
+        "#4ac26b",
+        "#2da44e",
+        "#2da44e",
+        "#1f883d",
+        "#2da44e",
+        "#2da44e",
+        "#4ac26b"
+      ],
+      "barsSoft": [
+        "#aceebb",
+        "#6fdd8b",
+        "#4ac26b",
+        "#4ac26b",
+        "#4ac26b",
+        "#6fdd8b",
+        "#aceebb"
+      ],
+      "barsMuted": "#c5ced7",
+      "barsSweep": [
+        "#1f883d",
+        "#4ac26b",
+        "#aceebb"
+      ],
+      "squares": [
+        "#aceebb",
+        "#6fdd8b",
+        "#4ac26b",
+        "#2da44e",
+        "#116329"
+      ]
+    },
+    "dark": {
+      "canvas": "#0d1117",
+      "surface": "#161b22",
+      "chip": "#21262d",
+      "line": "#30363d",
+      "text": "#e6edf3",
+      "muted": "#8b949e",
+      "button": "#238636",
+      "body": "#3fb950",
+      "hi": "#56d364",
+      "shade": "#2ea043",
+      "leaf": "#56d364",
+      "leafHi": "#7ee787",
+      "eye": "#0d1117",
+      "accent": "#39d353",
+      "dimTo": "#484f58",
+      "shadow": "#010409",
+      "barsStrong": [
+        "#26a641",
+        "#2ea043",
+        "#3fb950",
+        "#56d364",
+        "#3fb950",
+        "#2ea043",
+        "#26a641"
+      ],
+      "barsSoft": [
+        "#006d32",
+        "#1f8a3c",
+        "#26a641",
+        "#2ea043",
+        "#26a641",
+        "#1f8a3c",
+        "#006d32"
+      ],
+      "barsMuted": "#484f58",
+      "barsSweep": [
+        "#56d364",
+        "#2ea043",
+        "#238636"
+      ],
+      "squares": [
+        "#0e4429",
+        "#006d32",
+        "#26a641",
+        "#39d353",
+        "#56d364"
+      ]
+    }
+  },
+  "paletteRoles": {
+    "body": "main body color (chat form slabs)",
+    "hi": "top highlight row",
+    "shade": "bottom shade row and feet",
+    "leaf": "leaves and stem",
+    "leafHi": "small top part of each leaf",
+    "eye": "eyes and mouth",
+    "accent": "effect pixels: sound pixels, dots, zzz, ? and !",
+    "dimTo": "body mixes toward this when a state has dim > 0",
+    "barsStrong": "call form, speaking and idle: one color per bar, left to right",
+    "barsSoft": "call form, listening and connecting",
+    "barsMuted": "call form, mic off or no signal",
+    "barsSweep": "call form, thinking: [bright bar, next to it, the rest]",
+    "squares": "celebrate effect: the 5 word-level greens"
+  },
+  "geometry": {
+    "slabCount": 7,
+    "pivot": [
+      9,
+      10.5
+    ],
+    "spinCenter": [
+      9,
+      5.5
+    ],
+    "chat": {
+      "slab": {
+        "x0": 2,
+        "step": 2,
+        "width": 2,
+        "centerY": 5.5,
+        "height": 7,
+        "outerHeight": 5,
+        "note": "slab i starts at x0 + i*step. Slabs 0 and 6 are shorter (outerHeight) so the block has stepped corners."
+      },
+      "hiRow": [
+        4,
+        2,
+        10,
+        1
+      ],
+      "loRow": [
+        4,
+        8,
+        10,
+        1
+      ],
+      "eyes": {
+        "x": [
+          6.5,
+          10.5
+        ],
+        "centerY": 5,
+        "width": 1,
+        "height": 2
+      },
+      "mouth": {
+        "center": [
+          9,
+          6.9
+        ],
+        "width": 2,
+        "height": 1
+      },
+      "arms": {
+        "left": [
+          0,
+          5,
+          2,
+          2
+        ],
+        "right": [
+          16,
+          5,
+          2,
+          2
+        ]
+      },
+      "feet": [
+        [
+          5,
+          9,
+          2,
+          1.5
+        ],
+        [
+          11,
+          9,
+          2,
+          1.5
+        ]
+      ],
+      "cheeks": [
+        [
+          4.6,
+          6.2,
+          1.4,
+          0.9
+        ],
+        [
+          12,
+          6.2,
+          1.4,
+          0.9
+        ]
+      ],
+      "stem": [
+        8.5,
+        -0.5,
+        1,
+        2.5
+      ],
+      "leafLeft": [
+        [
+          5.5,
+          -1.5,
+          3,
+          1
+        ],
+        [
+          6.5,
+          -2.5,
+          2,
+          1
+        ]
+      ],
+      "leafRight": [
+        [
+          9.5,
+          -1.5,
+          3,
+          1
+        ],
+        [
+          9.5,
+          -2.5,
+          2,
+          1
+        ]
+      ],
+      "leafPivot": [
+        9,
+        -0.5
+      ],
+      "shadow": {
+        "center": [
+          9,
+          10.7
+        ],
+        "rx": 6.5,
+        "ry": 0.45
+      }
+    },
+    "call": {
+      "bar": {
+        "x0": 2.2,
+        "step": 2,
+        "width": 1.6,
+        "centerY": 5.5,
+        "fullHeight": 6,
+        "note": "bar height = fullHeight * scale. Scale comes from the state."
+      },
+      "eyes": {
+        "x": [
+          6.5,
+          10.5
+        ],
+        "centerY": 5.5,
+        "width": 1,
+        "height": 2,
+        "note": "eyes sit on bars 2 and 4 (counting from 0). Those bars never get shorter than the eyes."
+      },
+      "barShape": [
+        0.55,
+        0.75,
+        0.9,
+        1,
+        0.9,
+        0.75,
+        0.55
+      ]
+    }
+  },
+  "poseDefaults": {
+    "lean": 0,
+    "lift": 0,
+    "sx": 1,
+    "sy": 1,
+    "armL": 0,
+    "armR": 0,
+    "armSy": 1,
+    "leaf": 0,
+    "eyeSy": 1,
+    "eyeDx": 0,
+    "eyeDy": 0,
+    "mouth": 0,
+    "mouthW": 1,
+    "mouthH": 0.4,
+    "dim": 0,
+    "x": 0,
+    "spin": 0,
+    "eyeLSy": 1,
+    "eyeRSy": 1,
+    "footL": 0,
+    "footR": 0,
+    "cheek": 0,
+    "stem": 1,
+    "leafS": 1,
+    "leafTilt": 0,
+    "armLx": 0,
+    "armRx": 0,
+    "flat": 0
+  },
+  "poseFields": {
+    "lean": "rotate the whole body around the pivot, degrees",
+    "lift": "move the body up (negative) or down, units",
+    "sx": "body width scale",
+    "sy": "body height scale (scales from the pivot, at the feet)",
+    "armL": "left arm y offset, negative = up",
+    "armR": "right arm y offset",
+    "armSy": "arm height scale (1.5 = stretched into an ear)",
+    "leaf": "leaf angle. Positive = leaves lift up, negative = leaves droop",
+    "eyeSy": "eye height scale (1.3 = wide, 0.15 = closed line)",
+    "eyeDx": "eye x offset",
+    "eyeDy": "eye y offset",
+    "mouth": "mouth visible, 0 or 1",
+    "mouthW": "mouth width scale",
+    "mouthH": "mouth height scale",
+    "dim": "0 to 1, how far the body color mixes toward palette.dimTo",
+    "x": "move the body left (negative) or right, units",
+    "spin": "turn the whole body around geometry.spinCenter, degrees (360 = one flip)",
+    "eyeLSy": "extra height scale for the left eye only",
+    "eyeRSy": "extra height scale for the right eye only (0.12 = wink)",
+    "footL": "lift the left foot by this many units (it tucks under the body)",
+    "footR": "lift the right foot",
+    "cheek": "0 to 1, how visible the two light cheeks are",
+    "stem": "stem height scale (1.5 = the sprout grows taller)",
+    "leafS": "leaf size scale (0 = no leaves)",
+    "leafTilt": "turn both leaves the same way, degrees. Positive = left leaf up, right leaf down",
+    "armLx": "stretch the left arm outward by this many units",
+    "armRx": "stretch the right arm outward",
+    "flat": "0 to 1, hides the highlight and shade rows (used when the slabs show progress)"
+  },
+  "motionTypes": {
+    "breathe": "body rises by amp and comes back, once per period",
+    "hop": "body jumps up by amp for 60% of the period, then squashes on landing",
+    "shake": "quick left-right shake of amp at the start of each period, then still",
+    "sway": "lean swings by ±amp degrees",
+    "sleep": "body height shrinks by amp and comes back, slowly",
+    "nod": "two quick dips of amp in the first half of the period, eyes follow, then still",
+    "dance": "steps from foot to foot: lean ±5°, the lifted foot tucks, the arm on that side pumps up, leaves swing, small bounce of amp × 0.4",
+    "float": "hovers amp units above the ground and drifts ±22% of amp; feet tuck a little, leaves drift, the shadow gets smaller",
+    "tap": "the right foot taps two times in the first half of the period, then rests",
+    "look": "turns left and right: lean ±amp degrees, eyes ±0.7, body ±0.5 units",
+    "read": "eyes move left to right along 3 lines per period, then jump to the next line",
+    "work": "left and right arm go up by amp one after the other, fast",
+    "flip": "crouch (first 14%), jump amp units high with one full 360° turn (14% to 70%), land with a squash (70% to 84%), then rest"
+  },
+  "bindings": {
+    "ears": "both arms move up by value × level",
+    "mouth": "mouthH = 0.3 + 2.1 × level, mouthW = 1 + 0.5 × level",
+    "lift": "body moves up by value × level",
+    "arms": "left arm up by value × level, right arm up by 0.8 × value × (1 - level)",
+    "fill": "chat form. progress 0 to 1 lights the 7 slabs from left to right; slabs not reached yet mix 80% toward palette.dimTo. Left arm follows slab 0, right arm follows slab 6",
+    "look": "chat form. touch position x, y from -1 to 1: eyes move 0.7 × x and 0.5 × y, lean 3° × x, leaves tilt -8° × x. Smoothed 15% per frame",
+    "drain": "call form. time left 1 to 0: bars turn muted and low (0.22) one by one from the right"
+  },
+  "effects": {
+    "in": "6 small pixels fly toward the character. Brightness follows level.",
+    "out": "6 small pixels fly away from the character. Brightness follows level.",
+    "dots": "3 growing squares, top right, appear one after another",
+    "zzz": "3 letters z float up, top right",
+    "sparkle": "4 pixels twinkle around the body",
+    "squares": "10 small squares in the 5 word-level greens rise from the bottom",
+    "q": "a floating question mark, top right",
+    "bang": "a floating exclamation mark, top right",
+    "off": "a gray × that blinks slowly, top right",
+    "rain": "12 small squares in the 5 word-level greens fall from the top and turn a little",
+    "levelup": "synced. One level square, top right: pops in at 14% of the cycle in a light green, turns two greens darker at 42% with a small bump and two side pixels, floats away at the end",
+    "star": "synced. A plus-shaped pixel star, top right, pops and turns into place at 40% to 55% of the cycle, with two small side pixels",
+    "tree": "synced. 12 word squares pop in above the stem, bottom row first (6, then 4, then 2), from 24% of the cycle; they hold, then shrink away at 62% to 68%",
+    "stack": "4 word squares drop in and stack up at the right, one every 0.4 s, then fade",
+    "plant": "synced. A tiny sprout (stem and two leaves) grows out of the ground at the right at 28% to 42% of the cycle",
+    "toss": "synced. A word square appears above the right hand at 8%, flies in an arc into a small phone outline (top right) at 24% to 38%; the phone bumps and both fade at the end",
+    "idea": "synced. A small pixel light bulb, top right, pops on at 10% to 23% of the cycle; 5 ray pixels blink",
+    "note": "two music notes float up, top right",
+    "heart": "a small pixel heart, top right, beats twice per 1.4 s",
+    "lines": "3 short text lines flow in from the left, toward the eyes",
+    "scan": "4 frame corners around the body; a light line moves down and up over the body, drawn on top of it"
+  },
+  "syncedEffects": [
+    "levelup",
+    "star",
+    "tree",
+    "plant",
+    "toss",
+    "idea"
+  ],
+  "timeline": {
+    "text": "A state with 'keys' is a short planned move. frames[i].at is a time from 0 to 1 inside durationMs. Each frame lists only the pose numbers that differ from the state's base pose (poseDefaults + pose). Between two frames every number is blended with the easing of the later frame. After durationMs the last frame holds for restMs, then this page plays it again. In the app, play it once and go to returnsTo.",
+    "ease": {
+      "smooth": "smoothstep. The default.",
+      "out": "fast start, soft stop: 1 - (1 - x)³. Use it for jumps going up and for pops.",
+      "in": "soft start, fast end: x³. Use it for falling.",
+      "linear": "steady speed"
+    },
+    "snapStart": "if true, the pose jumps to the first frame when the timeline starts (enter uses it, because it starts out of view)",
+    "h": "call form only: a frame can set the bar scale h (one number, or 7 numbers)"
+  },
+  "chat": {
+    "order": [
+      "idle",
+      "greeting",
+      "listening",
+      "thinking",
+      "speaking",
+      "wordUsed",
+      "gentleNo",
+      "confused",
+      "celebrate",
+      "nudge",
+      "sleeping",
+      "offline",
+      "levelUp",
+      "streak",
+      "deckDone",
+      "milestone",
+      "allDone",
+      "cheer",
+      "reading",
+      "searching",
+      "scanning",
+      "making",
+      "planting",
+      "sendHard",
+      "idea",
+      "yes",
+      "wink",
+      "shy",
+      "proud",
+      "oops",
+      "waiting",
+      "audio",
+      "curious",
+      "poke",
+      "enter",
+      "leave",
+      "wake",
+      "goodnight"
+    ],
+    "states": {
+      "idle": {
+        "label": "Idle",
+        "when": "Nothing is happening. This is the default.",
+        "look": "Breathes slowly and blinks.",
+        "driven": "Loop",
+        "motion": {
+          "type": "breathe",
+          "amp": 0.45,
+          "period": 2200
+        }
+      },
+      "greeting": {
+        "label": "Greeting",
+        "when": "The Sprout tab opens, or a new session starts.",
+        "look": "Right arm goes up and waves. Body sways. Small open mouth.",
+        "driven": "Loop",
+        "pose": {
+          "armR": -2.2,
+          "mouth": 1,
+          "mouthH": 0.7,
+          "leaf": 8
+        },
+        "armWave": {
+          "amp": 0.8,
+          "period": 450
+        },
+        "motion": {
+          "type": "sway",
+          "amp": 3,
+          "period": 1800
+        },
+        "holdMs": 2000,
+        "returnsTo": "idle"
+      },
+      "listening": {
+        "label": "Listening",
+        "when": "The user is typing or dictating.",
+        "look": "Leans in. Arms slide up and stretch into ears. Leaves lift. Eyes open wide. Sound pixels fly in.",
+        "driven": "Mic or typing level: ears twitch, pixels get brighter",
+        "pose": {
+          "lean": -4,
+          "armL": -2.3,
+          "armR": -2.3,
+          "armSy": 1.5,
+          "eyeSy": 1.3,
+          "leaf": 22
+        },
+        "bind": {
+          "ears": 0.8
+        },
+        "fx": "in"
+      },
+      "thinking": {
+        "label": "Thinking",
+        "when": "Message sent, waiting for the reply. Also while a deck is being made.",
+        "look": "Eyes look up. Three dots grow. Slow breathing. No blinking.",
+        "driven": "Loop",
+        "pose": {
+          "eyeDx": 0.4,
+          "eyeDy": -0.6,
+          "leaf": -6
+        },
+        "motion": {
+          "type": "breathe",
+          "amp": 0.3,
+          "period": 3000
+        },
+        "fx": "dots",
+        "noBlink": true
+      },
+      "speaking": {
+        "label": "Speaking",
+        "when": "The reply is streaming as text or playing as audio.",
+        "look": "A mouth appears and moves. Body bounces a little. Arms gesture. Sound pixels fly out.",
+        "driven": "Voice level: mouth height, bounce, arms",
+        "pose": {
+          "mouth": 1
+        },
+        "bind": {
+          "mouth": 1,
+          "lift": 0.7,
+          "arms": 1.2
+        },
+        "fx": "out"
+      },
+      "wordUsed": {
+        "label": "Word used",
+        "when": "The user used a checklist word well, or got a review right.",
+        "look": "Small happy hop. Both arms up. Eyes squint. Sparkles.",
+        "driven": "Loop",
+        "pose": {
+          "armL": -2,
+          "armR": -2,
+          "eyeSy": 0.5,
+          "mouth": 1,
+          "mouthW": 1.5,
+          "mouthH": 1,
+          "leaf": 25
+        },
+        "motion": {
+          "type": "hop",
+          "amp": 1.6,
+          "period": 700
+        },
+        "fx": "sparkle",
+        "holdMs": 1400,
+        "returnsTo": "previous"
+      },
+      "gentleNo": {
+        "label": "Gentle no",
+        "when": "The sentence was not right, or the request is off-topic. Always kind, never harsh.",
+        "look": "A short shake. Eyes look down. Arms and leaves droop. Flat mouth.",
+        "driven": "Loop",
+        "pose": {
+          "eyeDy": 0.5,
+          "eyeSy": 0.8,
+          "armL": 0.6,
+          "armR": 0.6,
+          "mouth": 1,
+          "mouthW": 1.3,
+          "mouthH": 0.3,
+          "leaf": -14
+        },
+        "motion": {
+          "type": "shake",
+          "amp": 0.5,
+          "period": 2400
+        },
+        "holdMs": 1200,
+        "returnsTo": "speaking"
+      },
+      "confused": {
+        "label": "Confused",
+        "when": "The input was not understood. Sprout asks the user to say it another way.",
+        "look": "Tilts to one side. One arm up. A question mark floats.",
+        "driven": "Loop",
+        "pose": {
+          "lean": 7,
+          "armR": -1.4,
+          "eyeDx": -0.3,
+          "leaf": -4
+        },
+        "motion": {
+          "type": "sway",
+          "amp": 1.5,
+          "period": 2600
+        },
+        "fx": "q"
+      },
+      "celebrate": {
+        "label": "Celebrate",
+        "when": "Talk summary: words moved up. Words reached long-term. A deck is finished.",
+        "look": "Big hops. Arms and leaves up. Open mouth. Word squares rise.",
+        "driven": "Loop",
+        "pose": {
+          "armL": -3,
+          "armR": -3,
+          "mouth": 1,
+          "mouthW": 1.6,
+          "mouthH": 1.6,
+          "eyeSy": 0.5,
+          "leaf": 30
+        },
+        "motion": {
+          "type": "hop",
+          "amp": 3,
+          "period": 620
+        },
+        "fx": "squares",
+        "holdMs": 2400,
+        "returnsTo": "idle"
+      },
+      "nudge": {
+        "label": "Nudge",
+        "when": "Sprout wants attention: words are due, or it has a suggestion.",
+        "look": "Small hop now and then. Right arm waves. An exclamation mark floats.",
+        "driven": "Loop",
+        "pose": {
+          "armR": -2.4,
+          "eyeSy": 1.2,
+          "leaf": 12
+        },
+        "armWave": {
+          "amp": 0.7,
+          "period": 500
+        },
+        "motion": {
+          "type": "hop",
+          "amp": 1,
+          "period": 1500
+        },
+        "fx": "bang"
+      },
+      "sleeping": {
+        "label": "Sleeping",
+        "when": "The app was not used for a long time, or it is quiet hours.",
+        "look": "Eyes closed. Slow deep breath. Leaves droop. z z z.",
+        "driven": "Loop",
+        "pose": {
+          "eyeSy": 0.15,
+          "dim": 0.2,
+          "armL": 0.5,
+          "armR": 0.5,
+          "leaf": -24
+        },
+        "motion": {
+          "type": "sleep",
+          "amp": 0.06,
+          "period": 3200
+        },
+        "fx": "zzz",
+        "noBlink": true
+      },
+      "offline": {
+        "label": "Offline",
+        "when": "No network, or the server returned an error.",
+        "look": "Body turns gray. Eyes closed. Everything droops. A gray × blinks.",
+        "driven": "Still",
+        "pose": {
+          "dim": 0.85,
+          "eyeSy": 0.15,
+          "armL": 0.8,
+          "armR": 0.8,
+          "leaf": -30
+        },
+        "fx": "off",
+        "noBlink": true
+      },
+      "levelUp": {
+        "group": "Celebrate",
+        "label": "Level up",
+        "when": "One word moved up a level, in review or in a talk.",
+        "look": "Crouches, then stretches tall with arms and leaves up. A level square pops next to it and turns one step darker.",
+        "driven": "Timeline, 1100 ms",
+        "pose": {
+          "mouth": 1,
+          "mouthW": 1.3,
+          "mouthH": 0.8
+        },
+        "keys": {
+          "durationMs": 1100,
+          "restMs": 900,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.18,
+              "pose": {
+                "sy": 0.86,
+                "sx": 1.08,
+                "leaf": -10,
+                "eyeSy": 0.8
+              }
+            },
+            {
+              "at": 0.42,
+              "ease": "out",
+              "pose": {
+                "sy": 1.12,
+                "sx": 0.95,
+                "lift": -1.4,
+                "leaf": 32,
+                "armL": -2.6,
+                "armR": -2.6,
+                "eyeSy": 1.2,
+                "eyeDx": 0.5,
+                "eyeDy": -0.5
+              }
+            },
+            {
+              "at": 0.7,
+              "pose": {
+                "leaf": 22,
+                "armL": -2.2,
+                "armR": -2.2,
+                "eyeSy": 0.5,
+                "eyeDx": 0.3,
+                "eyeDy": -0.3
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "leaf": 14,
+                "armL": -1,
+                "armR": -1,
+                "eyeSy": 0.5
+              }
+            }
+          ]
+        },
+        "fx": "levelup",
+        "holdMs": 1100,
+        "returnsTo": "previous"
+      },
+      "streak": {
+        "group": "Celebrate",
+        "label": "Streak",
+        "when": "The daily star is collected. The streak goes up by one.",
+        "look": "Crouches, jumps and does one full flip in the air, then lands with a small squash. A pixel star pops.",
+        "driven": "Loop, one flip per 1500 ms",
+        "pose": {
+          "mouth": 1,
+          "mouthW": 1.5,
+          "mouthH": 1.2,
+          "eyeSy": 0.5,
+          "armL": -2.4,
+          "armR": -2.4,
+          "leaf": 24
+        },
+        "motion": {
+          "type": "flip",
+          "amp": 3.2,
+          "period": 1500
+        },
+        "fx": "star",
+        "holdMs": 1500,
+        "returnsTo": "idle"
+      },
+      "deckDone": {
+        "group": "Celebrate",
+        "label": "Deck grown",
+        "when": "Every word of a deck is learned. The deck's tree is fully grown.",
+        "look": "Looks up. Its own leaf grows into a small pixel tree made of word squares. Arms up. Then the tree turns back into the leaf.",
+        "driven": "Timeline, 2600 ms",
+        "keys": {
+          "durationMs": 2600,
+          "restMs": 800,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.1,
+              "pose": {
+                "sy": 0.9,
+                "sx": 1.06,
+                "eyeDy": 0.3
+              }
+            },
+            {
+              "at": 0.24,
+              "ease": "out",
+              "pose": {
+                "sy": 1.05,
+                "sx": 0.97,
+                "eyeDy": -0.7,
+                "eyeSy": 1.2,
+                "leafS": 0,
+                "stem": 1.5,
+                "armL": -1.5,
+                "armR": -1.5
+              }
+            },
+            {
+              "at": 0.36,
+              "pose": {
+                "eyeDy": -0.7,
+                "eyeSy": 1.25,
+                "leafS": 0,
+                "stem": 1.5,
+                "armL": -3,
+                "armR": -3,
+                "mouth": 1,
+                "mouthW": 1.5,
+                "mouthH": 1.4
+              }
+            },
+            {
+              "at": 0.8,
+              "pose": {
+                "eyeDy": -0.5,
+                "eyeSy": 0.5,
+                "leafS": 0,
+                "stem": 1.5,
+                "armL": -3,
+                "armR": -3,
+                "mouth": 1,
+                "mouthW": 1.5,
+                "mouthH": 1.2
+              }
+            },
+            {
+              "at": 0.92,
+              "pose": {
+                "leafS": 1,
+                "stem": 1,
+                "armL": -1,
+                "armR": -1,
+                "eyeSy": 0.5,
+                "mouth": 1,
+                "mouthW": 1.4,
+                "mouthH": 0.8,
+                "leaf": 20
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "mouth": 1,
+                "mouthW": 1.3,
+                "mouthH": 0.6,
+                "leaf": 12
+              }
+            }
+          ]
+        },
+        "fx": "tree",
+        "holdMs": 2600,
+        "returnsTo": "idle"
+      },
+      "milestone": {
+        "group": "Celebrate",
+        "label": "Milestone",
+        "when": "A big number is reached: 100, 500 or 1,000 words.",
+        "look": "Dances: steps from foot to foot, arms pump one after the other, leaves swing. Word squares fall like rain.",
+        "driven": "Loop",
+        "pose": {
+          "mouth": 1,
+          "mouthW": 1.6,
+          "mouthH": 1.3,
+          "eyeSy": 0.5,
+          "leaf": 20
+        },
+        "motion": {
+          "type": "dance",
+          "amp": 1,
+          "period": 760
+        },
+        "fx": "rain",
+        "holdMs": 3000,
+        "returnsTo": "idle"
+      },
+      "allDone": {
+        "group": "Celebrate",
+        "label": "All done",
+        "when": "Inbox zero: every card due today is reviewed.",
+        "look": "Floats above the ground with closed happy eyes and a small smile. Feet hang. The shadow gets smaller. Calm sparkles.",
+        "driven": "Loop",
+        "pose": {
+          "eyeSy": 0.3,
+          "mouth": 1,
+          "mouthW": 1.4,
+          "mouthH": 0.5,
+          "armL": -0.6,
+          "armR": -0.6,
+          "leaf": 16,
+          "cheek": 0.7
+        },
+        "motion": {
+          "type": "float",
+          "amp": 1.6,
+          "period": 3200
+        },
+        "fx": "sparkle",
+        "noBlink": true
+      },
+      "cheer": {
+        "group": "Celebrate",
+        "label": "Cheer on",
+        "when": "After a hard card or a gentle no: 'You can do it, try again.'",
+        "look": "Leans in and pumps the right arm up two times. Open mouth.",
+        "driven": "Timeline, 1000 ms",
+        "pose": {
+          "mouth": 1,
+          "mouthW": 1.4,
+          "mouthH": 1,
+          "eyeSy": 1.1,
+          "lean": -3,
+          "leaf": 14
+        },
+        "keys": {
+          "durationMs": 1000,
+          "restMs": 800,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.2,
+              "ease": "out",
+              "pose": {
+                "armR": -3.4,
+                "lift": -0.6
+              }
+            },
+            {
+              "at": 0.4,
+              "pose": {
+                "armR": -1.2
+              }
+            },
+            {
+              "at": 0.6,
+              "ease": "out",
+              "pose": {
+                "armR": -3.4,
+                "lift": -0.6
+              }
+            },
+            {
+              "at": 0.8,
+              "pose": {
+                "armR": -1.2
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "armR": -2.4
+              }
+            }
+          ]
+        },
+        "holdMs": 1000,
+        "returnsTo": "previous"
+      },
+      "reading": {
+        "group": "Work",
+        "label": "Reading",
+        "when": "Sprout reads a web link, a pasted text or a word list.",
+        "look": "Leans in. Eyes move along three lines, left to right, then jump to the next line. Short text lines flow in from the left.",
+        "driven": "Loop",
+        "pose": {
+          "lean": -3,
+          "leaf": 10,
+          "eyeSy": 1.1,
+          "armL": -0.4,
+          "armR": -0.4
+        },
+        "motion": {
+          "type": "read",
+          "amp": 0.7,
+          "period": 2400
+        },
+        "fx": "lines"
+      },
+      "searching": {
+        "group": "Work",
+        "label": "Searching",
+        "when": "Sprout looks for good words: in a video, on the web, or for a topic.",
+        "look": "One arm goes up like a hand above the eyes. The body turns slowly left and right. Eyes look far to each side.",
+        "driven": "Loop",
+        "pose": {
+          "armL": -2.3,
+          "eyeSy": 1.2,
+          "leaf": 6
+        },
+        "motion": {
+          "type": "look",
+          "amp": 6,
+          "period": 2600
+        }
+      },
+      "scanning": {
+        "group": "Work",
+        "label": "Scanning",
+        "when": "The user took a photo of a word list, a page or an object.",
+        "look": "Stands still with wide eyes inside four frame corners. A light line moves down and up over the body.",
+        "driven": "Loop",
+        "pose": {
+          "eyeSy": 1.2,
+          "armL": -0.8,
+          "armR": -0.8,
+          "leaf": 12
+        },
+        "motion": {
+          "type": "breathe",
+          "amp": 0.2,
+          "period": 2200
+        },
+        "fx": "scan",
+        "noBlink": true
+      },
+      "making": {
+        "group": "Work",
+        "label": "Making",
+        "when": "A deck is being made. Use it when you know the progress (18 of 30 words).",
+        "look": "The body is the progress bar: the 7 slabs light up from left to right. Arms work one after the other. Squares stack up next to it.",
+        "driven": "Progress from 0 to 1",
+        "pose": {
+          "eyeDy": 0.3,
+          "eyeSy": 0.9,
+          "flat": 1,
+          "leaf": 8
+        },
+        "motion": {
+          "type": "work",
+          "amp": 1.1,
+          "period": 420
+        },
+        "bind": {
+          "fill": 1
+        },
+        "fx": "stack"
+      },
+      "planting": {
+        "group": "Work",
+        "label": "Planting",
+        "when": "A new deck was added. Its tree is planted in the meadow.",
+        "look": "Bends to the right, reaches down and pats the ground. A small sprout pops up there. Sprout stands up and smiles at it.",
+        "driven": "Timeline, 1700 ms",
+        "keys": {
+          "durationMs": 1700,
+          "restMs": 900,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.2,
+              "pose": {
+                "lean": 12,
+                "lift": 0.5,
+                "armR": 1.6,
+                "armRx": 1,
+                "eyeDx": 0.6,
+                "eyeDy": 0.6,
+                "leaf": -8
+              }
+            },
+            {
+              "at": 0.36,
+              "pose": {
+                "lean": 12,
+                "lift": 0.5,
+                "armR": 1.2,
+                "armRx": 1,
+                "eyeDx": 0.6,
+                "eyeDy": 0.6,
+                "leaf": -8
+              }
+            },
+            {
+              "at": 0.45,
+              "ease": "in",
+              "pose": {
+                "lean": 13,
+                "lift": 0.6,
+                "armR": 2,
+                "armRx": 1,
+                "eyeDx": 0.6,
+                "eyeDy": 0.6,
+                "leaf": -10
+              }
+            },
+            {
+              "at": 0.7,
+              "ease": "out",
+              "pose": {
+                "armR": -1.5,
+                "eyeDx": 0.6,
+                "eyeDy": 0.5,
+                "eyeSy": 0.5,
+                "mouth": 1,
+                "mouthW": 1.4,
+                "mouthH": 0.9,
+                "leaf": 22
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "eyeDx": 0.6,
+                "eyeDy": 0.5,
+                "mouth": 1,
+                "mouthW": 1.3,
+                "mouthH": 0.7,
+                "leaf": 16
+              }
+            }
+          ]
+        },
+        "fx": "plant",
+        "holdMs": 1700,
+        "returnsTo": "idle"
+      },
+      "sendHard": {
+        "group": "Work",
+        "label": "To lock screen",
+        "when": "A word was marked Hard. It goes to the lock screen widget.",
+        "look": "Holds a word square in the right hand, leans back, then throws it up into a small phone. The phone gives a little bump. Sprout watches it land.",
+        "driven": "Timeline, 1500 ms",
+        "keys": {
+          "durationMs": 1500,
+          "restMs": 900,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.15,
+              "pose": {
+                "armR": -2.6,
+                "eyeDx": 0.5,
+                "eyeDy": -0.3
+              }
+            },
+            {
+              "at": 0.32,
+              "pose": {
+                "lean": -8,
+                "armR": -2.2,
+                "eyeDx": 0.5,
+                "eyeDy": -0.2
+              }
+            },
+            {
+              "at": 0.45,
+              "ease": "out",
+              "pose": {
+                "lean": 9,
+                "armR": -3,
+                "armRx": 1.6,
+                "eyeDx": 0.7,
+                "eyeDy": -0.7
+              }
+            },
+            {
+              "at": 0.62,
+              "pose": {
+                "lean": 3,
+                "armR": -1.5,
+                "eyeDx": 0.7,
+                "eyeDy": -0.9,
+                "eyeSy": 1.2
+              }
+            },
+            {
+              "at": 0.85,
+              "pose": {
+                "armR": -0.5,
+                "eyeDx": 0.7,
+                "eyeDy": -0.9,
+                "eyeSy": 1.1,
+                "mouth": 1,
+                "mouthW": 1.3,
+                "mouthH": 0.6,
+                "leaf": 14
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "eyeDx": 0.6,
+                "eyeDy": -0.7,
+                "mouth": 1,
+                "mouthW": 1.3,
+                "mouthH": 0.5,
+                "leaf": 12
+              }
+            }
+          ]
+        },
+        "fx": "toss",
+        "holdMs": 1500,
+        "returnsTo": "previous"
+      },
+      "idea": {
+        "group": "Work",
+        "label": "Idea",
+        "when": "Sprout has a tip, a memory trick or a deck suggestion.",
+        "look": "Thinks for a moment, then pops up: leaves snap high, eyes open wide, one arm points up. A small pixel light turns on.",
+        "driven": "Timeline, 1000 ms",
+        "keys": {
+          "durationMs": 1000,
+          "restMs": 1400,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {
+                "eyeDx": 0.4,
+                "eyeDy": -0.5,
+                "leaf": -6
+              }
+            },
+            {
+              "at": 0.3,
+              "pose": {
+                "eyeDx": 0.4,
+                "eyeDy": -0.5,
+                "leaf": -8,
+                "sy": 0.95
+              }
+            },
+            {
+              "at": 0.42,
+              "ease": "out",
+              "pose": {
+                "lift": -1,
+                "leaf": 36,
+                "eyeSy": 1.35,
+                "armR": -2.8,
+                "mouth": 1,
+                "mouthH": 1
+              }
+            },
+            {
+              "at": 0.6,
+              "pose": {
+                "leaf": 28,
+                "eyeSy": 1.2,
+                "armR": -2.6,
+                "mouth": 1,
+                "mouthH": 0.8
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "leaf": 24,
+                "eyeSy": 1.1,
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthW": 1.2,
+                "mouthH": 0.6
+              }
+            }
+          ]
+        },
+        "fx": "idea",
+        "holdMs": 1000,
+        "returnsTo": "speaking"
+      },
+      "yes": {
+        "group": "Feelings",
+        "label": "Yes",
+        "when": "Sprout agrees or confirms: 'Got it', 'Saved', 'Good question'.",
+        "look": "Nods two times with a small smile, then waits a moment.",
+        "driven": "Loop",
+        "pose": {
+          "mouth": 1,
+          "mouthW": 1.3,
+          "mouthH": 0.5,
+          "leaf": 10
+        },
+        "motion": {
+          "type": "nod",
+          "amp": 0.9,
+          "period": 1500
+        },
+        "holdMs": 800,
+        "returnsTo": "previous"
+      },
+      "wink": {
+        "group": "Feelings",
+        "label": "Wink",
+        "when": "A playful hint, a joke, or 'this one is easy for you'.",
+        "look": "Tilts, lifts one arm and closes the right eye for a moment. The leaves tip to one side.",
+        "driven": "Timeline, 900 ms",
+        "pose": {
+          "lean": 5,
+          "armR": -1.6,
+          "mouth": 1,
+          "mouthW": 1.4,
+          "mouthH": 0.5,
+          "leaf": 10,
+          "leafTilt": 6
+        },
+        "keys": {
+          "durationMs": 900,
+          "restMs": 1300,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.25,
+              "pose": {
+                "eyeRSy": 0.12,
+                "lift": -0.3
+              }
+            },
+            {
+              "at": 0.6,
+              "pose": {
+                "eyeRSy": 0.12
+              }
+            },
+            {
+              "at": 0.8,
+              "pose": {}
+            },
+            {
+              "at": 1,
+              "pose": {}
+            }
+          ]
+        },
+        "noBlink": true,
+        "holdMs": 900,
+        "returnsTo": "previous"
+      },
+      "shy": {
+        "group": "Feelings",
+        "label": "Shy",
+        "when": "The user says thanks or something kind to Sprout.",
+        "look": "Looks down and away. Light cheeks show. Arms close to the body, leaves tip over. A small pixel heart beats.",
+        "driven": "Loop",
+        "pose": {
+          "cheek": 1,
+          "eyeDx": -0.4,
+          "eyeDy": 0.5,
+          "eyeSy": 0.8,
+          "armL": 0.5,
+          "armR": 0.5,
+          "leaf": -6,
+          "leafTilt": -10,
+          "lean": -3,
+          "mouth": 1,
+          "mouthW": 0.8,
+          "mouthH": 0.4
+        },
+        "motion": {
+          "type": "sway",
+          "amp": 2,
+          "period": 2400
+        },
+        "fx": "heart",
+        "holdMs": 1800,
+        "returnsTo": "idle"
+      },
+      "proud": {
+        "group": "Feelings",
+        "label": "Proud",
+        "when": "Sprout shows a result: the talk summary, a finished deck, your week.",
+        "look": "Chest out, hands on hips, eyes closed and a wide smile. Breathes slowly.",
+        "driven": "Loop",
+        "pose": {
+          "sx": 1.06,
+          "lift": -0.3,
+          "armL": 0.9,
+          "armR": 0.9,
+          "eyeSy": 0.3,
+          "leaf": 20,
+          "mouth": 1,
+          "mouthW": 1.5,
+          "mouthH": 0.5,
+          "cheek": 0.5,
+          "lean": -2
+        },
+        "motion": {
+          "type": "breathe",
+          "amp": 0.35,
+          "period": 2600
+        },
+        "noBlink": true
+      },
+      "oops": {
+        "group": "Feelings",
+        "label": "Oops",
+        "when": "Sprout made a mistake, or something failed and it will try again.",
+        "look": "Jumps back with wide eyes and arms up, wobbles two times, then stands with a flat mouth and low leaves. An exclamation mark floats.",
+        "driven": "Timeline, 1200 ms",
+        "keys": {
+          "durationMs": 1200,
+          "restMs": 1000,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.12,
+              "ease": "out",
+              "pose": {
+                "x": -1.4,
+                "lean": -8,
+                "lift": -0.8,
+                "eyeSy": 1.45,
+                "armL": -2,
+                "armR": -2,
+                "mouth": 1,
+                "mouthW": 0.9,
+                "mouthH": 1.3,
+                "leaf": 30
+              }
+            },
+            {
+              "at": 0.35,
+              "pose": {
+                "x": -1,
+                "lean": -5,
+                "eyeSy": 1.4,
+                "armL": -1.5,
+                "armR": -1.5,
+                "mouth": 1,
+                "mouthW": 0.9,
+                "mouthH": 1.2,
+                "leaf": 20
+              }
+            },
+            {
+              "at": 0.5,
+              "pose": {
+                "x": 0.5,
+                "lean": 4,
+                "eyeSy": 1.2,
+                "mouth": 1,
+                "mouthW": 1,
+                "mouthH": 0.8,
+                "leaf": 8
+              }
+            },
+            {
+              "at": 0.65,
+              "pose": {
+                "x": -0.3,
+                "lean": -2,
+                "mouth": 1,
+                "mouthW": 1.1,
+                "mouthH": 0.5
+              }
+            },
+            {
+              "at": 0.8,
+              "pose": {
+                "eyeDy": 0.3,
+                "armL": 0.4,
+                "armR": 0.4,
+                "mouth": 1,
+                "mouthW": 1.2,
+                "mouthH": 0.3,
+                "leaf": -8
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "eyeDy": 0.3,
+                "armL": 0.4,
+                "armR": 0.4,
+                "mouth": 1,
+                "mouthW": 1.2,
+                "mouthH": 0.3,
+                "leaf": -8
+              }
+            }
+          ]
+        },
+        "fx": "bang",
+        "holdMs": 1200,
+        "returnsTo": "thinking"
+      },
+      "waiting": {
+        "group": "Feelings",
+        "label": "Waiting",
+        "when": "It is the user's turn and nothing has happened for a while.",
+        "look": "Looks to the side and taps its right foot two times, then stops, then taps again.",
+        "driven": "Loop",
+        "pose": {
+          "eyeDx": 0.6,
+          "eyeDy": -0.2,
+          "armL": 0.5,
+          "armR": 0.5,
+          "leaf": -4,
+          "lean": 2
+        },
+        "motion": {
+          "type": "tap",
+          "amp": 0.9,
+          "period": 1600
+        }
+      },
+      "audio": {
+        "group": "Feelings",
+        "label": "Playing audio",
+        "when": "A word or sentence is played aloud (the speaker button).",
+        "look": "Sways to the sound with closed happy eyes and a round mouth. Notes float up.",
+        "driven": "Loop",
+        "pose": {
+          "mouth": 1,
+          "mouthW": 0.9,
+          "mouthH": 0.9,
+          "eyeSy": 0.5,
+          "leaf": 12
+        },
+        "motion": {
+          "type": "sway",
+          "amp": 4,
+          "period": 900
+        },
+        "fx": "note"
+      },
+      "curious": {
+        "group": "Touch",
+        "label": "Curious",
+        "when": "The user's finger is near, or drags a card or a word across the screen.",
+        "look": "Eyes follow the finger. The body leans a little toward it and the leaves tip the other way.",
+        "driven": "Touch position, x and y from -1 to 1",
+        "pose": {
+          "eyeSy": 1.2,
+          "leaf": 14
+        },
+        "bind": {
+          "look": 1
+        }
+      },
+      "poke": {
+        "group": "Touch",
+        "label": "Poke",
+        "when": "The user taps Sprout.",
+        "look": "Squashes flat with big eyes, bounces up once and settles. Fast and soft.",
+        "driven": "Timeline, 520 ms",
+        "keys": {
+          "durationMs": 520,
+          "restMs": 900,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {}
+            },
+            {
+              "at": 0.2,
+              "ease": "out",
+              "pose": {
+                "sy": 0.78,
+                "sx": 1.14,
+                "eyeSy": 1.4,
+                "leaf": -14,
+                "armL": 0.8,
+                "armR": 0.8
+              }
+            },
+            {
+              "at": 0.5,
+              "ease": "out",
+              "pose": {
+                "sy": 1.1,
+                "sx": 0.94,
+                "lift": -1.2,
+                "eyeSy": 1.3,
+                "leaf": 26
+              }
+            },
+            {
+              "at": 0.8,
+              "ease": "in",
+              "pose": {
+                "sy": 0.96,
+                "sx": 1.03,
+                "eyeSy": 1.1
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "eyeSy": 1.1
+              }
+            }
+          ]
+        },
+        "holdMs": 520,
+        "returnsTo": "previous"
+      },
+      "enter": {
+        "group": "Moments",
+        "label": "Enter",
+        "when": "Sprout arrives: first app open, or a screen where it was not visible before.",
+        "look": "Pops up from below, goes a little too high, lands with a squash, then waves.",
+        "driven": "Timeline, 1000 ms",
+        "keys": {
+          "durationMs": 1000,
+          "restMs": 1200,
+          "snapStart": true,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {
+                "lift": 18,
+                "leaf": -20
+              }
+            },
+            {
+              "at": 0.45,
+              "ease": "out",
+              "pose": {
+                "lift": -1.4,
+                "sy": 1.08,
+                "sx": 0.95,
+                "leaf": 30,
+                "eyeSy": 1.2
+              }
+            },
+            {
+              "at": 0.62,
+              "ease": "in",
+              "pose": {
+                "sy": 0.92,
+                "sx": 1.06,
+                "leaf": 10
+              }
+            },
+            {
+              "at": 0.75,
+              "pose": {
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthH": 0.7
+              }
+            },
+            {
+              "at": 0.85,
+              "pose": {
+                "armR": -1.6,
+                "mouth": 1,
+                "mouthH": 0.7
+              }
+            },
+            {
+              "at": 0.95,
+              "pose": {
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthH": 0.7
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "armR": -2,
+                "mouth": 1,
+                "mouthH": 0.6
+              }
+            }
+          ]
+        },
+        "holdMs": 1000,
+        "returnsTo": "idle"
+      },
+      "leave": {
+        "group": "Moments",
+        "label": "Leave",
+        "when": "Sprout goes away: the chat closes, or it makes room for another screen.",
+        "look": "Waves, bends its knees, makes a small hop and drops out of view.",
+        "driven": "Timeline, 1100 ms",
+        "keys": {
+          "durationMs": 1100,
+          "restMs": 1100,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthH": 0.6
+              }
+            },
+            {
+              "at": 0.15,
+              "pose": {
+                "armR": -1.6,
+                "mouth": 1,
+                "mouthH": 0.6
+              }
+            },
+            {
+              "at": 0.3,
+              "pose": {
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthH": 0.6
+              }
+            },
+            {
+              "at": 0.45,
+              "pose": {
+                "sy": 0.9,
+                "sx": 1.06
+              }
+            },
+            {
+              "at": 0.6,
+              "ease": "out",
+              "pose": {
+                "lift": -1.5,
+                "sy": 1.06,
+                "leaf": 20
+              }
+            },
+            {
+              "at": 1,
+              "ease": "in",
+              "pose": {
+                "lift": 18,
+                "leaf": 30
+              }
+            }
+          ]
+        },
+        "noBlink": true,
+        "holdMs": 1100,
+        "returnsTo": "hidden"
+      },
+      "wake": {
+        "group": "Moments",
+        "label": "Wake up",
+        "when": "The user comes back after a long break. Plays between sleeping and idle.",
+        "look": "Eyes open a little, then a big stretch with both arms up and a wide yawn, a quick shake, and it is awake.",
+        "driven": "Timeline, 2000 ms",
+        "keys": {
+          "durationMs": 2000,
+          "restMs": 900,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {
+                "eyeSy": 0.15,
+                "dim": 0.2,
+                "leaf": -24,
+                "armL": 0.5,
+                "armR": 0.5,
+                "sy": 0.95
+              }
+            },
+            {
+              "at": 0.2,
+              "pose": {
+                "eyeSy": 0.3,
+                "dim": 0.1,
+                "leaf": -10,
+                "armL": 0.5,
+                "armR": 0.5
+              }
+            },
+            {
+              "at": 0.45,
+              "pose": {
+                "sy": 1.14,
+                "sx": 0.94,
+                "armL": -3.2,
+                "armR": -3.2,
+                "armSy": 1.3,
+                "eyeSy": 0.15,
+                "mouth": 1,
+                "mouthW": 1.2,
+                "mouthH": 2,
+                "leaf": 30,
+                "lift": -0.3
+              }
+            },
+            {
+              "at": 0.65,
+              "pose": {
+                "sy": 1.14,
+                "sx": 0.94,
+                "armL": -3.2,
+                "armR": -3.2,
+                "armSy": 1.3,
+                "eyeSy": 0.15,
+                "mouth": 1,
+                "mouthW": 1.2,
+                "mouthH": 2,
+                "leaf": 30,
+                "lift": -0.3
+              }
+            },
+            {
+              "at": 0.78,
+              "pose": {
+                "eyeSy": 0.6,
+                "mouth": 1,
+                "mouthH": 0.4,
+                "leaf": 10
+              }
+            },
+            {
+              "at": 0.84,
+              "ease": "linear",
+              "pose": {
+                "x": -0.4,
+                "eyeSy": 0.8,
+                "leaf": 12
+              }
+            },
+            {
+              "at": 0.9,
+              "ease": "linear",
+              "pose": {
+                "x": 0.4,
+                "leaf": 12
+              }
+            },
+            {
+              "at": 0.95,
+              "ease": "linear",
+              "pose": {
+                "leaf": 12
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "leaf": 12
+              }
+            }
+          ]
+        },
+        "noBlink": true,
+        "holdMs": 2000,
+        "returnsTo": "idle"
+      },
+      "goodnight": {
+        "group": "Moments",
+        "label": "Good night",
+        "when": "Quiet hours start, or the user ends the day. Plays between idle and sleeping.",
+        "look": "Waves, yawns, the eyes close slowly and the leaves sink.",
+        "driven": "Timeline, 2400 ms",
+        "keys": {
+          "durationMs": 2400,
+          "restMs": 1200,
+          "frames": [
+            {
+              "at": 0,
+              "pose": {
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthH": 0.5
+              }
+            },
+            {
+              "at": 0.12,
+              "pose": {
+                "armR": -1.6,
+                "mouth": 1,
+                "mouthH": 0.5
+              }
+            },
+            {
+              "at": 0.24,
+              "pose": {
+                "armR": -2.4,
+                "mouth": 1,
+                "mouthH": 0.5
+              }
+            },
+            {
+              "at": 0.4,
+              "pose": {
+                "eyeSy": 0.5,
+                "mouth": 1,
+                "mouthW": 1.1,
+                "mouthH": 1.8,
+                "leaf": -8
+              }
+            },
+            {
+              "at": 0.58,
+              "pose": {
+                "eyeSy": 0.3,
+                "mouth": 1,
+                "mouthW": 1.1,
+                "mouthH": 1.6,
+                "leaf": -14
+              }
+            },
+            {
+              "at": 0.75,
+              "pose": {
+                "eyeSy": 0.15,
+                "leaf": -22,
+                "dim": 0.1,
+                "sy": 0.96
+              }
+            },
+            {
+              "at": 1,
+              "pose": {
+                "eyeSy": 0.15,
+                "leaf": -24,
+                "dim": 0.2,
+                "sy": 0.95,
+                "armL": 0.5,
+                "armR": 0.5
+              }
+            }
+          ]
+        },
+        "noBlink": true,
+        "holdMs": 2400,
+        "returnsTo": "sleeping"
+      }
+    }
+  },
+  "call": {
+    "order": [
+      "connecting",
+      "idle",
+      "listening",
+      "thinking",
+      "speaking",
+      "wordUsed",
+      "muted",
+      "reconnecting",
+      "ending",
+      "ringing",
+      "paused",
+      "timer",
+      "agree",
+      "laugh",
+      "idea",
+      "levelUp",
+      "cheer"
+    ],
+    "fields": {
+      "h": "base bar scale. One number for all bars, or 7 numbers.",
+      "ripple": "a small wave on top of h. type travel = left to right, inward = edges to middle, outward = middle to edges.",
+      "pulse": "a big wave from the middle outward: h += amp × max(0, sin(2π·t/period − distanceFromMiddle × 0.9))",
+      "gain": "how much the voice level adds: h += gain × level × barShape[i] × jitter[i]",
+      "sweep": "thinking: one bright bar moves left to right, msPerBar per bar, and grows by hop",
+      "signal": "reconnecting: bar i has height base + step × i; bars light up one by one over period",
+      "pal": "which bar colors to use: strong, soft, muted, sweep, or levels (the 5 word-level greens, moving one bar to the right every 140 ms)",
+      "ring": "the whole character shakes ±amp units sideways for the first 45% of each period, like a ringing phone",
+      "keys": "a timeline (see 'timeline'). Frames can set h and pose"
+    },
+    "states": {
+      "connecting": {
+        "label": "Connecting",
+        "when": "Right after the change to call form, until audio is ready.",
+        "look": "Soft colors. A pulse runs from the middle out, again and again.",
+        "driven": "Loop",
+        "h": 0.45,
+        "pulse": {
+          "amp": 0.35,
+          "period": 1000
+        },
+        "pal": "soft"
+      },
+      "idle": {
+        "label": "Idle",
+        "when": "The call is open and nobody is talking.",
+        "look": "Medium height. A slow soft wave. Eyes blink.",
+        "driven": "Loop",
+        "h": 0.5,
+        "ripple": {
+          "type": "travel",
+          "amp": 0.06,
+          "period": 4400
+        },
+        "pal": "strong"
+      },
+      "listening": {
+        "label": "Listening",
+        "when": "The user is talking.",
+        "look": "Soft colors. A ripple runs from the edges to the middle. Eyes open wide. Sound pixels fly in.",
+        "driven": "Mic level: bars lift with the user's voice",
+        "h": 0.5,
+        "ripple": {
+          "type": "inward",
+          "amp": 0.07,
+          "period": 1630
+        },
+        "pal": "soft",
+        "gain": 0.45,
+        "pose": {
+          "eyeSy": 1.2
+        },
+        "fx": "in"
+      },
+      "thinking": {
+        "label": "Thinking",
+        "when": "The user stopped talking. Sprout is getting its answer ready.",
+        "look": "All bars the same height. One bright bar hops across. Eyes look up.",
+        "driven": "Loop",
+        "h": 0.52,
+        "sweep": {
+          "msPerBar": 150,
+          "hop": 0.16
+        },
+        "pal": "sweep",
+        "pose": {
+          "eyeDx": 0.25,
+          "eyeDy": -0.2
+        },
+        "noBlink": true
+      },
+      "speaking": {
+        "label": "Speaking",
+        "when": "Sprout's voice is playing.",
+        "look": "Strong colors. Bars jump tall, biggest in the middle. Sound pixels fly out.",
+        "driven": "Voice level, one value per bar",
+        "h": [
+          0.45,
+          0.45,
+          0.6,
+          0.45,
+          0.6,
+          0.45,
+          0.45
+        ],
+        "gain": 1.15,
+        "pal": "strong",
+        "fx": "out"
+      },
+      "wordUsed": {
+        "label": "Word used",
+        "when": "The user said a checklist word well during the call.",
+        "look": "Quick strong pulses from the middle out. Eyes squint.",
+        "driven": "Loop",
+        "h": 0.6,
+        "pulse": {
+          "amp": 0.6,
+          "period": 700
+        },
+        "pal": "strong",
+        "pose": {
+          "eyeSy": 0.5
+        },
+        "holdMs": 1400,
+        "returnsTo": "previous"
+      },
+      "muted": {
+        "label": "Muted",
+        "when": "The user turned their microphone off.",
+        "look": "Bars go low, flat and gray. Eyes closed.",
+        "driven": "Still",
+        "h": 0.3,
+        "pal": "muted",
+        "pose": {
+          "eyeSy": 0.15
+        },
+        "noBlink": true
+      },
+      "reconnecting": {
+        "label": "Reconnecting",
+        "when": "The network is weak or lost during a call.",
+        "look": "Bars form steps like a signal icon and light up one by one.",
+        "driven": "Loop",
+        "signal": {
+          "base": 0.25,
+          "step": 0.1,
+          "period": 1400
+        },
+        "pal": "strong"
+      },
+      "ending": {
+        "label": "Ending",
+        "when": "The call ends. Hold, then change back to chat form.",
+        "look": "Bars drop to a thin line. Eyes close.",
+        "driven": "Still",
+        "h": 0.14,
+        "pal": "soft",
+        "pose": {
+          "eyeSy": 0.15
+        },
+        "noBlink": true,
+        "holdMs": 500,
+        "returnsTo": "chat.idle"
+      },
+      "ringing": {
+        "group": "Moments",
+        "label": "Ringing",
+        "when": "Sprout calls the user for a planned talk, before the user answers.",
+        "look": "Bars pulse fast and the whole character shakes like a ringing phone, then rests, then rings again. Wide eyes.",
+        "driven": "Loop",
+        "h": 0.5,
+        "pulse": {
+          "amp": 0.25,
+          "period": 520
+        },
+        "ring": {
+          "amp": 0.5,
+          "period": 1600
+        },
+        "pal": "strong",
+        "pose": {
+          "eyeSy": 1.2
+        }
+      },
+      "paused": {
+        "group": "Moments",
+        "label": "Paused",
+        "when": "The call is on hold: the user left the screen or tapped pause.",
+        "look": "The bars make a pause sign: two tall bars, the rest very low. The eyes sit on the two tall bars.",
+        "driven": "Still",
+        "h": [
+          0.12,
+          0.12,
+          0.8,
+          0.12,
+          0.8,
+          0.12,
+          0.12
+        ],
+        "pal": "soft",
+        "pose": {
+          "eyeSy": 0.9
+        }
+      },
+      "timer": {
+        "group": "Moments",
+        "label": "Time left",
+        "when": "The last 30 seconds of a talk.",
+        "look": "Bars turn gray and low one by one from the right, like a timer that runs out.",
+        "driven": "Time left, from 1 to 0",
+        "h": 0.5,
+        "ripple": {
+          "type": "travel",
+          "amp": 0.04,
+          "period": 3000
+        },
+        "bind": {
+          "drain": 1
+        },
+        "pal": "strong"
+      },
+      "agree": {
+        "group": "Feelings",
+        "label": "Agree",
+        "when": "A short 'mm-hm' while the user talks, or 'yes, right'.",
+        "look": "All bars dip two times together, like a nod.",
+        "driven": "Timeline, 700 ms",
+        "keys": {
+          "durationMs": 700,
+          "restMs": 900,
+          "frames": [
+            {
+              "at": 0,
+              "h": 0.5
+            },
+            {
+              "at": 0.25,
+              "h": 0.3
+            },
+            {
+              "at": 0.5,
+              "h": 0.55
+            },
+            {
+              "at": 0.75,
+              "h": 0.3
+            },
+            {
+              "at": 1,
+              "h": 0.5
+            }
+          ]
+        },
+        "pal": "strong",
+        "pose": {
+          "eyeSy": 0.8
+        },
+        "holdMs": 700,
+        "returnsTo": "previous"
+      },
+      "laugh": {
+        "group": "Feelings",
+        "label": "Laugh",
+        "when": "Something funny happened in the talk.",
+        "look": "All bars bounce fast together. Eyes squint.",
+        "driven": "Loop",
+        "h": 0.55,
+        "ripple": {
+          "type": "unison",
+          "amp": 0.14,
+          "period": 190
+        },
+        "pal": "strong",
+        "pose": {
+          "eyeSy": 0.4
+        },
+        "noBlink": true,
+        "holdMs": 1200,
+        "returnsTo": "previous"
+      },
+      "idea": {
+        "group": "Feelings",
+        "label": "Idea",
+        "when": "Sprout has a tip during the call.",
+        "look": "Bars go a little low, then the middle bar jumps up tall. Wide eyes. A small pixel light turns on.",
+        "driven": "Timeline, 800 ms",
+        "keys": {
+          "durationMs": 800,
+          "restMs": 1600,
+          "frames": [
+            {
+              "at": 0,
+              "h": 0.45
+            },
+            {
+              "at": 0.3,
+              "h": 0.38
+            },
+            {
+              "at": 0.5,
+              "ease": "out",
+              "h": [
+                0.4,
+                0.4,
+                0.5,
+                1,
+                0.5,
+                0.4,
+                0.4
+              ]
+            },
+            {
+              "at": 1,
+              "h": [
+                0.45,
+                0.45,
+                0.55,
+                0.85,
+                0.55,
+                0.45,
+                0.45
+              ]
+            }
+          ]
+        },
+        "pal": "strong",
+        "pose": {
+          "eyeSy": 1.3,
+          "eyeDy": -0.2
+        },
+        "fx": "idea",
+        "holdMs": 800,
+        "returnsTo": "speaking"
+      },
+      "levelUp": {
+        "group": "Celebrate",
+        "label": "Level up",
+        "when": "A word moved up a level during the call.",
+        "look": "Bars build a staircase from left to right, fill up to the top, then settle. Their color runs through the 5 word-level greens.",
+        "driven": "Timeline, 1200 ms",
+        "keys": {
+          "durationMs": 1200,
+          "restMs": 800,
+          "frames": [
+            {
+              "at": 0,
+              "h": 0.3
+            },
+            {
+              "at": 0.35,
+              "h": [
+                0.2,
+                0.32,
+                0.44,
+                0.56,
+                0.68,
+                0.8,
+                0.92
+              ]
+            },
+            {
+              "at": 0.55,
+              "ease": "out",
+              "h": 0.95
+            },
+            {
+              "at": 0.75,
+              "h": 0.6
+            },
+            {
+              "at": 1,
+              "h": 0.5
+            }
+          ]
+        },
+        "pal": "levels",
+        "pose": {
+          "eyeSy": 0.5
+        },
+        "fx": "levelup",
+        "holdMs": 1200,
+        "returnsTo": "previous"
+      },
+      "cheer": {
+        "group": "Celebrate",
+        "label": "Cheer",
+        "when": "Every checklist word was used. The talk goal is reached.",
+        "look": "Strong pulses from the middle out. Bar colors run through the 5 word-level greens. Word squares rise.",
+        "driven": "Loop",
+        "h": 0.55,
+        "pulse": {
+          "amp": 0.5,
+          "period": 560
+        },
+        "pal": "levels",
+        "pose": {
+          "eyeSy": 0.5
+        },
+        "fx": "squares",
+        "holdMs": 2400,
+        "returnsTo": "idle"
+      }
+    }
+  },
+  "morph": {
+    "durationMs": 700,
+    "progress": "m goes from 0 (chat) to 1 (call) at a steady speed. Each step uses smoothstep on its own part of m.",
+    "steps": [
+      {
+        "name": "A. Pull in",
+        "from": 0,
+        "to": 0.3,
+        "does": "Arms, feet, leaf and mouth shrink into the body. The body squashes a little (down to 88% height) like it takes a breath. Lean and lift go back to zero."
+      },
+      {
+        "name": "B. Split",
+        "from": 0.2,
+        "to": 0.7,
+        "does": "Each slab gets thinner (2 to 1.6 units) so gaps open. All slabs go to the same height. Colors change from body color to bar colors. Highlight row, shade row and shadow fade out. Eyes move down half a unit."
+      },
+      {
+        "name": "C. Come alive",
+        "from": 0.65,
+        "to": 1,
+        "does": "Bars move from the same height to the heights of the current call state."
+      }
+    ],
+    "squash": 0.12
+  },
+  "rules": {
+    "poseSmoothing": {
+      "value": 0.18,
+      "text": "Every frame, each pose number moves 18% of the way to its target. This makes all state changes soft with no extra code."
+    },
+    "barSmoothing": {
+      "value": 0.25,
+      "speaking": 0.4,
+      "text": "Bars move 25% of the way per frame, 40% while speaking so they feel fast."
+    },
+    "levelSmoothing": {
+      "value": 0.3,
+      "text": "The voice level is smoothed 30% per frame before it is used."
+    },
+    "colorSmoothing": {
+      "value": 0.2,
+      "text": "Bar colors mix 20% per frame toward the target color."
+    },
+    "blink": {
+      "closedMs": 130,
+      "everyMs": [
+        2500,
+        5500
+      ],
+      "closedScale": 0.12,
+      "text": "Eyes close for 130 ms at a random time every 2.5 to 5.5 seconds. States with noBlink skip this."
+    },
+    "eyeFit": {
+      "text": "In call form, bars 2 and 4 are never shorter than (2 × eyeSy + 0.5) / 6, so the eyes always sit on a bar."
+    },
+    "fakeVoice": {
+      "text": "When there is no real audio: pick a new target level every 70 to 180 ms, between 0.35 and 1. 18% of the time make a pause (0.04) for 180 to 400 ms. Each bar also gets its own jitter from 0.55 to 1, changed every 60 to 150 ms."
+    },
+    "listeningGain": {
+      "value": 0.8,
+      "text": "With the fake voice, listening uses 80% of the level so it looks calmer than speaking."
+    },
+    "oneShot": {
+      "text": "States with holdMs are short. Hold them for holdMs, then go to returnsTo. 'previous' means the state before."
+    },
+    "keySmoothing": {
+      "value": 0.45,
+      "text": "While a timeline plays, pose numbers move 45% of the way per frame, so key moves stay crisp but never jump."
+    },
+    "localTime": {
+      "text": "Timelines and loop motions start counting when the state is set, so a move always starts from its beginning."
+    },
+    "fakeProgress": {
+      "value": 5000,
+      "periodMs": 5000,
+      "text": "When no real progress is given: count from 0 to 1 in 5000 ms, hold a moment, start again. 'making' fills up with it, 'timer' runs out with it."
+    },
+    "shadow": {
+      "text": "The shadow follows the body sideways. When the body is in the air it gets narrower: width × (1 - 0.5 × min(1, height / 6)). It fades when the body is below the ground (enter, leave)."
+    },
+    "spinReset": {
+      "text": "A flip ends at 360°, which is the same as 0°. No pose number is left turned."
+    }
+  }
+}

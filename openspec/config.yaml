@@ -1,0 +1,38 @@
+schema: spec-driven
+
+context: |
+  Lockwords: a minimal flashcard app for any language. Expo (React Native, TypeScript strict) app in apps/mobile,
+  Hono + Drizzle + Zod server in apps/server. The server owns SRS and every AI call. iOS first.
+  Decided product rules: docs/product.md. Screens + Figma links: docs/screens.md. Figma wins over docs.
+  Spec folders: specs/<domain>/spec.md (rules for all apps), specs/<domain>/server/spec.md (endpoints, tables),
+  specs/<domain>/mobile/spec.md (screens, flows), specs/<domain>/widget/spec.md (widget only).
+  Domains: onboarding, decks, review, srs, use-it, speak, my-words, widget, kai, account, paywall, platform.
+  Write in plain English with short sentences. "(open)" items are asked, never invented.
+
+rules:
+  proposal:
+    - Name the epic from docs/roadmap.md.
+    - State what is out of scope.
+    - List the analytics events this change adds (or "none").
+    - Add the Figma frame links for every screen it touches (from docs/screens.md).
+    - Say what changes for Easy mode and for other languages (or "nothing").
+    - About a day of work. More than ~10 tasks means split the change.
+  specs:
+    - Every requirement has WHEN/THEN scenarios that a test can check.
+    - Screens list their states: loading, empty, error, locked.
+  tasks:
+    - Group as "1. Server", "2. Mobile", "3. Docs", "4. Rollout". Drop a group the change does not need.
+    - Start each group with "Tests first ... run them, see them fail".
+    - Mobile includes a Maestro flow with exactly one area tag that records e2e/videos/<change-name>.mp4.
+    - A skipped part is written as "Not done: <what>, <why>".
+
+operations:
+  apply:
+    guidance:
+      - Write the failing tests first and show the failure before building.
+      - Never edit or delete an existing test to make it pass. Stop and ask.
+      - Run tests, typecheck and lint for every app you touched before saying a task is done.
+  archive:
+    guidance:
+      - Archive is the last commit of the PR, after Hamid approves the Maestro video.
+      - Update docs/roadmap.md status and docs/architecture.md / docs/events.md if the change touched them.

@@ -1,0 +1,997 @@
+<title>Speak Motion Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#f6f8fa;--surface:#ffffff;--chip:#eff2f5;--line:#d1d9e0;--line-strong:#b7c0c9;--text:#1f2328;--text-2:#3d444d;--muted:#59636e;
+  --button:#1f883d;--green-text:#1a7f37;--green-bg:#dafbe1;--accent:#1f883d;--warn:#bc4c00;
+  --page:#e9edf1;--n-bg:#ffffff;--n-fg:#1f2328;--n-fg2:#3d444d;--n-muted:#59636e;--n-line:#d1d9e0;--n-chip:#eff2f5;--n-abg:#dafbe1;--n-afg:#1a7f37;--n-btn:#1f883d;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#0d1117;--n-bg:#161b22;--n-fg:#e6edf3;--n-fg2:#c9d1d9;--n-muted:#8b949e;--n-line:#30363d;--n-chip:#21262d;--n-abg:#12261e;--n-afg:#3fb950;--n-btn:#238636;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0d1117;--n-bg:#161b22;--n-fg:#e6edf3;--n-fg2:#c9d1d9;--n-muted:#8b949e;--n-line:#30363d;--n-chip:#21262d;--n-abg:#12261e;--n-afg:#3fb950;--n-btn:#238636;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--page);color:var(--n-fg);font:15px/1.5 "Mona Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.layout{display:flex;gap:32px;justify-content:center;align-items:flex-start;padding-block:24px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));flex-wrap:wrap}
+.phone{color:var(--text)}
+.phoneWrap{flex:none;position:sticky;top:16px}
+.phone{width:393px;height:852px;position:relative;overflow:hidden;background:var(--canvas);border-radius:48px;
+  box-shadow:0 0 0 10px #1f2328,0 30px 60px rgba(31,35,40,.25);transform-origin:top left;user-select:none}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+
+/* ---------- character effects layer (copied from CHARACTER.html) ---------- */
+.char svg{display:block;width:100%;height:auto;--lvl:0;overflow:visible}
+.fx{opacity:0;transition:opacity .3s}
+.fx *{transform-box:fill-box;transform-origin:center}
+.px,.dot{fill:var(--accent)} .t{font:700 4.5px ui-monospace,SFMono-Regular,Menlo,monospace;fill:var(--accent)}
+svg[data-fx="in"] .fx-in{opacity:calc(.2 + var(--lvl) * 1.2)}
+svg[data-fx="out"] .fx-out{opacity:calc(.1 + var(--lvl) * 1.3)}
+svg[data-fx="dots"] .fx-dots,svg[data-fx="zzz"] .fx-zzz,svg[data-fx="squares"] .fx-squares,
+svg[data-fx="sparkle"] .fx-sparkle,svg[data-fx="q"] .fx-q,svg[data-fx="bang"] .fx-bang,svg[data-fx="off"] .fx-off{opacity:1}
+@keyframes inl{0%{opacity:0;transform:translateX(0)}30%{opacity:1}100%{opacity:0;transform:translateX(3.5px)}}
+@keyframes inr{0%{opacity:0;transform:translateX(0)}30%{opacity:1}100%{opacity:0;transform:translateX(-3.5px)}}
+@keyframes outl{0%{opacity:0;transform:translateX(0)}25%{opacity:1}100%{opacity:0;transform:translateX(-3.5px)}}
+@keyframes outr{0%{opacity:0;transform:translateX(0)}25%{opacity:1}100%{opacity:0;transform:translateX(3.5px)}}
+@keyframes dot{0%,15%{opacity:0}30%,85%{opacity:1}100%{opacity:0}}
+@keyframes zzz{0%{opacity:0;transform:translate(0,0)}25%{opacity:1}100%{opacity:0;transform:translate(2.5px,-5px)}}
+@keyframes rise{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:1;transform:translateY(-2.5px) scale(1)}100%{opacity:0;transform:translateY(-13px) scale(1)}}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-.6px)}}
+@keyframes slowblink{0%,60%{opacity:1}80%{opacity:.25}100%{opacity:1}}
+.inl{animation:inl 1.3s linear infinite} .inr{animation:inr 1.3s linear infinite}
+.outl{animation:outl 1s linear infinite} .outr{animation:outr 1s linear infinite}
+.dot{animation:dot 1.8s infinite} .z{animation:zzz 3s ease-out infinite}
+.sq{animation:rise 1.8s ease-out infinite} .sp{animation:twinkle 1s ease-in-out infinite}
+.fx-q .t,.fx-bang .t{animation:floaty 1.2s ease-in-out infinite}
+.fx-off .t{fill:var(--muted);animation:slowblink 2s infinite}
+@media (prefers-reduced-motion:reduce){.fx *{animation:none!important}}
+
+/* ---------- phone chrome ---------- */
+.scr{position:absolute;inset:0;transition:opacity .35s ease, transform .35s ease}
+.scr.hide{opacity:0;pointer-events:none;transform:scale(.985)}
+.sbar{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:6px 34px 0 42px;font-weight:600;font-size:16px;z-index:30;pointer-events:none}
+.sbar i{display:block;width:120px;height:34px;border-radius:20px;background:#000;position:absolute;left:50%;top:11px;transform:translateX(-50%)}
+.sbar b{font-size:12px;letter-spacing:1px}
+.abs{position:absolute}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:83px;background:var(--surface);border-top:1px solid var(--line);display:flex;padding-top:8px}
+.tabbar div{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted)}
+.tabbar div.on{color:var(--text);font-weight:600}
+.tabbar svg{width:24px;height:24px}
+.home{position:absolute;left:50%;bottom:8px;width:134px;height:5px;border-radius:3px;background:#1f2328;transform:translateX(-50%);z-index:9}
+.btn{position:absolute;height:56px;border:0;border-radius:12px;background:var(--button);color:#fff;font:600 17px "Mona Sans",sans-serif;cursor:pointer;transition:transform .12s ease, filter .12s}
+.btn:active{transform:scale(.97);filter:brightness(.92)}
+h1.t1{position:absolute;left:20px;right:20px;margin:0;font-size:28px;line-height:34px;font-weight:600;text-align:center;letter-spacing:-.01em}
+
+/* intro */
+.row{position:absolute;left:40px;width:313px;height:48px;display:flex;align-items:center;gap:16px;opacity:0;transform:translateY(8px);transition:opacity .4s ease, transform .4s cubic-bezier(.2,.8,.2,1)}
+.row.in{opacity:1;transform:none}
+.tile{width:40px;height:40px;border-radius:10px;background:var(--green-bg);display:grid;place-items:center;color:var(--green-text);flex:none}
+.tile svg{width:24px;height:24px}
+
+/* topics */
+.vp{position:absolute;left:0;right:0;top:292px;height:404px;touch-action:pan-y;cursor:grab}
+.track{position:absolute;top:0;left:0;display:flex;gap:12px;will-change:transform}
+.track.snap{transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.card{flex:none;width:313px;height:372px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 16px -4px rgba(31,35,40,.06);padding:20px;position:relative;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.card .ic{width:44px;height:44px;border-radius:12px;background:var(--green-bg);display:grid;place-items:center;color:var(--green-text)}
+.card .meta{position:absolute;left:76px;top:22px;font:500 11px/20px "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.card h3{margin:20px 0 8px;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.card{height:396px}
+h1.t1.big{left:40px;right:40px;font-size:32px;line-height:38px;text-wrap:balance}
+.card p{margin:0;color:var(--text-2);font-size:16px;line-height:24px}
+.card .lab{margin-top:20px;font:500 11px "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{padding:3px 8px;border-radius:6px;background:var(--chip);font-size:13px;line-height:18px;color:var(--text-2)}
+.chip.more{background:var(--green-bg);color:var(--green-text);font-weight:600}
+.spk{position:absolute;right:-38px;bottom:0;width:30px;height:30px;border-radius:15px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted);cursor:pointer;padding:0}
+.spk svg{width:16px;height:16px}
+.spk.on{color:var(--green-text);border-color:var(--button)}
+.card .btn{left:20px;right:20px;bottom:20px;width:auto}
+.dots{position:absolute;top:708px;left:0;right:0;display:flex;justify-content:center;gap:6px}
+.dots i{display:block;height:6px;width:6px;border-radius:3px;background:var(--line-strong);transition:width .24s ease, background .24s ease}
+.dots i.on{width:18px;background:var(--button)}
+
+/* talk sheet (chat version) */
+.sheet{position:absolute;inset:0;background:var(--canvas);transform:translateY(100%);transition:transform .42s cubic-bezier(.2,.8,.2,1);z-index:20;overflow:hidden}
+.sheet.open{transform:none}
+.khead{position:absolute;top:0;left:0;right:0;height:184px;background:var(--canvas);box-shadow:0 10px 18px -6px rgba(31,35,40,.10);z-index:6;transition:height .6s cubic-bezier(.2,.8,.2,1), box-shadow .4s}
+.sheet.done .khead{height:852px;box-shadow:none}
+.nav{position:absolute;top:54px;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:var(--text-2)}
+.x{position:absolute;left:8px;top:4px;width:36px;height:36px;border:0;background:none;display:grid;place-items:center;cursor:pointer;color:var(--text);border-radius:18px}
+.x:active{background:var(--chip)}
+#time{position:absolute;right:20px;top:66px;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;transition:color .3s,opacity .3s}
+#time.low{color:var(--warn)}
+.sheet.done #time{opacity:0}
+#talkKai{position:absolute;left:84px;top:44px;width:224px;transition:left .6s cubic-bezier(.2,.8,.2,1),top .6s cubic-bezier(.2,.8,.2,1),width .6s cubic-bezier(.2,.8,.2,1)}
+.sheet.done #talkKai{left:76px;top:110px;width:240px}
+.chat{position:absolute;left:0;right:0;top:98px;bottom:200px;overflow-y:auto;scrollbar-width:none;transition:bottom .32s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.chat::-webkit-scrollbar{display:none}
+.sheet.kb .chat{bottom:400px}
+.msgs{min-height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;padding:100px 20px 14px}
+.b{position:relative;max-width:292px;padding:12px 16px;border-radius:16px;font-size:16px;line-height:24px;animation:pop .28s cubic-bezier(.2,.8,.2,1)}
+.b.k{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px}
+.b.u{align-self:flex-end;background:var(--green-bg);border-bottom-right-radius:6px;min-width:120px}
+.b.u.hasrx{margin-bottom:12px}
+.b .tr{display:none;font-size:13px;line-height:18px;color:var(--muted);border-top:1px solid var(--line);margin-top:8px;padding-top:8px;animation:wfade .35s ease}
+.b .tr.in{display:block}
+.b .vm{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--green-text);margin-bottom:4px;font-variant-numeric:tabular-nums}
+.b .vm svg{width:16px;height:16px}
+.b span.w{display:none}
+.b span.w.in{display:inline;animation:wfade .22s ease}
+.hit{color:var(--green-text);font-weight:600}
+.caret{display:inline-block;width:2px;height:18px;background:var(--green-text);vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes wfade{from{opacity:0}to{opacity:1}}
+.rx{position:absolute;left:-12px;bottom:-16px;width:30px;height:30px;border-radius:15px;background:var(--surface);border:1px solid var(--line);box-shadow:0 2px 6px rgba(31,35,40,.10);display:grid;place-items:center;font-size:15px;line-height:1;animation:rxpop .38s cubic-bezier(.3,1.6,.5,1)}
+@keyframes rxpop{0%{transform:scale(0)}100%{transform:scale(1)}}
+
+/* voice controls */
+.vc{position:absolute;left:0;right:0;bottom:0;height:200px;background:var(--canvas);transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .25s}
+.sheet.kb .vc,.sheet.done .vc{transform:translateY(40px);opacity:0;pointer-events:none}
+.hint{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:13px;color:var(--muted);transition:color .2s}
+.vc.rec .hint{color:var(--green-text)}
+.kbtn{position:absolute;left:76px;top:50px;width:48px;height:48px;border-radius:24px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--text-2);cursor:pointer;transition:opacity .2s}
+.kbtn:disabled{opacity:.4;cursor:default}
+.halo{position:absolute;left:142.5px;top:20px;width:108px;height:108px;border-radius:54px;background:var(--green-bg);opacity:0;transform:scale(.75);transition:opacity .25s}
+.vc.rec .halo{opacity:1}
+.mic{position:absolute;left:156.5px;top:34px;width:80px;height:80px;border-radius:40px;border:0;background:var(--button);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 16px -4px rgba(31,136,61,.35);transition:transform .12s,opacity .2s}
+.mic:active{transform:scale(.94)}
+.mic:disabled{opacity:.45;cursor:default;transform:none}
+.mic svg{width:32px;height:32px}
+.mic .stop{display:none;width:22px;height:22px;border-radius:5px;background:#fff}
+.vc.rec .mic svg{display:none}
+.vc.rec .mic .stop{display:block}
+.mic::after{content:"";position:absolute;inset:0;border-radius:40px;border:2px solid var(--button);opacity:0;pointer-events:none}
+.vc.ready .mic::after{animation:ring 1.8s ease-out infinite}
+@keyframes ring{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.45);opacity:0}}
+
+/* words row (both modes) */
+.wrow{position:absolute;left:0;right:0;height:32px;overflow-x:auto;scrollbar-width:none;display:flex;gap:6px;padding:0 20px;align-items:center;-webkit-mask-image:linear-gradient(to right,#000 82%,transparent);mask-image:linear-gradient(to right,#000 82%,transparent);touch-action:pan-x}
+.wrow::-webkit-scrollbar{display:none}
+.vc .wrow{top:136px}
+.wc{flex:none;display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);font-size:13px;color:var(--text-2);transition:background .25s,border-color .25s,color .25s;white-space:nowrap}
+.wc svg{width:0;height:16px;transition:width .2s}
+.wc.on{background:var(--green-bg);border-color:transparent;color:var(--green-text);font-weight:600;padding-left:8px}
+.wc.on svg{width:16px}
+.wc.pop{animation:cpop .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes cpop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+/* keyboard mode */
+.kbm{position:absolute;left:0;right:0;bottom:0;height:400px;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1);z-index:4}
+.sheet.kb .kbm{transform:none}
+.band{position:absolute;top:0;left:0;right:0;height:109px;background:var(--canvas);border-top:1px solid var(--line)}
+.band .wrow{top:10px}
+.box{position:absolute;left:20px;right:20px;top:50px;height:50px;border-radius:12px;border:1.5px solid var(--button);background:var(--surface);display:flex;align-items:center;padding:0 7px 0 14px;gap:8px}
+.box input{flex:1;border:0;outline:0;font:16px "Mona Sans",sans-serif;background:transparent;color:var(--text);min-width:0}
+.send{flex:none;width:36px;height:36px;border-radius:18px;border:0;background:var(--button);color:#fff;display:grid;place-items:center;cursor:pointer}
+.send.tovoice{background:var(--chip);color:var(--text)}
+.send svg{width:18px;height:18px}
+.keys{position:absolute;top:109px;left:0;right:0;bottom:0;background:#d1d4da;padding-top:8px}
+.kr{display:flex;justify-content:center;gap:6px;margin-bottom:12px}
+.kr button{width:33px;height:42px;border:0;border-radius:5px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.3);font:22px -apple-system,"Mona Sans",sans-serif;color:#000;cursor:pointer;padding:0}
+.kr button.g{background:#abb0ba;font-size:16px}
+.kr button:active{background:#e5e7eb}
+
+/* summary inside sheet */
+.sum{position:absolute;left:20px;right:20px;top:318px;opacity:0;pointer-events:none;transition:opacity .4s;z-index:8}
+.sum.in{opacity:1;pointer-events:auto}
+.sum h2{margin:0;text-align:center;font-size:28px;line-height:34px;font-weight:600}
+.sum .sub{text-align:center;color:var(--muted);font-size:15px;margin:4px 0 16px}
+.sr{display:flex;align-items:center;gap:10px;height:42px;border-top:1px solid var(--line);opacity:0;transform:translateY(8px);transition:opacity .35s, transform .35s cubic-bezier(.2,.8,.2,1)}
+.sr.in{opacity:1;transform:none}
+.sr .sqr{width:12px;height:12px;border-radius:3px}
+.sr b{flex:1;font-size:17px;font-weight:600}
+.sr em{font-style:normal;font-size:13px;color:var(--green-text);font-weight:600}
+.sum .btn{position:relative;width:100%;margin-top:18px}
+
+/* ---------- notes panel ---------- */
+.notes{width:min(560px,100%);min-width:0;background:var(--n-bg);color:var(--n-fg);border:1px solid var(--n-line);border-radius:14px;padding:20px 22px}
+.notes h1{font-size:22px;margin:0 0 4px}
+.notes .sub{color:var(--n-muted);margin:0 0 14px}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.ctl button{font:600 13px "Mona Sans",sans-serif;padding:7px 12px;border-radius:8px;border:1px solid var(--n-line);background:var(--n-bg);color:var(--n-fg);cursor:pointer}
+.ctl button:focus-visible,.btn:focus-visible,.mute:focus-visible,.x:focus-visible{outline:2px solid #0969da;outline-offset:2px}
+.ctl button.on{background:var(--n-btn);border-color:var(--n-btn);color:#fff}
+.now{font:500 12px "JetBrains Mono",monospace;color:var(--n-afg);background:var(--n-abg);border-radius:6px;padding:6px 10px;margin-bottom:14px}
+.step{border-top:1px solid var(--n-line);padding:12px 0;transition:background .3s}
+.step.cur{background:linear-gradient(90deg,var(--n-abg),transparent 70%);margin:0 -22px;padding:12px 22px}
+.step h3{margin:0 0 4px;font-size:15px;display:flex;gap:8px;align-items:baseline}
+.step h3 span{font:500 11px "JetBrains Mono",monospace;color:var(--n-muted)}
+.step ul{margin:0;padding-left:18px;font-size:14px;color:var(--n-fg2)}
+.step li{margin:2px 0}
+.step code,.notes code{font:500 12px "JetBrains Mono",monospace;background:var(--n-chip);border-radius:4px;padding:0 4px}
+@media (max-width:980px){.phoneWrap{position:relative;top:0}}
+</style>
+<div class="layout">
+<div class="phoneWrap" id="phoneWrap">
+<div class="phone" id="phone">
+  <div class="sbar"><span>9:41</span><i></i><b>●●● ◔ ▭</b></div>
+
+  <!-- SP1 intro -->
+  <section class="scr" id="intro">
+    <div class="char abs" id="kIntro" style="left:46px;top:150px;width:300px"></div>
+    <h1 class="t1 big" style="top:360px">I make talks from your words.</h1>
+    <button class="btn" id="gotIt" style="left:20px;top:652px;width:353px">Let’s talk</button>
+    <div class="abs" style="top:718px;left:0;right:0;text-align:center;font-size:13px;color:var(--muted)">3-minute talk</div>
+    <nav class="tabbar"><div><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06 4 12l5.94-2.06L12 4l2.06 5.94L20 12l-5.94 2.06L12 20z"/></svg>New words</div><div><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg>Review</div><div class="on" style="color:var(--button)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><rect x="3" y="9" width="2" height="6"/><rect x="6" y="6" width="2" height="12"/><rect x="9" y="4" width="2" height="16"/><rect x="12" y="7" width="2" height="10"/><rect x="15" y="5" width="2" height="14"/><rect x="18" y="9" width="2" height="6"/><rect x="8.6" y="10" width="1" height="2.4" fill="#fff"/><rect x="14.6" y="10" width="1" height="2.4" fill="#fff"/></svg><span style="color:var(--text)">Speak</span></div></nav>
+  </section>
+
+  <!-- SP2 topics -->
+  <section class="scr hide" id="topics">
+    <div class="abs" style="left:20px;top:58px;font-size:28px;font-weight:600;letter-spacing:-.01em">Speak</div>
+    <div class="abs" id="freeLeft" style="right:20px;top:68px;font-size:13px;font-weight:600;color:var(--green-text)">1 free talk left</div>
+    <div class="char abs" id="kTopics" style="left:56px;top:76px;width:280px"></div>
+    <div class="abs" style="top:262px;left:0;right:0;text-align:center;font-size:15px;color:var(--muted)">Pick a topic. Swipe for more.</div>
+    <div class="vp" id="vp"><div class="track" id="track"></div></div>
+    <div class="dots" id="dots"></div>
+    <nav class="tabbar"><div><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06 4 12l5.94-2.06L12 4l2.06 5.94L20 12l-5.94 2.06L12 20z"/></svg>New words</div><div><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg>Review</div><div class="on" style="color:var(--button)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><rect x="3" y="9" width="2" height="6"/><rect x="6" y="6" width="2" height="12"/><rect x="9" y="4" width="2" height="16"/><rect x="12" y="7" width="2" height="10"/><rect x="15" y="5" width="2" height="14"/><rect x="18" y="9" width="2" height="6"/><rect x="8.6" y="10" width="1" height="2.4" fill="#fff"/><rect x="14.6" y="10" width="1" height="2.4" fill="#fff"/></svg><span style="color:var(--text)">Speak</span></div></nav>
+  </section>
+
+  <!-- talk pop-up (chat version) -->
+  <section class="sheet" id="sheet">
+    <div class="chat" id="chat"><div class="msgs" id="msgs"></div></div>
+    <div class="khead">
+      <div class="nav"><button class="x" id="closeX" aria-label="Close"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button><span id="topicName">Your last dinner out</span></div>
+      <div id="time">3:00 left</div>
+      <div class="char" id="talkKai"></div>
+    </div>
+    <div class="vc" id="vc">
+      <div class="hint" id="hint">Getting ready…</div>
+      <button class="kbtn" id="kbtn" aria-label="Type instead"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg></button>
+      <div class="halo" id="halo"></div>
+      <button class="mic" id="mic" aria-label="Talk"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg><i class="stop"></i></button>
+      <div class="wrow" id="wrowV"></div>
+    </div>
+    <div class="kbm" id="kbm">
+      <div class="band">
+        <div class="wrow" id="wrowK"></div>
+        <div class="box"><input id="inp" placeholder="Type in Spanish…" autocomplete="off" spellcheck="false"><button class="send tovoice" id="send" aria-label="Back to voice"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg></button></div>
+      </div>
+      <div class="keys" id="keys"></div>
+    </div>
+    <div class="sum" id="sum">
+      <h2>Nice talk!</h2>
+      <div class="sub" id="sumSub">You used 6 of 6 words · 3 minutes</div>
+      <div id="sumRows"></div>
+      <button class="btn" id="done">Done</button>
+    </div>
+  </section>
+  <div class="home"></div>
+</div>
+</div>
+
+<aside class="notes">
+  <h1>Speak · motion prototype</h1>
+  <p class="sub">Click through it like the app. Tap <b>Let’s talk</b>, swipe the cards and tap <b>Start</b>. In the talk, tap the mic to answer (your answer is acted out for you) and tap again to send, or tap the keyboard button and type real Spanish. Kai is drawn by the same renderer and numbers as <code>CHARACTER.html</code>.</p>
+  <div class="ctl">
+    <button id="cRestart">Restart (first visit)</button>
+    <button id="cTalk">Jump to talk</button>
+    <button id="cEnd">Jump to end of timer</button>
+    <button id="cSpeed">Timer: 4× fast</button>
+  </div>
+  <div class="now" id="now">Kai: chat · greeting</div>
+  <div id="steps"></div>
+</aside>
+</div>
+
+<script type="application/json" id="character-spec">
+{
+  "name": "Lockwords character",
+  "version": "1.0",
+  "units": "1 unit = 1 pixel cell. x right, y down. Angles in degrees. Time in ms. level = voice volume from 0 to 1.",
+  "viewBox": [-5, -6, 28, 20],
+  "forms": {
+    "chat": "Pixel Sprout. Used for text chat in the Sprout tab.",
+    "call": "Sound bars with eyes. Used during a voice call."
+  },
+  "palette": {
+    "light": {
+      "canvas": "#f6f8fa", "surface": "#ffffff", "chip": "#eff2f5", "line": "#d1d9e0", "text": "#1f2328", "muted": "#59636e", "button": "#1f883d",
+      "body": "#2da44e", "hi": "#4ac26b", "shade": "#1f883d", "leaf": "#4ac26b", "leafHi": "#6fdd8b",
+      "eye": "#1f2328", "accent": "#1f883d", "dimTo": "#c5ced7", "shadow": "#d1d9e0",
+      "barsStrong": ["#4ac26b", "#2da44e", "#2da44e", "#1f883d", "#2da44e", "#2da44e", "#4ac26b"],
+      "barsSoft": ["#aceebb", "#6fdd8b", "#4ac26b", "#4ac26b", "#4ac26b", "#6fdd8b", "#aceebb"],
+      "barsMuted": "#c5ced7",
+      "barsSweep": ["#1f883d", "#4ac26b", "#aceebb"],
+      "squares": ["#aceebb", "#6fdd8b", "#4ac26b", "#2da44e", "#116329"]
+    },
+    "dark": {
+      "canvas": "#0d1117", "surface": "#161b22", "chip": "#21262d", "line": "#30363d", "text": "#e6edf3", "muted": "#8b949e", "button": "#238636",
+      "body": "#3fb950", "hi": "#56d364", "shade": "#2ea043", "leaf": "#56d364", "leafHi": "#7ee787",
+      "eye": "#0d1117", "accent": "#39d353", "dimTo": "#484f58", "shadow": "#010409",
+      "barsStrong": ["#26a641", "#2ea043", "#3fb950", "#56d364", "#3fb950", "#2ea043", "#26a641"],
+      "barsSoft": ["#006d32", "#1f8a3c", "#26a641", "#2ea043", "#26a641", "#1f8a3c", "#006d32"],
+      "barsMuted": "#484f58",
+      "barsSweep": ["#56d364", "#2ea043", "#238636"],
+      "squares": ["#0e4429", "#006d32", "#26a641", "#39d353", "#56d364"]
+    }
+  },
+  "paletteRoles": {
+    "body": "main body color (chat form slabs)", "hi": "top highlight row", "shade": "bottom shade row and feet",
+    "leaf": "leaves and stem", "leafHi": "small top part of each leaf", "eye": "eyes and mouth",
+    "accent": "effect pixels: sound pixels, dots, zzz, ? and !", "dimTo": "body mixes toward this when a state has dim > 0",
+    "barsStrong": "call form, speaking and idle: one color per bar, left to right", "barsSoft": "call form, listening and connecting",
+    "barsMuted": "call form, mic off or no signal", "barsSweep": "call form, thinking: [bright bar, next to it, the rest]",
+    "squares": "celebrate effect: the 5 word-level greens"
+  },
+  "geometry": {
+    "slabCount": 7,
+    "pivot": [9, 10.5],
+    "chat": {
+      "slab": {"x0": 2, "step": 2, "width": 2, "centerY": 5.5, "height": 7, "outerHeight": 5, "note": "slab i starts at x0 + i*step. Slabs 0 and 6 are shorter (outerHeight) so the block has stepped corners."},
+      "hiRow": [4, 2, 10, 1],
+      "loRow": [4, 8, 10, 1],
+      "eyes": {"x": [6.5, 10.5], "centerY": 5, "width": 1, "height": 2},
+      "mouth": {"center": [9, 6.9], "width": 2, "height": 1},
+      "arms": {"left": [0, 5, 2, 2], "right": [16, 5, 2, 2]},
+      "feet": [[5, 9, 2, 1.5], [11, 9, 2, 1.5]],
+      "stem": [8.5, -0.5, 1, 2.5],
+      "leafLeft": [[5.5, -1.5, 3, 1], [6.5, -2.5, 2, 1]],
+      "leafRight": [[9.5, -1.5, 3, 1], [9.5, -2.5, 2, 1]],
+      "leafPivot": [9, -0.5],
+      "shadow": {"center": [9, 10.7], "rx": 6.5, "ry": 0.45}
+    },
+    "call": {
+      "bar": {"x0": 2.2, "step": 2, "width": 1.6, "centerY": 5.5, "fullHeight": 6, "note": "bar height = fullHeight * scale. Scale comes from the state."},
+      "eyes": {"x": [6.5, 10.5], "centerY": 5.5, "width": 1, "height": 2, "note": "eyes sit on bars 2 and 4 (counting from 0). Those bars never get shorter than the eyes."},
+      "barShape": [0.55, 0.75, 0.9, 1, 0.9, 0.75, 0.55]
+    }
+  },
+  "poseDefaults": {
+    "lean": 0, "lift": 0, "sx": 1, "sy": 1, "armL": 0, "armR": 0, "armSy": 1, "leaf": 0,
+    "eyeSy": 1, "eyeDx": 0, "eyeDy": 0, "mouth": 0, "mouthW": 1, "mouthH": 0.4, "dim": 0
+  },
+  "poseFields": {
+    "lean": "rotate the whole body around the pivot, degrees", "lift": "move the body up (negative) or down, units",
+    "sx": "body width scale", "sy": "body height scale (scales from the pivot, at the feet)",
+    "armL": "left arm y offset, negative = up", "armR": "right arm y offset", "armSy": "arm height scale (1.5 = stretched into an ear)",
+    "leaf": "leaf angle. Positive = leaves lift up, negative = leaves droop", "eyeSy": "eye height scale (1.3 = wide, 0.15 = closed line)",
+    "eyeDx": "eye x offset", "eyeDy": "eye y offset", "mouth": "mouth visible, 0 or 1", "mouthW": "mouth width scale", "mouthH": "mouth height scale",
+    "dim": "0 to 1, how far the body color mixes toward palette.dimTo"
+  },
+  "motionTypes": {
+    "breathe": "body rises by amp and comes back, once per period",
+    "hop": "body jumps up by amp for 60% of the period, then squashes on landing",
+    "shake": "quick left-right shake of amp at the start of each period, then still",
+    "sway": "lean swings by ±amp degrees",
+    "sleep": "body height shrinks by amp and comes back, slowly"
+  },
+  "bindings": {
+    "ears": "both arms move up by value × level",
+    "mouth": "mouthH = 0.3 + 2.1 × level, mouthW = 1 + 0.5 × level",
+    "lift": "body moves up by value × level",
+    "arms": "left arm up by value × level, right arm up by 0.8 × value × (1 - level)"
+  },
+  "effects": {
+    "in": "6 small pixels fly toward the character. Brightness follows level.",
+    "out": "6 small pixels fly away from the character. Brightness follows level.",
+    "dots": "3 growing squares, top right, appear one after another",
+    "zzz": "3 letters z float up, top right",
+    "sparkle": "4 pixels twinkle around the body",
+    "squares": "10 small squares in the 5 word-level greens rise from the bottom",
+    "q": "a floating question mark, top right",
+    "bang": "a floating exclamation mark, top right",
+    "off": "a gray × that blinks slowly, top right"
+  },
+  "chat": {
+    "order": ["idle", "greeting", "listening", "thinking", "speaking", "wordUsed", "gentleNo", "confused", "celebrate", "nudge", "sleeping", "offline"],
+    "states": {
+      "idle": {
+        "label": "Idle", "when": "Nothing is happening. This is the default.",
+        "look": "Breathes slowly and blinks.", "driven": "Loop",
+        "motion": {"type": "breathe", "amp": 0.45, "period": 2200}
+      },
+      "greeting": {
+        "label": "Greeting", "when": "The Sprout tab opens, or a new session starts.",
+        "look": "Right arm goes up and waves. Body sways. Small open mouth.", "driven": "Loop",
+        "pose": {"armR": -2.2, "mouth": 1, "mouthH": 0.7, "leaf": 8},
+        "armWave": {"amp": 0.8, "period": 450},
+        "motion": {"type": "sway", "amp": 3, "period": 1800},
+        "holdMs": 2000, "returnsTo": "idle"
+      },
+      "listening": {
+        "label": "Listening", "when": "The user is typing or dictating.",
+        "look": "Leans in. Arms slide up and stretch into ears. Leaves lift. Eyes open wide. Sound pixels fly in.",
+        "driven": "Mic or typing level: ears twitch, pixels get brighter",
+        "pose": {"lean": -4, "armL": -2.3, "armR": -2.3, "armSy": 1.5, "eyeSy": 1.3, "leaf": 22},
+        "bind": {"ears": 0.8}, "fx": "in"
+      },
+      "thinking": {
+        "label": "Thinking", "when": "Message sent, waiting for the reply. Also while a deck is being made.",
+        "look": "Eyes look up. Three dots grow. Slow breathing. No blinking.", "driven": "Loop",
+        "pose": {"eyeDx": 0.4, "eyeDy": -0.6, "leaf": -6},
+        "motion": {"type": "breathe", "amp": 0.3, "period": 3000},
+        "fx": "dots", "noBlink": true
+      },
+      "speaking": {
+        "label": "Speaking", "when": "The reply is streaming as text or playing as audio.",
+        "look": "A mouth appears and moves. Body bounces a little. Arms gesture. Sound pixels fly out.",
+        "driven": "Voice level: mouth height, bounce, arms",
+        "pose": {"mouth": 1},
+        "bind": {"mouth": 1, "lift": 0.7, "arms": 1.2}, "fx": "out"
+      },
+      "wordUsed": {
+        "label": "Word used", "when": "The user used a checklist word well, or got a review right.",
+        "look": "Small happy hop. Both arms up. Eyes squint. Sparkles.", "driven": "Loop",
+        "pose": {"armL": -2, "armR": -2, "eyeSy": 0.5, "mouth": 1, "mouthW": 1.5, "mouthH": 1, "leaf": 25},
+        "motion": {"type": "hop", "amp": 1.6, "period": 700},
+        "fx": "sparkle", "holdMs": 1400, "returnsTo": "previous"
+      },
+      "gentleNo": {
+        "label": "Gentle no", "when": "The sentence was not right, or the request is off-topic. Always kind, never harsh.",
+        "look": "A short shake. Eyes look down. Arms and leaves droop. Flat mouth.", "driven": "Loop",
+        "pose": {"eyeDy": 0.5, "eyeSy": 0.8, "armL": 0.6, "armR": 0.6, "mouth": 1, "mouthW": 1.3, "mouthH": 0.3, "leaf": -14},
+        "motion": {"type": "shake", "amp": 0.5, "period": 2400},
+        "holdMs": 1200, "returnsTo": "speaking"
+      },
+      "confused": {
+        "label": "Confused", "when": "The input was not understood. Sprout asks the user to say it another way.",
+        "look": "Tilts to one side. One arm up. A question mark floats.", "driven": "Loop",
+        "pose": {"lean": 7, "armR": -1.4, "eyeDx": -0.3, "leaf": -4},
+        "motion": {"type": "sway", "amp": 1.5, "period": 2600},
+        "fx": "q"
+      },
+      "celebrate": {
+        "label": "Celebrate", "when": "Talk summary: words moved up. Words reached long-term. A deck is finished.",
+        "look": "Big hops. Arms and leaves up. Open mouth. Word squares rise.", "driven": "Loop",
+        "pose": {"armL": -3, "armR": -3, "mouth": 1, "mouthW": 1.6, "mouthH": 1.6, "eyeSy": 0.5, "leaf": 30},
+        "motion": {"type": "hop", "amp": 3, "period": 620},
+        "fx": "squares", "holdMs": 2400, "returnsTo": "idle"
+      },
+      "nudge": {
+        "label": "Nudge", "when": "Sprout wants attention: words are due, or it has a suggestion.",
+        "look": "Small hop now and then. Right arm waves. An exclamation mark floats.", "driven": "Loop",
+        "pose": {"armR": -2.4, "eyeSy": 1.2, "leaf": 12},
+        "armWave": {"amp": 0.7, "period": 500},
+        "motion": {"type": "hop", "amp": 1, "period": 1500},
+        "fx": "bang"
+      },
+      "sleeping": {
+        "label": "Sleeping", "when": "The app was not used for a long time, or it is quiet hours.",
+        "look": "Eyes closed. Slow deep breath. Leaves droop. z z z.", "driven": "Loop",
+        "pose": {"eyeSy": 0.15, "dim": 0.2, "armL": 0.5, "armR": 0.5, "leaf": -24},
+        "motion": {"type": "sleep", "amp": 0.06, "period": 3200},
+        "fx": "zzz", "noBlink": true
+      },
+      "offline": {
+        "label": "Offline", "when": "No network, or the server returned an error.",
+        "look": "Body turns gray. Eyes closed. Everything droops. A gray × blinks.", "driven": "Still",
+        "pose": {"dim": 0.85, "eyeSy": 0.15, "armL": 0.8, "armR": 0.8, "leaf": -30},
+        "fx": "off", "noBlink": true
+      }
+    }
+  },
+  "call": {
+    "order": ["connecting", "idle", "listening", "thinking", "speaking", "wordUsed", "muted", "reconnecting", "ending"],
+    "fields": {
+      "h": "base bar scale. One number for all bars, or 7 numbers.",
+      "ripple": "a small wave on top of h. type travel = left to right, inward = edges to middle, outward = middle to edges.",
+      "pulse": "a big wave from the middle outward: h += amp × max(0, sin(2π·t/period − distanceFromMiddle × 0.9))",
+      "gain": "how much the voice level adds: h += gain × level × barShape[i] × jitter[i]",
+      "sweep": "thinking: one bright bar moves left to right, msPerBar per bar, and grows by hop",
+      "signal": "reconnecting: bar i has height base + step × i; bars light up one by one over period",
+      "pal": "which bar colors to use: strong, soft, muted or sweep"
+    },
+    "states": {
+      "connecting": {
+        "label": "Connecting", "when": "Right after the change to call form, until audio is ready.",
+        "look": "Soft colors. A pulse runs from the middle out, again and again.", "driven": "Loop",
+        "h": 0.45, "pulse": {"amp": 0.35, "period": 1000}, "pal": "soft"
+      },
+      "idle": {
+        "label": "Idle", "when": "The call is open and nobody is talking.",
+        "look": "Medium height. A slow soft wave. Eyes blink.", "driven": "Loop",
+        "h": 0.5, "ripple": {"type": "travel", "amp": 0.06, "period": 4400}, "pal": "strong"
+      },
+      "listening": {
+        "label": "Listening", "when": "The user is talking.",
+        "look": "Soft colors. A ripple runs from the edges to the middle. Eyes open wide. Sound pixels fly in.",
+        "driven": "Mic level: bars lift with the user's voice",
+        "h": 0.5, "ripple": {"type": "inward", "amp": 0.07, "period": 1630}, "pal": "soft", "gain": 0.45,
+        "pose": {"eyeSy": 1.2}, "fx": "in"
+      },
+      "thinking": {
+        "label": "Thinking", "when": "The user stopped talking. Sprout is getting its answer ready.",
+        "look": "All bars the same height. One bright bar hops across. Eyes look up.", "driven": "Loop",
+        "h": 0.52, "sweep": {"msPerBar": 150, "hop": 0.16}, "pal": "sweep",
+        "pose": {"eyeDx": 0.25, "eyeDy": -0.2}, "noBlink": true
+      },
+      "speaking": {
+        "label": "Speaking", "when": "Sprout's voice is playing.",
+        "look": "Strong colors. Bars jump tall, biggest in the middle. Sound pixels fly out.",
+        "driven": "Voice level, one value per bar",
+        "h": [0.45, 0.45, 0.6, 0.45, 0.6, 0.45, 0.45], "gain": 1.15, "pal": "strong", "fx": "out"
+      },
+      "wordUsed": {
+        "label": "Word used", "when": "The user said a checklist word well during the call.",
+        "look": "Quick strong pulses from the middle out. Eyes squint.", "driven": "Loop",
+        "h": 0.6, "pulse": {"amp": 0.6, "period": 700}, "pal": "strong",
+        "pose": {"eyeSy": 0.5}, "holdMs": 1400, "returnsTo": "previous"
+      },
+      "muted": {
+        "label": "Muted", "when": "The user turned their microphone off.",
+        "look": "Bars go low, flat and gray. Eyes closed.", "driven": "Still",
+        "h": 0.3, "pal": "muted", "pose": {"eyeSy": 0.15}, "noBlink": true
+      },
+      "reconnecting": {
+        "label": "Reconnecting", "when": "The network is weak or lost during a call.",
+        "look": "Bars form steps like a signal icon and light up one by one.", "driven": "Loop",
+        "signal": {"base": 0.25, "step": 0.1, "period": 1400}, "pal": "strong"
+      },
+      "ending": {
+        "label": "Ending", "when": "The call ends. Hold, then change back to chat form.",
+        "look": "Bars drop to a thin line. Eyes close.", "driven": "Still",
+        "h": 0.14, "pal": "soft", "pose": {"eyeSy": 0.15}, "noBlink": true,
+        "holdMs": 500, "returnsTo": "chat.idle"
+      }
+    }
+  },
+  "morph": {
+    "durationMs": 700,
+    "progress": "m goes from 0 (chat) to 1 (call) at a steady speed. Each step uses smoothstep on its own part of m.",
+    "steps": [
+      {"name": "A. Pull in", "from": 0, "to": 0.3, "does": "Arms, feet, leaf and mouth shrink into the body. The body squashes a little (down to 88% height) like it takes a breath. Lean and lift go back to zero."},
+      {"name": "B. Split", "from": 0.2, "to": 0.7, "does": "Each slab gets thinner (2 to 1.6 units) so gaps open. All slabs go to the same height. Colors change from body color to bar colors. Highlight row, shade row and shadow fade out. Eyes move down half a unit."},
+      {"name": "C. Come alive", "from": 0.65, "to": 1, "does": "Bars move from the same height to the heights of the current call state."}
+    ],
+    "squash": 0.12
+  },
+  "rules": {
+    "poseSmoothing": {"value": 0.18, "text": "Every frame, each pose number moves 18% of the way to its target. This makes all state changes soft with no extra code."},
+    "barSmoothing": {"value": 0.25, "speaking": 0.4, "text": "Bars move 25% of the way per frame, 40% while speaking so they feel fast."},
+    "levelSmoothing": {"value": 0.3, "text": "The voice level is smoothed 30% per frame before it is used."},
+    "colorSmoothing": {"value": 0.2, "text": "Bar colors mix 20% per frame toward the target color."},
+    "blink": {"closedMs": 130, "everyMs": [2500, 5500], "closedScale": 0.12, "text": "Eyes close for 130 ms at a random time every 2.5 to 5.5 seconds. States with noBlink skip this."},
+    "eyeFit": {"text": "In call form, bars 2 and 4 are never shorter than (2 × eyeSy + 0.5) / 6, so the eyes always sit on a bar."},
+    "fakeVoice": {"text": "When there is no real audio: pick a new target level every 70 to 180 ms, between 0.35 and 1. 18% of the time make a pause (0.04) for 180 to 400 ms. Each bar also gets its own jitter from 0.55 to 1, changed every 60 to 150 ms."},
+    "listeningGain": {"value": 0.8, "text": "With the fake voice, listening uses 80% of the level so it looks calmer than speaking."},
+    "oneShot": {"text": "States with holdMs are short. Hold them for holdMs, then go to returnsTo. 'previous' means the state before."}
+  }
+}
+</script>
+<script>
+/* ===================================================================================
+   REFERENCE RENDERER. Reads only the JSON above.
+   createCharacter(host) returns { set(form, state), form, state, lvl, mic }.
+   One shared animation loop calls step(t, dt) on every character.
+   =================================================================================== */
+const SPEC = JSON.parse(document.getElementById('character-spec').textContent);
+const G = SPEC.geometry, R = SPEC.rules, N = G.slabCount, MID = (N - 1) / 2;
+let THEME = 'light', PAL = SPEC.palette[THEME], PALRGB = {};
+
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const css = a => `rgb(${a.map(Math.round).join(',')})`;
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = x => Math.max(0, Math.min(1, x));
+const ease = x => x * x * (3 - 2 * x);                       // smoothstep
+const part = (m, from, to) => ease(clamp((m - from) / (to - from)));
+const TAU = Math.PI * 2;
+
+function applyTheme(name){
+  THEME = name; PAL = SPEC.palette[name]; PALRGB = {};
+  for (const k in PAL) {
+    const v = PAL[k];
+    PALRGB[k] = Array.isArray(v) ? v.map(hex2rgb) : hex2rgb(v);
+    if (!Array.isArray(v)) document.documentElement.style.setProperty('--' + k, v);
+  }
+  PAL.squares.forEach((c, i) => document.documentElement.style.setProperty('--sq' + i, c));
+  document.documentElement.dataset.theme = name;
+}
+
+/* fake voice, shared by all characters (rules.fakeVoice) */
+const voice = { target: 0, next: 0, jit: Array(N).fill(1), jn: Array(N).fill(0),
+  update(t){
+    if (t > this.next) {
+      const pause = Math.random() < .18;
+      this.target = pause ? .04 : .35 + Math.random() * .65;
+      this.next = t + (pause ? 180 + Math.random() * 220 : 70 + Math.random() * 110);
+    }
+    for (let i = 0; i < N; i++) if (t > this.jn[i]) { this.jit[i] = .55 + Math.random() * .45; this.jn[i] = t + 60 + Math.random() * 90; }
+  } };
+
+const rect = (cls, r = [0, 0, 0, 0], extra = '') =>
+  `<rect class="${cls}" x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" ${extra}/>`;
+const pixels = (cls, x, dx) => [2, 4.6, 7.2].map((y, i) =>
+  rect('px ' + cls, [x + (i % 2) * dx, y, .8, .8], `style="animation-delay:${(-i * .43).toFixed(2)}s"`)).join('');
+
+function markup(){
+  const c = G.chat, vb = SPEC.viewBox.join(' ');
+  const squares = Array.from({length: 10}, (_, i) =>
+    rect('sq', [-3.5 + (i * 7.3 % 24), 8 + (i % 3), 1.2, 1.2], `rx=".2" style="fill:var(--sq${i % 5});animation-delay:${(-i * .37 % 1.8).toFixed(2)}s"`)).join('');
+  const sparkle = [[-2.5, 0], [20.5, 1], [-1.5, 7.5], [20, 7]].map((p, i) =>
+    rect('px sp', [p[0], p[1], 1, 1], `style="animation-delay:${-i * .25}s"`)).join('');
+  return `<svg viewBox="${vb}" shape-rendering="crispEdges" role="img">
+    <ellipse class="shadow" cx="${c.shadow.center[0]}" cy="${c.shadow.center[1]}" rx="${c.shadow.rx}" ry="${c.shadow.ry}"/>
+    <g class="fx fx-in">${pixels('inl', -4.6, .5)}${pixels('inr', 21.8, -.5)}</g>
+    <g class="fx fx-out">${pixels('outl', -1.2, .4)}${pixels('outr', 18.4, -.4)}</g>
+    <g class="fx fx-dots">${rect('dot', [17, 0, 1, 1])}${rect('dot', [18.6, -2, 1.4, 1.4], 'style="animation-delay:.25s"')}${rect('dot', [20.4, -4.6, 2, 2], 'style="animation-delay:.5s"')}</g>
+    <g class="fx fx-zzz">${[2.4, 3.2, 4].map((s, i) => `<text class="t z" x="17" y="1" style="font-size:${s}px;animation-delay:${i}s">z</text>`).join('')}</g>
+    <g class="fx fx-squares">${squares}</g><g class="fx fx-sparkle">${sparkle}</g>
+    <g class="fx fx-q"><text class="t" x="18" y="0.5">?</text></g>
+    <g class="fx fx-bang"><text class="t" x="18" y="0.5">!</text></g>
+    <g class="fx fx-off"><text class="t" x="18" y="0.5">×</text></g>
+    <g class="pose">
+      <g class="sprout">${rect('stem', c.stem)}
+        <g class="leaf ll">${rect('lf', c.leafLeft[0])}${rect('lfh', c.leafLeft[1])}</g>
+        <g class="leaf lr">${rect('lf', c.leafRight[0])}${rect('lfh', c.leafRight[1])}</g></g>
+      ${rect('foot', c.feet[0])}${rect('foot', c.feet[1])}
+      ${rect('arm al')}${rect('arm ar')}
+      ${Array(N).fill(rect('slab')).join('')}
+      ${rect('hi', c.hiRow)}${rect('lo', c.loRow)}
+      ${rect('eye')}${rect('eye')}${rect('mouth')}
+    </g></svg>`;
+}
+
+const characters = [];
+function createCharacter(host, form = 'chat', state = 'idle'){
+  host.innerHTML = markup();
+  const $ = s => host.querySelector(s), $$ = s => [...host.querySelectorAll(s)];
+  const el = { svg: $('svg'), shadow: $('.shadow'), pose: $('.pose'), sprout: $('.sprout'), ll: $('.ll'), lr: $('.lr'),
+    stem: $('.stem'), lf: $$('.lf'), lfh: $$('.lfh'), feet: $$('.foot'), al: $('.al'), ar: $('.ar'),
+    slabs: $$('.slab'), hi: $('.hi'), lo: $('.lo'), eyes: $$('.eye'), mouth: $('.mouth') };
+  const set = (e, o) => { for (const k in o) e.setAttribute(k, typeof o[k] === 'number' ? +o[k].toFixed(3) : o[k]); };
+
+  const c = { form, state, m: form === 'call' ? 1 : 0, lvl: 0, mic: null,
+    P: {...SPEC.poseDefaults}, bars: Array(N).fill(1), barCol: null, nextBlink: 1500 + Math.random() * 3000, blinkEnd: 0,
+    set(f, s){ c.form = f; c.state = s; el.svg.dataset.fx = SPEC[f].states[s].fx || ''; } };
+  c.set(form, state);
+
+  c.step = (t, dt) => {
+    const S = SPEC[c.form].states[c.state], ch = G.chat, ca = G.call;
+
+    /* 1. form change progress m, and its three steps a, b, cc */
+    const goal = c.form === 'call' ? 1 : 0;
+    c.m += Math.sign(goal - c.m) * Math.min(Math.abs(goal - c.m), dt / SPEC.morph.durationMs);
+    const st = SPEC.morph.steps, a = part(c.m, st[0].from, st[0].to), b = part(c.m, st[1].from, st[1].to), cc = part(c.m, st[2].from, st[2].to);
+    const k = 1 - a;                                            // how much "chat body" is left
+
+    /* 2. voice level */
+    let lvGoal = 0;
+    if (S.bind || S.gain) lvGoal = c.mic ? c.mic() : voice.target * (c.state === 'listening' ? R.listeningGain.value : 1);
+    c.lvl += (lvGoal - c.lvl) * R.levelSmoothing.value;
+    const lvl = c.lvl;
+
+    /* 3. pose: move every number toward the state's target */
+    const T = {...SPEC.poseDefaults, ...(S.pose || {})};
+    for (const key in T) c.P[key] += (T[key] - c.P[key]) * R.poseSmoothing.value;
+    let {lean, lift, sx, sy, armL, armR, armSy, leaf, eyeSy, eyeDx, eyeDy, mouth, mouthW, mouthH, dim} = c.P, x = 0;
+
+    /* 4. looping motion */
+    const M = S.motion;
+    if (M) {
+      const ph = (t % M.period) / M.period;
+      if (M.type === 'breathe') lift -= M.amp * (.5 - .5 * Math.cos(TAU * ph));
+      if (M.type === 'sway') lean += M.amp * Math.sin(TAU * ph);
+      if (M.type === 'shake') x += M.amp * Math.sin(t / 40) * Math.max(0, 1 - ph * 3);
+      if (M.type === 'sleep') { const u = .5 - .5 * Math.cos(TAU * ph); sy *= 1 - M.amp * u; sx *= 1 + M.amp * .5 * u; }
+      if (M.type === 'hop') {
+        if (ph < .6) { const u = Math.sin(Math.PI * ph / .6); lift -= M.amp * u; sy *= 1 + .06 * u; sx *= 1 - .04 * u; }
+        else { const u = Math.sin(Math.PI * (ph - .6) / .4); sy *= 1 - .12 * u; sx *= 1 + .08 * u; }
+      }
+    }
+    if (S.armWave) armR += S.armWave.amp * Math.sin(TAU * t / S.armWave.period);
+
+    /* 5. things that follow the voice level */
+    const B = S.bind || {};
+    if (B.ears) { armL -= B.ears * lvl; armR -= B.ears * lvl; }
+    if (B.mouth) { mouthH = .3 + 2.1 * lvl; mouthW = 1 + .5 * lvl; }
+    if (B.lift) lift -= B.lift * lvl;
+    if (B.arms) { armL -= B.arms * lvl; armR -= B.arms * .8 * (1 - lvl); }
+
+    /* 6. blink */
+    let blink = 1;
+    if (!S.noBlink) {
+      if (t > c.nextBlink) { c.blinkEnd = t + R.blink.closedMs; c.nextBlink = t + R.blink.everyMs[0] + Math.random() * (R.blink.everyMs[1] - R.blink.everyMs[0]); }
+      if (t < c.blinkEnd) blink = R.blink.closedScale;
+    }
+
+    /* 7. during the form change the chat pose fades to neutral, with a small squash */
+    lean *= k; lift *= k; x *= k; sx = lerp(1, sx, k); sy = lerp(1, sy, k);
+    sy *= 1 - SPEC.morph.squash * Math.sin(Math.PI * clamp(c.m / .4));
+    const [px, py] = G.pivot;
+    el.pose.setAttribute('transform',
+      `translate(${x.toFixed(3)} ${lift.toFixed(3)}) rotate(${lean.toFixed(2)} ${px} ${py}) translate(${px} ${py}) scale(${sx.toFixed(3)} ${sy.toFixed(3)}) translate(${-px} ${-py})`);
+
+    /* 8. colors */
+    const body = mix(PALRGB.body, PALRGB.dimTo, dim);
+    const tint = key => css(mix(PALRGB[key], PALRGB.dimTo, dim));
+    el.shadow.setAttribute('fill', PAL.shadow); el.shadow.setAttribute('opacity', (1 - b).toFixed(3));
+
+    /* 9. limbs and leaf (shrink away with k) */
+    const [lx, ly, lw, lh] = ch.arms.left, [rx] = ch.arms.right, armH = lh * armSy;
+    set(el.al, {x: lx + lw * (1 - k), y: ly + lh / 2 + armL - armH / 2, width: lw * k, height: armH, fill: css(body)});
+    set(el.ar, {x: rx, y: ly + lh / 2 + armR - armH / 2, width: lw * k, height: armH, fill: css(body)});
+    el.feet.forEach((f, i) => set(f, {height: ch.feet[i][3] * k, fill: tint('shade')}));
+    const [sxp, syp] = [ch.stem[0] + ch.stem[2] / 2, ch.stem[1] + ch.stem[3]], [lpx, lpy] = ch.leafPivot;
+    el.sprout.setAttribute('transform', `translate(${sxp} ${syp}) scale(${k.toFixed(3)}) translate(${-sxp} ${-syp})`);
+    el.ll.setAttribute('transform', `rotate(${leaf.toFixed(2)} ${lpx} ${lpy})`);
+    el.lr.setAttribute('transform', `rotate(${(-leaf).toFixed(2)} ${lpx} ${lpy})`);
+    el.stem.setAttribute('fill', tint('leaf'));
+    el.lf.forEach(e => e.setAttribute('fill', tint('leaf'))); el.lfh.forEach(e => e.setAttribute('fill', tint('leafHi')));
+
+    /* 10. bars: target height and color for the current call state */
+    const inCall = c.form === 'call';
+    if (!c.barCol) c.barCol = PALRGB.barsStrong.map(v => v.slice());
+    const sweepPos = S.sweep ? (t / S.sweep.msPerBar) % (N + 2) - 1 : 0;
+    const eyeMin = (ca.eyes.height * eyeSy + .5) / ca.bar.fullHeight;
+    for (let i = 0; i < N; i++) {
+      const d = Math.abs(i - MID);
+      let h = 1, col = PALRGB.barsStrong[i];
+      if (inCall) {
+        h = Array.isArray(S.h) ? S.h[i] : (S.h ?? .5);
+        col = S.pal === 'soft' ? PALRGB.barsSoft[i] : S.pal === 'muted' ? PALRGB.barsMuted : PALRGB.barsStrong[i];
+        if (S.ripple) { const p = S.ripple.type === 'travel' ? i * .6 : S.ripple.type === 'inward' ? d * 1.1 : -d * 1.1;
+          h += S.ripple.amp * Math.sin(TAU * t / S.ripple.period + p); }
+        if (S.pulse) h += S.pulse.amp * Math.max(0, Math.sin(TAU * t / S.pulse.period - d * .9));
+        if (S.gain) h += S.gain * lvl * ca.barShape[i] * voice.jit[i];
+        if (S.sweep) { const near = Math.abs(i - sweepPos); if (near < .6) h += S.sweep.hop; col = PALRGB.barsSweep[Math.min(2, Math.round(near))]; }
+        if (S.signal) { h = S.signal.base + S.signal.step * i;
+          const lit = Math.floor((t % S.signal.period) / S.signal.period * (N + 1)); if (i >= lit) col = PALRGB.barsMuted; }
+        if (i === 2 || i === 4) h = Math.max(h, eyeMin);
+      }
+      c.bars[i] += (h - c.bars[i]) * (c.state === 'speaking' ? R.barSmoothing.speaking : R.barSmoothing.value);
+      c.barCol[i] = mix(c.barCol[i], col, R.colorSmoothing.value);
+
+      /* draw slab i: blend chat slab and call bar with b, then bring in the state height with cc */
+      const chatH = (i === 0 || i === N - 1) ? ch.slab.outerHeight : ch.slab.height;
+      const w = lerp(ch.slab.width + .02, ca.bar.width, b);     // +0.02 hides hairline seams in chat form
+      const H = lerp(chatH, ca.bar.fullHeight * lerp(1, c.bars[i], cc), b);
+      set(el.slabs[i], {x: lerp(ch.slab.x0 + i * ch.slab.step, ca.bar.x0 + i * ca.bar.step, b), y: ca.bar.centerY - H / 2,
+        width: w, height: H, fill: css(mix(body, c.barCol[i], b))});
+    }
+    set(el.hi, {fill: tint('hi'), opacity: 1 - b}); set(el.lo, {fill: tint('shade'), opacity: 1 - b});
+
+    /* 11. eyes and mouth */
+    const eh = ch.eyes.height * eyeSy * blink, ey = lerp(ch.eyes.centerY, ca.eyes.centerY, b) + eyeDy;
+    el.eyes.forEach((e, i) => set(e, {x: ch.eyes.x[i] + eyeDx, y: ey - eh / 2, width: ch.eyes.width, height: eh, fill: PAL.eye}));
+    const mw = ch.mouth.width * mouthW, mh = ch.mouth.height * mouthH;
+    set(el.mouth, {x: ch.mouth.center[0] - mw / 2, y: ch.mouth.center[1] - mh / 2, width: mw, height: mh, fill: PAL.eye, opacity: mouth * k});
+
+    el.svg.style.setProperty('--lvl', lvl.toFixed(3));
+  };
+  characters.push(c);
+  return c;
+}
+
+let last = 0;
+function loop(t){
+  const dt = Math.min(50, t - last); last = t;
+  voice.update(t);
+  for (const c of characters) c.step(t, dt);
+  if (window.onFrame) window.onFrame(t);
+  requestAnimationFrame(loop);
+}
+applyTheme('light');
+requestAnimationFrame(loop);
+</script>
+<script>
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- fit the phone to the screen ---------- */
+function fit(){
+  const s = Math.min(1, (innerHeight - 48) / 852, (innerWidth - 40) / 393);
+  const p = $('phone'); p.style.transform = `scale(${s})`;
+  $('phoneWrap').style.width = 393 * s + 'px'; $('phoneWrap').style.height = 852 * s + 'px';
+}
+addEventListener('resize', fit); fit();
+
+/* ---------- notes (each step = one moment of motion) ---------- */
+const STEPS = [
+ ['intro','Speak tab · first visit','SP1',['Kai <b>greeting</b>: right arm waves, body sways, small open mouth (loop).','One big line: “I make talks from your words.”','Let’s talk: press shrinks to 97%, then the screen cross-fades (350 ms) to the topics. Never shown again.']],
+ ['topics','Topic cards','SP2',['Kai <b>idle</b>: slow breath (2.2 s) and a blink every 2.5–5.5 s.','Cards follow your finger. Let go: snap to the nearest card in 320 ms (ease-out). Next card peeks 24 px.','The active dot grows to 18 px (240 ms).','New card: Kai does a short <b>nudge</b> hop (600 ms).']],
+ ['open','Let’s talk → talk screen','SP3',['The talk screen slides up in 420 ms.','Kai sits in a small header. He changes from pixel form into sound bars in 700 ms: <b>pull in</b> → <b>split</b> → <b>come alive</b>, then <b>connecting</b> (soft pulse).']],
+ ['kai','Kai talks','SP3',['Kai <b>thinks</b> first (one bright bar hops, ~0.6 s), then <b>speaks</b>: bars follow his voice, sound pixels fly out.','His message appears word by word in time with the audio (≈ 230 ms a word).','When the line ends, a thin divider and the translation fade in under it (350 ms), and a small speaker button appears next to the message. Tap it to hear Kai again (bars speak again).','The mic is dimmed while Kai talks (“Kai is talking…”).']],
+ ['you','You talk (voice message)','SP4',['Your turn: Kai goes calm (<b>idle</b>) and a soft ring breathes around the mic (1.8 s) as an invite.','Tap the mic: it turns into a stop square, a green halo grows and shrinks with your voice, Kai <b>listens</b> (soft bars, pixels fly in). A small timer counts on your bubble.','Your words appear as you say them. A list word turns green, its chip gets a check and pops (scale 1.14, 320 ms), and Kai does <b>word used</b> (900 ms). Phone: a light haptic.','Tap again to send.']],
+ ['react','Kai reacts','SP3',['Kai <b>thinks</b> (~0.55 s), then drops one emoji on the corner of your bubble. It pops in with a small overshoot (380 ms).','👏 when you used a list word, otherwise a friendly one (😋 👍 😄 🔥). Then Kai answers.']],
+ ['kb','Keyboard','SP5',['Keyboard button: the mic area slides down and fades, the text box and keyboard slide up (320 ms). The chat shrinks so the last message stays in view.','The words row moves on top of the text box. Swipe it sideways.','Empty box: the round button is a mic (back to voice). With text: it turns into a green send arrow.','On send, list words in your text turn green and their chips tick, same as voice.']],
+ ['end','Timer ends → summary','SP6',['Last 30 s: “left” time turns orange.','At 0:00 Kai says goodbye, then <b>ending</b>: bars drop to a thin line, eyes close (500 ms).','The header grows to full screen, the bars join back into pixel Kai (700 ms) and Kai <b>celebrates</b>.','Word rows come in one by one (90 ms apart).']],
+];
+$('steps').innerHTML = STEPS.map(s => `<div class="step" id="st-${s[0]}"><h3>${s[1]} <span>${s[2]}</span></h3><ul>${s[3].map(x => `<li>${x}</li>`).join('')}</ul></div>`).join('');
+function mark(id){ document.querySelectorAll('.step').forEach(e => e.classList.toggle('cur', e.id === 'st-' + id)); }
+function setK(c, form, state, label){ c.set(form, state); $('now').textContent = `Kai: ${form} · ${state}` + (label ? ' — ' + label : ''); }
+
+/* ---------- characters ---------- */
+const kIntro = createCharacter($('kIntro'), 'chat', 'greeting');
+const kTopics = createCharacter($('kTopics'), 'chat', 'idle');
+const kTalk = createCharacter($('talkKai'), 'chat', 'idle');
+
+/* ---------- SP1 intro ---------- */
+async function showIntro(){
+  closeSheet(true);
+  $('intro').classList.remove('hide'); $('topics').classList.add('hide');
+  document.querySelectorAll('.row').forEach(r => r.classList.remove('in'));
+  setK(kIntro, 'chat', 'greeting'); mark('intro');
+  await wait(450);
+  for (const r of document.querySelectorAll('.row')) { r.classList.add('in'); await wait(120); }
+}
+$('gotIt').onclick = () => showTopics();
+function showTopics(){
+  $('intro').classList.add('hide'); $('topics').classList.remove('hide');
+  setK(kTopics, 'chat', 'idle'); mark('topics');
+}
+
+/* ---------- SP2 cards ---------- */
+const TOPICS = [
+ {t:'Your last dinner out', d:'Tell me about a dinner. What did you eat? Who was with you?', ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>', w:['la cuenta','la propina','pedir','el mesero','sin hielo','picante']},
+ {t:'Getting around the city', d:'How do you get to work? Bus, bike or walk?', ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>', w:['el metro','la parada','cerca','lejos','tarde','el billete','el autobús','caminar']},
+ {t:'Your weekend plans', d:'What will you do this weekend? Who will you see?', ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>', w:['quedar','el sábado','descansar','la playa','temprano','juntos']},
+ {t:'A favorite song', d:'Which song do you love? When do you listen to it?', ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', w:['la canción','escuchar','bailar','la letra','alegre','siempre']},
+ {t:'Shopping at the market', d:'What do you buy at the market? Is it cheap?', ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>', w:['barato','el kilo','fresco','la fruta','cuánto','pagar']},
+];
+$('track').innerHTML = TOPICS.map((p, i) => `<div class="card"><div class="ic">${p.ic}</div><div class="meta">Topic ${i + 1} of 5<br>3 min talk</div><h3>${p.t}</h3><p>${p.d}</p><div class="lab">Words to use · ${p.w.length}</div><div class="chips">${p.w.map(w => `<span class="chip">${w}</span>`).join('')}</div><button class="btn talk" data-i="${i}">Start</button></div>`).join('');
+/* words on a card: never more than 2 rows; the rest becomes +N */
+function clampChips(){ document.querySelectorAll('.card .chips').forEach(box => { const all = [...box.children]; if (!all.length) return; const rowH = all[0].offsetHeight, top0 = all[0].offsetTop, max = top0 + rowH * 2 + 6 + 1;
+  const fits = () => [...box.children].every(c => c.offsetTop + c.offsetHeight <= max);
+  if (fits()) return; let shown = all.length; while (!fits() && shown > 1) { shown--; [...box.children].forEach((c, k) => { if (c.classList.contains('more')) c.remove(); else c.hidden = k >= shown; }); const m = document.createElement('span'); m.className = 'chip more'; m.textContent = '+' + (all.length - shown); box.appendChild(m); } }); }
+requestAnimationFrame(clampChips); document.fonts && document.fonts.ready.then(clampChips);
+$('dots').innerHTML = TOPICS.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('');
+let cur = 0, dragX = null, dx = 0, moved = false;
+const tx = () => 40 - cur * 325;
+function place(anim){ $('track').classList.toggle('snap', anim); $('track').style.transform = `translateX(${tx() + dx}px)`;
+  [...$('dots').children].forEach((d, i) => d.classList.toggle('on', i === cur)); }
+place(false);
+const vp = $('vp');
+vp.addEventListener('pointerdown', e => { if (e.target.closest('.talk')) return; dragX = e.clientX; dx = 0; moved = false; vp.setPointerCapture(e.pointerId); });
+vp.addEventListener('pointermove', e => { if (dragX === null) return; const s = parseFloat(getComputedStyle($('phone')).transform.split(',')[3]) || 1; dx = (e.clientX - dragX) / s; if (Math.abs(dx) > 4) moved = true;
+  if ((cur === 0 && dx > 0) || (cur === TOPICS.length - 1 && dx < 0)) dx *= .35; place(false); });
+const release = () => { if (dragX === null) return; dragX = null; const old = cur;
+  if (dx < -60) cur = Math.min(TOPICS.length - 1, cur + 1); else if (dx > 60) cur = Math.max(0, cur - 1);
+  dx = 0; place(true); if (cur !== old) { setK(kTopics, 'chat', 'nudge', 'new card'); setTimeout(() => setK(kTopics, 'chat', 'idle'), 600); } };
+vp.addEventListener('pointerup', release); vp.addEventListener('pointercancel', release);
+$('dots').addEventListener('click', e => { const i = [...$('dots').children].indexOf(e.target); if (i >= 0) { cur = i; place(true); } });
+$('track').addEventListener('click', e => { const b = e.target.closest('.talk'); if (b && !moved) openTalk(+b.dataset.i); });
+
+/* ---------- talk (chat version) ---------- */
+const KAI = [
+ {k:'¡Hola! Hablemos de tu última cena fuera. ¿Adónde fuiste?', tr:'Hi! Let’s talk about your last dinner out. Where did you go?'},
+ {k:'¡Qué rico! ¿Y quién pagó la cuenta?', tr:'Yum! And who paid the bill?'},
+ {k:'¡Qué amable! ¿Cómo era el mesero?', tr:'How kind! What was the waiter like?'},
+ {k:'¡Me encanta! ¿Y qué bebiste?', tr:'Love it! And what did you drink?'},
+ {k:'¡Perfecto! ¿Pediste postre?', tr:'Perfect! Did you order dessert?'},
+];
+const KAI_MORE = {k:'¡Muy bien! Cuéntame más.', tr:'Very good! Tell me more.'};
+const SAY = ['Fui a un restaurante con mi hermana. [Pedimos|pedir] tacos.', 'Yo pagué [la cuenta] y dejé [la propina].', '[El mesero|el mesero] era muy simpático. La salsa era muy [picante].', 'Una limonada [sin hielo].', 'No, gracias. Estaba muy lleno.'];
+const FORMS = {'pedimos':'pedir','pedí':'pedir','pido':'pedir','pedir':'pedir','pediste':'pedir','la cuenta':'la cuenta','la propina':'la propina','el mesero':'el mesero','mesero':'el mesero','sin hielo':'sin hielo','picante':'picante'};
+const RX = ['😋','👍','😄','🔥'];
+let run = 0, turn = 0, used = new Set(), timeLeft = 180, speed = 4, timerOn = false, mode = 'off', recRun = 0, recBubble = null, recStart = 0, rxi = 0;
+const WORDS = () => TOPICS[cur].w;
+const CHECK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+function chips(){ const h = WORDS().map(w => `<span class="wc${used.has(w) ? ' on' : ''}" data-w="${w}">${CHECK}${w}</span>`).join(''); $('wrowV').innerHTML = h; $('wrowK').innerHTML = h; }
+function scrollDown(){ const c = $('chat'); c.scrollTop = c.scrollHeight; }
+function bubble(cls){ const b = document.createElement('div'); b.className = 'b ' + cls; $('msgs').appendChild(b); scrollDown(); return b; }
+function tokens(line){ const out = []; const re = /\[([^\]|]+)(?:\|([^\]]+))?\]|(\S+)/g; let m; while ((m = re.exec(line))) out.push(m[3] ? {s:m[3]} : {s:m[1], key:(m[2] || m[1]).toLowerCase()}); return out; }
+function fmt(t){ const m = Math.floor(t / 60), s = Math.floor(t % 60); return `${m}:${String(s).padStart(2, '0')}`; }
+function tickTime(){ $('time').textContent = fmt(timeLeft) + ' left'; $('time').classList.toggle('low', timeLeft <= 30); }
+let lastT = performance.now();
+function timerLoop(t){ const dt = (t - lastT) / 1000; lastT = t;
+  if (timerOn) { timeLeft = Math.max(0, timeLeft - dt * speed); tickTime(); if (timeLeft <= 0) { timerOn = false; endTalk(); } }
+  if (mode === 'rec') { const lv = kTalk.lvl; $('halo').style.transform = `scale(${(.78 + lv * .32).toFixed(3)})`; if (recBubble) recBubble.querySelector('.vm b').textContent = fmt((t - recStart) / 1000); }
+  requestAnimationFrame(timerLoop); }
+requestAnimationFrame(timerLoop);
+
+function setMode(m){
+  mode = m; const vc = $('vc');
+  vc.classList.toggle('rec', m === 'rec'); vc.classList.toggle('ready', m === 'wait');
+  $('mic').disabled = !(m === 'wait' || m === 'rec'); $('kbtn').disabled = m === 'rec';
+  $('hint').textContent = {wait:'Tap to talk', rec:'Listening… tap to send', kai:'Kai is talking…', think:'Kai is thinking…', ready:'Getting ready…', off:''}[m] ?? '';
+  updSend();
+}
+function hitWord(k){
+  if (!WORDS().includes(k) || used.has(k)) return;
+  used.add(k); chips(); document.querySelectorAll(`.wc[data-w="${k}"]`).forEach(c => { c.classList.add('pop'); setTimeout(() => c.classList.remove('pop'), 340); });
+  const back = mode === 'rec' ? 'listening' : 'idle';
+  setK(kTalk, 'call', 'wordUsed', 'list word: ' + k); setTimeout(() => { if (kTalk.state === 'wordUsed') setK(kTalk, 'call', mode === 'rec' ? 'listening' : back); }, 900);
+}
+async function openTalk(i){
+  const r = ++run; recRun++; used = new Set(); turn = 0; timeLeft = 180; timerOn = false; rxi = 0;
+  const sh = $('sheet'); sh.classList.remove('done', 'kb'); $('chat').style.opacity = 1; $('sum').classList.remove('in');
+  $('topicName').textContent = TOPICS[i].t; $('msgs').innerHTML = ''; $('inp').value = ''; chips(); tickTime();
+  kTalk.m = 0; setK(kTalk, 'chat', 'idle'); setMode('ready'); mark('open');
+  setK(kTopics, 'chat', 'wordUsed', 'Let’s talk tapped'); setTimeout(() => setK(kTopics, 'chat', 'idle'), 700);
+  sh.classList.add('open');
+  await wait(650); if (r !== run) return;
+  setK(kTalk, 'call', 'connecting', 'morph 700 ms, then connecting');
+  await wait(1600); if (r !== run) return;
+  timerOn = true; lastT = performance.now();
+  kaiSay(r, KAI[0]);
+}
+async function kaiSay(r, L){
+  mark('kai'); setMode('think'); setK(kTalk, 'call', 'thinking', 'getting the reply');
+  await wait(600); if (r !== run) return;
+  setMode('kai'); setK(kTalk, 'call', 'speaking');
+  const b = bubble('k'); b.innerHTML = L.k.split(' ').map(w => `<span class="w">${w} </span>`).join('') + `<span class="tr">${L.tr}</span>`; b.dataset.n = L.k.split(' ').length;
+  for (const s of b.querySelectorAll('.w')) { if (r !== run) return; s.classList.add('in'); scrollDown(); await wait(230); }
+  await wait(150); if (r !== run) return;
+  b.querySelector('.tr').classList.add('in'); scrollDown();
+  const sb = document.createElement('button'); sb.className = 'spk'; sb.setAttribute('aria-label', 'Play aloud'); sb.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6M19.4 18.4a9 9 0 0 0 0-12.8"/></svg>'; b.appendChild(sb);
+  setK(kTalk, 'call', 'idle', 'your turn'); setMode('wait'); mark($('sheet').classList.contains('kb') ? 'kb' : 'you');
+}
+async function startRec(){
+  const r = run, rr = ++recRun; setMode('rec'); setK(kTalk, 'call', 'listening', 'recording'); mark('you');
+  recStart = performance.now();
+  const b = bubble('u'); recBubble = b; const tk = tokens(SAY[Math.min(turn, SAY.length - 1)]);
+  b.innerHTML = `<div class="vm"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg><b>0:00</b></div>` + tk.map(t => t.key ? `<span class="w"><span class="hit" data-k="${t.key}" hidden></span>${''}</span>` : `<span class="w">${t.s} </span>`).join('') + '<i class="caret"></i>';
+  // fill hit spans (kept hidden-green until said)
+  let n = 0; b.querySelectorAll('.w').forEach((s, i) => { const t = tk[i]; if (t.key) { s.innerHTML = `<span class="hit" data-k="${t.key}">${t.s}</span> `; } });
+  await wait(600);
+  for (const s of b.querySelectorAll('.w')) { if (rr !== recRun || r !== run) return; s.classList.add('in'); scrollDown(); const h = s.querySelector('.hit'); if (h) { await wait(100); hitWord(h.dataset.k); } await wait(300); }
+}
+async function sendRec(){
+  const b = recBubble; recRun++; recBubble = null; const r = run;
+  const shown = b.querySelectorAll('.w.in').length;
+  if (!shown) { b.remove(); setMode('wait'); setK(kTalk, 'call', 'idle'); return; }
+  b.querySelectorAll('.w:not(.in)').forEach(s => s.remove()); b.querySelector('.caret').remove();
+  afterUser(r, b);
+}
+async function afterUser(r, b){
+  setMode('think'); setK(kTalk, 'call', 'thinking', 'reading your answer');
+  await wait(550); if (r !== run) return;
+  const rx = document.createElement('span'); rx.className = 'rx'; rx.textContent = b.querySelector('.hit') ? '👏' : RX[rxi++ % RX.length]; b.appendChild(rx); b.classList.add('hasrx'); scrollDown();
+  mark('react'); await wait(700); if (r !== run) return;
+  turn++; kaiSay(r, KAI[turn] || KAI_MORE);
+}
+$('msgs').addEventListener('click', async e => { const sb = e.target.closest('.spk'); if (!sb || mode !== 'wait') return; const r = run;
+  sb.classList.add('on'); setMode('kai'); setK(kTalk, 'call', 'speaking', 'play aloud again'); mark('kai');
+  await wait(230 * (+sb.parentElement.dataset.n || 6)); sb.classList.remove('on'); if (r !== run) return; setK(kTalk, 'call', 'idle'); setMode('wait'); });
+$('mic').onclick = () => { if (mode === 'wait') startRec(); else if (mode === 'rec') sendRec(); };
+
+/* keyboard mode */
+const KR = ['qwertyuiop', 'asdfghjkl', '⇧zxcvbnm⌫'];
+$('keys').innerHTML = KR.map(r => `<div class="kr">${[...r].map(c => `<button data-k="${c}" class="${'⇧⌫'.includes(c) ? 'g' : ''}" style="${'⇧⌫'.includes(c) ? 'width:42px' : ''}">${c}</button>`).join('')}</div>`).join('') +
+  `<div class="kr"><button class="g" style="width:90px">123</button><button data-k=" " style="width:196px;font-size:16px">espacio</button><button class="g" data-k="⏎" style="width:93px">intro</button></div>`;
+$('keys').addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); const k = b.dataset.k; if (!k || k === '⇧') return;
+  const i = $('inp'); if (k === '⌫') i.value = i.value.slice(0, -1); else if (k === '⏎') return sendText(); else i.value += k; updSend(); });
+const isTouch = matchMedia('(pointer: coarse)').matches;
+$('kbtn').onclick = () => { if (mode === 'rec') return; $('sheet').classList.add('kb'); mark('kb'); updSend(); setTimeout(scrollDown, 340); if (!isTouch) setTimeout(() => $('inp').focus(), 330); };
+function updSend(){ const has = $('inp').value.trim().length > 0; const s = $('send'); s.classList.toggle('tovoice', !has); s.innerHTML = has ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7M12 19V5"/></svg>' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>'; s.setAttribute('aria-label', has ? 'Send' : 'Back to voice'); s.style.opacity = has && mode !== 'wait' ? .45 : 1; }
+$('inp').addEventListener('input', updSend);
+$('inp').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendText(); } });
+$('send').onclick = () => { if ($('inp').value.trim()) sendText(); else { $('sheet').classList.remove('kb'); $('inp').blur(); mark('you'); setTimeout(scrollDown, 340); } };
+function esc(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function sendText(){
+  const v = $('inp').value.trim(); if (!v || mode !== 'wait') return;
+  $('inp').value = ''; updSend();
+  let html = esc(v); const keys = Object.keys(FORMS).sort((a, b) => b.length - a.length); const hits = [];
+  for (const f of keys) { const re = new RegExp(`(^|[^\\p{L}])(${f})(?![\\p{L}])`, 'giu'); html = html.replace(re, (m, pre, w) => { hits.push(FORMS[f]); return `${pre}<span class="hit">${w}</span>`; }); }
+  html = html.replace(/<span class="hit">([^<]*)<span class="hit">([^<]*)<\/span>([^<]*)<\/span>/g, '<span class="hit">$1$2$3</span>');
+  for (const w of WORDS()) if (v.toLowerCase().includes(w) && !hits.includes(w)) hits.push(w);
+  const b = bubble('u'); b.innerHTML = html;
+  hits.forEach((h, i) => setTimeout(() => hitWord(h), 150 + i * 120));
+  afterUser(run, b);
+}
+
+/* ---------- end of talk ---------- */
+async function endTalk(){
+  run++; recRun++; const r = run; mark('end');
+  if (recBubble) { recBubble.querySelector('.caret')?.remove(); recBubble = null; }
+  $('sheet').classList.remove('kb'); setMode('off'); $('inp').blur();
+  setK(kTalk, 'call', 'speaking', 'goodbye line');
+  const b = bubble('k'); b.innerHTML = '¡Se acabó el tiempo! Buen trabajo. <span class="tr in">Time’s up! Good job.</span>';
+  await wait(1500); if (r !== run) return;
+  setK(kTalk, 'call', 'ending', '500 ms');
+  await wait(550); if (r !== run) return;
+  $('chat').style.opacity = 0; $('sheet').classList.add('done');
+  setK(kTalk, 'chat', 'celebrate', 'bars join back into Kai');
+  await wait(500); if (r !== run) return;
+  $('sumSub').textContent = `You used ${used.size} of ${WORDS().length} words · 3 minutes`;
+  const sq = ['#aceebb','#6fdd8b','#4ac26b','#2da44e','#116329'];
+  $('sumRows').innerHTML = WORDS().map((w, i) => { const ok = used.has(w); return `<div class="sr"><span class="sqr" style="background:${ok ? sq[2 + (i % 2)] : sq[0]}"></span><b>${w}</b><em style="${ok ? '' : 'color:var(--muted)'}">${ok ? '↑ Level up' : 'Next time'}</em></div>`; }).join('');
+  $('sum').classList.add('in');
+  for (const row of $('sumRows').children) { await wait(90); row.classList.add('in'); }
+}
+function closeSheet(instant){ run++; recRun++; timerOn = false; setMode('off'); $('sheet').classList.remove('open', 'kb'); $('inp').blur(); if (!instant) { setK(kTopics, 'chat', 'idle'); mark('topics'); } }
+$('closeX').onclick = () => closeSheet();
+$('done').onclick = () => { $('freeLeft').textContent = '0 free talks left'; closeSheet(); };
+
+/* ---------- controls ---------- */
+$('cRestart').onclick = () => showIntro();
+$('cTalk').onclick = () => { $('intro').classList.add('hide'); $('topics').classList.remove('hide'); cur = 0; place(false); openTalk(0); };
+$('cEnd').onclick = () => { if ($('sheet').classList.contains('open') && timerOn) timeLeft = Math.min(timeLeft, 3); };
+$('cSpeed').onclick = () => { speed = speed === 4 ? 1 : 4; $('cSpeed').textContent = speed === 4 ? 'Timer: 4× fast' : 'Timer: real time'; $('cSpeed').classList.toggle('on', speed === 1); };
+showIntro();
+</script>
