@@ -1,0 +1,169 @@
+# The whole first run: onboarding → first deck → first review round → Use it → hard words → trial → paywall → tabs.
+# Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - review
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: first-run
+# O1 I'm learning
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+# O1c I speak
+- assertVisible: "What language do you speak?"
+- tapOn: "English"
+- tapOn: "Continue"
+# O2 Welcome
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+# O3 Level
+- assertVisible: "Your Spanish level"
+- tapOn: "Some basics"
+- tapOn: "Continue"
+# O4–O6 Word test
+- assertVisible: "BASIC · 1 OF 3"
+- tapOn: "hola"
+- tapOn: "gracias"
+- tapOn: "la casa"
+- assertVisible: "3 SELECTED"
+- tapOn: "Continue"
+- assertVisible: "INTERMEDIATE · 2 OF 3"
+- tapOn: "aunque"
+- tapOn: "Continue"
+- assertVisible: "ADVANCED · 3 OF 3"
+- tapOn: "I don’t know any of these"
+# O7 Your estimate: 3 of 22 basic + 1 of 21 intermediate ≈ 250 words
+- assertVisible: "YOU ALREADY KNOW"
+- assertVisible: "250"
+- assertVisible: "A1"
+- tapOn: "Continue"
+# O8 Goal
+- assertVisible: "Why are you learning?"
+- tapOn: "Travel"
+- tapOn: "Continue"
+# O9 Interests
+- assertVisible: "What are you into?"
+- tapOn: "Food"
+- tapOn: "Music"
+- assertVisible: "2 SELECTED"
+- tapOn: "Continue"
+# O10 Kai asks the name
+- extendedWaitUntil:
+    visible: ".*What’s your name.*"
+    timeout: 20000
+- tapOn: "Message"
+- inputText: "Maya"
+- tapOn: "Send"
+# O10b chat language
+- assertVisible: ".*Nice to meet you, Maya.*"
+- tapOn: "English"
+# O10c what Kai does, pick your words
+- extendedWaitUntil:
+    visible: "Ordering food"
+    timeout: 20000
+- tapOn: "Ordering food"
+# O10d deck card
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 20000
+- tapOn: "Generate"
+# O10e → O10f deck ready
+- extendedWaitUntil:
+    visible: ".*Shall we practice them now.*"
+    timeout: 60000
+- assertVisible: "Open deck"
+- tapOn: "OK, let’s practice!"
+# Review tab: the start of the first round
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "10 words left"
+- assertVisible: "la cuenta"
+- assertVisible: "TAP TO FLIP"
+# Flip the card
+- tapOn:
+    id: "review-card"
+- assertVisible: "the bill"
+# Use it
+- tapOn: "Use it"
+- assertVisible: ".*Write one sentence with la cuenta.*"
+- tapOn: "Message"
+- inputText: "Quiero la cuenta, por favor."
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*Great sentence.*"
+    timeout: 20000
+- assertVisible: "LA CUENTA MOVED UP A LEVEL"
+- tapOn: "Next card"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- assertVisible: "la propina"
+# Hard: swipe left
+- swipe:
+    start: "50%, 50%"
+    end: "5%, 50%"
+- extendedWaitUntil:
+    visible: "8 words left"
+    timeout: 15000
+# I know it: tap
+- tapOn: "Know it"
+- extendedWaitUntil:
+    visible: "7 words left"
+    timeout: 15000
+# Easy: swipe right
+- swipe:
+    start: "50%, 50%"
+    end: "95%, 50%"
+- extendedWaitUntil:
+    visible: "6 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "5 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "4 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "3 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "2 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+- tapOn: "Easy"
+# One-time screens after the first round
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+- assertVisible: "YOUR HARD WORDS · 1"
+- assertVisible: "the tip"
+- tapOn: "Continue"
+- assertVisible: "We’ll remind you before your trial ends"
+- tapOn: "Continue"
+- assertVisible: "Keep your words growing"
+- tapOn: "Monthly"
+- tapOn: "Yearly"
+- tapOn: "Close"
+# In the app
+- assertVisible: "New words"
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "All done for today"
+    timeout: 15000
+# Restart: still in the app, nothing to review
+- stopApp
+- launchApp
+- assertVisible: "New words"
+- stopRecording

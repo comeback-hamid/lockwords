@@ -10,11 +10,12 @@ import RoundScreen from '@/app/review/round';
 import UseItScreen from '@/app/use-it/[id]';
 import { api } from '@/auth/boot';
 import { isIntroDone, markIntroDone } from '@/review/intro';
-import { getRound, setRound } from '@/review/round-store';
+import { advance, getRound, setRound } from '@/review/round-store';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true };
 let mockParams: Record<string, string> = {};
 jest.mock('expo-router', () => ({
+  Stack: { Screen: () => null },
   useRouter: () => mockRouter,
   useLocalSearchParams: () => mockParams,
   useFocusEffect: (fn: () => void) => jest.requireActual('react').useEffect(fn, [fn]),
@@ -155,6 +156,16 @@ describe('Card round', () => {
     await render(<RoundScreen />);
     await fireEvent.press(screen.getByRole('button', { name: 'Easy' }));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/intro/hard-words'));
+  });
+
+  test('a new card starts on its front, even when the last one was flipped (coming back from Use it)', async () => {
+    await render(<RoundScreen />);
+    await fireEvent.press(screen.getByTestId('review-card'));
+    expect(screen.getByText('the tip')).toBeOnTheScreen();
+    await act(async () => advance());
+    expect(screen.getByText('la cuenta')).toBeOnTheScreen();
+    expect(screen.getByText('TAP TO FLIP')).toBeOnTheScreen();
+    expect(screen.queryByText('the bill')).toBeNull();
   });
 
   test('close leaves the round', async () => {

@@ -32,6 +32,10 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 | POST | `/v1/decks` | `{ topic }` → a proposed deck (title, level, reason; no cards). | onboarding-kai-deck |
 | POST | `/v1/decks/{id}/generate` | Makes the 10 cards (AI task `make-deck`). `502` if the AI fails; nothing saved. | onboarding-kai-deck |
 | GET | `/v1/decks/{id}` | The deck with its cards. Other users get `404`. | onboarding-kai-deck |
+| GET | `/v1/review` | Today's round: due cards, then up to 20 new cards. | first-review |
+| POST | `/v1/cards/{id}/swipe` | `{ direction: easy / hard / known }` → `{ stage, known, hard, backInDays }`. Rules in `src/review/srs.ts`. | first-review |
+| GET | `/v1/hard-words` | Words swiped Hard (for the lock screen). | first-review |
+| POST | `/v1/cards/{id}/use-it` | `{ sentence }` → `{ good, lines, movedUp, stage }` (AI task `use-it`). `502` if the AI fails. | first-review |
 
 Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The server checks it against Supabase's public keys (`<SUPABASE_URL>/auth/v1/.well-known/jwks.json`), the issuer, the audience `authenticated` and the expiry. Bad or missing → `401 { error: "unauthorized" }`.
 
@@ -41,7 +45,7 @@ Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The ser
 | `users` | `id` uuid PK (= Supabase user id), `is_guest` boolean, `created_at` timestamptz | local-backend-and-guest-login |
 | `profiles` | `user_id` uuid PK, `learning_language`, `native_language`, `level`, `known_words`, `cefr`, `goal`, `goal_other`, `interests` text[], `updated_at` | onboarding-profile (+ `name`, `chat_language` in onboarding-kai-deck) |
 | `decks` | `id` uuid PK, `user_id`, `topic`, `title`, `reason`, `cefr`, `status` (`proposed`/`ready`), `created_at` | onboarding-kai-deck |
-| `cards` | `id` uuid PK, `deck_id` → `decks.id`, `position`, `word`, `translation`, `example`, `example_translation`, `stage` (0 = new), `created_at` | onboarding-kai-deck |
+| `cards` | `id` uuid PK, `deck_id` → `decks.id`, `position`, `word`, `translation`, `example`, `example_translation`, `stage` (0 = new), `due_at`, `known`, `hard`, `created_at` | onboarding-kai-deck, first-review |
 
 ## AI
 With `ANTHROPIC_API_KEY` set the server calls Claude (`src/llm/claude.ts`). Without it (local, tests, CI) it uses the fixture deck (`src/llm/fixture.ts`).

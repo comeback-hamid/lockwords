@@ -25,6 +25,8 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - Shared parts: `QuestionScreen` (top bar + footer), `OptionBox`, `ButtonPrimary`, `TextField`, `Icon` (Octicons; add names in `scripts/gen-icons.mjs`, then `npm run icons:gen`), `useLoad` (load + retry).
 - `src/components/chat/`: the Kai chat parts (`KaiHeader`, `ChatBubble` with `**bold**`, `ReplyOptions`, `Composer`, `DeckCard`). Every chat screen is built from these. `src/app/onboarding/kai.tsx` is the example; Kai's lines live in `src/onboarding/kai-script.ts`.
 - A handler passed to `onPress` must not return a promise (`() => void save()`): the test library waits for it.
+- Review: `(tabs)/review.tsx` (start / all done) loads the round into `src/review/round-store.ts`; `src/app/review/round.tsx` walks it (tap to flip, swipe or tap Hard / Know it / Easy); `src/app/use-it/[id].tsx` is the Use it chat. After the first round only: `src/app/intro/` (hard words, trial reminder, paywall), flag in `src/review/intro.ts`.
+- The paywall sells nothing yet (no RevenueCat). Both buttons open the app.
 - `src/auth/`: silent guest sign-in at start (`boot.ts`), Supabase client, session kept in SecureStore (`session-storage.ts`).
 - `assets/kai/`: still SVG poses for widgets.
 

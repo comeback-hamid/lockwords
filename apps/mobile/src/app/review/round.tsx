@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -29,7 +29,9 @@ export default function RoundScreen() {
   const insets = useSafeAreaInsets();
   const { cards, index } = useRound();
   const card = cards[index];
-  const [flipped, setFlipped] = useState(false);
+  // Which card is flipped (by id), so a new card always starts on its front.
+  const [flippedId, setFlippedId] = useState<string | null>(null);
+  const flipped = card !== undefined && flippedId === card.id;
   const [stamp, setStamp] = useState<Stamp | null>(null);
   const [failed, setFailed] = useState(false);
   const busy = useRef(false);
@@ -56,12 +58,11 @@ export default function RoundScreen() {
       setStamp(stampFor(direction, result.backInDays));
       await new Promise((resolve) => setTimeout(resolve, STAMP_MS));
       setStamp(null);
-      setFlipped(false);
       drag.setValue({ x: 0, y: 0 });
       advance();
     } catch {
       setFailed(true);
-      Animated.spring(drag, { toValue: { x: 0, y: 0 }, useNativeDriver: true }).start();
+      Animated.spring(drag, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
     } finally {
       busy.current = false;
     }
@@ -83,6 +84,8 @@ export default function RoundScreen() {
         if (direction && current) void latest.current?.swipe(direction, current);
         else Animated.spring(drag, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
       },
+      // Another gesture took over (for example a system gesture): put the card back.
+      onPanResponderTerminate: () => Animated.spring(drag, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start(),
     }),
   );
 
@@ -95,6 +98,8 @@ export default function RoundScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, space[16]) }]}>
+      {/* iOS swipe-back would steal the Easy swipe (right). The Close button leaves the round. */}
+      <Stack.Screen options={{ gestureEnabled: false }} />
       <View style={styles.top}>
         <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={() => router.replace('/(tabs)/review')} style={styles.close}>
           <Icon name="close" color={colors.muted} />
@@ -112,7 +117,7 @@ export default function RoundScreen() {
         </View>
         <View style={styles.under} />
         <Animated.View style={[styles.card, { transform: [{ translateX: drag.x }, { translateY: drag.y }, { rotate }] }]} {...pan.panHandlers}>
-          <Pressable testID="review-card" accessible={false} onPress={() => setFlipped((f) => !f)} style={styles.cardBody}>
+          <Pressable testID="review-card" accessible={false} onPress={() => setFlippedId(flipped ? null : card.id)} style={styles.cardBody}>
             {stamp ? (
               <View style={styles.stampBox}>
                 <View style={[styles.stamp, stamp.kind === 'hard' && styles.stampHard, stamp.kind === 'known' && styles.stampKnown]}>
