@@ -6,7 +6,6 @@ import type { Profile } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { QuestionScreen } from '@/components/question-screen';
-import { markOnboardingFinished } from '@/onboarding/finished';
 import { profileBody, stepFor } from '@/onboarding/flow';
 import { getAnswers, setAnswers } from '@/onboarding/store';
 import { colors, levelColors, radius, space, type } from '@/theme/theme';
@@ -39,7 +38,7 @@ const INTERESTS: { value: Interest; label: string; icon: IconName }[] = [
   { value: 'culture', label: 'Culture', icon: 'culture' },
 ];
 
-// O9 Interests. Continue saves the whole profile and ends this half of onboarding.
+// O9 Interests. Continue saves the whole profile, then the Kai chat starts.
 export default function InterestsScreen() {
   const router = useRouter();
   const [picked, setPicked] = useState<Interest[]>(getAnswers().interests);
@@ -52,8 +51,7 @@ export default function InterestsScreen() {
     setFailed(false);
     try {
       await api.saveProfile(profileBody(getAnswers()));
-      await markOnboardingFinished();
-      router.replace('/(tabs)');
+      router.push('/onboarding/kai'); // onboarding is marked finished at the end of the Kai chat
     } catch {
       setFailed(true);
     } finally {

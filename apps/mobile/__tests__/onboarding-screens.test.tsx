@@ -221,7 +221,7 @@ test('O8 Goal: seven goals; pick one and continue', async () => {
 describe('O9 Interests', () => {
   beforeEach(() => setAnswers({ learning: spanish, speaks: { code: 'en', name: 'English' }, level: 'brand_new', goal: 'travel' }));
 
-  test('24 tiles; select and count; save; then the tabs', async () => {
+  test('24 tiles; select and count; save; then the Kai chat', async () => {
     mockApi.saveProfile.mockImplementation(async (p) => p);
     await render(<InterestsScreen />);
     expect(screen.getByRole('header', { name: 'What are you into?' })).toBeOnTheScreen();
@@ -232,11 +232,11 @@ describe('O9 Interests', () => {
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Music' }));
     expect(screen.getByText('2 SELECTED')).toBeOnTheScreen();
     await fireEvent.press(continueButton());
-    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)'));
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/kai'));
     expect(mockApi.saveProfile).toHaveBeenCalledWith({
       learningLanguage: 'es', nativeLanguage: 'en', level: 'brand_new', knownWords: null, cefr: null, goal: 'travel', goalOther: null, interests: ['food', 'music'],
     });
-    expect(markOnboardingFinished).toHaveBeenCalled();
+    expect(markOnboardingFinished).not.toHaveBeenCalled(); // onboarding ends after the first deck (Kai chat)
   });
 
   test('save fails: stays here with a message, and Continue tries again', async () => {
@@ -245,9 +245,8 @@ describe('O9 Interests', () => {
     await fireEvent.press(screen.getByRole('checkbox', { name: 'News' }));
     await fireEvent.press(continueButton());
     await waitFor(() => expect(screen.getByText('Could not save. Try again.')).toBeOnTheScreen());
-    expect(mockRouter.replace).not.toHaveBeenCalled();
-    expect(markOnboardingFinished).not.toHaveBeenCalled();
+    expect(mockRouter.push).not.toHaveBeenCalled();
     await fireEvent.press(continueButton());
-    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)'));
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/kai'));
   });
 });
