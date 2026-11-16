@@ -48,28 +48,27 @@ export const lift = {
   shadowOffset: { width: 0, height: 12 },
 } as const;
 
-const sans = 'Mona Sans';
-const mono = 'JetBrains Mono';
 
+// Font names are the keys of `fonts` (src/theme/fonts.ts); the weight is in the name.
 // letterSpacing in Figma is a percent of font size; here it is in points.
 export const type = {
-  display: { fontFamily: sans, fontSize: 96, lineHeight: 100, fontWeight: '600', letterSpacing: -3.84 },
-  wordXL: { fontFamily: sans, fontSize: 44, lineHeight: 52, fontWeight: '600' },
-  title: { fontFamily: sans, fontSize: 28, lineHeight: 34, fontWeight: '600', letterSpacing: -0.28 },
-  headline: { fontFamily: sans, fontSize: 22, lineHeight: 28, fontWeight: '600' },
-  body: { fontFamily: sans, fontSize: 17, lineHeight: 24, fontWeight: '400' },
-  bodyStrong: { fontFamily: sans, fontSize: 17, lineHeight: 24, fontWeight: '600' },
-  callout: { fontFamily: sans, fontSize: 15, lineHeight: 22, fontWeight: '400' },
-  calloutMedium: { fontFamily: sans, fontSize: 15, lineHeight: 22, fontWeight: '500' },
-  caption: { fontFamily: sans, fontSize: 13, lineHeight: 18, fontWeight: '400' },
-  captionStrong: { fontFamily: sans, fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  button: { fontFamily: sans, fontSize: 17, lineHeight: 22, fontWeight: '600' },
-  tab: { fontFamily: sans, fontSize: 11, lineHeight: 13, fontWeight: '500' },
-  tabActive: { fontFamily: sans, fontSize: 11, lineHeight: 13, fontWeight: '600' },
-  label: { fontFamily: mono, fontSize: 12, lineHeight: 16, fontWeight: '500', letterSpacing: 0.72 },
-  labelTag: { fontFamily: mono, fontSize: 11, lineHeight: 16, fontWeight: '500', letterSpacing: 0.66 },
-  badge: { fontFamily: mono, fontSize: 12, lineHeight: 16, fontWeight: '500' },
-  score: { fontFamily: mono, fontSize: 36, lineHeight: 44, fontWeight: '500' },
-  stamp: { fontFamily: mono, fontSize: 40, lineHeight: 48, fontWeight: '700', letterSpacing: 1.6 },
-  clock: { fontFamily: mono, fontSize: 64, lineHeight: 72, fontWeight: '500', letterSpacing: -1.28 },
+  display: { fontFamily: 'MonaSans_600SemiBold', fontSize: 96, lineHeight: 100, letterSpacing: -3.84 },
+  wordXL: { fontFamily: 'MonaSans_600SemiBold', fontSize: 44, lineHeight: 52 },
+  title: { fontFamily: 'MonaSans_600SemiBold', fontSize: 28, lineHeight: 34, letterSpacing: -0.28 },
+  headline: { fontFamily: 'MonaSans_600SemiBold', fontSize: 22, lineHeight: 28 },
+  body: { fontFamily: 'MonaSans_400Regular', fontSize: 17, lineHeight: 24 },
+  bodyStrong: { fontFamily: 'MonaSans_600SemiBold', fontSize: 17, lineHeight: 24 },
+  callout: { fontFamily: 'MonaSans_400Regular', fontSize: 15, lineHeight: 22 },
+  calloutMedium: { fontFamily: 'MonaSans_500Medium', fontSize: 15, lineHeight: 22 },
+  caption: { fontFamily: 'MonaSans_400Regular', fontSize: 13, lineHeight: 18 },
+  captionStrong: { fontFamily: 'MonaSans_600SemiBold', fontSize: 13, lineHeight: 18 },
+  button: { fontFamily: 'MonaSans_600SemiBold', fontSize: 17, lineHeight: 22 },
+  tab: { fontFamily: 'MonaSans_500Medium', fontSize: 11, lineHeight: 13 },
+  tabActive: { fontFamily: 'MonaSans_600SemiBold', fontSize: 11, lineHeight: 13 },
+  label: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 12, lineHeight: 16, letterSpacing: 0.72 },
+  labelTag: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 11, lineHeight: 16, letterSpacing: 0.66 },
+  badge: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 12, lineHeight: 16 },
+  score: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 36, lineHeight: 44 },
+  stamp: { fontFamily: 'JetBrainsMono_700Bold', fontSize: 40, lineHeight: 48, letterSpacing: 1.6 },
+  clock: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 64, lineHeight: 72, letterSpacing: -1.28 },
 } as const;
