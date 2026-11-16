@@ -32,7 +32,7 @@ Offline review · Android widget · Easy mode · photo / link / YouTube in the c
 ## Open decisions (ask Hamid, do not invent)
 From `docs/product.md` section 9, plus what came up while setting up the repo:
 1. Final app name (Lockwords is the working name).
-2. **Bundle ID**: set to `com.comebackhamid.lockwords` for now. It is hard to change after the first TestFlight build.
+2. ~~Bundle ID~~ decided 2026-11-16: `com.comebackhamid.lockwords` (Hamid OK).
 3. Launch languages (suggested: Japanese, Korean, Spanish, Quranic Arabic).
 4. Final prices and free limits (current plan: Pro $6.99/month or $39.99/year, 7-day trial).
 5. Easy on a brand-new card: Stage 1 or Stage 2.
