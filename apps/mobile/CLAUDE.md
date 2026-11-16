@@ -21,6 +21,8 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - `src/theme/fonts.ts`: the fonts loaded at start (Mona Sans 400/500/600, JetBrains Mono 500/700). Use `type.*` styles; never set `fontWeight` (the weight is in the font name).
 - `src/kai/character-spec.json`: Kai's data. Never type Kai numbers into code. Port `createCharacter()` from `docs/design/CHARACTER.html` (Skia on the phone).
 - `src/api/`: `schema.ts` is generated from `apps/server/openapi.json` (`npm run api:gen`); `client.ts` is the one place that calls the server. Never hand-write API shapes.
+- `src/app/onboarding/` + `src/onboarding/`: question screens O1–O9. Answers live in `store.ts` until O9 saves them; route rules in `flow.ts`; the "finished" flag in `finished.ts`. The tabs layout sends an unfinished user to O1.
+- Shared parts: `QuestionScreen` (top bar + footer), `OptionBox`, `ButtonPrimary`, `TextField`, `Icon` (Octicons; add names in `scripts/gen-icons.mjs`, then `npm run icons:gen`), `useLoad` (load + retry).
 - `src/auth/`: silent guest sign-in at start (`boot.ts`), Supabase client, session kept in SecureStore (`session-storage.ts`).
 - `assets/kai/`: still SVG poses for widgets.
 

@@ -10,3 +10,5 @@ A feature flow records a video for Hamid's approval:
 Flows that call the server need the local stack: `npm run dev:up`. Pick a simulator with `MAESTRO_DEVICE=<udid>`.
 Run: `npm run e2e` (all) or `npm run e2e -- --areas review,speak`. Needs the dev build installed on a booted iOS simulator (`cd apps/mobile && npm run ios`).
 Videos (`e2e/videos/*.mp4`) are not committed; link them in the PR.
+
+A flow that is on main but no longer fits the product is parked in `e2e/quarantine.txt` (with the reason) until Hamid decides. `npm run e2e` skips parked flows.

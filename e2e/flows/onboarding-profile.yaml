@@ -1,0 +1,69 @@
+# Needs the local stack: `npm run dev:up`. Dev build only (the user id line shows in dev builds).
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: onboarding-profile
+# O1 I'm learning
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+# O1c I speak
+- assertVisible: "What language do you speak?"
+- tapOn: "English"
+- tapOn: "Continue"
+# O2 Welcome
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+# O3 Level
+- assertVisible: "Your Spanish level"
+- tapOn: "Some basics"
+- tapOn: "Continue"
+# O4–O6 Word test
+- assertVisible: "BASIC · 1 OF 3"
+- tapOn: "hola"
+- tapOn: "gracias"
+- tapOn: "la casa"
+- assertVisible: "3 SELECTED"
+- tapOn: "Continue"
+- assertVisible: "INTERMEDIATE · 2 OF 3"
+- tapOn: "aunque"
+- tapOn: "Continue"
+- assertVisible: "ADVANCED · 3 OF 3"
+- tapOn: "I don’t know any of these"
+# O7 Your estimate: 3 of 22 basic + 1 of 21 intermediate ≈ 250 words
+- assertVisible: "YOU ALREADY KNOW"
+- assertVisible: "250"
+- assertVisible: "A1"
+- tapOn: "Continue"
+# O8 Goal
+- assertVisible: "Why are you learning?"
+- tapOn: "Travel"
+- tapOn: "Continue"
+# O9 Interests
+- assertVisible: "What are you into?"
+- tapOn: "Food"
+- tapOn: "Music"
+- assertVisible: "2 SELECTED"
+- tapOn: "Continue"
+# Saved → tabs, and the server knows this guest
+- assertVisible: "New words"
+- extendedWaitUntil:
+    visible:
+      id: "dev-user-id"
+    timeout: 20000
+- copyTextFrom:
+    id: "dev-user-id"
+# Restart: straight to the tabs, same user
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ${maestro.copiedText}
+    timeout: 20000
+- assertVisible: "New words"
+- tapOn: "Review"
+- assertVisible: "Review"
+- stopRecording

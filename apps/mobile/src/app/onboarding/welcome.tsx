@@ -21,7 +21,7 @@ export default function WelcomeScreen() {
         <View style={styles.phone}>
           <View style={styles.island} />
           <Text style={[type.callout, styles.date]}>Friday, October 31</Text>
-          <Text style={[type.clock, styles.ink]}>9:41</Text>
+          <Text style={[type.lockClock, styles.ink]}>9:41</Text>
           <View style={styles.card}>
             <View style={styles.cardTop}>
               <Text style={[type.labelTag, styles.muted]}>LOCKWORDS</Text>
