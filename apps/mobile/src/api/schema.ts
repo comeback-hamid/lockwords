@@ -48,6 +48,178 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/word-test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    language: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Three word lists, or supported: false */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WordTest"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/word-test/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        language: string;
+                        known: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description About how many common words the user knows */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Estimate"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Profile"];
+                };
+            };
+            responses: {
+                /** @description The saved profile */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Profile"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -62,6 +234,35 @@ export interface components {
         Unauthorized: {
             /** @enum {string} */
             error: "unauthorized";
+        };
+        WordTest: {
+            supported: boolean;
+            bands: {
+                /** @enum {string} */
+                level: "basic" | "intermediate" | "advanced";
+                words: string[];
+            }[];
+        };
+        BadRequest: {
+            /** @enum {string} */
+            error: "bad_request";
+        };
+        Estimate: {
+            knownWords: number;
+            outOf: number;
+            cefr: string;
+        };
+        Profile: {
+            learningLanguage: string;
+            nativeLanguage: string;
+            /** @enum {string} */
+            level: "brand_new" | "beginner" | "some_basics" | "intermediate" | "advanced";
+            knownWords: number | null;
+            cefr: string | null;
+            /** @enum {string} */
+            goal: "travel" | "work" | "move_abroad" | "family_friends" | "brain" | "school" | "other";
+            goalOther: string | null;
+            interests: ("food" | "travel" | "work" | "business" | "tech" | "science" | "music" | "movies" | "books" | "sports" | "fitness" | "health" | "nature" | "animals" | "art" | "fashion" | "gaming" | "news" | "family" | "friends_dating" | "shopping" | "cooking" | "money" | "culture")[];
         };
     };
     responses: never;

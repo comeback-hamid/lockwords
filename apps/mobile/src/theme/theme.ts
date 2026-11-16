@@ -21,6 +21,7 @@ export const colors = {
   know: '#116329',
   knowTint: '#dafbe1',
   easy: '#1f883d',
+  buttonEdge: 'rgba(31,35,40,0.15)',
   white: '#ffffff',
   black: '#000000',
 } as const;

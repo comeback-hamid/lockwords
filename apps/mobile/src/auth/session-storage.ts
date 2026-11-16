@@ -2,7 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import * as SecureStore from 'expo-secure-store';
 
 // Every key we keep in the iOS Keychain / Android Keystore. Add new ones here so a fresh install clears them.
-export const SECURE_KEYS = ['lockwords.session'] as const;
+export const SECURE_KEYS = ['lockwords.session', 'lockwords.onboarded'] as const;
 
 // SecureStore values should stay under ~2 KB, and a Supabase session can be bigger. So we save it in pieces:
 // "<key>" holds the number of pieces, "<key>.0", "<key>.1"… hold the text.
