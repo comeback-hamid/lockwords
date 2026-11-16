@@ -21,6 +21,7 @@ export const colors = {
   know: '#116329',
   knowTint: '#dafbe1',
   easy: '#1f883d',
+  buttonEdge: 'rgba(31,35,40,0.15)',
   white: '#ffffff',
   black: '#000000',
 } as const;
@@ -70,5 +71,7 @@ export const type = {
   badge: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 12, lineHeight: 16 },
   score: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 36, lineHeight: 44 },
   stamp: { fontFamily: 'JetBrainsMono_700Bold', fontSize: 40, lineHeight: 48, letterSpacing: 1.6 },
+  // The big time on a drawn lock screen (O2 Welcome phone, widgets page).
+  lockClock: { fontFamily: 'MonaSans_500Medium', fontSize: 64, lineHeight: 72, letterSpacing: -1.28 },
   clock: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 64, lineHeight: 72, letterSpacing: -1.28 },
 } as const;

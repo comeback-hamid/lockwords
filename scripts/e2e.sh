@@ -14,11 +14,13 @@ xcrun simctl list devices booted | grep -q Booted || { echo "No booted iOS simul
 # Maestro saves recordings under a dated run folder. We copy them to e2e/videos/<name>.mp4 afterwards.
 run=$(mktemp -d)
 status=0
-if [[ -n "$areas" ]]; then
-  maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test e2e/flows --include-tags="$areas" --test-output-dir "$run" || status=$?
-else
-  maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test e2e/flows --test-output-dir "$run" || status=$?
-fi
+# Every flow except the ones parked in e2e/quarantine.txt.
+flows=()
+for f in e2e/flows/*.yaml; do
+  grep -qxF "$(basename "$f")" e2e/quarantine.txt 2>/dev/null && { echo "skipping $(basename "$f") (e2e/quarantine.txt)"; continue; }
+  flows+=("$f")
+done
+maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test "${flows[@]}" ${areas:+--include-tags="$areas"} --test-output-dir "$run" || status=$?
 mkdir -p e2e/videos
 find "$run" -name '*.mp4' -exec cp {} e2e/videos/ \;
 rm -rf "$run"

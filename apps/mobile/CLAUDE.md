@@ -21,6 +21,10 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - `src/theme/fonts.ts`: the fonts loaded at start (Mona Sans 400/500/600, JetBrains Mono 500/700). Use `type.*` styles; never set `fontWeight` (the weight is in the font name).
 - `src/kai/character-spec.json`: Kai's data. Never type Kai numbers into code. Port `createCharacter()` from `docs/design/CHARACTER.html` (Skia on the phone).
 - `src/api/`: `schema.ts` is generated from `apps/server/openapi.json` (`npm run api:gen`); `client.ts` is the one place that calls the server. Never hand-write API shapes.
+- `src/app/onboarding/` + `src/onboarding/`: question screens O1–O9. Answers live in `store.ts` until O9 saves them; route rules in `flow.ts`; the "finished" flag in `finished.ts`. The tabs layout sends an unfinished user to O1.
+- Shared parts: `QuestionScreen` (top bar + footer), `OptionBox`, `ButtonPrimary`, `TextField`, `Icon` (Octicons; add names in `scripts/gen-icons.mjs`, then `npm run icons:gen`), `useLoad` (load + retry).
+- `src/components/chat/`: the Kai chat parts (`KaiHeader`, `ChatBubble` with `**bold**`, `ReplyOptions`, `Composer`, `DeckCard`). Every chat screen is built from these. `src/app/onboarding/kai.tsx` is the example; Kai's lines live in `src/onboarding/kai-script.ts`.
+- A handler passed to `onPress` must not return a promise (`() => void save()`): the test library waits for it.
 - `src/auth/`: silent guest sign-in at start (`boot.ts`), Supabase client, session kept in SecureStore (`session-storage.ts`).
 - `assets/kai/`: still SVG poses for widgets.
 

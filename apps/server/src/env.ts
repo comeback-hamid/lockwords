@@ -7,6 +7,8 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   // Supabase does login only. Local: `supabase start`. Cloud: the project URL.
   SUPABASE_URL: z.string().url().default('http://127.0.0.1:54321'),
+  // Optional: without it the server makes the fixture deck (see src/llm/fixture.ts).
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
   SUPABASE_JWT_ISSUER: z.string().url().default('http://127.0.0.1:54321/auth/v1'),
 });
 

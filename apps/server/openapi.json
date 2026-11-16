@@ -47,6 +47,346 @@
         "required": [
           "error"
         ]
+      },
+      "WordTest": {
+        "type": "object",
+        "properties": {
+          "supported": {
+            "type": "boolean"
+          },
+          "bands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "basic",
+                    "intermediate",
+                    "advanced"
+                  ]
+                },
+                "words": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "level",
+                "words"
+              ]
+            }
+          }
+        },
+        "required": [
+          "supported",
+          "bands"
+        ]
+      },
+      "BadRequest": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "bad_request"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "Estimate": {
+        "type": "object",
+        "properties": {
+          "knownWords": {
+            "type": "integer"
+          },
+          "outOf": {
+            "type": "integer"
+          },
+          "cefr": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "knownWords",
+          "outOf",
+          "cefr"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "learningLanguage": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "nativeLanguage": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "brand_new",
+              "beginner",
+              "some_basics",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          "knownWords": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 5000
+          },
+          "cefr": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4
+          },
+          "goal": {
+            "type": "string",
+            "enum": [
+              "travel",
+              "work",
+              "move_abroad",
+              "family_friends",
+              "brain",
+              "school",
+              "other"
+            ]
+          },
+          "goalOther": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
+          },
+          "interests": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "food",
+                "travel",
+                "work",
+                "business",
+                "tech",
+                "science",
+                "music",
+                "movies",
+                "books",
+                "sports",
+                "fitness",
+                "health",
+                "nature",
+                "animals",
+                "art",
+                "fashion",
+                "gaming",
+                "news",
+                "family",
+                "friends_dating",
+                "shopping",
+                "cooking",
+                "money",
+                "culture"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 24
+          }
+        },
+        "required": [
+          "learningLanguage",
+          "nativeLanguage",
+          "level",
+          "knownWords",
+          "cefr",
+          "goal",
+          "goalOther",
+          "interests"
+        ]
+      },
+      "DeckIdeas": {
+        "type": "object",
+        "properties": {
+          "ideas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ideas"
+        ]
+      },
+      "ProfileChat": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "chatLanguage": {
+            "type": "string",
+            "enum": [
+              "native",
+              "target"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "chatLanguage"
+        ]
+      },
+      "NoProfile": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "no_profile"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "Deck": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "cefr": {
+            "type": "string"
+          },
+          "wordCount": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "ready"
+            ]
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "topic",
+          "title",
+          "reason",
+          "cefr",
+          "wordCount",
+          "status",
+          "cards"
+        ]
+      },
+      "Card": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "translation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "example": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "exampleTranslation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "id": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "stage": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "word",
+          "translation",
+          "example",
+          "exampleTranslation",
+          "id",
+          "position",
+          "stage"
+        ]
+      },
+      "NotFound": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_found"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "GenerationFailed": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "generation_failed"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
       }
     },
     "parameters": {}
@@ -76,6 +416,454 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/word-test": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "required": true,
+            "name": "language",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Three word lists, or supported: false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WordTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/word-test/estimate": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "known": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 200
+                  }
+                },
+                "required": [
+                  "language",
+                  "known"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "About how many common words the user knows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Estimate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/profile": {
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/deck-ideas": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Four first-deck topics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeckIdeas"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/profile/chat": {
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileChat"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileChat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Save the profile first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/decks": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "topic"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "A proposed deck with no cards yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deck"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Save the profile first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/decks/{id}/generate": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ready deck with its cards",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deck"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such deck",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The AI call failed; nothing was saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationFailed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/decks/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deck with its cards",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deck"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such deck",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
                 }
               }
             }

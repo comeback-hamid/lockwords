@@ -17,6 +17,7 @@
     "test",
     "drizzle.config.ts",
     "vitest.config.ts",
-    "scripts"
+    "scripts",
+    "vitest.integration.config.ts"
   ]
 }
