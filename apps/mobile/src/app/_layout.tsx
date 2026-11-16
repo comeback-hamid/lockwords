@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { fonts } from '@/theme/fonts';
+import { syncLockWord } from '@/widgets/sync-lock-word';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,6 +18,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
   }, [ready]);
+
+  useEffect(() => {
+    // SPIKE: push the server word to the lock-screen widget on app start.
+    syncLockWord().catch((e) => console.warn(e));
+  }, []);
 
   if (!ready) return null;
   return <Stack screenOptions={{ headerShown: false }} />;

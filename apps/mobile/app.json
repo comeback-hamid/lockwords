@@ -35,6 +35,26 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "LockWord",
+              "displayName": "Lockwords",
+              "description": "One word on your lock screen",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular",
+                  "accessoryInline",
+                  "systemSmall"
+                ],
+                "initialLayout": "./src/widgets/lock-word-widget.tsx"
+              }
+            }
+          ]
+        }
       ]
     ],
     "experiments": {
