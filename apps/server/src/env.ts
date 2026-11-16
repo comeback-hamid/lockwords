@@ -5,6 +5,9 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(8787),
   DATABASE_URL: z.string().url(),
+  // Supabase does login only. Local: `supabase start`. Cloud: the project URL.
+  SUPABASE_URL: z.string().url().default('http://127.0.0.1:54321'),
+  SUPABASE_JWT_ISSUER: z.string().url().default('http://127.0.0.1:54321/auth/v1'),
 });
 
 export type Env = z.infer<typeof schema>;
