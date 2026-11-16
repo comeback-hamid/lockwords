@@ -1,4 +1,5 @@
 import type { DeckMaker } from './make-deck.js';
+import type { UseItJudge } from './use-it.js';
 
 // Stands in for the model in tests and in local runs with no ANTHROPIC_API_KEY. Always the same Spanish deck.
 const TITLES: Record<string, string> = {
@@ -22,4 +23,15 @@ export const fixtureDeckMaker: DeckMaker = {
     { word: 'el postre', translation: 'the dessert', example: 'De postre, quiero flan.', exampleTranslation: 'For dessert, I want flan.' },
     { word: 'pagar', translation: 'to pay', example: '¿Puedo pagar con tarjeta?', exampleTranslation: 'Can I pay by card?' },
   ],
+};
+
+// "Good" = the sentence contains the word without its article. Real feedback needs the model.
+const ARTICLE = /^(el|la|los|las|un|una|the|a|an|le|les|der|die|das)\s+/i;
+export const fixtureUseItJudge: UseItJudge = {
+  check: async ({ word, sentence }) => {
+    const bare = word.replace(ARTICLE, '');
+    return sentence.toLowerCase().includes(bare.toLowerCase())
+      ? { good: true, lines: ['🎉 **Great sentence!**', `👍 You used **${bare}** in the right place.`] }
+      : { good: false, lines: [`🤔 I can’t find **${bare}** in your sentence.`, 'Try again with the word.'] };
+  },
 };

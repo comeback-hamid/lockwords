@@ -48,5 +48,8 @@ export const cards = pgTable('cards', {
   example: text('example').notNull(),
   exampleTranslation: text('example_translation').notNull(),
   stage: integer('stage').notNull().default(0), // 0 = new, 1–5 (the server owns SRS)
+  dueAt: timestamp('due_at', { withTimezone: true }), // null = new or known
+  known: boolean('known').notNull().default(false), // swiped up: never shown again
+  hard: boolean('hard').notNull().default(false), // swiped left: goes to the lock screen
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
