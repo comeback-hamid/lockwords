@@ -47,6 +47,180 @@
         "required": [
           "error"
         ]
+      },
+      "WordTest": {
+        "type": "object",
+        "properties": {
+          "supported": {
+            "type": "boolean"
+          },
+          "bands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "basic",
+                    "intermediate",
+                    "advanced"
+                  ]
+                },
+                "words": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "level",
+                "words"
+              ]
+            }
+          }
+        },
+        "required": [
+          "supported",
+          "bands"
+        ]
+      },
+      "BadRequest": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "bad_request"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "Estimate": {
+        "type": "object",
+        "properties": {
+          "knownWords": {
+            "type": "integer"
+          },
+          "outOf": {
+            "type": "integer"
+          },
+          "cefr": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "knownWords",
+          "outOf",
+          "cefr"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "learningLanguage": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "nativeLanguage": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "brand_new",
+              "beginner",
+              "some_basics",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          "knownWords": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 5000
+          },
+          "cefr": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4
+          },
+          "goal": {
+            "type": "string",
+            "enum": [
+              "travel",
+              "work",
+              "move_abroad",
+              "family_friends",
+              "brain",
+              "school",
+              "other"
+            ]
+          },
+          "goalOther": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
+          },
+          "interests": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "food",
+                "travel",
+                "work",
+                "business",
+                "tech",
+                "science",
+                "music",
+                "movies",
+                "books",
+                "sports",
+                "fitness",
+                "health",
+                "nature",
+                "animals",
+                "art",
+                "fashion",
+                "gaming",
+                "news",
+                "family",
+                "friends_dating",
+                "shopping",
+                "cooking",
+                "money",
+                "culture"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 24
+          }
+        },
+        "required": [
+          "learningLanguage",
+          "nativeLanguage",
+          "level",
+          "knownWords",
+          "cefr",
+          "goal",
+          "goalOther",
+          "interests"
+        ]
       }
     },
     "parameters": {}
@@ -66,6 +240,179 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/word-test": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "required": true,
+            "name": "language",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Three word lists, or supported: false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WordTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/word-test/estimate": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "known": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 200
+                  }
+                },
+                "required": [
+                  "language",
+                  "known"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "About how many common words the user knows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Estimate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/profile": {
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
                 }
               }
             }

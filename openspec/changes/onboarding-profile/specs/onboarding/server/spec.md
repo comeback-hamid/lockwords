@@ -21,7 +21,7 @@ What the server does for the onboarding questions: gives the word test, estimate
 - **THEN** the answer is `400`
 
 ### Requirement: Known-words estimate
-`POST /v1/word-test/estimate` with `{ language, known: string[] }` SHALL answer `200` with `{ knownWords, outOf, cefr }`. `outOf` is `5000`. Each band stands for a slice of the 5,000 most common words: basic 1,000, intermediate 2,000, advanced 2,000. `knownWords` = for each band, (known words in that band ÷ words in that band) × slice size, summed, rounded to the nearest 50. Words that are not in the test are ignored. `cefr` is: under 500 `A1`, under 1,000 `A2`, under 2,000 `A2+`, under 3,000 `B1`, under 4,000 `B2`, else `C1`.
+`POST /v1/word-test/estimate` with `{ language, known: string[] }` SHALL answer `200` with `{ knownWords, outOf, cefr }`, where `outOf` is `5000`. Each band stands for a slice of the 5,000 most common words: basic 1,000, intermediate 2,000, advanced 2,000. `knownWords` is the sum over the bands of (known share of the band × slice size), rounded to the nearest 50. Words that are not in the test are ignored.
 
 #### Scenario: Nothing known
 - **WHEN** `known` is empty
@@ -43,8 +43,15 @@ What the server does for the onboarding questions: gives the word test, estimate
 - **WHEN** `language` has no seeded test
 - **THEN** the answer is `400`
 
+### Requirement: CEFR label for the estimate
+The `cefr` value SHALL follow `knownWords`: under 500 `A1`, under 1,000 `A2`, under 2,000 `A2+`, under 3,000 `B1`, under 4,000 `B2`, else `C1`.
+
+#### Scenario: Label edges
+- **WHEN** `knownWords` is 450, 500, 1000, 2000, 3000 and 4000
+- **THEN** `cefr` is `A1`, `A2`, `A2+`, `B1`, `B2` and `C1`
+
 ### Requirement: Save the profile
-`PUT /v1/profile` SHALL save the caller's onboarding answers and answer `200` with the saved profile. Body: `learningLanguage` and `nativeLanguage` (1–40 characters each), `level` (`brand_new`, `beginner`, `some_basics`, `intermediate`, `advanced`), `knownWords` (0–5000 or null), `cefr` (text or null), `goal` (`travel`, `work`, `move_abroad`, `family_friends`, `brain`, `school`, `other`), `goalOther` (up to 80 characters, or null), `interests` (1–24 different items from the fixed interest list). A second call replaces the first. A user can only write their own profile.
+`PUT /v1/profile` SHALL save the caller's onboarding answers and answer `200` with the saved profile. A second call replaces the first. A user can only write their own profile.
 
 #### Scenario: Save
 - **WHEN** a signed-in user sends a valid body
@@ -53,6 +60,9 @@ What the server does for the onboarding questions: gives the word test, estimate
 #### Scenario: Save again
 - **WHEN** the same user sends a different valid body
 - **THEN** there is still one profile row for that user, with the new values
+
+### Requirement: Profile fields are checked
+The body of `PUT /v1/profile` SHALL have: `learningLanguage` and `nativeLanguage` (1–40 characters), `level` (`brand_new`, `beginner`, `some_basics`, `intermediate`, `advanced`), `knownWords` (0–5000 or null), `cefr` (text or null), `goal` (`travel`, `work`, `move_abroad`, `family_friends`, `brain`, `school`, `other`), `goalOther` (up to 80 characters or null), `interests` (1–24 different items from the fixed list of 24). Anything else is refused.
 
 #### Scenario: Bad body
 - **WHEN** `level` is not one of the five values, or `interests` is empty, or an interest is not in the list
