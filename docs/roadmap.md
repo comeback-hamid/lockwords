@@ -16,11 +16,11 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 
 | # | Epic | Changes (one PR each, names are drafts) | Figma | Status |
 |---|---|---|---|---|
-| 1 | Onboarding + first deck | ✅ `onboarding-profile` (O1–O9, 2026-11-16) · ✅ `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, `make-deck` AI task with a fixture, 2026-11-16) · still open: `kai-character` (Skia renderer from the spec) · `kai-chat-ui` (Kai header, bubbles, reply options, composer) · `deck-generation` (server: make_deck, checks, pictures) · `onboarding-kai-deck` (O10–O10f) · `onboarding-practice-use-it` (O12–O14) | Onboarding | ⬜ |
-| 2 | Review | `srs-core` (server: stages, due list, new-word queue, swipes) · `review-cards` (A2–A5c, stamps, flip, sound) · `review-done-streak` (A7, A9) | Review | ⬜ |
+| 1 | Onboarding + first deck | ✅ `onboarding-profile` (O1–O9, 2026-11-16) · ✅ `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, `make-deck` AI task with a fixture, 2026-11-16) · ✅ `first-review` (O12–O16 as the first Review round + one-time screens, 2026-11-16) · still open: animated Kai, card pictures · `kai-character` (Skia renderer from the spec) · `kai-chat-ui` (Kai header, bubbles, reply options, composer) · `deck-generation` (server: make_deck, checks, pictures) · `onboarding-kai-deck` (O10–O10f) · `onboarding-practice-use-it` (O12–O14) | Onboarding | ⬜ |
+| 2 | Review | 🟨 core done in `first-review` (swipe rules, round, stamps). Open: streak A7, undo, sounds, pictures · `srs-core` (server: stages, due list, new-word queue, swipes) · `review-cards` (A2–A5c, stamps, flip, sound) · `review-done-streak` (A7, A9) | Review | ⬜ |
 | 3 | My words | `my-words-home` (M1: total, meadow, goal grid, word plan) · `decks-and-words` (M2–M3, swipe delete, Recently deleted 30 days) | My words | ⬜ |
 | 4 | New words tab | `new-words-chat` (N1–N4: 3 ready decks, Create) · `own-deck-and-how-do-i-say` (N5–N7) | New words | ⬜ |
-| 5 | Use it | `use-it` (A6–A6c: Kai chat, thumbs up, feedback, stage +1 on a good sentence) | Review | ⬜ |
+| 5 | Use it | 🟨 done in `first-review` with a stand-in checker (needs the AI key) · `use-it` (A6–A6c: Kai chat, thumbs up, feedback, stage +1 on a good sentence) | Review | ⬜ |
 | 6 | Widgets (full) | `lock-widgets` (inline, rectangular, circular; hard words first) · `home-widgets` (medium, small; App Intents buttons) | Widgets | ⬜ |
 | 7 | Speak | `speak-topics` (SP1–SP2) · `speak-talk` (SP3–SP5, WebRTC, short-lived key, transcript) · `speak-summary` (SP6) · Speak test layers 1→3 | Speak | ⬜ |
 | 8 | Paywall + trial | `paywall` (O15–O16, RevenueCat, test store with no key) · `free-limits` (server) | Onboarding | ⬜ |

@@ -1,14 +1,18 @@
 import type { z } from 'zod';
 
 import { CardsSchema, DECK_SIZE, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
+import { UseItSchema, type UseItJudge } from './use-it.js';
 
 const MODEL = 'claude-sonnet-5-5';
 const TIMEOUT_MS = 30_000;
 
 // The real model. Used only when ANTHROPIC_API_KEY is set; tests pass a fake fetch.
 // shortcut: plain fetch + one try; Langfuse prompts, tracing and "retry once" come with the llm client (see README.md).
-export function claudeDeckMaker(apiKey: string, fetchFn: typeof fetch = fetch): DeckMaker {
-  async function ask<T extends z.ZodType>(prompt: string, schema: T): Promise<z.infer<T>> {
+type Fetch = typeof fetch;
+
+// One model call that must answer with JSON matching `schema`.
+function asker(apiKey: string, fetchFn: Fetch) {
+  return async function ask<T extends z.ZodType>(prompt: string, schema: T): Promise<z.infer<T>> {
     const res = await fetchFn('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
@@ -20,7 +24,11 @@ export function claudeDeckMaker(apiKey: string, fetchFn: typeof fetch = fetch): 
     const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
     const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1); // the model may wrap the JSON in words or a code block
     return schema.parse(JSON.parse(json));
-  }
+  };
+}
+
+export function claudeDeckMaker(apiKey: string, fetchFn: Fetch = fetch): DeckMaker {
+  const ask = asker(apiKey, fetchFn);
 
   const who = (i: DeckInput) =>
     `The learner speaks ${i.nativeLanguage} and is learning ${i.learningLanguage} at CEFR level ${i.cefr}. Their topic: "${i.topic}".`;
@@ -38,5 +46,16 @@ export function claudeDeckMaker(apiKey: string, fetchFn: typeof fetch = fetch): 
           CardsSchema,
         )
       ).cards,
+  };
+}
+
+export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJudge {
+  const ask = asker(apiKey, fetchFn);
+  return {
+    check: (i) =>
+      ask(
+        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They wrote one sentence to practice the word "${i.word}" (${i.translation}):\n"${i.sentence}"\nJudge it kindly. "good" is true when the word is used correctly and the sentence can be understood (small mistakes are fine).\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 4 very short lines, each starting with one emoji, key words in **bold**. If good: praise, then one tip or a more natural way to say it. If not: say what is wrong and how to fix it.\nAnswer with JSON only: {"good": boolean, "lines": string[]}`,
+        UseItSchema,
+      ),
   };
 }
