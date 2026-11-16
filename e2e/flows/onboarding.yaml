@@ -6,7 +6,7 @@ tags:
 - launchApp:
     clearState: true
     clearKeychain: true
-- startRecording: onboarding-profile
+- startRecording: onboarding
 # O1 I'm learning
 - assertVisible: "What do you want to learn?"
 - tapOn: "Spanish"
@@ -49,12 +49,38 @@ tags:
 - tapOn: "Music"
 - assertVisible: "2 SELECTED"
 - tapOn: "Continue"
-# Saved → tabs, and the server knows this guest
-- assertVisible: "New words"
+# O10 Kai asks the name
+- extendedWaitUntil:
+    visible: ".*What’s your name.*"
+    timeout: 20000
+- tapOn: "Message"
+- inputText: "Maya"
+- tapOn: "Send"
+# O10b chat language
+- assertVisible: ".*Nice to meet you, Maya.*"
+- tapOn: "English"
+# O10c what Kai does, pick your words
+- extendedWaitUntil:
+    visible: "Ordering food"
+    timeout: 20000
+- tapOn: "Ordering food"
+# O10d deck card
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 20000
+- tapOn: "Generate"
+# O10e → O10f deck ready
+- extendedWaitUntil:
+    visible: ".*Shall we practice them now.*"
+    timeout: 60000
+- assertVisible: "Open deck"
+- tapOn: "OK, let’s practice!"
+# Onboarding finished → Review tab, and the server knows this guest
 - extendedWaitUntil:
     visible:
       id: "dev-user-id"
     timeout: 20000
+- assertVisible: "Review"
 - copyTextFrom:
     id: "dev-user-id"
 # Restart: straight to the tabs, same user
@@ -64,6 +90,4 @@ tags:
     visible: ${maestro.copiedText}
     timeout: 20000
 - assertVisible: "New words"
-- tapOn: "Review"
-- assertVisible: "Review"
 - stopRecording

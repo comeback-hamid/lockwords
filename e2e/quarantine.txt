@@ -2,7 +2,7 @@
 # Agents may not edit a flow that is on main, so a flow that no longer fits the product waits here for Hamid.
 #
 # 2026-11-16 (onboarding-profile): both flows expect the tabs right after a fresh install. A fresh install now
-# starts in onboarding. Their checks (tabs show, guest user survives a restart) moved into onboarding-profile.yaml.
+# starts in onboarding. Their checks (tabs show, guest user survives a restart) moved into onboarding.yaml.
 # Hamid: OK to delete these two flows?
 app-launch.yaml
 guest-login.yaml

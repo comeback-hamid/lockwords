@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
@@ -8,7 +8,10 @@ export function ReplyOptions({ options, onPick }: { options: string[]; onPick(op
   return (
     <View style={styles.group}>
       {options.map((option) => (
-        <Pressable key={option} accessibilityRole="button" accessibilityLabel={option} onPress={() => onPick(option)} style={({ pressed }) => [styles.pill, pressed && styles.pressed]}>
+        <Pressable key={option} accessibilityRole="button" accessibilityLabel={option} onPress={() => {
+            Keyboard.dismiss(); // a tapped answer needs no keyboard
+            onPick(option);
+          }} style={({ pressed }) => [styles.pill, pressed && styles.pressed]}>
           <Text style={[type.calloutMedium, styles.label]}>{option}</Text>
         </Pressable>
       ))}
