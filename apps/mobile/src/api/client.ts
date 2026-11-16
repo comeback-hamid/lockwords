@@ -8,6 +8,11 @@ export type Estimate = components['schemas']['Estimate'];
 export type Profile = components['schemas']['Profile'];
 export type Deck = components['schemas']['Deck'];
 export type ProfileChat = components['schemas']['ProfileChat'];
+export type ReviewCard = components['schemas']['ReviewCard'];
+export type SwipeResult = components['schemas']['SwipeResult'];
+export type UseItResult = components['schemas']['UseItResult'];
+export type HardWord = components['schemas']['HardWords']['words'][number];
+export type Direction = 'easy' | 'hard' | 'known';
 
 type Options = { baseUrl: string; getToken(): Promise<string | null>; fetch?: typeof fetch };
 
@@ -48,6 +53,18 @@ export function createApi({ baseUrl, getToken, fetch: customFetch }: Options) {
     },
     async fetchDeck(id: string): Promise<Deck> {
       return unwrap(await client.GET('/v1/decks/{id}', { params: { path: { id } } }));
+    },
+    async fetchRound(): Promise<ReviewCard[]> {
+      return unwrap(await client.GET('/v1/review')).cards;
+    },
+    async swipeCard(id: string, direction: Direction): Promise<SwipeResult> {
+      return unwrap(await client.POST('/v1/cards/{id}/swipe', { params: { path: { id } }, body: { direction } }));
+    },
+    async fetchHardWords(): Promise<HardWord[]> {
+      return unwrap(await client.GET('/v1/hard-words')).words;
+    },
+    async useIt(id: string, sentence: string): Promise<UseItResult> {
+      return unwrap(await client.POST('/v1/cards/{id}/use-it', { params: { path: { id } }, body: { sentence } }));
     },
     async saveProfile(profile: Profile): Promise<Profile> {
       return unwrap(await client.PUT('/v1/profile', { body: profile }));

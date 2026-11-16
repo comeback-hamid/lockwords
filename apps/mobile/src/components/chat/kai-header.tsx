@@ -18,7 +18,7 @@ const POSES: Record<KaiPose, number> = {
 
 // Figma Kai header: one big Kai on top of every chat, messages scroll under it. No title, no small avatars.
 // shortcut: a still picture per pose with a slow "breathe" move; the animated renderer is the `kai-character` change.
-export function KaiHeader({ pose, back = true }: { pose: KaiPose; back?: boolean }) {
+export function KaiHeader({ pose, back = true, icon = 'back' }: { pose: KaiPose; back?: boolean; icon?: 'back' | 'close' }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [breathe] = useState(() => new Animated.Value(0));
@@ -35,8 +35,8 @@ export function KaiHeader({ pose, back = true }: { pose: KaiPose; back?: boolean
   return (
     <View style={[styles.header, { paddingTop: insets.top, height: layout.kaiHeaderHeight - 54 + insets.top }]}>
       {back ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} style={[styles.back, { top: insets.top }]}>
-          <Icon name="back" size={24} color={colors.text} />
+        <Pressable accessibilityRole="button" accessibilityLabel={icon === 'close' ? 'Close' : 'Back'} onPress={() => router.back()} style={[styles.back, { top: insets.top }]}>
+          <Icon name={icon} size={24} color={colors.text} />
         </Pressable>
       ) : null}
       <Animated.View style={{ transform: [{ translateY: breathe }] }}>
