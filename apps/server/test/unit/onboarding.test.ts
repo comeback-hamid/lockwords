@@ -7,7 +7,7 @@ import { ISSUER, makeTestKeys } from '../helpers/tokens.js';
 let token: string;
 const saved = new Map<string, unknown>();
 const users: UsersStore = { upsert: async (id, isGuest) => ({ id, isGuest, createdAt: new Date() }) };
-const profiles: ProfilesStore = { upsert: async (userId, p) => (saved.set(userId, p), p) };
+const profiles: ProfilesStore = { upsert: async (userId, p) => (saved.set(userId, p), p), get: async () => null, setChat: async () => false };
 let app: ReturnType<typeof createApp>;
 
 beforeAll(async () => {
