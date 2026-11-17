@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Word test lists
-`GET /v1/word-test?language=<code or name>` SHALL answer `200` with `{ supported, pages }`. For the 13 engine languages `supported` is `true` and `pages` holds A, B, C and D, each with 23 different words (20 real, 3 made-up) as `{ w, rd? }`, in an order that is the same on every call by the same user. The answer never says which words are made up and never holds a rank. For any other language `supported` is `false` and `pages` is empty.
+`GET /v1/word-test?language=<code or name>` SHALL answer `200` with `{ supported, pages }`. For the 13 engine languages `supported` is `true` and `pages` holds A, B, C and D, each with 23 different words (20 real, 3 made-up) as `{ w, rd? }`, in an order that is the same on every call by the same user. The answer never says which words are made up and never holds a rank. For any other real language (already checked by the language check) the server makes an AI word pack once: pages A, B and C with 20 words each and no made-up words, kept and reused for every user of that language. If the pack cannot be made, `supported` is `false` and `pages` is empty.
 
 #### Scenario: Spanish
 - **WHEN** a signed-in user calls `GET /v1/word-test?language=es`
@@ -15,8 +15,12 @@
 - **WHEN** the language is `ja` or `zh`
 - **THEN** every word has a non-empty `rd`
 
+#### Scenario: A typed language
+- **WHEN** a signed-in user calls `GET /v1/word-test?language=Swedish` for the first time
+- **THEN** the answer is `200`, `supported` is `true`, pages A, B and C have 20 words each, and a second call returns the same words without a new AI call
+
 #### Scenario: A language with no test
-- **WHEN** a signed-in user calls `GET /v1/word-test?language=Swedish`
+- **WHEN** the word pack cannot be made for a typed language (the AI call fails or says it is not a language)
 - **THEN** the answer is `200` with `supported: false` and no pages
 
 #### Scenario: Missing language
@@ -30,6 +34,22 @@
 - **WHEN** the answers are those of each row of engine section 1.8
 - **THEN** `words` and `cefr` match the row: all of A → 1,100 A1; all of A and B → 3,500 B2; the B2–C1 learner → 4,700 C1; all of A, B, C and 12 of D → 5,000 with `plus: true`, C2
 
+#### Scenario: Everything known
+- **WHEN** every real word of every page and no made-up word is ticked (English)
+- **THEN** `words` is 5000, `plus` is true and `cefr` is `C2`
+
+#### Scenario: All basic words only
+- **WHEN** every real page-A word and nothing else is ticked (English)
+- **THEN** `words` is 1,100 and `cefr` is `A1`
+
+#### Scenario: Unknown words are ignored
+- **WHEN** `known` holds only words that are not in the test
+- **THEN** `words` is 0 and `startingFresh` is true
+
+#### Scenario: Language with no test
+- **WHEN** `language` has no word file and no stored word pack
+- **THEN** the answer is `400`
+
 #### Scenario: Nothing known
 - **WHEN** no real word is ticked
 - **THEN** `words` is 0 and `startingFresh` is true
@@ -42,12 +62,20 @@
 - **WHEN** 3 or more made-up words are ticked and they are at least 30 % of the made-up words shown
 - **THEN** `reliable` is false
 
+#### Scenario: Typed-language pack
+- **WHEN** every page-A word of an AI pack is ticked, page B has 3 or fewer ticks, so C is skipped
+- **THEN** `words` is 850; with all of A and all of B ticked and C shown with 0 ticks, `words` is 2,600 and `cefr` is `B1`
+
 #### Scenario: Never moves the wrong way
 - **WHEN** one more real word is ticked, or one more made-up word
 - **THEN** `words` does not go down for the real word and does not go up for the made-up word
 
 ### Requirement: CEFR label for the estimate
 The label SHALL follow engine section 1.6: under 1,500 → A1; under 2,500 → A2; under 3,250 → B1; under 3,750 → B2; under 4,500 → C1; 4,500 and up → C2 only when R50 is 20,000 or more, else C1.
+
+#### Scenario: Label edges
+- **WHEN** the result is 1,450, 1,500, 2,500, 3,250 and 3,750
+- **THEN** `cefr` is `A1`, `A2`, `B1`, `B2` and `C1`
 
 #### Scenario: Not C2 without proof
 - **WHEN** the answers are all of A and B, 16 of C and the 9 rarest D words (English)

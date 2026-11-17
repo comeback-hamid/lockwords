@@ -1,11 +1,15 @@
 ## MODIFIED Requirements
 
 ### Requirement: O4–O6 Word test
-For a language with a test, the app SHALL show "Tap the words you know" pages with the server's words as chips: BASIC WORDS, INTERMEDIATE WORDS, then ADVANCED WORDS and EXPERT WORDS only when the server says so. Each page shows the line "Only tap words you know the meaning of. Some are made up." and "N SELECTED". A reading shows small under a word that has one. "I don't know any of these" clears the page and continues. States: loading (quiet loading line), error (message and "Try again"); empty and locked do not apply.
+For a language with a test, the app SHALL show "Tap the words you know" pages with the server's words as chips: BASIC WORDS, INTERMEDIATE WORDS, then ADVANCED WORDS and EXPERT WORDS only when the server says so. Each page shows the line "Only tap words you know the meaning of. Some are made up." and "N SELECTED". A tapped word turns green with no check mark; tapping again clears it. A reading shows small under a word that has one. "I don't know any of these" clears the page and continues. States: loading (quiet loading line), error (message and "Try again"); empty and locked do not apply.
 
 #### Scenario: Select and count
 - **WHEN** the user taps three chips
-- **THEN** the three chips are selected and the label reads "3 SELECTED"
+- **THEN** the three chips have a green background, no check mark, and the label reads "3 SELECTED"
+
+#### Scenario: I don't know any
+- **WHEN** the user taps "I don't know any of these" on the BASIC WORDS page
+- **THEN** no basic word counts as known and the INTERMEDIATE WORDS page shows
 
 #### Scenario: Short test
 - **WHEN** the server answers `next: null` after page B
@@ -28,7 +32,7 @@ For a language with a test, the app SHALL show "Tap the words you know" pages wi
 - **THEN** a message and "Try again" show; tapping it loads again
 
 ### Requirement: O7 Your estimate
-After the last page the app SHALL ask the server for the estimate and show: Kai celebrating, "YOU ALREADY KNOW", "≈ N" with a thousands comma (or "5,000+"), counting up from 0, "of the 5,000 most common <language> words", the chip "About level X", and "An estimate from your word test." States: loading (number hidden, quiet loading line), error (message + "Try again").
+After the last page the app SHALL ask the server for the estimate and show: Kai in the celebrate pose, "YOU ALREADY KNOW", "≈ N" with a thousands comma (or "5,000+"), counting up from 0, "of the 5,000 most common <language> words", the chip "About level X", and "An estimate from your word test." States: loading (number hidden, quiet loading line), error (message + "Try again").
 
 #### Scenario: Show the estimate
 - **WHEN** the server answers `{ words: 4700, plus: false, cefr: "C1" }`
