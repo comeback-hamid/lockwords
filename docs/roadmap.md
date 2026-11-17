@@ -32,7 +32,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | 4 | New words tab | The tab exists with its Figma icon (empty screen) | `new-words-chat` (N1–N4: 3 ready decks, Create) · `own-deck-and-how-do-i-say` (N5–N7) | New words | ⬜ |
 | 5 | Use it | `first-review`: Use it chat (A6–A6c), stage +1 on a good sentence | The real AI check (today a stand-in only checks that the word is in the sentence; needs the Anthropic key) | Review | 🟨 |
 | 6 | Widgets (full) | Spike passed (0.4) | `lock-widgets` (inline, rectangular, circular; hard words first) · `home-widgets` (medium, small; see + open only in v1) | Widgets | ⬜ |
-| 7 | Paywall + trial | `first-review`: the screens (hard words, trial reminder, paywall). **It sells nothing.** | `paywall` (soft: closing = free plan; RevenueCat) · `free-limits` (server) · `sign-in-after-purchase` · needs RevenueCat + Apple accounts | Onboarding | 🟨 |
+| 7 | Paywall + trial | `first-review`: the screens (hard words, trial reminder, paywall). **It sells nothing.** | `paywall` (soft: closing = free plan; RevenueCat) · `free-limits` (server) · `sign-in-after-purchase` (the login page comes right after the user subscribes; the Figma login page must be fixed first: it has no top bar and no badge) · needs RevenueCat + Apple accounts | Onboarding | 🟨 |
 | 8 | Web app | — | `web-build` (Expo web: same tabs, no widgets) · web payments (provider is open) | all | ⬜ |
 | 9 | Launch prep | — | analytics events (PostHog) · account delete · one performance check · real testimonials · App Store submission | — | ⬜ |
 
@@ -49,6 +49,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #11 | 2026-11-17 | Roadmap brought up to date; rule: every PR keeps it current |
 | #12 | 2026-11-17 | V1 docs (product, screens, design, dev guide), HTML copies of the roadmap and product docs |
 | #13 | 2026-11-17 | `docs/vocab-engine.md` added (the word test and deck level method); not built yet |
+| #21 | 2026-11-17 | `docs/product-review.md` (empty, for Hamid's Review notes); login page noted in the roadmap |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
