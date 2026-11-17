@@ -3,13 +3,14 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-17 (after PR #13).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-17 (cloud server live, PR `feature/infra-cloud`).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
-- **Works on the simulator today:** a fresh install → onboarding → Kai chat → first deck → first review round → Use it → hard words → trial reminder → paywall → the three tabs. All of it runs on this Mac only (`npm run dev:up`).
-- **Not real yet:** the AI (a stand-in makes every deck), the paywall (sells nothing), Kai (still pictures), the cloud (nothing is deployed).
-- **Blocked on Hamid:** accounts and keys (DigitalOcean, Supabase, Apple, Google, Expo, RevenueCat, Anthropic).
+- **Works on the simulator today:** a fresh install → onboarding → Kai chat → first deck → first review round → Use it → hard words → trial reminder → paywall → the three tabs. The app still talks to this Mac (`npm run dev:up`).
+- **Live in the cloud (2026-11-17):** the server at `https://lockwords-rhaic.ondigitalocean.app` with its Postgres (DigitalOcean, Frankfurt) and guest login on Supabase cloud (Frankfurt). The Anthropic key is set there, so cloud decks and Use it call the real AI.
+- **Not real yet:** the AI (a stand-in makes every deck), the paywall (sells nothing), Kai (still pictures), the app does not point at the cloud server yet.
+- **Blocked on Hamid:** accounts and keys still missing: Expo, Apple, RevenueCat, Google, PostHog. (Anthropic, Supabase and DigitalOcean are done.)
 - **Next to build without accounts:** `vocab-engine` (the real word test and estimate in onboarding), then the New words tab (epic 4) or the Progress tab (epic 3).
 
 ## Phase 0: Setup (days 1–4)
@@ -18,7 +19,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 |---|---|---|---|
 | 0.1 | Repo skeleton | AGENTS.md, CLAUDE.md files, OpenSpec, docs, theme tokens from Figma, 3 empty tabs, server `/health`, e2e runner, pre-push hook. All checks green. | ✅ 2026-11-16 |
 | 0.2 | Hooks, Ponytail, CI | Claude hooks + plugins in `.claude/settings.json`. GitHub Actions for both apps. Three databases (prod, `lockwords_dev`, `lockwords_test`). | ✅ 2026-11-16 (CI green on PR #1 and #2; the prod database is made in 0.3) |
-| 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | 🟨 local half ✅ 2026-11-16 (`local-backend-and-guest-login`: guest login + token check + `/v1/me`, all on this Mac). Cloud half (DigitalOcean, Supabase cloud, Apple, Google) needs Hamid's accounts. |
+| 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | 🟨 local half ✅ 2026-11-16 (`local-backend-and-guest-login`). Cloud half ✅ 2026-11-17 for the server, Postgres, migrations, deploy workflow and guest login on Supabase cloud (`/health` and a guest `/v1/me` answer 200 on the public URL; see "Deploy" in `docs/architecture.md`). Still open: Apple, Google and email-code login (need the Apple and Google accounts), Spaces (not needed yet), and pointing the app at the cloud. |
 | 0.4 | `widget-spike` | One word from the server on the iPhone lock screen (SwiftUI WidgetKit via config plugin). **If this fails, everything else waits.** | ✅ tested 2026-11-16, not merged (draft PR #3, `expo-widgets`; notes in `docs/spikes/widget/` on that branch). Real widgets = epic 6. |
 
 ## Phase 1: Features in order
