@@ -37,7 +37,14 @@ The server SHALL give each deck a band from 0 to 4 from the profile's level and 
 - **THEN** the bands are 0, 1, 2, 3, 4, 3, 4
 
 ### Requirement: Deck words fit the learner
-The AI task that makes the cards SHALL receive the learning language, native language, self-rated level, test result, goal (and the learner's own words for "other"), interests, the topic as the learner wrote or tapped it, and the band's text from `docs/vocab-engine.md` 2.2. For bands 1–4 it also gets the easy / at-level / stretch mix (about 3 / 5 / 2). For bands 3–4 it also gets the measured size ("about N of the 5,000 most common words", or "nearly all" at 5,000). The model is Claude Sonnet 5.5.
+The AI task that makes the cards SHALL receive the learning language, native language, self-rated level, test result, goal (and the learner's own words for "other"), interests, the topic as the learner wrote or tapped it, and the band's text from `docs/vocab-engine.md` 2.2. The model is Claude Sonnet 5.5.
+
+#### Scenario: Learner block
+- **WHEN** a learner with goal `other` ("for my wife") and interests `food`, `music` asks for "Ordering food"
+- **THEN** the prompt holds "for my wife", "food, music" and "Ordering food"
+
+### Requirement: Mix and measured size
+For bands 1–4 the prompt SHALL also hold the easy / at-level / stretch mix (about 3 / 5 / 2). For bands 3–4 it SHALL also hold the measured size ("about N of the 5,000 most common words", or "nearly all" at 5,000).
 
 #### Scenario: Advanced learner
 - **WHEN** a learner with level `intermediate`, `knownWords` 4700, goal `travel` and interests `food`, `music` asks for "Ordering food"
