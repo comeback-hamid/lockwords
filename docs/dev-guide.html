@@ -582,7 +582,7 @@ AGENTS.md  CLAUDE.md (@AGENTS.md)</pre>
       <div class="card"><div class="icon i-green">♥</div><h3>Health check + rollback</h3><p>Deploy → migrate → <code>GET /health</code> for 60 s → back to the old version if it fails.</p></div>
       <div class="card"><div class="icon i-green">✓</div><h3>Builds check themselves</h3><p>Release build fails if the API address or the RevenueCat key is missing or wrong, and checks the final app contains them.</p></div>
     </div>
-    <div class="callout">Two agents at once only with <strong>worktrees</strong> (one folder per branch) and only when they touch different files. Start with 2. Your review time is the real limit.</div>
+    <div class="callout">Two agents at once only with <strong>worktrees</strong> (one folder per branch) and only when they touch different files. Your review time is the real limit. The full rules are in <code>docs/parallel-work.md</code>.</div>
   </section>
 
   <!-- 11 LEARN -->
