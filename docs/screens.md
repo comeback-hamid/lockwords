@@ -24,7 +24,9 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 | O7b | Your estimate · Starting fresh | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2277) |
 | O7c | Were you guessing? (Try again) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2308) |
 | O8 | Goal | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-263) |
-| O9 | Interests | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=28-618) |
+| O8b | Goal · Other (Your reason) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2020-2129) |
+| O9 | Interests (20, pick 1–5) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=28-618) |
+| O9b | Interests · 5 of 5 picked | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2020-1974) |
 | O10 | Kai · Hello, your name | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-1926) |
 | O10b | Kai · Chat language | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-2010) |
 | O10c | Kai · What I do, pick your words | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-2123) |

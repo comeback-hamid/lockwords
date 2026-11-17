@@ -60,8 +60,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Same bar as `npm audit --audit-level=high --omit=dev`, minus the dated exceptions in .github/audit-allow.json.
+      # Fails on high and critical advisories. Skips picomatch (see scripts/audit.mjs for why).
       - name: npm audit (high and critical)
-        run: |
-          npm audit --omit=dev --json > audit.json || true
-          node scripts/audit-check.mjs < audit.json
+        run: npm run audit
+      - name: script tests (audit rule, docs pages)
+        run: npm run test:scripts

@@ -14,6 +14,7 @@
     "spec:validate": "openspec validate --all --strict",
     "docs:html": "node scripts/docs-html.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
+    "audit": "node scripts/audit.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
     "dev:up": "bash scripts/dev-up.sh"
   },

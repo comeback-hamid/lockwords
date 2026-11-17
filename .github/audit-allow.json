@@ -1,7 +1,0 @@
-[
-  {
-    "id": "GHSA-fc5q-39xc-vjpf",
-    "until": "2026-12-15",
-    "why": "picomatch ReDoS (high). Every version up to 4.0.7, the newest, is affected and no fix exists (checked 2026-11-17). It comes in through React Native and Expo build tooling (file-name matching), not code that runs for users. Remove this entry when a fixed picomatch ships."
-  }
-]

@@ -120,24 +120,20 @@
                 "movies",
                 "books",
                 "sports",
-                "fitness",
                 "health",
                 "nature",
                 "animals",
                 "art",
-                "fashion",
-                "gaming",
                 "news",
                 "family",
                 "friends_dating",
                 "shopping",
-                "cooking",
                 "money",
                 "culture"
               ]
             },
             "minItems": 1,
-            "maxItems": 24
+            "maxItems": 5
           }
         },
         "required": [
