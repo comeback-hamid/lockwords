@@ -220,6 +220,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/languages/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description match, suggestion (did you mean) or unknown */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LanguageCheckResult"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The AI call failed */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckFailed"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/deck-ideas": {
         parameters: {
             query?: never;
@@ -799,6 +867,20 @@ export interface components {
             goalOther: string | null;
             interests: ("food" | "travel" | "work" | "business" | "tech" | "science" | "music" | "movies" | "books" | "sports" | "health" | "nature" | "animals" | "art" | "news" | "family" | "friends_dating" | "shopping" | "money" | "culture")[];
         };
+        LanguageCheckResult: {
+            /** @enum {string} */
+            result: "match" | "suggestion" | "unknown";
+            language: components["schemas"]["Language"];
+        };
+        Language: {
+            code: string;
+            name: string;
+            listed: boolean;
+        } | null;
+        CheckFailed: {
+            /** @enum {string} */
+            error: "check_failed";
+        };
         DeckIdeas: {
             ideas: string[];
         };
@@ -870,10 +952,6 @@ export interface components {
             lines: string[];
             movedUp: boolean;
             stage: number;
-        };
-        CheckFailed: {
-            /** @enum {string} */
-            error: "check_failed";
         };
     };
     responses: never;
