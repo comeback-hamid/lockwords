@@ -58,5 +58,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: npm audit (high and critical)
-        run: npm audit --audit-level=high --omit=dev
+      - name: npm audit (high and critical, minus the skips in scripts/audit.mjs)
+        run: node scripts/audit.mjs

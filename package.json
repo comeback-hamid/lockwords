@@ -15,7 +15,8 @@
     "docs:html": "node scripts/docs-html.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "dev:up": "bash scripts/dev-up.sh"
+    "dev:up": "bash scripts/dev-up.sh",
+    "audit": "node scripts/audit.mjs"
   },
   "engines": {
     "node": ">=22"
