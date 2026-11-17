@@ -4,10 +4,11 @@ import { Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, StyleShee
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/auth/boot';
-import { ChatBubble } from '@/components/chat/chat-bubble';
+import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
+import { useKaiTyping } from '@/components/chat/use-kai-typing';
 import type { KaiPose } from '@/onboarding/kai-script';
 import { advance, findCard } from '@/review/round-store';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
@@ -15,6 +16,8 @@ import { colors, layout, levelColors, radius, space, type } from '@/theme/theme'
 type Message = { from: 'kai' | 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
 const REPLY = { example: 'Show me an example', skip: 'Skip this word', next: 'Next card' } as const;
 const CHECKING = 'Checking… 👀';
+// Kai types every line (dots first); the word card and the "Checking" status show at once.
+const typedText = (m: Message) => (m.from === 'kai' && m.text !== CHECKING ? m.text : null);
 
 // Use it (Figma O13–O13c / A6): write one sentence with the word; Kai checks it.
 export default function UseItScreen() {
@@ -22,18 +25,21 @@ export default function UseItScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const card = findCard(id);
-  const [messages, setMessages] = useState<Message[]>(() =>
+  const { messages, typing, busy, say: add, edit } = useKaiTyping<Message>(typedText, () =>
     card ? [{ from: 'kai', text: 'Time to use a word! ✍️' }, { from: 'word' }, { from: 'kai', text: `Write one sentence with **${card.word}**. I’ll check it for you.` }] : [],
   );
   const [options, setOptions] = useState<string[]>([REPLY.example, REPLY.skip]);
   const [pose, setPose] = useState<KaiPose>('idle');
   const [cheer, setCheer] = useState(0); // counts good sentences; each one plays the thumbs-up
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
-  const say = (...next: Message[]) => setMessages((all) => [...all.filter((m) => !(m.from === 'kai' && m.text === CHECKING)), ...next]);
+  const say = (...next: Message[]) => {
+    edit((all) => all.filter((m) => !(m.from === 'kai' && m.text === CHECKING)));
+    add(...next);
+  };
 
   useEffect(() => {
     scroll.current?.scrollToEnd({ animated: true });
-  }, [messages, options]);
+  }, [messages, options, typing]);
 
   if (!card) return <View style={styles.root} />; // opened without a round (deep link): nothing to show
 
@@ -88,9 +94,10 @@ export default function UseItScreen() {
             <ChatBubble key={i} from={m.from} text={m.text} />
           ),
         )}
+        {typing ? <TypingBubble /> : null}
       </ScrollView>
       {cheer ? <ThumbsUp key={cheer} /> : null}
-      <ReplyOptions options={options} onPick={reply} />
+      <ReplyOptions options={busy ? [] : options} onPick={reply} />
       <View style={{ paddingBottom: Math.max(insets.bottom, space[12]) }}>
         <Composer placeholder={options.includes(REPLY.next) ? 'Ask Kai about this word…' : 'Type a message…'} onSend={reply} maxLength={300} />
       </View>

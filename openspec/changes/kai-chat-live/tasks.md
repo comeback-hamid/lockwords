@@ -6,7 +6,7 @@
 - Real model check, 2026-11-17 (Haiku 5.5): "Why do you need my name?" → off script, 2 lines; "hey, I'm Maya" → Maya; "english please" → native; while generating → off script. 1.6–2.4 s.
 
 ## 2. Mobile
-- [ ] 2.1 Tests first: `__tests__/kai-chat-live.test.tsx` (dots then message, options after the last bubble, Kai state map, 20 s → waiting, timed deck count 3 at 5 s and cap 9, off-script answer then the question again, name in a sentence, Kai reply fails → typed name kept, tapped option becomes the user bubble). Update the listed old tests in `kai-chat.test.tsx` and the Use it tests in `review.test.tsx` to wait for typing. Run them, see the new ones fail.
+- [ ] 2.1 Tests first: `__tests__/kai-chat-live.test.tsx` (dots then message, options after the last bubble, Kai state map, 20 s → waiting, timed deck count 3 at 5 s and cap 9, off-script answer then the question again, name in a sentence, Kai reply fails → typed name kept, tapped option becomes the user bubble). Typing is off in Jest by default, so old tests read Kai's lines at once; `__tests__/kai-typing.test.tsx` tests the typing in both chats. Run them, see the new ones fail.
 - [ ] 2.2 `npm run api:gen`; `api.kaiReply` in `src/api/client.ts`. Check: api client test passes.
 - [ ] 2.3 Typing bubble + shared queue `useKaiTyping` (0.8–1.2 s per bubble, one after another), used by the onboarding chat and the Use it chat; Kai state from `kaiStateFor()`; back-to-question lines in `kai-script.ts`. Check: typing and state tests pass.
 - [ ] 2.4 Option move animation (Reanimated, Reduce Motion = no move). Check: tap test passes; looks right on the simulator.
