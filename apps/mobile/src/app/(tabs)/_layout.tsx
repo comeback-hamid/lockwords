@@ -21,10 +21,9 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>Review</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/review.png')} renderingMode="template" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="speak">
-        <NativeTabs.Trigger.Label>Speak</NativeTabs.Trigger.Label>
-        {/* An SF Symbol until this tab becomes Progress (Figma V1), which brings its own icon. */}
-        <NativeTabs.Trigger.Icon sf="waveform" />
+      <NativeTabs.Trigger name="progress">
+        <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/progress.png')} renderingMode="template" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

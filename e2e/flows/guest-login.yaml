@@ -23,7 +23,7 @@ tags:
     visible: ${maestro.copiedText}
     timeout: 20000
 - assertVisible: "New words"
-- tapOn: "Speak"
+- tapOn: "Progress"
 - assertVisible: ${maestro.copiedText}
 - tapOn: "Review"
 - assertVisible: ${maestro.copiedText}
