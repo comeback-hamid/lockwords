@@ -15,7 +15,7 @@
 ## 3. Docs
 
 - [x] 3.1 `docs/screens.md` (add O8b and O9b links), `e2e/README.md` (`LOCKWORDS_METRO`).
-- [ ] 3.2 `docs/roadmap.md` (my row in epic 1 + "Merged so far" + "Last updated"): in the archive commit, after Hamid's OK on the video.
+- [x] 3.2 `docs/roadmap.md` (my row in epic 1 + "Merged so far" + "Last updated"): in the archive commit, after Hamid's OK on the video.
 
 ## Notes from the build
 - Server tests are in new files (`test/unit/interests.test.ts`, `test/integration/old-interests.test.ts`); the only old tests edited are the two named in the proposal.
