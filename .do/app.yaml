@@ -1,0 +1,66 @@
+# DigitalOcean App Platform spec for the Lockwords server (Frankfurt).
+# The deploy workflow (.github/workflows/deploy.yml) fills ${DEPLOY_BRANCH} and ${ANTHROPIC_API_KEY},
+# then runs `doctl apps update`. Never write a secret value in this file.
+name: lockwords
+region: fra
+
+services:
+  - name: server
+    git:
+      repo_clone_url: https://github.com/comeback-hamid/lockwords.git
+      branch: ${DEPLOY_BRANCH}
+    source_dir: /
+    dockerfile_path: apps/server/Dockerfile
+    run_command: /app/.do/with-db-ca.sh node apps/server/dist/index.js
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    http_port: 8080
+    # A deploy that fails /health for 60 s is rolled back.
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      failure_threshold: 6
+    envs: &server_envs
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${db.DATABASE_URL}
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${db.CA_CERT}
+      # Supabase cloud project "Lockwords" (Frankfurt). Public values.
+      - key: SUPABASE_URL
+        value: https://sskhsgygvdpnnokvuuyd.supabase.co
+      - key: SUPABASE_JWT_ISSUER
+        value: https://sskhsgygvdpnnokvuuyd.supabase.co/auth/v1
+      - key: ANTHROPIC_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: ${ANTHROPIC_API_KEY}
+
+jobs:
+  # Runs the Drizzle migrations before each deploy. A failed migration stops the deploy.
+  - name: migrate
+    kind: PRE_DEPLOY
+    git:
+      repo_clone_url: https://github.com/comeback-hamid/lockwords.git
+      branch: ${DEPLOY_BRANCH}
+    source_dir: /
+    dockerfile_path: apps/server/Dockerfile
+    run_command: /app/.do/with-db-ca.sh npm run db:migrate -w @lockwords/server
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    envs: *server_envs
+
+databases:
+  - name: db
+    engine: PG
+    production: true
+    cluster_name: lockwords-db
+    db_name: lockwords
+    db_user: doadmin

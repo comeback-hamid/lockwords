@@ -1,0 +1,50 @@
+name: Deploy server
+
+# Puts apps/server on DigitalOcean App Platform (Frankfurt).
+# Runs after a merge to main that touches the server or its deploy files, or by hand.
+# App Platform builds apps/server/Dockerfile, runs the migrations (the "migrate" job),
+# then swaps the server. A deploy that fails /health is rolled back.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/server/**'
+      - '.do/**'
+      - 'package-lock.json'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      DEPLOY_BRANCH: main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Fill the app spec (secrets come from GitHub, never from git)
+        run: |
+          test -n "$ANTHROPIC_API_KEY" || { echo "ANTHROPIC_API_KEY secret is missing" >&2; exit 1; }
+          envsubst '$DEPLOY_BRANCH $ANTHROPIC_API_KEY' < .do/app.yaml > "$RUNNER_TEMP/app.yaml"
+      - name: Find the app
+        id: app
+        run: |
+          id=$(doctl apps list --format ID,Spec.Name --no-header | awk '$2=="lockwords"{print $1}')
+          test -n "$id" || { echo "No App Platform app named lockwords" >&2; exit 1; }
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+      - name: Deploy and wait
+        run: doctl apps update "${{ steps.app.outputs.id }}" --spec "$RUNNER_TEMP/app.yaml" --update-sources --wait
+      - name: Check /health on the public URL
+        run: |
+          url=$(doctl apps get "${{ steps.app.outputs.id }}" --format DefaultIngress --no-header)
+          echo "server: $url"
+          curl --fail --silent --show-error --retry 5 --retry-delay 5 "$url/health"
