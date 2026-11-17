@@ -47,7 +47,7 @@ export function DeckCard({ deck, state, onGenerate, onOpen }: Props) {
   );
 }
 
-// shortcut: a timed count, not real progress; the server makes the deck in one request (move to a job before launch).
+// A timed count: the server's job reports no progress, only generating → ready.
 function Making({ total }: { total: number }) {
   const [n, setN] = useState(1);
   useEffect(() => {

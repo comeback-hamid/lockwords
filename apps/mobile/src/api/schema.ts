@@ -418,7 +418,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description The ready deck with its cards */
+                /** @description The ready deck with its cards; or still generating (read the deck again in a moment) */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -819,7 +819,7 @@ export interface components {
             cefr: string;
             wordCount: number;
             /** @enum {string} */
-            status: "proposed" | "ready";
+            status: "proposed" | "generating" | "ready";
             cards: components["schemas"]["Card"][];
         };
         Card: {

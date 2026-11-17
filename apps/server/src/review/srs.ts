@@ -4,7 +4,7 @@ export type CardState = { stage: number; known: boolean; hard: boolean; dueAt: D
 
 const DAY_MS = 86_400_000;
 const BACK_IN_DAYS = [1, 3, 7, 14, 30]; // stage 1..5
-const MAX_NEW_PER_ROUND = 20;
+export const MAX_NEW_PER_ROUND = 20;
 
 export function applySwipe(card: CardState, direction: Direction, now: Date): CardState & { backInDays: number | null } {
   if (direction === 'known') return { stage: card.stage, known: true, hard: false, dueAt: null, backInDays: null };

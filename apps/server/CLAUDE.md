@@ -25,6 +25,7 @@ Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` a
 - The server owns SRS. The app never decides stages.
 - Migrations are add-only. Drop or rename in a later deploy.
 - AI keys live only here. Every model call has a timeout and a user message. A failed call saves nothing.
+- Slow AI work is a pg-boss job, not a web request: see `src/decks/jobs.ts` (the job, and an inline runner for tests) and `src/decks/queued-jobs.ts` (the real queue). The row's own status tells the app how the job is doing.
 - Tests never call a real model. One fixture replaces Langfuse and the model.
 - Each user reads only their own rows. Keep Speak text, never audio.
 - The server checks the Supabase token (`src/auth.ts`) on every `/v1/*` route. No other Supabase parts. Never log a token.

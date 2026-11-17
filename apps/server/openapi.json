@@ -296,6 +296,7 @@
             "type": "string",
             "enum": [
               "proposed",
+              "generating",
               "ready"
             ]
           },
@@ -931,7 +932,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The ready deck with its cards",
+            "description": "The ready deck with its cards; or still generating (read the deck again in a moment)",
             "content": {
               "application/json": {
                 "schema": {

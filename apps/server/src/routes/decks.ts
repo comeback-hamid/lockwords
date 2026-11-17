@@ -3,7 +3,8 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DecksStore, ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { ideasFor } from '../decks/ideas.js';
-import { CardSchema, CardsSchema, type DeckMaker } from '../llm/make-deck.js';
+import { inlineDeckJobs, type DeckJobs } from '../decks/jobs.js';
+import { CardSchema, type DeckMaker } from '../llm/make-deck.js';
 import { UnauthorizedSchema } from './me.js';
 
 const json = <T extends z.ZodType>(schema: T, description: string) => ({ description, content: { 'application/json': { schema } } });
@@ -23,7 +24,7 @@ export const DeckSchema = z
     reason: z.string(),
     cefr: z.string(),
     wordCount: z.number().int(),
-    status: z.enum(['proposed', 'ready']),
+    status: z.enum(['proposed', 'generating', 'ready']),
     cards: z.array(CardSchema.extend({ id: z.string(), position: z.number().int(), stage: z.number().int() }).openapi('Card')),
   })
   .openapi('Deck');
@@ -54,7 +55,7 @@ const postGenerate = createRoute({
   path: '/decks/{id}/generate',
   security,
   request: { params: idParam },
-  responses: { 200: json(DeckSchema, 'The ready deck with its cards'), 404: json(NotFound, 'No such deck'), 502: json(GenerationFailed, 'The AI call failed; nothing was saved'), ...unauthorized },
+  responses: { 200: json(DeckSchema, 'The ready deck with its cards; or still generating (read the deck again in a moment)'), 404: json(NotFound, 'No such deck'), 502: json(GenerationFailed, 'The AI call failed; nothing was saved'), ...unauthorized },
 });
 const getDeck = createRoute({
   method: 'get',
@@ -64,7 +65,10 @@ const getDeck = createRoute({
   responses: { 200: json(DeckSchema, 'The deck with its cards'), 404: json(NotFound, 'No such deck'), ...unauthorized },
 });
 
-type Deps = { profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker };
+type Deps = { profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; deckJobs?: DeckJobs; deckWaitMs?: number };
+
+const POLL_MS = 300;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function deckRoutes(deps: Deps) {
   // Stores are optional in AppDeps so tests of other routes can leave them out.
@@ -101,13 +105,19 @@ export function deckRoutes(deps: Deps) {
       const deck = isUuid(id) ? await need('decks').get(userId, id) : null;
       if (!deck) return c.json({ error: 'not_found' as const }, 404);
       if (deck.status === 'ready') return c.json(deck, 200);
-      const profile = await need('profiles').get(userId);
-      try {
-        const made = await need('deckMaker').cards({ topic: deck.topic, learningLanguage: profile?.learningLanguage ?? '', nativeLanguage: profile?.nativeLanguage ?? '', cefr: deck.cefr });
-        const { cards } = CardsSchema.parse({ cards: made }); // never trust the model's shape
-        return c.json(await need('decks').saveCards(id, cards), 200);
-      } catch {
-        return c.json({ error: 'generation_failed' as const }, 502);
+      const failed = () => c.json({ error: 'generation_failed' as const }, 502);
+      if (deck.status === 'proposed') {
+        const jobs = deps.deckJobs ?? inlineDeckJobs({ profiles: need('profiles'), decks: need('decks'), deckMaker: need('deckMaker') });
+        const outcome = await jobs.start(userId, id).catch(() => 'failed' as const);
+        if (outcome === 'failed') return failed();
+      }
+      // A worker is making the words. Wait a short while, so a fast job still answers in one call.
+      const until = Date.now() + (deps.deckWaitMs ?? 20_000);
+      for (;;) {
+        const now = await need('decks').get(userId, id);
+        if (!now || now.status === 'proposed') return failed(); // the job failed and saved nothing
+        if (now.status === 'ready' || Date.now() >= until) return c.json(now, 200);
+        await sleep(POLL_MS);
       }
     })
     .openapi(getDeck, async (c) => {
