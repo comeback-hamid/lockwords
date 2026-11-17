@@ -41,6 +41,7 @@ More than ~10 tasks in a change → split it.
 - Fix what you can now. `docs/tech-debt.md` is only for work blocked on Hamid (an account, a key, a design, a decision), and says which.
 - A skipped part is written in `tasks.md` as "Not done: <what>, <why>". No silent gaps.
 - Better idea than this file or the dev guide? Tell Hamid what and why, then wait for his OK. Never change the plan quietly.
+- Skip every `picomatch` security warning (Hamid, 2026-11-17). The security check is `npm run audit`, which skips it; never run plain `npm audit` as a gate, and never "fix" it with `npm audit fix --force`. Any other high or critical warning still blocks.
 - Add a line to this file only when an agent makes the same mistake twice.
 
 ## Never
