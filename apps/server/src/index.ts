@@ -11,7 +11,8 @@ import { createUsersStore } from './db/users.js';
 import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
-import { claudeDeckMaker, claudeUseItJudge } from './llm/claude.js';
+import { fixtureLanguageChecker } from './llm/check-language.js';
+import { claudeDeckMaker, claudeLanguageChecker, claudeUseItJudge } from './llm/claude.js';
 import { fixtureDeckMaker, fixtureUseItJudge } from './llm/fixture.js';
 import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
@@ -35,6 +36,7 @@ const app = createApp({
   deckMaker,
   deckJobs: await createQueuedDeckJobs(boss, db, { profiles, decks, deckMaker }),
   cards: createCardsStore(db),
+  languageChecker: env.ANTHROPIC_API_KEY ? claudeLanguageChecker(env.ANTHROPIC_API_KEY) : fixtureLanguageChecker,
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
   wordTests: createWordTestStore(db),
   // No key = a typed language gets no word test (the listed 13 always have one).

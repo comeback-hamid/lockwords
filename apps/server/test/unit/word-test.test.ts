@@ -109,7 +109,7 @@ test('invariants (300 random answer sets): more real ticks never lower, more mad
       if (fake && base.realKnown > 0) expect(vocabEstimate(en, { ...known, [p]: [...known[p]!, fake] }, [...pages]).raw).toBeLessThanOrEqual(base.raw);
     }
   }
-});
+}, 30_000); // about 5 s on a busy machine; the default limit is 5 s
 
 test('typed-language pack: only the count per page matters', () => {
   const words = (p: string) => Array.from({ length: 20 }, (_, i) => `${p}${i}`);

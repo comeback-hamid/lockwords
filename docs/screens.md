@@ -11,6 +11,8 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 |---|---|---|
 | O1 | I’m learning | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-475) |
 | O1b | I’m learning · Other | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-756) |
+| O1b · Did you mean | Typed language looks misspelled | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2043-2226) |
+| O1b · Not recognised | Typed text is not a language (iOS alert) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2043-2306) |
 | O1c | I speak | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=134-1542) |
 | O2 | Welcome | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-611) |
 | O3 | Level | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-115) |
