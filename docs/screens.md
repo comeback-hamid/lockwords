@@ -17,7 +17,10 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 | O4 | Word test · Basic | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-395) |
 | O5 | Word test · Intermediate | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1440) |
 | O6 | Word test · Advanced | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1615) |
+| O6b | Word test · Expert (only after 15+ advanced words) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2193) |
 | O7 | Your estimate | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1870) |
+| O7b | Your estimate · Starting fresh | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2277) |
+| O7c | Were you guessing? (Try again) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2308) |
 | O8 | Goal | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-263) |
 | O9 | Interests | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=28-618) |
 | O10 | Kai · Hello, your name | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-1926) |
