@@ -24,6 +24,8 @@ export function KaiCanvas({ state, playKey, progress, still, width }: KaiCanvasP
   const font = useMemo(() => matchFont({ fontFamily: 'Menlo', fontSize: 4.5, fontWeight: 'bold' }), []);
 
   const picture = useDerivedValue(() => {
+    // Kai's memory lives on the UI thread only: Worklets freezes objects seen on the JS thread.
+    if (!(globalThis as { _WORKLET?: boolean })._WORKLET) return createPicture(() => {}, { width, height });
     let m = memory.value;
     if (!m) {
       m = createMemory();

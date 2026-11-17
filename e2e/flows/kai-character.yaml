@@ -1,0 +1,34 @@
+# Live Kai (kai-character): O2 waves, tapping Kai waves again, then the chat header Kai moves with each step.
+# Needs the local stack (server + Supabase login). Dev build only.
+appId: com.comebackhamid.lockwords
+tags:
+  - kai
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: kai-character
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+- assertVisible: "What language do you speak?"
+- tapOn: "English"
+- tapOn: "Continue"
+# O2: Kai waves when the screen opens, rests, and waves again when tapped
+- assertVisible: "Learn a word every time you unlock."
+- assertVisible: "Kai"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Kai"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Kai"
+- waitForAnimationToEnd:
+    timeout: 3000
+# The whole onboarding again, to see the live Kai in the chat header (greeting, listening, thinking, celebrate)
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- runFlow: ../subflows/finish-onboarding.yaml
+- assertVisible: "Review"
+- stopRecording
