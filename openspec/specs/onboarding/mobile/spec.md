@@ -53,30 +53,54 @@ O3 SHALL show the title "Your <language> level" and five options with a level ma
 - **THEN** O8 Goal shows (no word test, no estimate)
 
 ### Requirement: O4–O6 Word test
-For a language with a test, the app SHALL show three screens "Tap the words you know" (BASIC · 1 OF 3, INTERMEDIATE · 2 OF 3, ADVANCED · 3 OF 3) with the server's words as chips. A tapped chip turns green with a check; tapping again clears it. The right label shows "N SELECTED". The link "I don't know any of these" clears this screen's chips and continues. States: loading (chips area shows a quiet loading line), error (a short message and a "Try again" button), empty and locked do not apply.
+For a language with a test, the app SHALL show "Tap the words you know" pages with the server's words as chips: BASIC WORDS, INTERMEDIATE WORDS, then ADVANCED and EXPERT WORDS only when the server says so. Each page shows "Only tap words you know the meaning of. Some are made up." and "N SELECTED". A tapped word turns green with no check mark; a reading shows under a word that has one. States: loading, error with "Try again"; empty and locked do not apply.
 
 #### Scenario: Select and count
 - **WHEN** the user taps three chips
-- **THEN** the three chips are green and the label reads "3 SELECTED"
+- **THEN** the three chips have a green background, no check mark, and the label reads "3 SELECTED"
 
 #### Scenario: I don't know any
-- **WHEN** the user taps "I don't know any of these" on the basic screen
-- **THEN** no basic word counts as known and the intermediate screen shows
+- **WHEN** the user taps "I don't know any of these" on the BASIC WORDS page
+- **THEN** no basic word counts as known and the INTERMEDIATE WORDS page shows
+
+#### Scenario: Short test
+- **WHEN** the server answers `next: null` after page B
+- **THEN** the result page shows; no ADVANCED page
+
+#### Scenario: Long test
+- **WHEN** the server answers `next: "C"` and later `next: "D"`
+- **THEN** the ADVANCED WORDS page shows, then the EXPERT WORDS page, then the result
+
+#### Scenario: Words below the screen
+- **WHEN** some chips are below the screen and were never on screen
+- **THEN** the button reads "See all words ↓" and scrolls down instead of moving on
 
 #### Scenario: Language without a test
 - **WHEN** the server says the language has no test
-- **THEN** the app goes from O3 to O8 with no word test and no estimate
+- **THEN** the app goes from O3 to O8 with no word test and no result page
 
 #### Scenario: Server error
-- **WHEN** the word test cannot be loaded
+- **WHEN** the word test or the next page cannot be loaded
 - **THEN** a message and "Try again" show; tapping it loads again
 
 ### Requirement: O7 Your estimate
-After the advanced screen the app SHALL ask the server for the estimate and show: Kai celebrating, "YOU ALREADY KNOW", "≈ N" with a thousands comma, "of the 5,000 most common <language> words", and the CEFR pill. States: loading (number hidden, quiet loading line), error (message + "Try again").
+After the last page the app SHALL ask the server for the estimate and show: Kai in the celebrate pose, "YOU ALREADY KNOW", "≈ N" with a thousands comma (or "5,000+"), counting up from 0, "of the 5,000 most common <language> words", the chip "About level X", and "An estimate from your word test." States: loading (number hidden, quiet loading line), error (message + "Try again").
 
 #### Scenario: Show the estimate
-- **WHEN** the server answers `{ knownWords: 1850, outOf: 5000, cefr: "A2+" }`
-- **THEN** the screen shows "1,850", "of the 5,000 most common Spanish words" and "A2+"
+- **WHEN** the server answers `{ words: 4700, plus: false, cefr: "C1" }`
+- **THEN** the screen shows "≈ 4,700", "of the 5,000 most common Spanish words" and "About level C1"
+
+#### Scenario: Top of the scale
+- **WHEN** the server answers `{ words: 5000, plus: true, cefr: "C2" }`
+- **THEN** the number reads "5,000+"
+
+#### Scenario: Starting fresh
+- **WHEN** the server answers `startingFresh: true`
+- **THEN** the screen shows "You're starting fresh" and no number
+
+#### Scenario: A made-up word was ticked
+- **WHEN** `fakesTicked` is 1 or more and the result is shown
+- **THEN** a short note says some ticked words were made up, so the number was lowered
 
 ### Requirement: O8 Goal
 O8 "Why are you learning?" SHALL list Travel, Work, Move abroad, Family & friends, Keep my brain active, School and Other, each with an icon. One can be selected. Other shows a text box.
@@ -159,3 +183,18 @@ The deck page SHALL show the deck title and its words with translations. States:
 #### Scenario: List
 - **WHEN** the deck has 10 cards
 - **THEN** 10 rows show, each with the word and its translation
+
+### Requirement: Try again after guessing
+When the server answers `reliable: false` for the first time, the app SHALL show a screen with two buttons before the result: "Try again" (clears every answer and goes back to the BASIC WORDS page) and "Show my result". A second unreliable result shows the number with no such screen.
+
+#### Scenario: First unreliable result
+- **WHEN** the estimate answers `reliable: false` for the first time
+- **THEN** the Try again screen shows, not the number
+
+#### Scenario: Show my result
+- **WHEN** the user taps "Show my result"
+- **THEN** the result page shows the number and the made-up words note
+
+#### Scenario: Second try
+- **WHEN** the user tapped "Try again" and the new result is unreliable again
+- **THEN** the result page shows at once
