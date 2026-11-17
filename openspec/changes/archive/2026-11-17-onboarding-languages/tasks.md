@@ -18,7 +18,7 @@ Not done: the O1 and O1c frames in Figma still show the old 4-language list; onl
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/roadmap.md`: this change's line (in progress at the draft PR, merged at the end).
+- [x] 3.1 `docs/roadmap.md`: this change's line (in progress at the draft PR, merged at the end).
 
 ## Workflow follow-up
 
