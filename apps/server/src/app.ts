@@ -4,10 +4,12 @@ import { requireUser, type AuthSettings } from './auth.js';
 import type { DeckJobs } from './decks/jobs.js';
 import { health } from './routes/health.js';
 import type { DeckMaker, NewCard } from './llm/make-deck.js';
+import type { LanguageChecker } from './llm/check-language.js';
 import type { UseItJudge } from './llm/use-it.js';
 import type { Profile } from './onboarding/profile.js';
 import type { CardState } from './review/srs.js';
 import { deckRoutes, type Deck } from './routes/decks.js';
+import { languageRoutes } from './routes/languages.js';
 import { meRoutes } from './routes/me.js';
 import { onboardingRoutes } from './routes/onboarding.js';
 import { reviewRoutes } from './routes/review.js';
@@ -34,7 +36,7 @@ export type CardsStore = {
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; deckJobs?: DeckJobs; deckWaitMs?: number };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; deckJobs?: DeckJobs; deckWaitMs?: number; languageChecker?: LanguageChecker };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -43,6 +45,7 @@ export function createApp(deps?: AppDeps) {
   app.use('/v1/*', requireUser(deps));
   app.route('/v1', meRoutes(deps?.users));
   app.route('/v1', onboardingRoutes(deps?.users, deps?.profiles));
+  app.route('/v1', languageRoutes(deps?.languageChecker));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });

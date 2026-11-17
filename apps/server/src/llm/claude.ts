@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 
+import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
 import { CardsSchema, DECK_SIZE, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
 
@@ -58,4 +59,9 @@ export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJ
         UseItSchema,
       ),
   };
+}
+
+export function claudeLanguageChecker(apiKey: string, fetchFn: Fetch = fetch): LanguageChecker {
+  const ask = asker(apiKey, fetchFn);
+  return { check: (text) => ask(checkLanguagePrompt(text), LanguageCheckSchema) };
 }

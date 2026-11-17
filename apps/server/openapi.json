@@ -191,24 +191,20 @@
                 "movies",
                 "books",
                 "sports",
-                "fitness",
                 "health",
                 "nature",
                 "animals",
                 "art",
-                "fashion",
-                "gaming",
                 "news",
                 "family",
                 "friends_dating",
                 "shopping",
-                "cooking",
                 "money",
                 "culture"
               ]
             },
             "minItems": 1,
-            "maxItems": 24
+            "maxItems": 5
           }
         },
         "required": [
@@ -220,6 +216,62 @@
           "goal",
           "goalOther",
           "interests"
+        ]
+      },
+      "LanguageCheckResult": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": [
+              "match",
+              "suggestion",
+              "unknown"
+            ]
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
+          }
+        },
+        "required": [
+          "result",
+          "language"
+        ]
+      },
+      "Language": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "listed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "listed"
+        ]
+      },
+      "CheckFailed": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "check_failed"
+            ]
+          }
+        },
+        "required": [
+          "error"
         ]
       },
       "DeckIdeas": {
@@ -527,20 +579,6 @@
           "movedUp",
           "stage"
         ]
-      },
-      "CheckFailed": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "enum": [
-              "check_failed"
-            ]
-          }
-        },
-        "required": [
-          "error"
-        ]
       }
     },
     "parameters": {}
@@ -743,6 +781,77 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/languages/check": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "match, suggestion (did you mean) or unknown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanguageCheckResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The AI call failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckFailed"
                 }
               }
             }

@@ -24,7 +24,11 @@ Every question screen SHALL show a back button (not on O1), a progress bar and a
 - **THEN** O1 shows Spanish still selected
 
 ### Requirement: O1 and O1c language screens
-O1 "What do you want to learn?" SHALL list Spanish, Japanese, Korean, Arabic and Other. O1c "What language do you speak?" SHALL list English, Spanish, Persian, Arabic and Other. One option can be selected. Picking Other SHALL show a text box (O1b). Continue SHALL be off until an option is picked and, for Other, the box has text.
+O1 "What do you want to learn?" and O1c "What language do you speak?" SHALL each list English, Spanish, French, German, Italian, Portuguese, Russian, Arabic, Persian, Turkish, Japanese, Chinese, Korean, then Other, with code badges. The list SHALL scroll; Continue stays visible. One option can be picked. Other SHALL show a text box (O1b). Continue SHALL be off until an option is picked and, for Other, the box has text. The server gets the code for a listed language, the name for a typed one.
+
+#### Scenario: Thirteen languages and Other
+- **WHEN** O1 or O1c shows
+- **THEN** the 13 languages show in that order, then Other
 
 #### Scenario: Pick a listed language
 - **WHEN** the user taps Spanish
@@ -33,6 +37,10 @@ O1 "What do you want to learn?" SHALL list Spanish, Japanese, Korean, Arabic and
 #### Scenario: Other needs text
 - **WHEN** the user taps Other and the box is empty
 - **THEN** Continue is off; after typing "Swedish" it is on
+
+#### Scenario: Last language reachable
+- **WHEN** the screen is too short for the whole list
+- **THEN** the user can scroll to Korean and Other, and Continue stays visible
 
 ### Requirement: O2 Welcome
 O2 SHALL show the Lockwords logo, a phone with a lock-screen word card, Kai, the title "Your words, on your lock screen.", the line "Learn a word every time you unlock." and the button "Get started".
@@ -79,18 +87,34 @@ After the advanced screen the app SHALL ask the server for the estimate and show
 - **THEN** the screen shows "1,850", "of the 5,000 most common Spanish words" and "A2+"
 
 ### Requirement: O8 Goal
-O8 "Why are you learning?" SHALL list Travel, Work, Move abroad, Family & friends, Keep my brain active, School and Other, each with an icon. One can be selected. Other shows a text box.
+O8 "Why are you learning?" SHALL list Travel, Work, Move abroad, Family & friends, Keep my brain active, School and Other, each with an icon. One can be selected. Continue is off until one is selected. Other shows a text box labelled "YOUR REASON" under the list (Figma O8b), up to 80 characters, and Continue stays off until it has text. Empty, loading, error and locked states do not apply.
 
 #### Scenario: Pick a goal
 - **WHEN** the user taps Travel
 - **THEN** Travel is selected and Continue is on
 
+#### Scenario: Other needs a reason
+- **WHEN** the user taps Other
+- **THEN** a text box labelled "YOUR REASON" shows and Continue is off
+
+#### Scenario: Other with a reason
+- **WHEN** the user taps Other, types "For my grandmother" and taps Continue
+- **THEN** the goal `other` with the text "For my grandmother" is kept and O9 Interests shows
+
+#### Scenario: Leaving Other hides the box
+- **WHEN** the user taps Other, then taps Work
+- **THEN** the text box is gone and Continue is on
+
 ### Requirement: O9 Interests
-O9 "What are you into?" SHALL show 24 tiles in three columns (Food, Travel, Work, Business, Tech, Science, Music, Movies, Books, Sports, Fitness, Health, Nature, Animals, Art, Fashion, Gaming, News, Family, Friends & dating, Shopping, Cooking, Money, Culture). Many can be selected. A label shows "N SELECTED". Continue is off with none selected.
+O9 "What are you into?" SHALL show 20 tiles in three columns (Food, Travel, Work, Business, Tech, Science, Music, Movies, Books, Sports, Health, Nature, Animals, Art, News, Family, Friends & dating, Shopping, Money, Culture). The user picks 1 to 5. A label shows "N SELECTED". Continue is off with none selected. Empty, loading and locked states do not apply; the save error is in "Finishing saves the profile".
 
 #### Scenario: Select tiles
 - **WHEN** the user taps Food and Music
 - **THEN** both tiles are green with a check and the label reads "2 SELECTED"
+
+#### Scenario: Twenty tiles
+- **WHEN** O9 shows
+- **THEN** there are 20 tiles and none of them is Cooking, Fitness, Fashion or Gaming
 
 ### Requirement: Finishing saves the profile
 Tapping Continue on O9 SHALL send the answers to the server. On success the app shows the Kai chat (O10). On failure it stays on O9 and shows "Could not save. Try again." with the button still usable. Onboarding is remembered as finished only at the end of the Kai chat.
@@ -159,3 +183,76 @@ The deck page SHALL show the deck title and its words with translations. States:
 #### Scenario: List
 - **WHEN** the deck has 10 cards
 - **THEN** 10 rows show, each with the word and its translation
+
+### Requirement: O9 five picked
+When 5 interests are picked, O9 SHALL fade every other tile, make it not tappable (reported as disabled), and show the label "5 OF 5 PICKED" (Figma O9b). A picked tile can still be tapped to unpick it. Then the other tiles can be picked again and the label goes back to "4 SELECTED".
+
+#### Scenario: Fifth pick locks the rest
+- **WHEN** the user picks Food, Travel, Music, Movies and Books
+- **THEN** the label reads "5 OF 5 PICKED" and every other tile is disabled
+
+#### Scenario: A sixth tap does nothing
+- **WHEN** 5 are picked and the user taps Work
+- **THEN** Work is not picked and the label still reads "5 OF 5 PICKED"
+
+#### Scenario: Unpick frees the rest
+- **WHEN** 5 are picked and the user taps Books
+- **THEN** Books is not picked, the label reads "4 SELECTED" and Work can be picked
+
+### Requirement: O1c blocks the language being learned
+O1c SHALL NOT accept the language picked on O1. When the picked (or typed and checked) language is the same as the one being learned, Continue SHALL be off and the line "You're learning <language>. Pick the language you already speak." SHALL show.
+
+#### Scenario: Same listed language
+- **WHEN** the user picked Spanish on O1 and taps Spanish on O1c
+- **THEN** the line "You're learning Spanish. Pick the language you already speak." shows and Continue is off
+
+#### Scenario: Pick another
+- **WHEN** the user then taps English
+- **THEN** the line goes away and Continue is on
+
+#### Scenario: Typed name is the learned language
+- **WHEN** the user learns Spanish, types "spanish" in Other on O1c and taps Continue
+- **THEN** the check maps it to Spanish, the same line shows and the app stays on O1c
+
+### Requirement: Typed language is checked
+On O1 and O1c, tapping Continue with Other SHALL send the typed text to the server's language check. While it runs, Continue SHALL show it is busy and SHALL NOT take a second tap.
+
+#### Scenario: Busy
+- **WHEN** the user taps Continue with "swedish" typed and the server has not answered yet
+- **THEN** Continue shows it is busy and a second tap sends nothing
+
+### Requirement: A matched language goes on
+When the check answers match, the app SHALL save that language and go on: a listed language as the listed choice, any other with the server's English name.
+
+#### Scenario: Typed name of a listed language
+- **WHEN** the user types "spanish" and taps Continue, and the server answers match Spanish (`es`)
+- **THEN** the learning answer is `{ code: "es", name: "Spanish" }` and O1c shows
+
+#### Scenario: Real language
+- **WHEN** the user types "swedish" and the server answers match Swedish (`sv`, not listed)
+- **THEN** the learning answer is `{ code: null, name: "Swedish" }` and O1c shows
+
+### Requirement: Did you mean
+When the check answers suggestion, the app SHALL stay and show a box "Did you mean <name>?" with the button "Yes, <name>". Tapping it SHALL save that language and go on. Editing the text SHALL hide the box.
+
+#### Scenario: Accept the suggestion
+- **WHEN** the user types "spansh" and the server answers suggestion Spanish
+- **THEN** "Did you mean Spanish?" shows; tapping "Yes, Spanish" saves Spanish and O1c shows
+
+#### Scenario: Edit instead
+- **WHEN** the box shows and the user changes the text
+- **THEN** the box goes away
+
+### Requirement: Not recognised pop-up
+When the check answers unknown, the app SHALL show a pop-up "We didn't recognise this language. Please check the spelling or pick one from the list." with OK, and stay on the screen with the text kept.
+
+#### Scenario: Not a language
+- **WHEN** the user types "qwzx" and the server answers unknown
+- **THEN** the pop-up shows with the message and OK, and the app stays on the screen
+
+### Requirement: A failed check does not block
+When the check fails (network or server error), the app SHALL save the typed text as typed and go on.
+
+#### Scenario: Check fails
+- **WHEN** the server cannot be reached
+- **THEN** the typed text is saved as typed and the next screen shows

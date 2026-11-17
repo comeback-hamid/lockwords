@@ -11,6 +11,8 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 |---|---|---|
 | O1 | I’m learning | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-475) |
 | O1b | I’m learning · Other | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-756) |
+| O1b · Did you mean | Typed language looks misspelled | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2043-2226) |
+| O1b · Not recognised | Typed text is not a language (iOS alert) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2043-2306) |
 | O1c | I speak | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=134-1542) |
 | O2 | Welcome | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-611) |
 | O3 | Level | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-115) |
@@ -19,7 +21,9 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 | O6 | Word test · Advanced | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1615) |
 | O7 | Your estimate | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1870) |
 | O8 | Goal | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-263) |
-| O9 | Interests | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=28-618) |
+| O8b | Goal · Other (Your reason) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2020-2129) |
+| O9 | Interests (20, pick 1–5) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=28-618) |
+| O9b | Interests · 5 of 5 picked | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2020-1974) |
 | O10 | Kai · Hello, your name | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-1926) |
 | O10b | Kai · Chat language | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-2010) |
 | O10c | Kai · What I do, pick your words | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=239-2123) |

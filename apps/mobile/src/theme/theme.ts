@@ -31,6 +31,9 @@ export const levelColors = ['#eff2f5', '#aceebb', '#6fdd8b', '#4ac26b', '#2da44e
 
 export const space = { 4: 4, 8: 8, 12: 12, 16: 16, 24: 24, 32: 32, 48: 48 } as const;
 
+// A control that cannot be used right now (Figma O9b: tiles once 5 are picked).
+export const opacity = { disabled: 0.4 } as const;
+
 export const radius = { badge: 6, control: 12, sheet: 16, card: 20, pill: 999 } as const;
 
 export const layout = {
