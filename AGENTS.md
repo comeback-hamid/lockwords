@@ -1,6 +1,6 @@
 # Lockwords: rules for every agent
 
-Lockwords is a minimal flashcard app for any language: personal decks made by chatting with Kai, fast-swipe review (spaced repetition), hard words on the lock screen, Use it, and Speak.
+Lockwords is a minimal flashcard app for any language: personal decks made by chatting with Kai, fast-swipe review (spaced repetition), hard words on the lock screen, and Use it. v1 tabs: New words · Review · Progress. Speak comes after v1.
 Hamid decides **what** to build and what **done** means. Agents build, test and check. Fatima keeps the code clean.
 
 ## Read first
@@ -35,6 +35,8 @@ More than ~10 tasks in a change → split it.
 - `npx expo install <pkg>` in `apps/mobile`, never `npm install <pkg>` there.
 - Colors, type and sizes come from `apps/mobile/src/theme/theme.ts`. No raw values in screens.
 - Plain English in docs and specs. Short sentences.
+- Keep `docs/roadmap.md` true, in every session: the PR that finishes, starts or drops work also updates its status rows, "Where we are", "Merged so far" and the "Last updated" line. Read it at the start of a session; if it is behind `git log`, fix it first.
+- Fix what you can now. `docs/tech-debt.md` is only for work blocked on Hamid (an account, a key, a design, a decision), and says which.
 - A skipped part is written in `tasks.md` as "Not done: <what>, <why>". No silent gaps.
 - Better idea than this file or the dev guide? Tell Hamid what and why, then wait for his OK. Never change the plan quietly.
 - Add a line to this file only when an agent makes the same mistake twice.
