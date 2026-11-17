@@ -8,7 +8,8 @@ Hamid decides **what** to build and what **done** means. Agents build, test and 
 2. `docs/screens.md`: every Figma screen with a link. **Figma wins** over all docs.
 3. `docs/dev-guide.html`: the full way we build (stack, loop, tests, ship).
 4. `docs/roadmap.md`: what we build next.
-5. The app's own `CLAUDE.md` (`apps/mobile/`, `apps/server/`) for commands and layers.
+5. `docs/vocab-engine.md`: **the rule for every word we show.** How the word test picks words, how it scores what a learner knows, and how a deck picks words for a level. Read it before touching the word test, the estimate, or deck making. Never invent another method.
+6. The app's own `CLAUDE.md` (`apps/mobile/`, `apps/server/`) for commands and layers.
 
 ## Repo map
 ```

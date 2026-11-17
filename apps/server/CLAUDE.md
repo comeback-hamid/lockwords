@@ -26,6 +26,7 @@ Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` a
 - Migrations are add-only. Drop or rename in a later deploy.
 - AI keys live only here. Every model call has a timeout and a user message. A failed call saves nothing.
 - Slow AI work is a pg-boss job, not a web request: see `src/decks/jobs.ts` (the job, and an inline runner for tests) and `src/decks/queued-jobs.ts` (the real queue). The row's own status tells the app how the job is doing.
+- Word test, estimate and deck word choice follow `docs/vocab-engine.md` (scoring code in its section 1.5, deck bands in 2.1–2.2). Today's `src/onboarding/word-test.ts` is an older stand-in that does not follow it yet (roadmap epic 1, `vocab-engine`).
 - Tests never call a real model. One fixture replaces Langfuse and the model.
 - Each user reads only their own rows. Keep Speak text, never audio.
 - The server checks the Supabase token (`src/auth.ts`) on every `/v1/*` route. No other Supabase parts. Never log a token.
