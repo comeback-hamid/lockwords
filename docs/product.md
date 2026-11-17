@@ -17,6 +17,7 @@ This file is the big picture: **why** Lockwords exists, **who** it is for, **wha
 | `docs/design/speak-prototype.html` | Motion prototype of the Speak talk. |
 | `docs/design/pixel-meadow.html` | Pixel meadow for My words. |
 | `docs/design/ILLUSTRATION-STYLE.md` | The one picture style for card and deck pictures. |
+| `docs/product-review.md` | The Review page in detail (card round, swipes, Use it). The onboarding practice reuses it. |
 
 ---
 

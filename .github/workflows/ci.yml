@@ -58,5 +58,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Fails on high and critical advisories. Skips picomatch (see scripts/audit.mjs for why).
       - name: npm audit (high and critical)
-        run: npm audit --audit-level=high --omit=dev
+        run: npm run audit
+      - name: script tests (audit rule, docs pages)
+        run: npm run test:scripts

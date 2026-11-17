@@ -220,6 +220,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/languages/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description match, suggestion (did you mean) or unknown */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LanguageCheckResult"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The AI call failed */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckFailed"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/deck-ideas": {
         parameters: {
             query?: never;
@@ -755,6 +823,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/kai/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["KaiReplyRequest"];
+                };
+            };
+            responses: {
+                /** @description The text answers the step (answer), or Kai answers it (lines) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiReply"];
+                    };
+                };
+                /** @description Unknown step, or text empty or too long */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The AI call failed; the app takes the text as the answer */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiUnavailable"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -797,7 +931,21 @@ export interface components {
             /** @enum {string} */
             goal: "travel" | "work" | "move_abroad" | "family_friends" | "brain" | "school" | "other";
             goalOther: string | null;
-            interests: ("food" | "travel" | "work" | "business" | "tech" | "science" | "music" | "movies" | "books" | "sports" | "fitness" | "health" | "nature" | "animals" | "art" | "fashion" | "gaming" | "news" | "family" | "friends_dating" | "shopping" | "cooking" | "money" | "culture")[];
+            interests: ("food" | "travel" | "work" | "business" | "tech" | "science" | "music" | "movies" | "books" | "sports" | "health" | "nature" | "animals" | "art" | "news" | "family" | "friends_dating" | "shopping" | "money" | "culture")[];
+        };
+        LanguageCheckResult: {
+            /** @enum {string} */
+            result: "match" | "suggestion" | "unknown";
+            language: components["schemas"]["Language"];
+        };
+        Language: {
+            code: string;
+            name: string;
+            listed: boolean;
+        } | null;
+        CheckFailed: {
+            /** @enum {string} */
+            error: "check_failed";
         };
         DeckIdeas: {
             ideas: string[];
@@ -871,9 +1019,24 @@ export interface components {
             movedUp: boolean;
             stage: number;
         };
-        CheckFailed: {
+        KaiReply: {
+            /** @enum {boolean} */
+            onScript: true;
+            answer: string;
+        } | {
+            /** @enum {boolean} */
+            onScript: false;
+            lines: string[];
+        };
+        KaiUnavailable: {
             /** @enum {string} */
-            error: "check_failed";
+            error: "kai_unavailable";
+        };
+        KaiReplyRequest: {
+            /** @enum {string} */
+            step: "name" | "language" | "topic" | "proposed" | "generating" | "ready";
+            text: string;
+            options?: string[];
         };
     };
     responses: never;

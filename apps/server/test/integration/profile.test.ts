@@ -29,7 +29,7 @@ const body = {
   cefr: null,
   goal: 'other',
   goalOther: 'For my grandmother',
-  interests: ['family', 'cooking'],
+  interests: ['family', 'food'],
 };
 
 test('saving twice leaves one row with the new values, even before /v1/me was ever called', async () => {

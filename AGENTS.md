@@ -9,7 +9,8 @@ Hamid decides **what** to build and what **done** means. Agents build, test and 
 3. `docs/dev-guide.html`: the full way we build (stack, loop, tests, ship).
 4. `docs/roadmap.md`: what we build next.
 5. `docs/vocab-engine.md`: **the rule for every word we show.** How the word test picks words, how it scores what a learner knows, and how a deck picks words for a level. Read it before touching the word test, the estimate, or deck making. Never invent another method.
-6. The app's own `CLAUDE.md` (`apps/mobile/`, `apps/server/`) for commands and layers.
+6. `docs/parallel-work.md`: **how many sessions work at once.** Read it before you start, every session.
+7. The app's own `CLAUDE.md` (`apps/mobile/`, `apps/server/`) for commands and layers.
 
 ## Repo map
 ```
@@ -40,6 +41,7 @@ More than ~10 tasks in a change → split it.
 - Fix what you can now. `docs/tech-debt.md` is only for work blocked on Hamid (an account, a key, a design, a decision), and says which.
 - A skipped part is written in `tasks.md` as "Not done: <what>, <why>". No silent gaps.
 - Better idea than this file or the dev guide? Tell Hamid what and why, then wait for his OK. Never change the plan quietly.
+- Skip every `picomatch` security warning (Hamid, 2026-11-17). The security check is `npm run audit`, which skips it; never run plain `npm audit` as a gate, and never "fix" it with `npm audit fix --force`. Any other high or critical warning still blocks.
 - Add a line to this file only when an agent makes the same mistake twice.
 
 ## Never
@@ -73,7 +75,17 @@ Code says → users see. Never mix them.
 - Branches: `feature/<name>`, `fix/<name>`, `refactor/<name>`, `clean-code/<name>`, `docs/<name>`. Always from a fresh `origin/main`.
 - PR titles: `<emoji> <Name>` (feature), `🔧 Fix | <emoji> <Name>`, `🚧 Refactor | …`, `🧹 Clean Code | …`, `🗂️ Docs | …`.
 - Commits: `feat:` `fix:` `test:` `docs:` `refactor:`. Squash merge only. Never merge red.
-- Two agents at once only in separate worktrees, touching different files.
+
+## Parallel work (many sessions at once)
+Full rules and the conflict guide: `docs/parallel-work.md`. The short form:
+- One session = one worktree = one branch = one PR. Never use another session's folder or branch.
+- Split by area. A session owns its screens, routes, tests and e2e flow. No two sessions own the same file.
+- Shared parts (a table, an endpoint, a chat part, the tab layout, theme) go first in a small PR of their own.
+- Small PRs, merged often. Start from a fresh `origin/main`; merge `origin/main` again before the PR and run every check again.
+- Generated files (`openapi.json`, `schema.ts`, `docs/*.html`) are made again, never merged by hand. A clashing migration is made again on top of main.
+- Maestro: one run per simulator at a time. Use your own `MAESTRO_DEVICE` and Metro port, or take turns.
+- Two sessions disagree on how something works → stop and ask Hamid.
+- Starting another session? Its brief names its area, the files it owns, and links `docs/parallel-work.md`.
 
 ## Network note (Iran, VPN off, tested 2026-11-16)
 Blocked: Firebase, Expo push, Anthropic API, GitHub API. Working: Supabase, RevenueCat, PostHog, EAS Update.

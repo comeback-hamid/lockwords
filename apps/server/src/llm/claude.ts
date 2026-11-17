@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 
+import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
 import { CardsSchema, DECK_SIZE, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
@@ -59,6 +60,11 @@ export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJ
         UseItSchema,
       ),
   };
+}
+
+export function claudeLanguageChecker(apiKey: string, fetchFn: Fetch = fetch): LanguageChecker {
+  const ask = asker(apiKey, fetchFn);
+  return { check: (text) => ask(checkLanguagePrompt(text), LanguageCheckSchema) };
 }
 
 // Kai reads typed text in a Kai chat: Haiku 5.5 (the learner waits, so speed over depth), 8 s.

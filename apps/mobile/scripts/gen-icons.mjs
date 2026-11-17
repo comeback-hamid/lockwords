@@ -9,9 +9,9 @@ const ICONS = {
   back: 'chevron-left', pencil: 'pencil', check: 'check', send: 'arrow-up', mic: 'unmute', generate: 'zap', close: 'x', speaker: 'unmute',
   travel: 'paper-airplane', work: 'briefcase', globe: 'globe', people: 'people', bulb: 'light-bulb', school: 'mortar-board',
   food: 'flame', business: 'graph', tech: 'cpu', science: 'telescope', music: 'play', movies: 'video', books: 'book',
-  sports: 'trophy', fitness: 'pulse', health: 'heart', nature: 'sun', animals: 'squirrel', art: 'paintbrush', fashion: 'tag',
-  gaming: 'device-desktop', news: 'megaphone', family: 'home', friends: 'comment-discussion', shopping: 'package',
-  cooking: 'beaker', money: 'credit-card', culture: 'milestone', lock: 'lock', thumbsup: 'thumbsup', sparkle: 'sparkle', stack: 'stack', home: 'home', left: 'arrow-left', right: 'arrow-right', up: 'arrow-up', deck: 'copy',
+  sports: 'trophy', health: 'heart', nature: 'sun', animals: 'squirrel', art: 'paintbrush',
+  news: 'megaphone', family: 'home', friends: 'comment-discussion', shopping: 'package',
+  money: 'credit-card', culture: 'milestone', lock: 'lock', thumbsup: 'thumbsup', sparkle: 'sparkle', stack: 'stack', home: 'home', left: 'arrow-left', right: 'arrow-right', up: 'arrow-up', deck: 'copy',
 };
 
 const d = (name, size) => {

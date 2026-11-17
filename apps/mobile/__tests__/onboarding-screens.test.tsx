@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Alert, Keyboard } from 'react-native';
 
 import { api } from '@/auth/boot';
 import EstimateScreen from '@/app/onboarding/estimate';
@@ -15,7 +16,7 @@ import { getAnswers, resetAnswers, setAnswers } from '@/onboarding/store';
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true };
 let mockParams: Record<string, string> = {};
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => mockParams }));
-jest.mock('@/auth/boot', () => ({ api: { fetchWordTest: jest.fn(), fetchEstimate: jest.fn(), saveProfile: jest.fn() } }));
+jest.mock('@/auth/boot', () => ({ api: { fetchWordTest: jest.fn(), fetchEstimate: jest.fn(), saveProfile: jest.fn(), checkLanguage: jest.fn() } }));
 jest.mock('@/onboarding/finished', () => ({ markOnboardingFinished: jest.fn(async () => {}) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
@@ -58,8 +59,10 @@ describe('O1 I’m learning', () => {
     expect(isOff(continueButton())).toBe(true);
     await fireEvent.changeText(screen.getByLabelText('Language name'), 'Swedish');
     expect(isOff(continueButton())).toBe(false);
+    mockApi.checkLanguage.mockResolvedValue({ result: 'match', language: { code: 'sv', name: 'Swedish', listed: false } });
     await fireEvent.press(continueButton());
-    expect(getAnswers().learning).toEqual({ code: null, name: 'Swedish' });
+    await waitFor(() => expect(getAnswers().learning).toEqual({ code: null, name: 'Swedish' }));
+    expect(mockApi.checkLanguage).toHaveBeenCalledWith('Swedish');
   });
 
   test('coming back keeps the answer', async () => {
@@ -69,14 +72,151 @@ describe('O1 I’m learning', () => {
   });
 });
 
-test('O1c I speak lists English, Spanish, Persian, Arabic, Other and goes to Welcome', async () => {
+test('O1c I speak lists the 13 languages and Other, and goes to Welcome', async () => {
   await render(<SpeaksScreen />);
   expect(screen.getByRole('header', { name: 'What language do you speak?' })).toBeOnTheScreen();
-  for (const name of ['English', 'Spanish', 'Persian', 'Arabic', 'Other']) expect(screen.getByRole('radio', { name })).toBeOnTheScreen();
+  expect(screen.getAllByRole('radio').map((r) => r.props.accessibilityLabel)).toEqual([...THIRTEEN, 'Other']);
   await fireEvent.press(screen.getByRole('radio', { name: 'Persian' }));
   await fireEvent.press(continueButton());
   expect(getAnswers().speaks).toEqual({ code: 'fa', name: 'Persian' });
   expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/welcome');
+});
+
+const THIRTEEN = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian', 'Arabic', 'Persian', 'Turkish', 'Japanese', 'Chinese', 'Korean'];
+
+describe('O1 lists and typed language check', () => {
+  const typeOther = async (text: string) => {
+    await fireEvent.press(screen.getByRole('radio', { name: 'Other' }));
+    await fireEvent.changeText(screen.getByLabelText('Language name'), text);
+  };
+
+  test('O1 lists the 13 languages in order, then Other', async () => {
+    await render(<LearningScreen />);
+    expect(screen.getAllByRole('radio').map((r) => r.props.accessibilityLabel)).toEqual([...THIRTEEN, 'Other']);
+  });
+
+  test('a listed language is not checked', async () => {
+    await render(<LearningScreen />);
+    await fireEvent.press(screen.getByRole('radio', { name: 'Korean' }));
+    await fireEvent.press(continueButton());
+    expect(mockApi.checkLanguage).not.toHaveBeenCalled();
+    expect(getAnswers().learning).toEqual({ code: 'ko', name: 'Korean' });
+  });
+
+  test('busy while checking: one call only', async () => {
+    let finish: (v: unknown) => void = () => {};
+    mockApi.checkLanguage.mockReturnValue(new Promise((r) => (finish = r)) as never);
+    await render(<LearningScreen />);
+    await typeOther('swedish');
+    await fireEvent.press(continueButton());
+    const busy = screen.getByRole('button', { name: 'Checking…' });
+    expect(isOff(busy)).toBe(true);
+    await fireEvent.press(busy);
+    expect(mockApi.checkLanguage).toHaveBeenCalledTimes(1);
+    await act(async () => finish({ result: 'match', language: { code: 'sv', name: 'Swedish', listed: false } }));
+    expect(getAnswers().learning).toEqual({ code: null, name: 'Swedish' });
+  });
+
+  test('typed name of a listed language becomes that language', async () => {
+    mockApi.checkLanguage.mockResolvedValue({ result: 'match', language: { code: 'es', name: 'Spanish', listed: true } });
+    await render(<LearningScreen />);
+    await typeOther('spanish');
+    await fireEvent.press(continueButton());
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/speaks'));
+    expect(getAnswers().learning).toEqual(spanish);
+  });
+
+  test('did you mean: accept the suggestion', async () => {
+    mockApi.checkLanguage.mockResolvedValue({ result: 'suggestion', language: { code: 'es', name: 'Spanish', listed: true } });
+    await render(<LearningScreen />);
+    await typeOther('spansh');
+    await fireEvent.press(continueButton());
+    expect(await screen.findByText('Did you mean Spanish?')).toBeOnTheScreen();
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByRole('button', { name: 'Yes, Spanish' }));
+    expect(getAnswers().learning).toEqual(spanish);
+    expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/speaks');
+  });
+
+  test('did you mean: the keyboard closes so the box can be seen', async () => {
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    mockApi.checkLanguage.mockResolvedValue({ result: 'suggestion', language: { code: 'es', name: 'Spanish', listed: true } });
+    await render(<LearningScreen />);
+    await typeOther('spansh');
+    await fireEvent.press(continueButton());
+    await screen.findByText('Did you mean Spanish?');
+    expect(dismiss).toHaveBeenCalled();
+    dismiss.mockRestore();
+  });
+
+  test('did you mean: editing the text hides it', async () => {
+    mockApi.checkLanguage.mockResolvedValue({ result: 'suggestion', language: { code: 'sv', name: 'Swedish', listed: false } });
+    await render(<LearningScreen />);
+    await typeOther('swedsh');
+    await fireEvent.press(continueButton());
+    expect(await screen.findByText('Did you mean Swedish?')).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByLabelText('Language name'), 'swedis');
+    expect(screen.queryByText('Did you mean Swedish?')).toBeNull();
+  });
+
+  test('not a language: the pop-up, and the app stays', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    mockApi.checkLanguage.mockResolvedValue({ result: 'unknown', language: null });
+    await render(<LearningScreen />);
+    await typeOther('qwzx');
+    await fireEvent.press(continueButton());
+    await waitFor(() => expect(alert).toHaveBeenCalled());
+    expect(alert.mock.calls[0]![1]).toBe("We didn't recognise this language. Please check the spelling or pick one from the list.");
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Language name').props.value).toBe('qwzx');
+    alert.mockRestore();
+  });
+
+  test('a failed check keeps the text as typed and goes on', async () => {
+    mockApi.checkLanguage.mockRejectedValue(new Error('request failed'));
+    await render(<LearningScreen />);
+    await typeOther('Klingon ');
+    await fireEvent.press(continueButton());
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/speaks'));
+    expect(getAnswers().learning).toEqual({ code: null, name: 'Klingon' });
+  });
+});
+
+describe('O1c blocks the language being learned', () => {
+  const line = "You're learning Spanish. Pick the language you already speak.";
+  beforeEach(() => setAnswers({ learning: spanish }));
+
+  test('same listed language: the line shows and Continue is off; another one clears it', async () => {
+    await render(<SpeaksScreen />);
+    await fireEvent.press(screen.getByRole('radio', { name: 'Spanish' }));
+    expect(screen.getByText(line)).toBeOnTheScreen();
+    expect(isOff(continueButton())).toBe(true);
+    await fireEvent.press(screen.getByRole('radio', { name: 'English' }));
+    expect(screen.queryByText(line)).toBeNull();
+    expect(isOff(continueButton())).toBe(false);
+  });
+
+  test('typed name that is the learned language: the line shows and the app stays', async () => {
+    mockApi.checkLanguage.mockResolvedValue({ result: 'match', language: { code: 'es', name: 'Spanish', listed: true } });
+    await render(<SpeaksScreen />);
+    await fireEvent.press(screen.getByRole('radio', { name: 'Other' }));
+    await fireEvent.changeText(screen.getByLabelText('Language name'), 'spanish');
+    await fireEvent.press(continueButton());
+    expect(await screen.findByText(line)).toBeOnTheScreen();
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(getAnswers().speaks).toBeNull();
+  });
+
+  test('typed language same as a typed learned language', async () => {
+    setAnswers({ learning: { code: null, name: 'Swedish' } });
+    mockApi.checkLanguage.mockResolvedValue({ result: 'match', language: { code: 'sv', name: 'Swedish', listed: false } });
+    await render(<SpeaksScreen />);
+    await fireEvent.press(screen.getByRole('radio', { name: 'Other' }));
+    await fireEvent.changeText(screen.getByLabelText('Language name'), 'swedish');
+    await fireEvent.press(continueButton());
+    expect(await screen.findByText("You're learning Swedish. Pick the language you already speak.")).toBeOnTheScreen();
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
 });
 
 test('O2 Welcome', async () => {
@@ -221,12 +361,12 @@ test('O8 Goal: seven goals; pick one and continue', async () => {
 describe('O9 Interests', () => {
   beforeEach(() => setAnswers({ learning: spanish, speaks: { code: 'en', name: 'English' }, level: 'brand_new', goal: 'travel' }));
 
-  test('24 tiles; select and count; save; then the Kai chat', async () => {
+  test('20 tiles; select and count; save; then the Kai chat', async () => {
     mockApi.saveProfile.mockImplementation(async (p) => p);
     await render(<InterestsScreen />);
     expect(screen.getByRole('header', { name: 'What are you into?' })).toBeOnTheScreen();
     expect(screen.getByText('8/10')).toBeOnTheScreen();
-    expect(screen.getAllByRole('checkbox')).toHaveLength(24);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(20);
     expect(isOff(continueButton())).toBe(true);
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Food' }));
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Music' }));
