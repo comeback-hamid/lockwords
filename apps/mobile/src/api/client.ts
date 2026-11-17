@@ -5,6 +5,7 @@ import type { components, paths } from './schema';
 export type Me = components['schemas']['Me'];
 export type WordTest = components['schemas']['WordTest'];
 export type Estimate = components['schemas']['Estimate'];
+export type LanguageCheck = components['schemas']['LanguageCheckResult'];
 export type Profile = components['schemas']['Profile'];
 export type Deck = components['schemas']['Deck'];
 export type ProfileChat = components['schemas']['ProfileChat'];
@@ -40,6 +41,9 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     },
     async fetchEstimate(language: string, known: string[]): Promise<Estimate> {
       return unwrap(await client.POST('/v1/word-test/estimate', { body: { language, known } }));
+    },
+    async checkLanguage(name: string): Promise<LanguageCheck> {
+      return unwrap(await client.POST('/v1/languages/check', { body: { name } }));
     },
     async saveChat(chat: ProfileChat): Promise<ProfileChat> {
       return unwrap(await client.PUT('/v1/profile/chat', { body: chat }));
