@@ -12,7 +12,7 @@
 - [x] 2.4 Option move animation (Reanimated, Reduce Motion = no move). Check: tap test passes; looks right on the simulator.
 - [x] 2.5 Talk back: typed text → `kaiReply` → on/off script; fallback. Check: talk-back tests pass.
 - [x] 2.6 Deck card timed progress shared with Kai `making`. Check: progress tests pass.
-- [ ] 2.7 Figma: add frames "O10 · Kai typing" and "O10 · Talk back" to the V1 file; link them in `docs/screens.md`. Check: links open.
+- [x] 2.7 Figma: add frames "O10 · Kai typing" and "O10 · Talk back" to the V1 file; link them in `docs/screens.md`. Check: links open.
 - [ ] 2.8 Maestro: `e2e/flows/kai-chat-live.yaml` (area `kai`): type a question at the name step, see Kai's answer and the question again, type the name, tap an option (it moves up), Generate, bar fills, ready. Update the waits in `e2e/subflows/finish-onboarding.yaml` and `e2e/flows/first-run.yaml`. Records `e2e/videos/kai-chat-live.mp4`. Check: full Maestro run passes; all Jest, typecheck, lint.
 
 - Option move: built simpler than design.md said. The tapped option's bubble rises about 120 points from where the pills were, in 0.3 s (`components/chat/rise-in.tsx`), instead of measuring the pill and moving a copy. Same look in the chat, much less code. Reduce Motion: no move.
