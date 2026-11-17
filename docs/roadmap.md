@@ -1,7 +1,16 @@
 # Roadmap
 
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
-Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12. The riskiest part (the widget) comes first among features.
+Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
+
+**Last updated: 2026-11-17 (after PR #10).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`).
+**v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
+
+## Where we are (short)
+- **Works on the simulator today:** a fresh install → onboarding → Kai chat → first deck → first review round → Use it → hard words → trial reminder → paywall → the three tabs. All of it runs on this Mac only (`npm run dev:up`).
+- **Not real yet:** the AI (a stand-in makes every deck), the paywall (sells nothing), Kai (still pictures), the cloud (nothing is deployed).
+- **Blocked on Hamid:** accounts and keys (DigitalOcean, Supabase, Apple, Google, Expo, RevenueCat, Anthropic).
+- **Next to build without accounts:** the New words tab (epic 4) or the Progress tab (epic 3).
 
 ## Phase 0: Setup (days 1–4)
 
@@ -12,31 +21,46 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | 🟨 local half ✅ 2026-11-16 (`local-backend-and-guest-login`: guest login + token check + `/v1/me`, all on this Mac). Cloud half (DigitalOcean, Supabase cloud, Apple, Google) needs Hamid's accounts. |
 | 0.4 | `widget-spike` | One word from the server on the iPhone lock screen (SwiftUI WidgetKit via config plugin). **If this fails, everything else waits.** | ✅ tested 2026-11-16, not merged (draft PR #3, `expo-widgets`; notes in `docs/spikes/widget/` on that branch). Real widgets = epic 6. |
 
-## Phase 1: Features in order (then daily)
+## Phase 1: Features in order
 
-| # | Epic | Changes (one PR each, names are drafts) | Figma | Status |
-|---|---|---|---|---|
-| 1 | Onboarding + first deck | ✅ `onboarding-profile` (O1–O9, 2026-11-16) · ✅ `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, `make-deck` AI task with a fixture, 2026-11-16) · ✅ `first-review` (O12–O16 as the first Review round + one-time screens, 2026-11-16) · still open: animated Kai, card pictures · `kai-character` (Skia renderer from the spec) · `kai-chat-ui` (Kai header, bubbles, reply options, composer) · `deck-generation` (server: make_deck, checks, pictures) · `onboarding-kai-deck` (O10–O10f) · `onboarding-practice-use-it` (O12–O14) | Onboarding | ⬜ |
-| 2 | Review | 🟨 core done in `first-review` (swipe rules, round, stamps). Open: streak A7, undo, sounds, pictures · `srs-core` (server: stages, due list, new-word queue, swipes) · `review-cards` (A2–A5c, stamps, flip, sound) · `review-done-streak` (A7, A9) | Review | ⬜ |
-| 3 | My words | `my-words-home` (M1: total, meadow, goal grid, word plan) · `decks-and-words` (M2–M3, swipe delete, Recently deleted 30 days) | My words | ⬜ |
-| 4 | New words tab | `new-words-chat` (N1–N4: 3 ready decks, Create) · `own-deck-and-how-do-i-say` (N5–N7) | New words | ⬜ |
-| 5 | Use it | 🟨 done in `first-review` with a stand-in checker (needs the AI key) · `use-it` (A6–A6c: Kai chat, thumbs up, feedback, stage +1 on a good sentence) | Review | ⬜ |
-| 6 | Widgets (full) | `lock-widgets` (inline, rectangular, circular; hard words first) · `home-widgets` (medium, small; App Intents buttons) | Widgets | ⬜ |
-| 7 | Speak | `speak-topics` (SP1–SP2) · `speak-talk` (SP3–SP5, WebRTC, short-lived key, transcript) · `speak-summary` (SP6) · Speak test layers 1→3 | Speak | ⬜ |
-| 8 | Paywall + trial | `paywall` (O15–O16, RevenueCat, test store with no key) · `free-limits` (server) | Onboarding | ⬜ |
-| 9 | Launch prep | analytics events (PostHog) · account delete · export CSV · one performance check · real testimonials · native-speaker voice check | — | ⬜ |
+| # | Epic | Done | Still open | Figma | Status |
+|---|---|---|---|---|---|
+| 1 | Onboarding + first deck | `onboarding-profile` (O1–O9) · `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, first deck) · `first-review` (O12–O16) · `deck-background-job` (deck words made by a pg-boss job, 2026-11-17) | `kai-character` (animated Kai from the spec; today: still pictures) · card and deck pictures · word test for languages other than Spanish · Kai's lines in the user's language · "I have an account" on O1 (needs real sign-in) | Onboarding | 🟨 |
+| 2 | Review | `first-review`: swipe rules on the server, today's round, card round with stamps, flip, speaker · round picked by the database, speaker language kept after a restart (2026-11-17) | `review-done-streak` (A7, A9) · undo for "I know it" (no design yet) · sounds · pictures | Review | 🟨 |
+| 3 | Progress tab | The tab exists with its Figma icon (empty screen, 2026-11-17) | `progress-home` (P1: total, meadow, goal grid, word plan) · `decks-and-words` (P2–P3, swipe delete) | My words | ⬜ |
+| 4 | New words tab | The tab exists with its Figma icon (empty screen) | `new-words-chat` (N1–N4: 3 ready decks, Create) · `own-deck-and-how-do-i-say` (N5–N7) | New words | ⬜ |
+| 5 | Use it | `first-review`: Use it chat (A6–A6c), stage +1 on a good sentence | The real AI check (today a stand-in only checks that the word is in the sentence; needs the Anthropic key) | Review | 🟨 |
+| 6 | Widgets (full) | Spike passed (0.4) | `lock-widgets` (inline, rectangular, circular; hard words first) · `home-widgets` (medium, small; see + open only in v1) | Widgets | ⬜ |
+| 7 | Paywall + trial | `first-review`: the screens (hard words, trial reminder, paywall). **It sells nothing.** | `paywall` (soft: closing = free plan; RevenueCat) · `free-limits` (server) · `sign-in-after-purchase` · needs RevenueCat + Apple accounts | Onboarding | 🟨 |
+| 8 | Web app | — | `web-build` (Expo web: same tabs, no widgets) · web payments (provider is open) | all | ⬜ |
+| 9 | Launch prep | — | analytics events (PostHog) · account delete · one performance check · real testimonials · App Store submission | — | ⬜ |
+
+## Merged so far
+| PR | Date | What |
+|---|---|---|
+| #1, #2, #4 | 2026-11-16 | Repo setup, CI, fonts |
+| #5 | 2026-11-16 | Local backend and guest login |
+| #6 | 2026-11-16 | Onboarding O1–O10f, Kai chat, first deck |
+| #7 | 2026-11-16 | First review round, Use it, hard words, trial and paywall screens |
+| #8 | 2026-11-16 | Old Maestro flows updated; profiles and decks linked to users |
+| #9 | 2026-11-17 | Deck background job, review round in the database, speaker language, Figma tab icons |
+| #10 | 2026-11-17 | Speak tab → Progress tab |
+| #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
-Offline review · Android widget · Easy mode · photo / link / YouTube in the chat box · sharing + web deck maker · the product agent (spec site → Figma check → Q&A box).
+**Speak tab** (voice talks with Kai: `speak-topics`, `speak-talk`, `speak-summary`; Figma page "Speak" in the old file) · Android + Android widget · answering on the widget · offline review · Easy mode · photo / link / YouTube in the chat box · sharing + web deck maker · the product agent (spec site → Figma check → Q&A box).
 
 ## Open decisions (ask Hamid, do not invent)
-From `docs/product.md` section 9, plus what came up while setting up the repo:
 1. Final app name (Lockwords is the working name).
-2. ~~Bundle ID~~ decided 2026-11-16: `com.comebackhamid.lockwords` (Hamid OK).
-3. Launch languages (suggested: Japanese, Korean, Spanish, Quranic Arabic).
-4. Final prices and free limits (current plan: Pro $6.99/month or $39.99/year, 7-day trial).
-5. Easy on a brand-new card: Stage 1 or Stage 2.
-6. Speak typing mode and more talk animations (designed only in part).
-7. Real testimonials and ratings (all current ones are placeholders).
-8. Figma Foundations page still shows the old blue "know" swatch (`#0969da`). The Figma **variable** `signal/know` is `#116329` (green), same as `product.md`. Theme uses green. Fix the swatch in Figma.
-9. Code vocabulary list in `AGENTS.md`: Fatima confirms.
+2. ~~Bundle ID~~ decided 2026-11-16: `com.comebackhamid.lockwords`.
+3. ~~Launch languages~~ decided 2026-11-16: every language, content made on demand.
+4. Final prices (plan: about $4.99/month or $29.99/year, 7-day trial).
+5. Easy on a brand-new card: Stage 1 or Stage 2 (today: Stage 1).
+6. Real testimonials and ratings (the paywall shows none until real ones exist).
+7. Figma Foundations page still shows the old blue "know" swatch (`#0969da`). The Figma **variable** `signal/know` is `#116329` (green). Theme uses green. Fix the swatch in Figma.
+8. Code vocabulary list in `AGENTS.md`: Fatima confirms.
+9. In v1 or later: daily reminder push, export to CSV, Recently deleted (30 days), Report this card.
+10. Web app payment provider.
+11. A standing rule for when an agent may change old tests after an approved spec change.
+12. Use it on every card (today) or only from Stage 3.
+13. Where card and deck pictures come from.
