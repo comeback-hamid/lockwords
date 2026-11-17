@@ -8,6 +8,7 @@ A feature flow records a video for Hamid's approval:
 - stopRecording
 ```
 Flows that call the server need the local stack: `npm run dev:up`. Pick a simulator with `MAESTRO_DEVICE=<udid>`.
+Parallel sessions run their own Metro: `LOCKWORDS_METRO=127.0.0.1:<port> npm run e2e` makes every `launchApp` load the app's code from that port (default 8081).
 Run: `npm run e2e` (all) or `npm run e2e -- --areas review,my-words`. Needs the dev build installed on a booted iOS simulator (`cd apps/mobile && npm run ios`).
 Videos (`e2e/videos/*.mp4`) are not committed; link them in the PR.
 

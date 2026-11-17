@@ -865,7 +865,7 @@ export interface components {
             /** @enum {string} */
             goal: "travel" | "work" | "move_abroad" | "family_friends" | "brain" | "school" | "other";
             goalOther: string | null;
-            interests: ("food" | "travel" | "work" | "business" | "tech" | "science" | "music" | "movies" | "books" | "sports" | "fitness" | "health" | "nature" | "animals" | "art" | "fashion" | "gaming" | "news" | "family" | "friends_dating" | "shopping" | "cooking" | "money" | "culture")[];
+            interests: ("food" | "travel" | "work" | "business" | "tech" | "science" | "music" | "movies" | "books" | "sports" | "health" | "nature" | "animals" | "art" | "news" | "family" | "friends_dating" | "shopping" | "money" | "culture")[];
         };
         LanguageCheckResult: {
             /** @enum {string} */

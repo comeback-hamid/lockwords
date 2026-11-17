@@ -21,7 +21,7 @@ const GOALS: { value: Profile['goal']; label: string; icon: IconName }[] = [
   { value: 'other', label: 'Other', icon: 'pencil' },
 ];
 
-// O8 Goal.
+// O8 Goal. Other opens the "Your reason" box (Figma O8b).
 export default function GoalScreen() {
   const router = useRouter();
   const [goal, setGoal] = useState(getAnswers().goal);
@@ -39,13 +39,13 @@ export default function GoalScreen() {
           router.push('/onboarding/interests');
         },
       }}>
-      <View style={{ gap: space[8] }}>
+      <View style={{ gap: space[16] }}>
         <OptionBox<Profile['goal']>
           value={goal}
           onChange={setGoal}
           options={GOALS.map((g) => ({ ...g, leading: (selected: boolean) => <Icon name={g.icon} color={selected ? colors.greenText : colors.text2} /> }))}
         />
-        {goal === 'other' ? <TextField label="Why are you learning?" accessibilityLabel="Your reason" value={other} onChangeText={setOther} maxLength={80} /> : null}
+        {goal === 'other' ? <TextField label="Your reason" accessibilityLabel="Your reason" value={other} onChangeText={setOther} maxLength={80} /> : null}
       </View>
     </QuestionScreen>
   );
