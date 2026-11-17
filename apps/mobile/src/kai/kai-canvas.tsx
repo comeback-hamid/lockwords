@@ -1,13 +1,31 @@
 import { Canvas, createPicture, matchFont, Picture, Skia, useClock, type SkCanvas, type SkFont } from '@shopify/react-native-skia';
-import { useEffect, useMemo } from 'react';
+import { useIsFocused } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
 
 import { createMemory, KAI_LEAF_PIVOT, KAI_PIVOT, KAI_SPIN_CENTER, KAI_VIEWBOX, stepCharacter, type KaiFrame, type KaiInput, type KaiMemory } from './step';
 
 export type KaiCanvasProps = { state: string; playKey: number; progress?: number; still: boolean; width: number };
 
+// A screen left behind in the stack keeps its views. Kai stops drawing a moment after its screen leaves the front
+// (the slide away still shows it), so a hidden Kai never keeps the phone, or Maestro, waiting for the screen to settle.
+const HIDE_AFTER_MS = 400;
+
+export function KaiCanvas(props: KaiCanvasProps) {
+  const focused = useIsFocused();
+  const [live, setLive] = useState(focused);
+  useEffect(() => {
+    const t = setTimeout(() => setLive(focused), focused ? 0 : HIDE_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [focused]);
+  const [, , vw, vh] = KAI_VIEWBOX;
+  if (!live && !focused) return <View style={{ width: props.width, height: Math.round((props.width * vh) / vw) }} />;
+  return <LiveCanvas {...props} />;
+}
+
 // One Skia picture per frame, made on the UI thread: no React render per frame (CHARACTER.html 11.5).
-export function KaiCanvas({ state, playKey, progress, still, width }: KaiCanvasProps) {
+function LiveCanvas({ state, playKey, progress, still, width }: KaiCanvasProps) {
   const [vx, vy, vw, vh] = KAI_VIEWBOX;
   const height = Math.round((width * vh) / vw);
   // Whole points per unit, as the page does, so Kai stays crisp.
