@@ -33,7 +33,7 @@
 The server SHALL give each deck a band from 0 to 4 from the profile's level and word-test result (`knownWords`), as `docs/vocab-engine.md` 2.1 says. Level `brand_new` is band 0. Otherwise a test result wins: under 500 → 1, under 1,500 → 2, under 3,250 → 3, else 4. With no result: `beginner` → 1, `some_basics` → 2, `intermediate` → 3, `advanced` → 4.
 
 #### Scenario: Bands
-- **WHEN** the profile is (`brand_new`, 2000), (`advanced`, 400), (`beginner`, 1850), (`some_basics`, 3249), (`beginner`, 3250), (`intermediate`, null), (`advanced`, null)
+- **WHEN** the profile is (`brand_new`, 2000), (`advanced`, 400), (`beginner`, 1499), (`some_basics`, 3249), (`beginner`, 3250), (`intermediate`, null), (`advanced`, null)
 - **THEN** the bands are 0, 1, 2, 3, 4, 3, 4
 
 ### Requirement: Deck words fit the learner
