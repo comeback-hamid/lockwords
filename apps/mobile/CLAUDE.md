@@ -15,7 +15,7 @@ npx expo-doctor              # dependency and config check
 Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 
 ## Layers
-- `src/app/`: screens only (Expo Router). `(tabs)/`: New words · Review · Speak. My words is a top-bar button, not a tab.
+- `src/app/`: screens only (Expo Router). `(tabs)/`: New words · Review · Progress (Figma V1; Speak comes after v1).
 - `src/components/`: shared UI. Copy Figma component names (Chat bubble, Reply option, Composer, Kai header, Level square…).
 - `src/theme/theme.ts`: all tokens from Figma. No raw colors or sizes anywhere else.
 - `src/theme/fonts.ts`: the fonts loaded at start (Mona Sans 400/500/600, JetBrains Mono 500/700). Use `type.*` styles; never set `fontWeight` (the weight is in the font name).
