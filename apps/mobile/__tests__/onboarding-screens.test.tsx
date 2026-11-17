@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, Keyboard } from 'react-native';
 
 import { api } from '@/auth/boot';
 import EstimateScreen from '@/app/onboarding/estimate';
@@ -136,6 +136,17 @@ describe('O1 lists and typed language check', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Yes, Spanish' }));
     expect(getAnswers().learning).toEqual(spanish);
     expect(mockRouter.push).toHaveBeenCalledWith('/onboarding/speaks');
+  });
+
+  test('did you mean: the keyboard closes so the box can be seen', async () => {
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    mockApi.checkLanguage.mockResolvedValue({ result: 'suggestion', language: { code: 'es', name: 'Spanish', listed: true } });
+    await render(<LearningScreen />);
+    await typeOther('spansh');
+    await fireEvent.press(continueButton());
+    await screen.findByText('Did you mean Spanish?');
+    expect(dismiss).toHaveBeenCalled();
+    dismiss.mockRestore();
   });
 
   test('did you mean: editing the text hides it', async () => {
