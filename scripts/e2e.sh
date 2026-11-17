@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run Maestro flows. Usage: npm run e2e [-- --areas review,speak]
+# Run Maestro flows. Usage: npm run e2e [-- --areas review,my-words]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 areas=""

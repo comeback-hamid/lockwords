@@ -3,7 +3,7 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-17 (after PR #10).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`).
+**Last updated: 2026-11-17 (after PR #12).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
@@ -45,6 +45,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #8 | 2026-11-16 | Old Maestro flows updated; profiles and decks linked to users |
 | #9 | 2026-11-17 | Deck background job, review round in the database, speaker language, Figma tab icons |
 | #10 | 2026-11-17 | Speak tab → Progress tab |
+| #11 | 2026-11-17 | Roadmap brought up to date; rule: every PR keeps it current |
+| #12 | 2026-11-17 | V1 docs (product, screens, design, dev guide), HTML copies of the roadmap and product docs |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)

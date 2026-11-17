@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lockwords — Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--canvas:#f6f8fa;--surface:#fff;--chip:#eff2f5;--line:#d1d9e0;--text:#1f2328;--text2:#3d444d;--muted:#59636e;--green:#1f883d;--green-text:#116329;--green-bg:#dafbe1;--amber:#9a6700;--amber-bg:#fff8c5;--s1:#aceebb;--s3:#4ac26b}
+@media (prefers-color-scheme:dark){:root{--canvas:#0d1117;--surface:#151b23;--chip:#212830;--line:#3d444d;--text:#f0f6fc;--text2:#d1d7e0;--muted:#9198a1;--green:#238636;--green-text:#3fb950;--green-bg:#12261e;--amber:#d29922;--amber-bg:#272115;--s1:#033a16;--s3:#196c2e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--canvas);color:var(--text);font:400 15px/1.55 "Mona Sans",system-ui,-apple-system,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:40px 20px 80px}
+.mono,.num,.label,.counts,.pill,.meta{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.hero{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
+.hero h1{font-size:34px;line-height:1.15;font-weight:600;margin:6px 0 0;letter-spacing:-.01em}
+.eyebrow{font:500 12px/16px ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--green-text)}
+.score{text-align:right}.score b{display:block;font-size:44px;line-height:1;font-weight:600}
+.score span{color:var(--muted);font-size:13px}
+.lead{color:var(--text2);margin:8px 0}
+section{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:20px}
+section.intro{background:none;border:none;padding:0;margin:0}
+h2{font-size:20px;font-weight:600;margin:0 0 12px}
+h3{font-size:17px;font-weight:600;margin:0;flex:1}
+section>h3{margin:20px 0 6px}
+section>p{color:var(--text2);margin:8px 0}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 4px}.toc a{background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:13px;color:var(--text2);text-decoration:none}.toc a:hover{border-color:var(--green);color:var(--green-text)}
+.scroll{overflow-x:auto;margin:8px 0}
+td{overflow-wrap:anywhere}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+ul ul{margin-top:4px}
+.bar{height:8px;border-radius:99px;background:var(--chip);overflow:hidden;display:flex;margin:4px 0 6px}
+.bar .done{background:var(--green)}.bar .doing{background:var(--amber)}
+.counts{font-size:12px;color:var(--muted);margin:0 0 14px}
+.cards{display:grid;gap:10px}
+.card{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface)}
+.card.done{border-left-color:var(--green)}.card.doing{border-left-color:var(--amber)}
+.card header{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.num{min-width:32px;height:28px;padding:0 8px;border-radius:6px;background:var(--chip);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.status{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:99px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:2px;background:var(--line)}
+.pill.done{background:var(--green-bg);color:var(--green-text)}.pill.done i{background:var(--green)}
+.pill.doing{background:var(--amber-bg);color:var(--amber)}.pill.doing i{background:var(--amber)}
+.note{font-size:13px;color:var(--muted)}
+.field{margin-top:10px;padding-left:44px}
+.label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.field p{margin:0;color:var(--text2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:6px;padding:3px 8px;font-size:13px;color:var(--text2)}
+code{font:12.5px ui-monospace,"SF Mono",Menlo,monospace;background:var(--chip);padding:1px 5px;border-radius:5px;color:var(--text)}
+.chip code{background:none;padding:0;font-weight:600}
+del{color:var(--muted)}
+ol,ul{margin:0;padding-left:22px}li{margin:6px 0;color:var(--text2)}li::marker{color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+a{color:var(--green-text)}
+.meta{margin-top:28px;font-size:12px;color:var(--muted);text-align:center}
+@media (max-width:600px){.field{padding-left:0}.hero h1{font-size:28px}.score{text-align:left}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hero">
+  <div><div class="eyebrow">Lockwords · v1</div><h1>Lockwords — Product</h1></div>
+  
+</div>
+<section class="intro"><p class="lead">Owner: Hamid. Builder: Fatima. Last big update: 2026-11-16.</p>
+<p class="lead">This file is the big picture: <strong>why</strong> Lockwords exists, <strong>who</strong> it is for, <strong>what is in v1</strong>, and the rules that never change. It changes rarely.</p>
+<ul><li>Detailed behavior of each feature (requirements + WHEN/THEN scenarios) lives in <code>openspec/</code>. Detail is decided when we build that feature.</li><li><strong>"(open)"</strong> means not decided yet. Do not invent it in code or specs: ask Hamid.</li><li><strong>What wins:</strong> Figma → this file → every other doc. Background history (not in this repo): <code>~/research/lockscreen-words/LOCKWORDS-V1.md</code>. The Netlify web funnel is <strong>not</strong> a source of truth. Ignore it.</li></ul>
+<div class="scroll"><table><thead><tr><th>File</th><th>What it is</th></tr></thead><tbody><tr><td><code>docs/product.md</code></td><td>This file. What is decided. Read it first.</td></tr><tr><td><code>docs/screens.md</code></td><td>Every Figma screen with a direct link. Figma: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT</td></tr><tr><td><code>docs/dev-guide.html</code></td><td>How we build: stack, repo, agent rules, tests, daily loop, ship.</td></tr><tr><td><code>docs/design/CHARACTER.html</code></td><td><strong>Kai</strong> spec + reference renderer. Data copied to <code>apps/mobile/src/kai/character-spec.json</code>.</td></tr><tr><td><code>apps/mobile/assets/kai/</code></td><td>7 still SVG poses of Kai (widgets, places with no animation).</td></tr><tr><td><code>docs/design/speak-prototype.html</code></td><td>Motion prototype of the Speak talk.</td></tr><tr><td><code>docs/design/pixel-meadow.html</code></td><td>Pixel meadow for My words.</td></tr><tr><td><code>docs/design/ILLUSTRATION-STYLE.md</code></td><td>The one picture style for card and deck pictures.</td></tr></tbody></table></div></section>
+<nav class="toc"><a href="#1-problem">1. Problem</a><a href="#2-who-it-s-for">2. Who it's for</a><a href="#3-core-idea">3. Core idea</a><a href="#4-rules-that-never-change">4. Rules that never change</a><a href="#5-goals">5. Goals</a><a href="#6-v1-scope">6. v1 scope</a><a href="#7-how-it-works-big-picture">7. How it works (big picture)</a><a href="#8-accounts">8. Accounts</a><a href="#9-free-vs-pro">9. Free vs Pro</a><a href="#10-ai-quality">10. AI quality</a><a href="#11-look-and-feel">11. Look and feel</a><a href="#12-open-decisions">12. Open decisions</a></nav>
+<section><h2 id="1-problem">1. Problem</h2>
+<p class="lead">People learn new words, then <strong>forget</strong> them. They don't open study apps every day. And the words they do remember, they <strong>can't use</strong> when they speak or write.</p>
+<p class="lead">Lockwords fixes both, in this order:</p>
+<ol><li><strong>Remember</strong> the words, with almost no effort: words on the lock screen + fast swipe review (spaced repetition).</li><li><strong>Use</strong> the words: write a sentence with a word (Use it). Voice talks with Kai (Speak) come in a later version.</li></ol>
+<p class="lead"><strong>Promise:</strong> learn the words you need, keep them, and use them.</p></section>
+<section><h2 id="2-who-it-s-for">2. Who it's for</h2>
+<p class="lead"><strong>Anyone learning any language, from any mother tongue.</strong> No single first group.</p>
+<ul><li>Every language works from day one. Decks, meanings and examples are <strong>made on demand</strong> for the user's target language and mother tongue.</li><li>Every deck fits the user's <strong>level, goal and interests</strong>.</li><li>Beginners get simple, concrete words with translations. Higher levels get phrases and collocations, and meanings in the target language.</li></ul></section>
+<section><h2 id="3-core-idea">3. Core idea</h2>
+<p class="lead">A <strong>minimal flashcard app for any language</strong>.</p>
+<ul><li><strong>Kai</strong> (our pixel character) makes <strong>personal decks</strong> with you in a chat.</li><li>You review with <strong>fast swipes</strong>: → Easy · ← Hard · ↑ I know it.</li><li>Your <strong>hard words live on your lock screen</strong>.</li><li><strong>Use it</strong> turns known words into words you can use. (<strong>Speak</strong>, voice talks with Kai, comes after v1.)</li></ul>
+<p class="lead"><strong>The key lesson from ~214,000 competitor reviews:</strong> we win or lose on <strong>trust</strong>. Wrong AI words, lost cards and paywall tricks kill these apps. The widget brings people in. Decks, review and practice make them stay and pay.</p></section>
+<section><h2 id="4-rules-that-never-change">4. Rules that never change</h2>
+<ol><li><strong>Minimal.</strong> Few buttons. One green primary button per screen.</li><li><strong>Swipes always mean the same thing:</strong> → Easy · ← Hard · ↑ I know it. Tap flips the card.</li><li><strong>Personal.</strong> Every deck fits level, goal and interests: about 25% easy, 50% at their level and new, 25% a stretch. Every word has a sound button.</li><li><strong>SRS under everything.</strong> The server owns the SRS rules. The app never decides them.</li><li><strong>Quality first.</strong> Every AI card is checked before it is saved. Say "made for you", not "AI".</li><li><strong>Honest pricing.</strong> The price is shown up front. Free limits never get tighter after launch. Cancel takes 2 taps.</li><li><strong>No lost cards.</strong> Sync never deletes cards.</li><li><strong>Kai is our own character.</strong> Never use another company's mascot.</li></ol></section>
+<section><h2 id="5-goals">5. Goals</h2>
+<ul><li><strong>Launch:</strong> v1 in about <strong>one week</strong> (target: 2026-11-23). App Store submission + web app.</li><li><strong>Success metrics</strong> (targets are (open)):<ul><li>Day-7 retention</li><li>Install → trial</li><li>Trial → paid</li><li>Widget added (% of users who add the lock-screen widget)</li></ul></li></ul></section>
+<section><h2 id="6-v1-scope">6. v1 scope</h2>
+<div class="scroll"><table><thead><tr><th>In v1</th><th>Not in v1 (later)</th></tr></thead><tbody><tr><td>iOS app + web app</td><td>Android</td></tr><tr><td>Onboarding with level + word test + first deck with Kai</td><td>Web-to-app funnel (buy on web, then app)</td></tr><tr><td>New words tab: chat with Kai, daily deck ideas, own deck by talking</td><td>Sharing decks (link / QR) + web deck maker for teachers</td></tr><tr><td>Kai free questions ("How do I say…?", "I have a question")</td><td>Add my own single word</td></tr><tr><td>Review tab: swipe cards, SRS, Use it</td><td><strong>Speak tab</strong> (3-minute voice talks with Kai): next version</td></tr><tr><td>Progress tab: My words, progress, decks, deck words</td><td>Answering on the widget (Easy / Hard buttons)</td></tr><tr><td></td><td>Offline review</td></tr><tr><td></td><td>Photo, link or YouTube → deck</td></tr><tr><td>Lock-screen + home-screen widgets (iOS)</td><td>Easy-mode / other practice types</td></tr><tr><td>Paywall (soft) + free weekly limits</td><td>Dark mode</td></tr><tr><td>Sign in: Apple, Google, email code</td><td>Public deck library, teacher dashboard</td></tr></tbody></table></div>
+<p class="lead"><strong>(open): in v1 or later?</strong> Daily reminder push · Export to CSV · Recently deleted (30 days) · Report this card.</p></section>
+<section><h2 id="7-how-it-works-big-picture">7. How it works (big picture)</h2>
+<p class="lead">Screen details are in Figma. Behavior details go in <code>openspec/</code> when we build each feature.</p>
+<h3>7.1 Onboarding (Figma page "Onboarding")</h3>
+<ol><li><strong>Languages:</strong> what you want to learn (any language, "Other" = type it) → what language you speak.</li><li><strong>Welcome:</strong> the lock-screen hook.</li><li><strong>Level:</strong> self-rated (Brand new → Advanced). "Brand new" skips the word test.</li><li><strong>Word test (3 pages):</strong> tap the words you know → <strong>Your estimate</strong> (one big number).</li><li><strong>Goal</strong> and <strong>Interests.</strong></li><li><strong>Chat with Kai:</strong> your name → chat language → Kai explains what it does → pick a deck idea (or type your own) → Kai makes the <strong>first deck of 10 words</strong>.</li><li><strong>Practice</strong> the 10 words → <strong>Use it</strong> with one word → <strong>hard words go to your lock screen</strong>.</li><li><strong>Trial reminder</strong> → <strong>Paywall.</strong></li><li>The paywall is <strong>soft</strong>: closing it starts the free plan. It comes back only when the user hits a limit.</li><li>No sign-in during onboarding. The user starts as a guest.</li></ol>
+<h3>7.2 Tabs: New words · Review · Progress</h3>
+<p class="lead"><strong>Changed 2026-11-16:</strong> v1 has no Speak tab. <strong>My words moves into the tab bar</strong> in Speak's place, as the <strong>Progress</strong> tab (chart icon, <code>Icon/24/graph</code>). There is no My words button in the top bar any more. Speak comes back as a tab in a later version.</p>
+<p class="lead"><strong>New words (Figma page "New words"):</strong> one ongoing <strong>chat with Kai</strong>.</p>
+<ul><li>Each day Kai offers <strong>3 deck ideas</strong> made for the user. Tap Create → the deck is made in the chat → Add to My words.</li><li><strong>My own deck:</strong> the user says what they need; Kai asks a short question with tap answers, then makes the deck. No form.</li><li><strong>How do I say…?</strong> Kai answers with a word card (word, sound, meaning, example) + Add to My words.</li><li><strong>I have a question:</strong> free language questions. Kai only helps with language learning.</li><li>Decks have up to 30 words (the first deck has 10).</li></ul>
+<p class="lead"><strong>Review (Figma page "Review"):</strong> one stack of all words due today, in one round.</p>
+<ul><li>Card front: picture, level square, word, sound. Back: meaning or translation, example, <strong>Use it</strong>.</li><li>Swipes: → Easy (up one stage) · ← Hard (back to stage 1 + goes to the lock screen) · ↑ I know it (never shown again, can be restored).</li><li><strong>Use it</strong> is a short Kai chat: write a sentence with the word → thumbs-up, then short kind feedback. <strong>No score.</strong> Pronunciation is never scored.</li><li>Streak card and an "All done today" screen.</li><li>When today's cards are done, new words join by themselves (up to 20, oldest deck first).</li></ul>
+<p class="lead"><strong>Progress (Figma page "Progress", P1–P3):</strong> the user's word bank ("My words"), progress and decks.</p>
+<ul><li>Total words, a coded pixel meadow (1 tree per deck, grows with memory), and a goal grid with "by &lt;date&gt; you'll master N".</li><li>Deck list → deck words (swipe left to delete a word).</li></ul>
+<h3>7.3 Kai chat rules (every chat screen)</h3>
+<p class="lead">Copy the onboarding chat. Check the Onboarding page in Figma before designing a new chat screen.</p>
+<ul><li>No page title. One big animated Kai in a <strong>Kai header</strong> at the top. Messages scroll under it. Kai changes pose with the chat.</li><li><strong>No small Kai avatar circles</strong>, not in the top bar and not next to messages.</li><li>Kai talks in <strong>separate short bubbles</strong> on the left, with emoji and <strong>bold</strong> key words.</li><li>When the choices are fixed, show <strong>tap answers</strong> (stacked on the right, above the text box) with the hint "Tap an option, or type your own". Free questions (like the name) are typed.</li><li>Deck flow: deck card + Generate → same card while generating → deck widget (tap to open the words; Kai does not print the word list) → "Shall we practice?".</li></ul>
+<h3>7.4 Widgets (Figma page "Widgets", iOS only)</h3>
+<ul><li><strong>Lock screen:</strong> inline, rectangular and circular widgets. One tint, no color.</li><li><strong>Home screen:</strong> small and medium widgets, full color.</li><li>The word widget shows <strong>hard words first</strong>, then the most-due words. Tap opens that card in the app.</li><li>v1 widgets are <strong>see + open only</strong>. No answering on the widget.</li><li>The web app has no widgets.</li></ul>
+<h3>7.5 SRS (owned by the server)</h3>
+<div class="scroll"><table><thead><tr><th>Stage</th><th>Comes back after</th></tr></thead><tbody><tr><td>New (waiting)</td><td>—</td></tr><tr><td>Stage 1</td><td>1 day</td></tr><tr><td>Stage 2</td><td>3 days</td></tr><tr><td>Stage 3</td><td>7 days (Use it starts here)</td></tr><tr><td>Stage 4</td><td>14 days</td></tr><tr><td>Stage 5 / mastered</td><td>30 days</td></tr><tr><td>Known (↑ I know it)</td><td>never (can be restored)</td></tr></tbody></table></div>
+<ul><li>A good Use it sentence moves a word up one stage. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.</li><li>v1 is online: review needs a connection. The widget still shows the last words it got.</li><li>(open): Easy on a brand-new card goes to Stage 1 or Stage 2.</li></ul></section>
+<section><h2 id="8-accounts">8. Accounts</h2>
+<ul><li>Everyone starts as a <strong>guest</strong>.</li><li><strong>Subscribers:</strong> right after they buy, we ask them to sign in (Apple, Google or email code). If they skip, we ask again <strong>every time they open the app</strong> until they sign in, so they never lose what they paid for.</li><li><strong>Free users:</strong> stay guests. Signing in is optional (where: (open)).</li><li>Progress syncs across iOS and the web app after sign-in.</li><li>Delete account in the app removes everything.</li></ul></section>
+<section><h2 id="9-free-vs-pro">9. Free vs Pro</h2>
+<p class="lead">Reviews, swipes, widgets and Progress are <strong>always unlimited</strong>.</p>
+<div class="scroll"><table><thead><tr><th>Weekly limit (rolling 7 days)</th><th>Free</th><th>Pro</th></tr></thead><tbody><tr><td>New decks from Kai</td><td>1</td><td>unlimited</td></tr><tr><td>New words into review</td><td>30</td><td>unlimited</td></tr><tr><td>Use it practice</td><td>10</td><td>unlimited</td></tr><tr><td>Kai questions</td><td>unlimited (a limit may come later)</td><td>unlimited</td></tr></tbody></table></div>
+<ul><li><strong>Pro price:</strong> about <strong>$4.99 / month</strong> or <strong>$29.99 / year</strong>, 7-day free trial. Final numbers: (open), set before launch.</li><li><strong>Paywall headline:</strong> "No weekly limits". (When Speak ships, we test it as the main reason to pay.)</li><li>Trial: reminder before it ends; cancel in 2 taps.</li><li>The upgrade prompt shows only at the moment of need (a limit is hit).</li><li>Ask for an App Store rating only after a good moment. Never fake or AI-written reviews.</li><li>(open): web app payment provider.</li></ul></section>
+<section><h2 id="10-ai-quality">10. AI quality</h2>
+<ol><li>Every word is checked against a dictionary / frequency list, plus a second AI check before it is saved.</li><li>Level must match. A beginner never gets C2 words.</li><li>Every word has pronunciation, in every language.</li><li>Filter adult and offensive topics unless the user asks.</li><li>AI keys live only on the server.</li></ol></section>
+<section><h2 id="11-look-and-feel">11. Look and feel</h2>
+<p class="lead">"Paper &amp; Ink, GitHub greens". Full set (variables, text styles, components): Figma pages Foundations and Components. In code: <code>apps/mobile/src/theme/theme.ts</code>.</p>
+<ul><li>Calm and flat: white cards on a light gray page, 1px lines, green for actions and for how well you know a word. No gradients, no confetti.</li><li>Colors: canvas <code>#f6f8fa</code> · surface <code>#ffffff</code> · chip <code>#eff2f5</code> · line <code>#d1d9e0</code> · text <code>#1f2328</code> · muted <code>#59636e</code> · <strong>button <code>#1f883d</code></strong> · green-text <code>#116329</code> · green-bg <code>#dafbe1</code> · Hard/error <code>#d1242f</code> · Know it <code>#116329</code>.</li><li>Word levels (one <strong>level square</strong>, shaded by stage): New <code>#eff2f5</code> · S1 <code>#aceebb</code> · S2 <code>#6fdd8b</code> · S3 <code>#4ac26b</code> · S4 <code>#2da44e</code> · S5 <code>#116329</code>.</li><li>Type: <strong>Mona Sans</strong> (400/500/600). Mono only for numbers and small caps labels.</li><li>Frame 393×852, side margin 20, radius 12 (buttons, cards), 20 (flashcard). Buttons 56 tall. Tap targets ≥ 44.</li><li>Deck progress = a chain of squares (1 per word), never a bar. Loading = a plain bar.</li><li>Kai art = instances of the <strong>"Kai"</strong> component set in Figma. Never detach it. Kai spec: <code>docs/design/CHARACTER.html</code>.</li></ul></section>
+<section><h2 id="12-open-decisions">12. Open decisions</h2>
+<ol><li>App name (Lockwords is the working name).</li><li>Success metric targets.</li><li>Final prices.</li><li>In v1 or later: daily reminder push, export to CSV, recently deleted, report this card.</li><li>Where free users can sign in.</li><li>Web app payment provider.</li><li>Easy on a brand-new card: Stage 1 or Stage 2.</li><li>Word font: all Mona Sans, or a serif just for the word on the card.</li></ol></section>
+<p class="meta">Made from docs/product.md on 2026-11-17. Do not edit this page: edit docs/product.md.</p>
+</div></body></html>

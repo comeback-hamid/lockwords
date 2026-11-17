@@ -12,6 +12,8 @@
     "e2e": "bash scripts/e2e.sh",
     "db:setup": "bash scripts/db-setup.sh",
     "spec:validate": "openspec validate --all --strict",
+    "docs:html": "node scripts/docs-html.mjs",
+    "test:scripts": "node --test scripts/*.test.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
     "dev:up": "bash scripts/dev-up.sh"
   },

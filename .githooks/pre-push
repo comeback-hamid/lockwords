@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Before every push that changes the app: a Maestro pass on the iOS simulator for this exact code.
-# Areas: set LOCKWORDS_E2E_AREAS=review,speak to run only some areas. Shared code changed → run all (default).
+# Areas: set LOCKWORDS_E2E_AREAS=review,my-words to run only some areas. Shared code changed → run all (default).
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 base=$(git merge-base HEAD origin/main 2>/dev/null || echo "")
