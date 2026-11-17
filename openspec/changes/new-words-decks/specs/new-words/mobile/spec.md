@@ -35,7 +35,7 @@ Tapping a ready deck card SHALL open the deck page with its words.
 
 #### Scenario: Tap
 - **WHEN** the user taps the ready card
-- **THEN** the deck page shows with the deck's title and 10 words
+- **THEN** the deck page shows with the deck's title and all its words
 
 ### Requirement: Review dot
 When a deck becomes ready, the Review tab icon SHALL show a red dot. The dot goes away when the user opens the Review tab. It is kept after a restart.

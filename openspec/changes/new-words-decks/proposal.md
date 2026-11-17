@@ -14,13 +14,11 @@ Epic: roadmap **4. New words tab**. Change 2 of 3. Needs change 1 merged. Can be
   - The ideas fit the learner's level, goal, interests and Kai's notes, and do not repeat decks they already have.
 - **The learner's own deck.** The learner says what they need in the chat. Kai may ask **one** short question with tap answers (for example: single words or phrases?), then shows one deck card with Generate. No form.
 - **No fixed buttons** for "Make my own deck", "How do I say…?" or "I have a question". Kai says in the talk that the learner can ask for these.
+- **Deck size: 10 to 30 words.** Kai decides the number for each deck, from what the deck is about and what the learner asked for (Hamid, 2026-11-17). The card shows that number. Only the first deck in onboarding is fixed at 10.
 - **Deck titles are in the learned language**, with a one-line translation under the title when translation is on. (Only for decks made in this chat. The first deck in onboarding is not changed here.)
 - **Making the deck.** Tap Generate → the other cards go away, the chosen card shows "Making your deck…" with progress, Kai is in the `making` state.
-- **Deck ready.** The deck is in the learner's word list at once. There is no "Add to My words" step. Kai says the deck is ready and is in Review now. The card says "10 WORDS · IN YOUR WORD LIST" and opens the deck page when tapped. The **Review tab gets a red dot** until the learner opens Review.
+- **Deck ready.** The deck is in the learner's word list at once. There is no "Add to My words" step. Kai says the deck is ready and is in Review now. The card says, for a deck of 20, "20 WORDS · IN YOUR WORD LIST" and opens the deck page when tapped. The **Review tab gets a red dot** until the learner opens Review.
 - **Two options then:** "Let's practice" (Kai says it takes them to Review; one second later the Review tab opens) and "Make another deck" (Kai asks: a suggestion, or your own idea?).
-
-Open, needs Hamid's answer:
-- **(open) Deck size.** `docs/product.md` says decks have up to 30 words and the first deck has 10. Figma N2–N4 show "10 WORDS". This spec says **10 words**, because the server makes 10 today. Say if decks made here should have 30.
 
 Suggested by me, please check:
 - No limit on how many decks a learner can make (Hamid: skip limits for now).
@@ -43,13 +41,13 @@ Easy mode: nothing. Other languages: titles are in the learning language and tra
 ### Modified Capabilities
 - `new-words/server`: Kai can attach deck ideas to a turn; a "deck is ready" turn; chat messages carry decks.
 - `new-words/mobile`: deck cards in the chat, making a deck, the ready state, the Review dot.
-- `decks/server`: a deck has a title translation.
+- `decks/server`: a deck has a title translation and its own size (10 to 30 words); making the cards fills that size.
 - `kai/mobile`: the deck card shows a title translation and new ready wording.
 
 ## Impact
 
-- Server: column `decks.title_translation`, column `kai_messages.deck_ids`, one migration. `src/kai/abilities/decks.ts` plus one line in `abilities/index.ts`. The `kai_chat` answer shape gets the optional field `decks`.
+- Server: columns `decks.title_translation` and `decks.word_count`, column `kai_messages.deck_ids`, one migration. `src/kai/abilities/decks.ts` plus one line in `abilities/index.ts`. The `kai_chat` answer shape gets the optional field `decks`.
 - Mobile: `components/chat/deck-card.tsx`, a new `deck-ideas.tsx`, the New words screen, the tab layout (the dot).
 - Shared files touched: `db/schema.ts` + migration, `openapi.json`, mobile `schema.ts`, `(tabs)/_layout.tsx`, `components/chat/deck-card.tsx`. Change 3 does not touch the deck card or the tab layout. Both add a migration: the one that merges second makes its migration again.
-- PR #19 (`level-matched-deck`) changes how the 10 words are picked. This change calls the same generate endpoint and does not touch that code.
+- PR #19 (`level-matched-deck`) changes how the words are picked and also changes the "Make the cards" requirement. This change makes the number of words come from the deck (10 to 30) in place of a fixed 10. Whichever is archived second keeps both sets of sentences, and the word picker of #19 must take the deck's size.
 - PR #20 (`kai-chat-live`) also changes the "Deck card" requirement (timed count). Whichever is archived second keeps both sets of sentences.

@@ -114,7 +114,7 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **Translation:** every Kai message has a translation under it (a line, then smaller text). One on/off button next to Kai. It starts **on for A1 and A2** learners and **off for B1 and above** (the learner's level, not the deck's). On: messages and deck titles show a translation. Off: none do.
 - **Language:** Kai speaks the language being learned, also when the learner writes in their own language. Kai speaks the learner's language only when they ask. A1 and A2 learners are told they may write in their own language.
 - Text only for now. A photo of a word comes in a later version. Free limits on this page are not decided yet.
-- (open) Deck size: this page said "up to 30 words (the first deck has 10)"; Figma N2–N4 show 10. Waiting for Hamid.
+- **Deck size:** the first deck in onboarding has 10 words. A deck made here has **10 to 30 words**; Kai decides the number for each deck (Hamid, 2026-11-17).
 
 **Review (Figma page "Review"):** one stack of all words due today, in one round.
 - Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**.

@@ -13,17 +13,18 @@
 - Reuse the deck tables, the generate job and the deck card.
 
 **Non-Goals:**
-- Changing how words are picked for a deck (PR #19).
+- Changing how words are picked for a deck (PR #19). Only how many.
 - Changing onboarding's first deck.
 
 ## Decisions
 
-1. **Ideas ride on the Kai answer.** The model may return `decks`: 1 item (the learner's own idea) or 3 items (Kai's ideas), each `{ topic, title, titleTranslation, reason }`. The server saves each as a `proposed` deck and links them to Kai's last line of the turn. Other choice: Kai returns topics and the server calls the existing propose task for each. Not now: three more model calls and a long wait.
+1. **Ideas ride on the Kai answer.** The model may return `decks`: 1 item (the learner's own idea) or 3 items (Kai's ideas), each `{ topic, title, titleTranslation, reason, wordCount }`. The server saves each as a `proposed` deck and links them to Kai's last line of the turn. Other choice: Kai returns topics and the server calls the existing propose task for each. Not now: three more model calls and a long wait.
 2. **Kai decides when to offer, the prompt says when.** The context gets `newWordsLeft` (cards at stage 0) and the topics of the learner's decks and of today's ideas. The rules (ask first on the first visit; offer when asked or when `newWordsLeft` is under 10 after practice; never repeat a topic) are in the prompt and tested there.
 3. **"Deck is ready" is a turn with an event,** `{ event: "deck_ready", deckId }`, sent by the app when generate returns `ready`. Kai writes the line. The server checks the deck is the caller's and ready. Other choice: the server posts Kai's line from the job. Not now: the app would need a push or a poll to see it.
 4. **The Review dot is kept on the phone** (secure storage flag, set when a deck becomes ready, cleared when the Review tab opens). The server already knows new words exist; a server-side "unseen" count can replace it when Review's own badge rules are designed.
 5. **Old idea cards.** A proposed deck that is not in the newest idea set is shown in the `disabled` card state. Its row stays `proposed`; nothing is deleted.
-6. **Title translation is a new nullable column.** Decks made before, and the onboarding deck, have none and show no translation line.
+6. **The size is decided when Kai offers the deck, not when the words are made.** The model returns `wordCount` (10 to 30) with each idea, and it is saved on the deck. So the card can show the number before Generate, and the progress bar knows its end. The job then makes exactly that many cards. Other choice: let the word-making call decide. Not now: the card would show no number until the deck is done.
+7. **Title translation is a new nullable column.** Decks made before, and the onboarding deck, have none and show no translation line.
 
 ## Risks / Trade-offs
 
