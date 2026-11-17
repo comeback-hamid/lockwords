@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Keep docs/roadmap.html and docs/product.html in sync with their .md files (the HTML is never edited by hand).
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+if git diff --cached --name-only | grep -qxE 'docs/(roadmap|product)\.md'; then
+  node scripts/docs-html.mjs
+  git add docs/roadmap.html docs/product.html
+fi

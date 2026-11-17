@@ -1,9 +1,9 @@
 # Lockwords
 
-A minimal flashcard app for any language. Personal decks made by chatting with **Kai**, fast-swipe review (spaced repetition), your hard words on the lock screen, **Use it** and **Speak**.
+A minimal flashcard app for any language. Personal decks made by chatting with **Kai**, fast-swipe review (spaced repetition), your hard words on the lock screen, and **Use it**. v1 tabs: New words · Review · Progress (Speak comes after v1).
 
 - Product (what is decided): [docs/product.md](docs/product.md)
-- Screens + Figma links: [docs/screens.md](docs/screens.md) · Figma: https://www.figma.com/design/cRusagDF0itPxGEvDtr44K
+- Screens + Figma links: [docs/screens.md](docs/screens.md) · Figma: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT
 - Roadmap: [docs/roadmap.md](docs/roadmap.md)
 - How we build: [docs/dev-guide.html](docs/dev-guide.html) · Agent rules: [AGENTS.md](AGENTS.md)
 
@@ -25,4 +25,4 @@ npm run spec:validate    # OpenSpec, strict
 ```
 
 ## Tools this repo expects
-Node 22, Xcode + iOS simulator, Maestro, OpenSpec CLI (`npm i -g @fission-ai/openspec`), PostgreSQL, EAS CLI, gitleaks, ffmpeg (Speak tests).
+Node 22, Xcode + iOS simulator, Maestro, OpenSpec CLI (`npm i -g @fission-ai/openspec`), PostgreSQL, EAS CLI, gitleaks.

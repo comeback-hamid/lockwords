@@ -22,7 +22,7 @@ e2e/           Maestro flows (one area tag each) + videos
 
 ## The loop (one feature = one branch = one PR)
 1. `/opsx:explore` (optional) → 2. `/opsx:propose` → push → **draft PR** → 3. **Checkpoint 1: Hamid approves the spec.** No code before this.
-4. `/opsx:apply`: failing tests first, then build until green → 5. fresh verifier agent: `/opsx:verify`, `/ponytail-review`, Maestro → 6. **Checkpoint 2: Hamid watches the Maestro video** (`e2e/videos/<change>.mp4`) and approves.
+4. `/opsx:apply`: failing tests first, then build until green → 5. fresh verifier agent: `/opsx:verify`, `/code-review`, Maestro → 6. **Checkpoint 2: Hamid watches the Maestro video** (`e2e/videos/<change>.mp4`) and approves.
 7. `/opsx:archive` as the last commit → squash merge. Tiny fixes skip OpenSpec.
 More than ~10 tasks in a change → split it.
 

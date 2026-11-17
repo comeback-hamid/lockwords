@@ -1,169 +1,206 @@
-# Lockwords: product (what is decided)
+# Lockwords — Product
 
-Date: 2026-11-16. This file lists only what is **decided** and what Hamid **approved** in Figma.
-If this file and `product-v1.md` disagree, this file wins.
-Where this file and the Figma file disagree, **Figma wins**.
+Owner: Hamid. Builder: Fatima. Last big update: 2026-11-16.
 
----
-
-## 1. Where things live in this repo
+This file is the big picture: **why** Lockwords exists, **who** it is for, **what is in v1**, and the rules that never change. It changes rarely.
+- Detailed behavior of each feature (requirements + WHEN/THEN scenarios) lives in `openspec/`. Detail is decided when we build that feature.
+- **"(open)"** means not decided yet. Do not invent it in code or specs: ask Hamid.
+- **What wins:** Figma → this file → every other doc. Background history (not in this repo): `~/research/lockscreen-words/LOCKWORDS-V1.md`. The Netlify web funnel is **not** a source of truth. Ignore it.
 
 | File | What it is |
 |---|---|
 | `docs/product.md` | This file. What is decided. Read it first. |
-| `docs/product-v1.md` | Older, longer product doc (LOCKWORDS-V1, 2026-11-11). Extra detail: languages, sharing, free vs Pro, AI quality rules. **This file wins** where they disagree. |
-| `docs/screens.md` | Every Figma screen with a direct link. |
-| `docs/design/CHARACTER.html` | **Kai** spec v1.1 + reference renderer (`createCharacter`). The data part is copied to `apps/mobile/src/kai/character-spec.json`. |
-| `apps/mobile/assets/kai/` | 7 still SVG poses of Kai (for widgets and places with no animation). |
+| `docs/screens.md` | Every Figma screen with a direct link. Figma: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT |
 | `docs/dev-guide.html` | How we build: stack, repo, agent rules, tests, daily loop, ship. |
-| `docs/design/speak-prototype.html` | Motion prototype of the Speak talk. Live: https://claude.ai/artifact/TuHbqVTvMWPC9nemuGa5o7 |
-| `docs/design/pixel-meadow.html` | Pixel meadow for My words (grows up to 3,000 words, 100 decks). |
+| `docs/design/CHARACTER.html` | **Kai** spec + reference renderer. Data copied to `apps/mobile/src/kai/character-spec.json`. |
+| `apps/mobile/assets/kai/` | 7 still SVG poses of Kai (widgets, places with no animation). |
+| `docs/design/speak-prototype.html` | Motion prototype of the Speak talk. |
+| `docs/design/pixel-meadow.html` | Pixel meadow for My words. |
 | `docs/design/ILLUSTRATION-STYLE.md` | The one picture style for card and deck pictures. |
 
-Outside the repo (Hamid's research folder `~/research/lockscreen-words/`): watch-only demo (https://claude.ai/artifact/2ZXMtKmbkL2WfDdvGxUcWS), placeholder photos and wallpapers (`design/photos/`), card and deck pictures (`deck-pictures/`).
-
----|---|
-| `START-HERE.md` | This summary. Read it first. |
-| `CHARACTER.html` | **Kai**, the pixel character (v1.1). One JSON spec (`#character-spec`) + a reference renderer (`createCharacter`) + a Playground. Two forms: pixel Kai (chat) and sound-bar Kai with eyes (voice talk). 12 + 9 base states and 34 extra animations. The source of truth for Kai. |
-| `character-poses/` | 7 still SVG poses of Kai (idle, greeting, thinking, listening, speaking, wordUsed, celebrate). For places with no animation (for example, widgets). |
-| `LOCKWORDS-DEV-GUIDE.html` | How we build: stack, repo, agent rules, tests, daily loop, ship. Made 2026-11-16 in the "AI-native software development" thread. |
-| `speak-prototype.html` | Motion prototype of the Speak talk (open in a browser). Live copy: https://claude.ai/artifact/TuHbqVTvMWPC9nemuGa5o7 |
-| `pixel-meadow.html` | Pixel meadow / forest for My words: grows with words and decks (up to 3,000 words, 100 decks). |
-| `ILLUSTRATION-STYLE.md` | The one picture style for card pictures and deck pictures. |
-
-Other places:
-- **Figma (approved design):** https://www.figma.com/design/cRusagDF0itPxGEvDtr44K
-- **Watch-only demo** (Maya, ~2:40, Kai animated on every page): https://claude.ai/artifact/2ZXMtKmbkL2WfDdvGxUcWS. Source in `../demo/` (`demo.src.html` → `python3 build.py`).
-- Sample people photos, wallpapers and app icons: `../design/photos/` (**placeholders**, not real users).
-- Card and deck pictures: `../deck-pictures/`.
-
 ---
 
-## 2. The app in one paragraph
+## 1. Problem
+People learn new words, then **forget** them. They don't open study apps every day. And the words they do remember, they **can't use** when they speak or write.
 
-Lockwords is a **minimal flashcard app for any language**. You get **personal decks** by chatting with **Kai**. You review with **fast swipes** (spaced repetition). Your **hard words live on your lock screen**. **Use it** turns known words into words you can use. **Speak** gives you short voice talks built from your own words.
+Lockwords fixes both, in this order:
+1. **Remember** the words, with almost no effort: words on the lock screen + fast swipe review (spaced repetition).
+2. **Use** the words: write a sentence with a word (Use it). Voice talks with Kai (Speak) come in a later version.
 
-Win or lose on **trust**: no wrong AI words, no lost cards, no paywall tricks.
+**Promise:** learn the words you need, keep them, and use them.
 
----
+## 2. Who it's for
+**Anyone learning any language, from any mother tongue.** No single first group.
+- Every language works from day one. Decks, meanings and examples are **made on demand** for the user's target language and mother tongue.
+- Every deck fits the user's **level, goal and interests**.
+- Beginners get simple, concrete words with translations. Higher levels get phrases and collocations, and meanings in the target language.
 
-## 3. Rules that never change
+## 3. Core idea
+A **minimal flashcard app for any language**.
+- **Kai** (our pixel character) makes **personal decks** with you in a chat.
+- You review with **fast swipes**: → Easy · ← Hard · ↑ I know it.
+- Your **hard words live on your lock screen**.
+- **Use it** turns known words into words you can use. (**Speak**, voice talks with Kai, comes after v1.)
 
+**The key lesson from ~214,000 competitor reviews:** we win or lose on **trust**. Wrong AI words, lost cards and paywall tricks kill these apps. The widget brings people in. Decks, review and practice make them stay and pay.
+
+## 4. Rules that never change
 1. **Minimal.** Few buttons. One green primary button per screen.
-2. **Swipes always mean the same:** → Easy · ← Hard · ↑ I know it. Tap flips the card.
-3. **Personal.** Decks fit the user's level, goal and interests: about 25% easy, 50% at their level, 25% a stretch. High levels get phrases and collocations, never basic words. Every word has a sound button.
-4. **SRS under everything.** The server owns the SRS rules.
-5. **Quality first.** Every AI card is checked. Say "made for you", not "AI".
+2. **Swipes always mean the same thing:** → Easy · ← Hard · ↑ I know it. Tap flips the card.
+3. **Personal.** Every deck fits level, goal and interests: about 25% easy, 50% at their level and new, 25% a stretch. Every word has a sound button.
+4. **SRS under everything.** The server owns the SRS rules. The app never decides them.
+5. **Quality first.** Every AI card is checked before it is saved. Say "made for you", not "AI".
 6. **Honest pricing.** The price is shown up front. Free limits never get tighter after launch. Cancel takes 2 taps.
-7. **No lost cards.** Sync never deletes cards. Deleted decks stay in "Recently deleted" for 30 days.
-8. **Kai is our own character.** Never use Anthropic's "Clawd".
+7. **No lost cards.** Sync never deletes cards.
+8. **Kai is our own character.** Never use another company's mascot.
+
+## 5. Goals
+- **Launch:** v1 in about **one week** (target: 2026-11-23). App Store submission + web app.
+- **Success metrics** (targets are (open)):
+  - Day-7 retention
+  - Install → trial
+  - Trial → paid
+  - Widget added (% of users who add the lock-screen widget)
 
 ---
 
-## 4. App structure
+## 6. v1 scope
 
-**Tab bar: New words · Review · Speak.**
-- My words is a button in the top bar, not a tab. Progress lives inside My words.
-- The Speak tab icon is `Icon/24/speak`: 7 pixel bars with 2 eyes.
+| In v1 | Not in v1 (later) |
+|---|---|
+| iOS app + web app | Android |
+| Onboarding with level + word test + first deck with Kai | Web-to-app funnel (buy on web, then app) |
+| New words tab: chat with Kai, daily deck ideas, own deck by talking | Sharing decks (link / QR) + web deck maker for teachers |
+| Kai free questions ("How do I say…?", "I have a question") | Add my own single word |
+| Review tab: swipe cards, SRS, Use it | **Speak tab** (3-minute voice talks with Kai): next version |
+| Progress tab: My words, progress, decks, deck words | Answering on the widget (Easy / Hard buttons) |
+| | Offline review |
+| | Photo, link or YouTube → deck |
+| Lock-screen + home-screen widgets (iOS) | Easy-mode / other practice types |
+| Paywall (soft) + free weekly limits | Dark mode |
+| Sign in: Apple, Google, email code | Public deck library, teacher dashboard |
 
-### Onboarding (Figma page "Onboarding")
-O1 I'm learning (with "Other" text box) → O1c I speak → O2 Welcome (lock-screen hook) → O3 Level → O4–O6 Word test (basic, intermediate, advanced) → O7 Your estimate (number only) → O8 Goal → O9 Interests →
-**chat with Kai:** O10 hello + your name → O10b chat language (tap: mother tongue or target language) → O10c what Kai does + short deck ideas by level → O10d deck card + Generate → O10e making the deck → O10f deck ready, "Add 10 words to My words", then practice →
-O12–O12c practice (same as the Review cards, no tab bar, "10 words left") → O13–O13c Use it → O14 hard words go to the lock screen → O15 trial reminder → O16 paywall.
-- The first deck has **10 words**.
-- Kai also appears small on Welcome, Your estimate, Use it feedback and the lock-screen step.
-- Paywall O16: one scroll page with Kai, a rating row, swipeable testimonials, features, plans and a sticky button. **The testimonials and the 4.8 rating are placeholders.** Use real beta testers before launch.
-
-### New words tab (Figma page "New words", N1–N7)
-One ongoing **chat with Kai**.
-- N1 chat home: Kai says "I prepared 3 decks". The decks are in a sideways-swipe deck widget with dots, and each card has Create. Tap answers: Make my own deck · How do I say…? · I have a question.
-- N2 swiped · N3 making a deck · N4 deck ready (Add to My words / Open) · N5 own deck by talking · N6 "How do I say…?" word card · N7 deck page (swipe left on a word deletes it).
-- Chat box = text + mic for now. Photo, link and YouTube come later.
-
-### Review tab (Figma page "Review", A2–A9)
-- A2 start: Kai + "20 cards to review today" + Let's start.
-- One round = all of today's due cards. Header: progress bar + "N words left" + My words button on the same line. No title, no undo in the header.
-- Card front: picture (2:1) on top, level square right before the word, word, 🔊. Back: smaller picture, word, translation (low levels) or meaning in the target language (high levels), example, Use it.
-- Swipes show big tilted stamps on the card: Hard (red), Easy (green outline), Know it (dark green, filled).
-- **Use it** (A6–A6c) is a Kai chat: Kai shows the word and asks for a sentence → your sentence is a green bubble → **thumbs-up emoji float up (no score)** → Kai gives short feedback bubbles with emoji. Tap answers sit on the right. You can type a question.
-- A7 streak: Kai celebrating + "13 day streak".
-- A9 all done: Kai celebrating only, no buttons.
-
-### Speak tab (Figma page "Speak", SP1–SP6)
-- SP1 first visit only: Kai + "I make talks from your words." + Let's talk + "3-minute talk".
-- SP2 topics: big pixel Kai on top, big swipe topic cards (dots + peek), bigger title, small word chips (max 2 rows, then green "+N"), button **Start**.
-- Talk pop-up (SP3–SP5): small sound-bar Kai on top, then a chat. Kai's messages show text, a line, a small gray translation, and a speaker button. Your voice messages show a mic icon + length (0:04). Kai reacts with one emoji badge on your bubble. At the bottom: a big green mic (tap to record, tap to send) with a keyboard button on the left, and the words row under the mic. A used word gets a green chip with a check. **No automatic turn-taking.**
-- SP6 summary: Kai celebrating, "Nice talk!", the words you used with their level changes, Done. **No feedback box.**
-- Pixel Kai is on the tab. Sound-bar Kai appears **only** inside the talk pop-up.
-- Free: 1–2 talks a week. Pro: unlimited talks.
-
-### My words (Figma page "My words", M1–M3)
-- M1: big total-words number + legend, the **"5 Decks"** button (new `Icon/24/deck` icon, bold 22px), the pixel meadow now and at the goal, a goal grid (1 square per planned word, 10 per row), "by <date> you'll master N", and "Your word plan".
-- M2 deck list · M3 deck words.
-
-### Widgets (Figma page "Widgets")
-- Lock screen: inline, rectangular 160×72, circular 72×72. **One tint, no color.**
-- Home screen: medium 338×158, small 158×158. Full color, buttons work (App Intents).
-- The word widget shows hard words first, then the most-due words. Tap opens that card.
+**(open): in v1 or later?** Daily reminder push · Export to CSV · Recently deleted (30 days) · Report this card.
 
 ---
 
-## 5. Kai chat rules (every chat screen)
-Copy the onboarding chat. Check the Onboarding page before designing a new chat screen.
-- No page title. One big animated Kai in a **Kai header** at the top (176 tall, soft shadow). Messages scroll under it. Kai changes pose with the chat.
+## 7. How it works (big picture)
+Screen details are in Figma. Behavior details go in `openspec/` when we build each feature.
+
+### 7.1 Onboarding (Figma page "Onboarding")
+1. **Languages:** what you want to learn (any language, "Other" = type it) → what language you speak.
+2. **Welcome:** the lock-screen hook.
+3. **Level:** self-rated (Brand new → Advanced). "Brand new" skips the word test.
+4. **Word test (3 pages):** tap the words you know → **Your estimate** (one big number).
+5. **Goal** and **Interests.**
+6. **Chat with Kai:** your name → chat language → Kai explains what it does → pick a deck idea (or type your own) → Kai makes the **first deck of 10 words**.
+7. **Practice** the 10 words → **Use it** with one word → **hard words go to your lock screen**.
+8. **Trial reminder** → **Paywall.**
+- The paywall is **soft**: closing it starts the free plan. It comes back only when the user hits a limit.
+- No sign-in during onboarding. The user starts as a guest.
+
+### 7.2 Tabs: New words · Review · Progress
+**Changed 2026-11-16:** v1 has no Speak tab. **My words moves into the tab bar** in Speak's place, as the **Progress** tab (chart icon, `Icon/24/graph`). There is no My words button in the top bar any more. Speak comes back as a tab in a later version.
+
+**New words (Figma page "New words"):** one ongoing **chat with Kai**.
+- Each day Kai offers **3 deck ideas** made for the user. Tap Create → the deck is made in the chat → Add to My words.
+- **My own deck:** the user says what they need; Kai asks a short question with tap answers, then makes the deck. No form.
+- **How do I say…?** Kai answers with a word card (word, sound, meaning, example) + Add to My words.
+- **I have a question:** free language questions. Kai only helps with language learning.
+- Decks have up to 30 words (the first deck has 10).
+
+**Review (Figma page "Review"):** one stack of all words due today, in one round.
+- Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**.
+- Swipes: → Easy (up one stage) · ← Hard (back to stage 1 + goes to the lock screen) · ↑ I know it (never shown again, can be restored).
+- **Use it** is a short Kai chat: write a sentence with the word → thumbs-up, then short kind feedback. **No score.** Pronunciation is never scored.
+- Streak card and an "All done today" screen.
+- When today's cards are done, new words join by themselves (up to 20, oldest deck first).
+
+**Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
+- Total words, a coded pixel meadow (1 tree per deck, grows with memory), and a goal grid with "by <date> you'll master N".
+- Deck list → deck words (swipe left to delete a word).
+
+### 7.3 Kai chat rules (every chat screen)
+Copy the onboarding chat. Check the Onboarding page in Figma before designing a new chat screen.
+- No page title. One big animated Kai in a **Kai header** at the top. Messages scroll under it. Kai changes pose with the chat.
 - **No small Kai avatar circles**, not in the top bar and not next to messages.
-- Kai talks in **separate short bubbles** on the left, with emoji and **bold** key words. No icon-list boxes.
-- When the choices are fixed, show tap answers: gray "Reply option" pills, stacked on the **right**, just above the text box, with the hint "Tap an option, or type your own".
-- Deck flow: deck card + Generate → same card while generating → deck widget (tap to open the words; Kai does not print the word list) → "Shall we practice?" → "OK, let's practice!".
+- Kai talks in **separate short bubbles** on the left, with emoji and **bold** key words.
+- When the choices are fixed, show **tap answers** (stacked on the right, above the text box) with the hint "Tap an option, or type your own". Free questions (like the name) are typed.
+- Deck flow: deck card + Generate → same card while generating → deck widget (tap to open the words; Kai does not print the word list) → "Shall we practice?".
 
----
+### 7.4 Widgets (Figma page "Widgets", iOS only)
+- **Lock screen:** inline, rectangular and circular widgets. One tint, no color.
+- **Home screen:** small and medium widgets, full color.
+- The word widget shows **hard words first**, then the most-due words. Tap opens that card in the app.
+- v1 widgets are **see + open only**. No answering on the widget.
+- The web app has no widgets.
 
-## 6. SRS
+### 7.5 SRS (owned by the server)
+| Stage | Comes back after |
+|---|---|
+| New (waiting) | — |
+| Stage 1 | 1 day |
+| Stage 2 | 3 days |
+| Stage 3 | 7 days (Use it starts here) |
+| Stage 4 | 14 days |
+| Stage 5 / mastered | 30 days |
+| Known (↑ I know it) | never (can be restored) |
 
-| Swipe | Meaning | Result |
-|---|---|---|
-| → | Easy | Up one stage |
-| ← | Hard | Back to Stage 1 + goes to the lock-screen widget |
-| ↑ | I know it | Never shown again. Counts as known. Undo right after the swipe; "Show it again" from the deck. |
-
-Stages come back after: Stage 1 = 1 day · 2 = 3 days · 3 = 7 days (Use it starts here) · 4 = 14 days · 5 / mastered = 30 days.
-- A good Use it sentence moves the word up one stage. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.
-- New words wait in a list. When today's cards are done, up to 20 join by themselves (oldest deck first).
+- A good Use it sentence moves a word up one stage. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.
 - v1 is online: review needs a connection. The widget still shows the last words it got.
+- (open): Easy on a brand-new card goes to Stage 1 or Stage 2.
 
 ---
 
-## 7. Design system: "Paper & Ink, GitHub greens"
-(Figma pages Foundations and Components have the full set: variables, text styles and components.)
+## 8. Accounts
+- Everyone starts as a **guest**.
+- **Subscribers:** right after they buy, we ask them to sign in (Apple, Google or email code). If they skip, we ask again **every time they open the app** until they sign in, so they never lose what they paid for.
+- **Free users:** stay guests. Signing in is optional (where: (open)).
+- Progress syncs across iOS and the web app after sign-in.
+- Delete account in the app removes everything.
+
+## 9. Free vs Pro
+Reviews, swipes, widgets and Progress are **always unlimited**.
+
+| Weekly limit (rolling 7 days) | Free | Pro |
+|---|---|---|
+| New decks from Kai | 1 | unlimited |
+| New words into review | 30 | unlimited |
+| Use it practice | 10 | unlimited |
+| Kai questions | unlimited (a limit may come later) | unlimited |
+
+- **Pro price:** about **$4.99 / month** or **$29.99 / year**, 7-day free trial. Final numbers: (open), set before launch.
+- **Paywall headline:** "No weekly limits". (When Speak ships, we test it as the main reason to pay.)
+- Trial: reminder before it ends; cancel in 2 taps.
+- The upgrade prompt shows only at the moment of need (a limit is hit).
+- Ask for an App Store rating only after a good moment. Never fake or AI-written reviews.
+- (open): web app payment provider.
+
+## 10. AI quality
+1. Every word is checked against a dictionary / frequency list, plus a second AI check before it is saved.
+2. Level must match. A beginner never gets C2 words.
+3. Every word has pronunciation, in every language.
+4. Filter adult and offensive topics unless the user asks.
+5. AI keys live only on the server.
+
+## 11. Look and feel
+"Paper & Ink, GitHub greens". Full set (variables, text styles, components): Figma pages Foundations and Components. In code: `apps/mobile/src/theme/theme.ts`.
 - Calm and flat: white cards on a light gray page, 1px lines, green for actions and for how well you know a word. No gradients, no confetti.
 - Colors: canvas `#f6f8fa` · surface `#ffffff` · chip `#eff2f5` · line `#d1d9e0` · text `#1f2328` · muted `#59636e` · **button `#1f883d`** · green-text `#116329` · green-bg `#dafbe1` · Hard/error `#d1242f` · Know it `#116329`.
-- Word levels (one **Level square**, shaded by level): New `#eff2f5` · S1 `#aceebb` · S2 `#6fdd8b` · S3 `#4ac26b` · S4 `#2da44e` · S5 `#116329`.
+- Word levels (one **level square**, shaded by stage): New `#eff2f5` · S1 `#aceebb` · S2 `#6fdd8b` · S3 `#4ac26b` · S4 `#2da44e` · S5 `#116329`.
 - Type: **Mona Sans** (400/500/600). Mono only for numbers and small caps labels.
 - Frame 393×852, side margin 20, radius 12 (buttons, cards), 20 (flashcard). Buttons 56 tall. Tap targets ≥ 44.
 - Deck progress = a chain of squares (1 per word), never a bar. Loading = a plain bar.
-- All Kai art in Figma = instances of the **"Kai"** component set. Never detach it.
-- Sample data: Maya, a Spanish speaker learning English. 52 words in 5 decks.
+- Kai art = instances of the **"Kai"** component set in Figma. Never detach it. Kai spec: `docs/design/CHARACTER.html`.
 
 ---
 
-## 8. How we build (full detail in `docs/dev-guide.html`)
-- **App:** React Native + Expo (TypeScript strict, Expo Router). iOS first, then Android and web.
-- **Widgets:** native SwiftUI WidgetKit, added through an Expo config plugin.
-- **Kai:** one JSON spec from `CHARACTER.html` → Skia on the phone, canvas on the web, still images on widgets.
-- **Server:** Node + Hono + Drizzle + Zod + pg-boss. The SRS lives only on the server.
-- **Login:** Supabase Auth only (Apple, Google, email code; guest first).
-- **Data, files, hosting:** DigitalOcean Managed Postgres (Frankfurt), Spaces + CDN, App Platform.
-- **Speak:** the phone talks to the voice AI directly (WebRTC). The server gives a short-lived key and saves the transcript.
-- **Payments:** RevenueCat. **Analytics:** PostHog. **Builds:** Expo EAS.
-- **Loop:** spec in a draft PR → tests first → agent builds → fresh agent + CI check → video approval → merge.
-- Reminder (2026-11-16 test, VPN off in Iran): Firebase, Expo push, Anthropic and the GitHub API are blocked. Supabase, RevenueCat, PostHog and EAS Update work.
-
----
-
-## 9. Not decided yet (ask Hamid, do not invent)
-1. Final app name (Lockwords is the working name).
-2. Launch languages (suggested: Japanese, Korean, Spanish, Quranic Arabic).
-3. Final prices and free limits. The current plan is Pro at $6.99/month or $39.99/year with a 7-day trial; this still needs a test.
-4. Easy on a brand-new card: Stage 1 or Stage 2.
-5. Speak typing mode and more talk animations: designed only in part.
-6. Real testimonials and ratings: all current ones are placeholders.
+## 12. Open decisions
+1. App name (Lockwords is the working name).
+2. Success metric targets.
+3. Final prices.
+4. In v1 or later: daily reminder push, export to CSV, recently deleted, report this card.
+5. Where free users can sign in.
+6. Web app payment provider.
+7. Easy on a brand-new card: Stage 1 or Stage 2.
+8. Word font: all Mona Sans, or a serif just for the word on the card.

@@ -1,4 +1,4 @@
-// Design tokens. Source: Figma variables (file cRusagDF0itPxGEvDtr44K, page Foundations), read 2026-11-16.
+// Design tokens. Source: Figma variables (file HSABWihDUDlsVz85aixHiT, page Foundations), read 2026-11-16.
 // Rule: screens use these values only. No raw colors or sizes in components.
 
 export const colors = {
