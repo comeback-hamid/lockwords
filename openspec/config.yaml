@@ -6,7 +6,7 @@ context: |
   Decided product rules: docs/product.md. Screens + Figma links: docs/screens.md. Figma wins over docs.
   Spec folders: specs/<domain>/spec.md (rules for all apps), specs/<domain>/server/spec.md (endpoints, tables),
   specs/<domain>/mobile/spec.md (screens, flows), specs/<domain>/widget/spec.md (widget only).
-  Domains: onboarding, decks, review, srs, use-it, speak, my-words, widget, kai, account, paywall, platform.
+  Domains: onboarding, new-words, decks, review, srs, use-it, speak, my-words, widget, kai, account, paywall, platform.
   Write in plain English with short sentences. "(open)" items are asked, never invented.
 
 rules:
