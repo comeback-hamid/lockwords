@@ -10,8 +10,8 @@ import { createProfilesStore } from './db/profiles.js';
 import { createUsersStore } from './db/users.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
-import { claudeDeckMaker, claudeUseItJudge } from './llm/claude.js';
-import { fixtureDeckMaker, fixtureUseItJudge } from './llm/fixture.js';
+import { claudeDeckMaker, claudeKaiReplier, claudeUseItJudge } from './llm/claude.js';
+import { fixtureDeckMaker, fixtureKaiReplier, fixtureUseItJudge } from './llm/fixture.js';
 
 const env = loadEnv();
 const { db } = createDb(env.DATABASE_URL);
@@ -34,6 +34,7 @@ const app = createApp({
   deckJobs: await createQueuedDeckJobs(boss, db, { profiles, decks, deckMaker }),
   cards: createCardsStore(db),
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
+  kaiReplier: env.ANTHROPIC_API_KEY ? claudeKaiReplier(env.ANTHROPIC_API_KEY) : fixtureKaiReplier,
 });
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`server on http://localhost:${info.port}`);

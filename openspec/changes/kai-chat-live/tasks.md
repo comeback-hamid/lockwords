@@ -1,6 +1,9 @@
 ## 1. Server
-- [ ] 1.1 Tests first: `test/unit/kai-reply.test.ts` (name, question, language by words, generating always off-script, bad input 400, AI fails 502, no profile 200, real model call with a fake `fetch`). Run them, see them fail.
-- [ ] 1.2 `src/llm/kai-reply.ts` (interface, Zod shape, fixture), `claudeKaiReplier` in `src/llm/claude.ts` (Haiku 5.5, 8 s), `src/routes/kai.ts`, `src/app.ts`, `npm run openapi`. Check: server tests, typecheck, lint pass.
+- [x] 1.1 Tests first: `test/unit/kai-reply.test.ts` (name, question, language by words, generating always off-script, bad input 400, AI fails 502, no profile 200, real model call with a fake `fetch`). Run them, see them fail.
+- [x] 1.2 `src/llm/kai-reply.ts` (interface, Zod shape, fixture), `claudeKaiReplier` in `src/llm/claude.ts` (Haiku 5.5, 8 s), `src/routes/kai.ts`, `src/app.ts`, `npm run openapi`. Check: server tests, typecheck, lint pass.
+
+- Not done: Kai does not get the learner's chat name from the real database yet. `src/db/profiles.ts` does not return `name`, and part c is changing that file now. The route passes it when the store has it.
+- Real model check, 2026-11-17 (Haiku 5.5): "Why do you need my name?" → off script, 2 lines; "hey, I'm Maya" → Maya; "english please" → native; while generating → off script. 1.6–2.4 s.
 
 ## 2. Mobile
 - [ ] 2.1 Tests first: `__tests__/kai-chat-live.test.tsx` (dots then message, options after the last bubble, Kai state map, 20 s → waiting, timed deck count 3 at 5 s and cap 9, off-script answer then the question again, name in a sentence, Kai reply fails → typed name kept, tapped option becomes the user bubble). Update the listed old tests in `kai-chat.test.tsx` to wait for typing. Run them, see the new ones fail.
