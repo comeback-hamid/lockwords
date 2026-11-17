@@ -42,6 +42,8 @@ export const layout = {
   buttonHeight: 56,
   minTapTarget: 44,
   kaiHeaderHeight: 176,
+  // The iOS tab bar floats over the screen. A tab screen with a control at the bottom keeps this much room under it.
+  tabBarClearance: 92,
 } as const;
 
 // Figma "lift": only on cards and sheets. Everything else uses a 1px line.

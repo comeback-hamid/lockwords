@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import type { KaiMessage, KaiTurnResult } from '@/api/client';
 import { api } from '@/auth/boot';
@@ -35,6 +35,17 @@ export default function NewWordsScreen() {
   const [draft, setDraft] = useState({ key: 0, text: '' }); // a new key puts `text` back in the composer
   const [translation, setTranslation] = useState({ on: true, code: '' });
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+
+  // The tab bar floats over the screen, so the composer sits above it. With the keyboard up the tab bar is hidden behind it.
+  const [keyboard, setKeyboard] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboard(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboard(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   // What a finished turn adds to the screen.
   const take = useCallback((result: KaiTurnResult) => {
@@ -166,7 +177,7 @@ export default function NewWordsScreen() {
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}
       </ScrollView>
       <ReplyOptions options={typing ? [] : options} onPick={(o) => void send(o)} />
-      <View style={styles.composer}>
+      <View style={keyboard ? styles.composerTyping : styles.composer}>
         <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} maxLength={500} mic={false} />
       </View>
     </KeyboardAvoidingView>
@@ -178,5 +189,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: layout.sideMargin },
   scroll: { flex: 1 },
   messages: { paddingHorizontal: layout.sideMargin, paddingVertical: space[16], gap: space[8] },
-  composer: { paddingBottom: space[12] },
+  composer: { paddingBottom: layout.tabBarClearance },
+  composerTyping: { paddingBottom: space[12] },
 });
