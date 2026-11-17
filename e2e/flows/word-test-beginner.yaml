@@ -1,0 +1,37 @@
+# Word test, situation 2: a beginner. Basic + intermediate pages only (3 or fewer intermediate words → no advanced page).
+# Needs the local stack: `npm run dev:up`.
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: word-test-beginner
+- runFlow: ../subflows/to-level.yaml
+- tapOn: "Beginner"
+- tapOn: "Continue"
+- assertVisible: "BASIC WORDS"
+- assertVisible: "Only tap words you know the meaning of. Some are made up."
+- tapOn: "la casa"
+- tapOn: "la noche"
+- tapOn: "comer"
+- tapOn: "la familia"
+- tapOn: "la mano"
+- assertVisible: "5 SELECTED"
+- runFlow: ../subflows/next-page.yaml
+- assertVisible: "INTERMEDIATE WORDS"
+- tapOn: "el reloj"
+- runFlow: ../subflows/next-page.yaml
+# No ADVANCED page: straight to the result
+- extendedWaitUntil:
+    visible: "YOU ALREADY KNOW"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "150"
+    timeout: 5000
+- assertVisible: "About level A1"
+- assertVisible: "An estimate from your word test."
+- tapOn: "Continue"
+- assertVisible: "Why are you learning?"
+- stopRecording

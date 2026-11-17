@@ -3,14 +3,14 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-17 (after PR #13).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-17 (PR #16, word test with the vocabulary engine).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
 - **Works on the simulator today:** a fresh install → onboarding → Kai chat → first deck → first review round → Use it → hard words → trial reminder → paywall → the three tabs. All of it runs on this Mac only (`npm run dev:up`).
 - **Not real yet:** the AI (a stand-in makes every deck), the paywall (sells nothing), Kai (still pictures), the cloud (nothing is deployed).
 - **Blocked on Hamid:** accounts and keys (DigitalOcean, Supabase, Apple, Google, Expo, RevenueCat, Anthropic).
-- **Next to build without accounts:** `vocab-engine` (the real word test and estimate in onboarding), then the New words tab (epic 4) or the Progress tab (epic 3).
+- **In progress (2026-11-17):** onboarding section 1 in four parallel PRs: languages (#15), word test with the vocabulary engine (#16), goal and interests (#17), Kai character / level-matched deck / live Kai chat (#18–#20).
 
 ## Phase 0: Setup (days 1–4)
 
@@ -25,7 +25,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 
 | # | Epic | Done | Still open | Figma | Status |
 |---|---|---|---|---|---|
-| 1 | Onboarding + first deck | `onboarding-profile` (O1–O9) · `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, first deck) · `first-review` (O12–O16) · `deck-background-job` (deck words made by a pg-boss job, 2026-11-17) | **`vocab-engine`** (the word test, the estimate and the deck levels must follow `docs/vocab-engine.md`: 13 language files, made-up words, the scoring model, 5 deck bands; today's test is a Spanish-only stand-in with a simple sum; spec waits for Hamid's answers) · `kai-character` (animated Kai from the spec; today: still pictures) · card and deck pictures · word test for languages other than Spanish · Kai's lines in the user's language · "I have an account" on O1 (needs real sign-in) | Onboarding | 🟨 |
+| 1 | Onboarding + first deck | `onboarding-profile` (O1–O9) · `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, first deck) · `first-review` (O12–O16) · `deck-background-job` (deck words made by a pg-boss job, 2026-11-17) | **`vocab-engine-word-test`** (#16: word test + estimate follow `docs/vocab-engine.md` for 13 languages and AI packs for typed ones; built, waits for Hamid's video OK) · level-matched decks (#19) · `kai-character` (animated Kai from the spec; today: still pictures) · card and deck pictures · word test for languages other than Spanish · Kai's lines in the user's language · "I have an account" on O1 (needs real sign-in) | Onboarding | 🟨 |
 | 2 | Review | `first-review`: swipe rules on the server, today's round, card round with stamps, flip, speaker · round picked by the database, speaker language kept after a restart (2026-11-17) | `review-done-streak` (A7, A9) · undo for "I know it" (no design yet) · sounds · pictures | Review | 🟨 |
 | 3 | Progress tab | The tab exists with its Figma icon (empty screen, 2026-11-17) | `progress-home` (P1: total, meadow, goal grid, word plan) · `decks-and-words` (P2–P3, swipe delete) | My words | ⬜ |
 | 4 | New words tab | The tab exists with its Figma icon (empty screen) | `new-words-chat` (N1–N4: 3 ready decks, Create) · `own-deck-and-how-do-i-say` (N5–N7) | New words | ⬜ |
@@ -47,7 +47,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #10 | 2026-11-17 | Speak tab → Progress tab |
 | #11 | 2026-11-17 | Roadmap brought up to date; rule: every PR keeps it current |
 | #12 | 2026-11-17 | V1 docs (product, screens, design, dev guide), HTML copies of the roadmap and product docs |
-| #13 | 2026-11-17 | `docs/vocab-engine.md` added (the word test and deck level method); not built yet |
+| #13 | 2026-11-17 | `docs/vocab-engine.md` added (the word test and deck level method) |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
