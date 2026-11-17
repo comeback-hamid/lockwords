@@ -20,7 +20,7 @@
 - Deck count: N − 1 for any deck size, because New words decks have 10–30 words (from the New words session, 2026-11-17).
 
 ## 3. Docs
-- [ ] 3.1 `apps/mobile/CLAUDE.md` (chat queue, Kai states), `apps/server/CLAUDE.md` + `src/llm/README.md` (`kai_reply`), `docs/roadmap.md`. Check: the files say so.
+- [x] 3.1 `apps/mobile/CLAUDE.md` (chat queue, Kai states), `apps/server/CLAUDE.md` + `src/llm/README.md` (`kai_reply`), `docs/roadmap.md`. Check: the files say so.
 
 ## Workflow follow-up
 - Hamid watches the video → `/opsx:archive` → merge main in, regenerate `openapi.json` and `schema.ts`, rerun checks → squash merge.
