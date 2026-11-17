@@ -6,14 +6,14 @@
 - Real model check, 2026-11-17 (Haiku 5.5): "Why do you need my name?" → off script, 2 lines; "hey, I'm Maya" → Maya; "english please" → native; while generating → off script. 1.6–2.4 s.
 
 ## 2. Mobile
-- [ ] 2.1 Tests first: `__tests__/kai-chat-live.test.tsx` (dots then message, options after the last bubble, Kai state map, 20 s → waiting, timed deck count 3 at 5 s and cap 9, off-script answer then the question again, name in a sentence, Kai reply fails → typed name kept, tapped option becomes the user bubble). Update the listed old tests in `kai-chat.test.tsx` to wait for typing. Run them, see the new ones fail.
+- [ ] 2.1 Tests first: `__tests__/kai-chat-live.test.tsx` (dots then message, options after the last bubble, Kai state map, 20 s → waiting, timed deck count 3 at 5 s and cap 9, off-script answer then the question again, name in a sentence, Kai reply fails → typed name kept, tapped option becomes the user bubble). Update the listed old tests in `kai-chat.test.tsx` and the Use it tests in `review.test.tsx` to wait for typing. Run them, see the new ones fail.
 - [ ] 2.2 `npm run api:gen`; `api.kaiReply` in `src/api/client.ts`. Check: api client test passes.
-- [ ] 2.3 Typing bubble + chat queue; Kai state from `kaiStateFor()`; back-to-question lines in `kai-script.ts`. Check: typing and state tests pass.
+- [ ] 2.3 Typing bubble + shared queue `useKaiTyping` (0.8–1.2 s per bubble, one after another), used by the onboarding chat and the Use it chat; Kai state from `kaiStateFor()`; back-to-question lines in `kai-script.ts`. Check: typing and state tests pass.
 - [ ] 2.4 Option move animation (Reanimated, Reduce Motion = no move). Check: tap test passes; looks right on the simulator.
 - [ ] 2.5 Talk back: typed text → `kaiReply` → on/off script; fallback. Check: talk-back tests pass.
 - [ ] 2.6 Deck card timed progress shared with Kai `making`. Check: progress tests pass.
 - [ ] 2.7 Figma: add frames "O10 · Kai typing" and "O10 · Talk back" to the V1 file; link them in `docs/screens.md`. Check: links open.
-- [ ] 2.8 Maestro: `e2e/flows/kai-chat-live.yaml` (area `kai`): type a question at the name step, see Kai's answer and the question again, type the name, tap an option (it moves up), Generate, bar fills, ready. Update `e2e/subflows/finish-onboarding.yaml` waits. Records `e2e/videos/kai-chat-live.mp4`. Check: full Maestro run passes; all Jest, typecheck, lint.
+- [ ] 2.8 Maestro: `e2e/flows/kai-chat-live.yaml` (area `kai`): type a question at the name step, see Kai's answer and the question again, type the name, tap an option (it moves up), Generate, bar fills, ready. Update the waits in `e2e/subflows/finish-onboarding.yaml` and `e2e/flows/first-run.yaml`. Records `e2e/videos/kai-chat-live.mp4`. Check: full Maestro run passes; all Jest, typecheck, lint.
 
 ## 3. Docs
 - [ ] 3.1 `apps/mobile/CLAUDE.md` (chat queue, Kai states), `apps/server/CLAUDE.md` + `src/llm/README.md` (`kai_reply`), `docs/roadmap.md`. Check: the files say so.

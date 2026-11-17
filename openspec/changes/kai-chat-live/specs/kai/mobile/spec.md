@@ -1,11 +1,19 @@
 ## ADDED Requirements
 
 ### Requirement: Kai types
-Before each Kai bubble the chat SHALL show a Kai bubble with three moving dots for about one second (0.8 s for a short line, up to 1.2 s for a long one), then replace it with the whole message at once. Bubbles of one turn come one after another. Reply options show only after Kai's last bubble of the turn. The composer works the whole time.
+In every chat with Kai (the onboarding chat and the Use it chat), each Kai bubble SHALL come after a Kai bubble with three moving gray dots, shown for about one second (0.8 s for a short line, up to 1.2 s for a long one). The dots are then replaced by the whole message at once. When Kai sends several bubbles in a row, each one gets its own dots, one after another. Reply options show only after Kai's last bubble of the turn. The composer works the whole time.
 
 #### Scenario: Typing
 - **WHEN** Kai says "Hi! I’m Kai 👋"
 - **THEN** a dots bubble shows first (labelled "Kai is typing"), and about one second later the message shows in its place
+
+#### Scenario: Several bubbles
+- **WHEN** Kai sends 5 bubbles in a row
+- **THEN** each bubble has its own dots first, and they show one after another, never at the same time
+
+#### Scenario: Use it chat
+- **WHEN** the learner sends a sentence in the Use it chat and Kai answers with 2 lines
+- **THEN** each line comes after its own dots
 
 #### Scenario: Options wait
 - **WHEN** Kai's turn ends with reply options
