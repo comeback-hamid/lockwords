@@ -9,9 +9,11 @@ import { QuestionScreen } from '@/components/question-screen';
 import { profileBody, stepFor } from '@/onboarding/flow';
 import { getAnswers, setAnswers } from '@/onboarding/store';
 import { saveSpeechLanguage } from '@/review/speech-language';
-import { colors, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, levelColors, opacity, radius, space, type } from '@/theme/theme';
 
 type Interest = Profile['interests'][number];
+// The server takes 1–5 (PUT /v1/profile). At 5 the other tiles fade and cannot be picked (Figma O9b).
+const MAX_PICKED = 5;
 const INTERESTS: { value: Interest; label: string; icon: IconName }[] = [
   { value: 'food', label: 'Food', icon: 'food' },
   { value: 'travel', label: 'Travel', icon: 'travel' },
@@ -23,18 +25,14 @@ const INTERESTS: { value: Interest; label: string; icon: IconName }[] = [
   { value: 'movies', label: 'Movies', icon: 'movies' },
   { value: 'books', label: 'Books', icon: 'books' },
   { value: 'sports', label: 'Sports', icon: 'sports' },
-  { value: 'fitness', label: 'Fitness', icon: 'fitness' },
   { value: 'health', label: 'Health', icon: 'health' },
   { value: 'nature', label: 'Nature', icon: 'nature' },
   { value: 'animals', label: 'Animals', icon: 'animals' },
   { value: 'art', label: 'Art', icon: 'art' },
-  { value: 'fashion', label: 'Fashion', icon: 'fashion' },
-  { value: 'gaming', label: 'Gaming', icon: 'gaming' },
   { value: 'news', label: 'News', icon: 'news' },
   { value: 'family', label: 'Family', icon: 'family' },
   { value: 'friends_dating', label: 'Friends & dating', icon: 'friends' },
   { value: 'shopping', label: 'Shopping', icon: 'shopping' },
-  { value: 'cooking', label: 'Cooking', icon: 'cooking' },
   { value: 'money', label: 'Money', icon: 'money' },
   { value: 'culture', label: 'Culture', icon: 'culture' },
 ];
@@ -45,6 +43,7 @@ export default function InterestsScreen() {
   const [picked, setPicked] = useState<Interest[]>(getAnswers().interests);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const full = picked.length >= MAX_PICKED;
 
   const save = async () => {
     setAnswers({ interests: picked });
@@ -68,18 +67,20 @@ export default function InterestsScreen() {
       message={failed ? 'Could not save. Try again.' : undefined}
       button={{ label: 'Continue', disabled: picked.length === 0 || saving, onPress: save }}>
       <View style={styles.group}>
-        <Text style={[type.label, styles.count]}>{`${picked.length} SELECTED`}</Text>
+        <Text style={[type.label, styles.count]}>{full ? `${MAX_PICKED} OF ${MAX_PICKED} PICKED` : `${picked.length} SELECTED`}</Text>
         <View style={styles.grid}>
           {INTERESTS.map((it) => {
             const on = picked.includes(it.value);
+            const locked = full && !on;
             return (
               <Pressable
                 key={it.value}
                 accessibilityRole="checkbox"
                 accessibilityLabel={it.label}
-                accessibilityState={{ checked: on }}
+                accessibilityState={{ checked: on, disabled: locked }}
+                disabled={locked}
                 onPress={() => setPicked(on ? picked.filter((v) => v !== it.value) : [...picked, it.value])}
-                style={[styles.tile, on && styles.tileOn]}>
+                style={[styles.tile, on && styles.tileOn, locked && styles.tileLocked]}>
                 {on ? (
                   <View style={styles.check}>
                     <Icon name="check" color={colors.white} />
@@ -105,5 +106,6 @@ const styles = StyleSheet.create({
   // Three columns: (100% - 2 gaps) / 3.
   tile: { width: '31.6%', height: 88, alignItems: 'center', justifyContent: 'center', gap: space[8], paddingHorizontal: space[4], borderRadius: radius.control, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   tileOn: { borderColor: levelColors[3], backgroundColor: colors.greenBg },
+  tileLocked: { opacity: opacity.disabled },
   check: { position: 'absolute', top: space[8], right: space[8], width: 18, height: 18, borderRadius: radius.pill, backgroundColor: colors.button, alignItems: 'center', justifyContent: 'center' },
 });
