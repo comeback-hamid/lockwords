@@ -14,6 +14,11 @@ export type SwipeResult = components['schemas']['SwipeResult'];
 export type UseItResult = components['schemas']['UseItResult'];
 export type HardWord = components['schemas']['HardWords']['words'][number];
 export type Direction = 'easy' | 'hard' | 'known';
+export type KaiChat = components['schemas']['KaiChat'];
+export type KaiMessage = components['schemas']['KaiMessage'];
+export type KaiTurn = components['schemas']['KaiTurn'];
+// A Kai turn can fail in two ways the screen treats differently, so it does not throw.
+export type KaiTurnResult = { ok: true; turn: KaiTurn } | { ok: false; error: 'too_many_messages' | 'failed' };
 
 type Options = { baseUrl: string; getToken(): Promise<string | null>; fetch?: typeof fetch; deckPollMs?: number };
 
@@ -34,8 +39,26 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     if (result.data === undefined) throw new Error('request failed');
     return result.data;
   };
+  // One turn of the New words chat: the learner's text, or `open` for Kai's opening.
+  async function kaiTurn(body: { text: string } | { open: true }): Promise<KaiTurnResult> {
+    try {
+      const { data, response } = await client.POST('/v1/kai/chat/turns', { body });
+      if (data) return { ok: true, turn: data };
+      return { ok: false, error: response.status === 429 ? 'too_many_messages' : 'failed' };
+    } catch {
+      return { ok: false, error: 'failed' };
+    }
+  }
   return {
     client,
+    async fetchKaiChat(): Promise<KaiChat> {
+      return unwrap(await client.GET('/v1/kai/chat'));
+    },
+    sendKaiMessage: (text: string) => kaiTurn({ text }),
+    openKaiChat: () => kaiTurn({ open: true }),
+    async setKaiTranslation(on: boolean): Promise<void> {
+      unwrap(await client.PUT('/v1/kai/chat/translation', { body: { on } }));
+    },
     async fetchWordTest(language: string): Promise<WordTest> {
       return unwrap(await client.GET('/v1/word-test', { params: { query: { language } } }));
     },

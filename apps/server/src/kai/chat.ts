@@ -1,5 +1,6 @@
 import type { ProfilesStore } from '../app.js';
 import { KaiAnswerSchema, type KaiAnswer, type KaiChat, type KaiContext } from '../llm/kai-chat.js';
+import { listedLanguage } from '../onboarding/languages.js';
 import type { Profile } from '../onboarding/profile.js';
 
 // One turn of the New words chat: check the limits, tell Kai what it knows, save what it said.
@@ -42,6 +43,9 @@ export function defaultTranslationOn(saved: boolean | null, cefr: string | null,
   return level === 'brand_new' || level === 'beginner' || level === 'some_basics';
 }
 
+// The profile keeps a code ("es") for a listed language and the typed name for any other. Kai is told the name.
+const languageName = (saved: string) => listedLanguage(saved)?.name ?? saved;
+
 export type TurnResult =
   | { ok: true; userMessage: KaiMessage | null; messages: KaiMessage[]; options: string[]; action: 'review' | null }
   | { ok: false; error: 'no_profile' | 'too_many_messages' | 'kai_unavailable' };
@@ -73,8 +77,8 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null, 
   const [history, notes, facts] = await Promise.all([deps.kai.messages(userId, HISTORY_FOR_KAI), deps.kai.notes(userId), deps.kai.facts(userId, now)]);
   const ctx: KaiContext = {
     name: facts.name,
-    learningLanguage: profile.learningLanguage,
-    nativeLanguage: profile.nativeLanguage,
+    learningLanguage: languageName(profile.learningLanguage),
+    nativeLanguage: languageName(profile.nativeLanguage),
     cefr: profile.cefr,
     knownWords: profile.knownWords,
     goal: profile.goal,
@@ -107,5 +111,6 @@ export async function readChat(deps: Pick<Deps, 'kai' | 'profiles'>, userId: str
     messages,
     options: last?.from === 'kai' ? last.options : [],
     translationOn: defaultTranslationOn(facts.translationOn, profile?.cefr ?? null, profile?.level ?? 'beginner'),
+    nativeLanguage: profile?.nativeLanguage ?? null, // the translation button shows its code ("EN")
   };
 }

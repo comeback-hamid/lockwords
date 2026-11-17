@@ -169,7 +169,7 @@ type Chat = { messages: { id: string; from: string; text: string; translation: s
 type Turn = { userMessage: { from: string; text: string } | null; messages: { from: string; text: string; translation: string | null }[]; options: string[]; action: string | null };
 
 test('read: an empty chat has no messages and no options; the default follows the level', async () => {
-  expect(await json<Chat>(alice('/v1/kai/chat'))).toEqual({ messages: [], options: [], translationOn: true });
+  expect(await json<Chat>(alice('/v1/kai/chat'))).toEqual({ messages: [], options: [], translationOn: true, nativeLanguage: 'English' });
   expect((await json<Chat>(bob('/v1/kai/chat'))).translationOn).toBe(false);
 });
 
@@ -238,6 +238,15 @@ test('what Kai is told: profile, notes, word facts with at most 10 words, and on
   expect(c.words.sample.length).toBeLessThanOrEqual(10);
   expect(c.history).toHaveLength(20);
   expect(c.history.at(-1)).toEqual({ from: 'kai', text: 'msg 59' });
+});
+
+test('Kai is told language names, also when the profile keeps codes', async () => {
+  profilesByUser[ids.a] = { ...profile, learningLanguage: 'es', nativeLanguage: 'fa' };
+  await alice('/v1/kai/chat/turns', 'POST', { text: 'Hola' });
+  expect(seen[0]).toMatchObject({ learningLanguage: 'Spanish', nativeLanguage: 'Persian' });
+  profilesByUser[ids.a] = { ...profile, learningLanguage: 'Swedish' };
+  await alice('/v1/kai/chat/turns', 'POST', { text: 'Hej' });
+  expect(seen[1]).toMatchObject({ learningLanguage: 'Swedish' });
 });
 
 test('Kai remembers: a new note is saved and used next turn; the same note is kept once', async () => {

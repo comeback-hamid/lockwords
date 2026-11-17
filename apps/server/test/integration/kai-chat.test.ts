@@ -54,7 +54,7 @@ test('open → message → restart: the history is saved in order, with options,
   await me('/v1/profile', 'PUT', profileOf('A2'));
   await me('/v1/profile/chat', 'PUT', { name: 'Maya', chatLanguage: 'target' });
 
-  expect(await json<Chat>(me('/v1/kai/chat'))).toEqual({ messages: [], options: [], translationOn: true });
+  expect(await json<Chat>(me('/v1/kai/chat'))).toEqual({ messages: [], options: [], translationOn: true, nativeLanguage: 'English' });
   seen = [];
   const opening = await json<Turn>(me('/v1/kai/chat/turns', 'POST', { open: true }));
   expect(opening.messages[0]!.text).toContain('Maya');

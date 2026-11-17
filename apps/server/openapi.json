@@ -597,12 +597,19 @@
           },
           "translationOn": {
             "type": "boolean"
+          },
+          "nativeLanguage": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
           "messages",
           "options",
-          "translationOn"
+          "translationOn",
+          "nativeLanguage"
         ]
       },
       "KaiMessage": {
@@ -643,15 +650,12 @@
         "type": "object",
         "properties": {
           "userMessage": {
-            "allOf": [
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/KaiMessage"
               },
               {
-                "type": [
-                  "object",
-                  "null"
-                ]
+                "type": "null"
               }
             ]
           },

@@ -823,6 +823,202 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/kai/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The newest messages, oldest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiChat"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/kai/chat/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["KaiTurnRequest"];
+                };
+            };
+            responses: {
+                /** @description Kai's new lines */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiTurn"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiBadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The user has no profile yet */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNoProfile"];
+                    };
+                };
+                /** @description More than 200 messages in 24 hours */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiTooManyMessages"];
+                    };
+                };
+                /** @description The AI call failed; nothing was saved */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiUnavailable"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/kai/chat/translation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        on: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description The saved choice */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiTranslation"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiBadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The user has no profile yet */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNoProfile"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -952,6 +1148,51 @@ export interface components {
             lines: string[];
             movedUp: boolean;
             stage: number;
+        };
+        KaiChat: {
+            messages: components["schemas"]["KaiMessage"][];
+            options: string[];
+            translationOn: boolean;
+            nativeLanguage: string | null;
+        };
+        KaiMessage: {
+            id: string;
+            /** @enum {string} */
+            from: "kai" | "user";
+            text: string;
+            translation: string | null;
+            createdAt: string;
+        };
+        KaiTurn: {
+            userMessage: components["schemas"]["KaiMessage"] | null;
+            messages: components["schemas"]["KaiMessage"][];
+            options: string[];
+            /** @enum {string|null} */
+            action: "review" | null;
+        };
+        KaiBadRequest: {
+            /** @enum {string} */
+            error: "bad_request";
+        };
+        KaiNoProfile: {
+            /** @enum {string} */
+            error: "no_profile";
+        };
+        KaiTooManyMessages: {
+            /** @enum {string} */
+            error: "too_many_messages";
+        };
+        KaiUnavailable: {
+            /** @enum {string} */
+            error: "kai_unavailable";
+        };
+        KaiTurnRequest: {
+            text?: string;
+            /** @enum {boolean} */
+            open?: true;
+        };
+        KaiTranslation: {
+            translationOn: boolean;
         };
     };
     responses: never;

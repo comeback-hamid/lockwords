@@ -5,8 +5,10 @@ import { Icon } from '@/components/icon';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Figma Composer: text box + one round button (mic when empty, green send when there is text).
-export function Composer({ placeholder, onSend, maxLength = 80 }: { placeholder: string; onSend(text: string): void; maxLength?: number }) {
-  const [text, setText] = useState('');
+// `mic={false}` is for text-only screens: no round button until there is text. `defaultValue` puts a text back in the box.
+type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string };
+export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '' }: Props) {
+  const [text, setText] = useState(defaultValue);
   const ready = text.trim() !== '';
   const send = () => {
     if (!ready) return;
@@ -32,7 +34,7 @@ export function Composer({ placeholder, onSend, maxLength = 80 }: { placeholder:
           <Pressable accessibilityRole="button" accessibilityLabel="Send" onPress={send} style={[styles.round, styles.send]}>
             <Icon name="send" color={colors.white} />
           </Pressable>
-        ) : (
+        ) : !mic ? null : (
           // shortcut: the mic does nothing yet; voice input comes with the Speak work.
           <Pressable accessibilityRole="button" accessibilityLabel="Voice message" style={styles.round}>
             <Icon name="mic" color={colors.text2} />

@@ -20,9 +20,12 @@ const security = [{ bearer: [] }];
 const MessageSchema = z
   .object({ id: z.string(), from: z.enum(['kai', 'user']), text: z.string(), translation: z.string().nullable(), createdAt: z.string() })
   .openapi('KaiMessage');
-const ChatSchema = z.object({ messages: z.array(MessageSchema), options: z.array(z.string()), translationOn: z.boolean() }).openapi('KaiChat');
+const ChatSchema = z
+  .object({ messages: z.array(MessageSchema), options: z.array(z.string()), translationOn: z.boolean(), nativeLanguage: z.string().nullable() })
+  .openapi('KaiChat');
+// userMessage is a union, not `.nullable()`: on a named schema that makes a type the app cannot use.
 const TurnSchema = z
-  .object({ userMessage: MessageSchema.nullable(), messages: z.array(MessageSchema), options: z.array(z.string()), action: z.enum(['review']).nullable() })
+  .object({ userMessage: z.union([MessageSchema, z.null()]), messages: z.array(MessageSchema), options: z.array(z.string()), action: z.enum(['review']).nullable() })
   .openapi('KaiTurn');
 // Exactly one of: the learner's text, or `open` for Kai's opening.
 const TurnBody = z

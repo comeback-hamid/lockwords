@@ -4,7 +4,7 @@ How the server runs the New words chat: it keeps the chat history, lets Kai answ
 ## ADDED Requirements
 
 ### Requirement: Read the chat
-`GET /v1/kai/chat` SHALL answer `200` with `{ messages, options, translationOn }`. `messages` are the caller's newest 50 messages, oldest first, each `{ id, from, text, translation, createdAt }` with `from` `kai` or `user`. `translation` is null on user messages. `options` are the reply options of the last message when Kai wrote it, else empty.
+`GET /v1/kai/chat` SHALL answer `200` with `{ messages, options, translationOn, nativeLanguage }` (`nativeLanguage` is the profile's, or null with no profile; the translation button shows its code). `messages` are the caller's newest 50 messages, oldest first, each `{ id, from, text, translation, createdAt }` with `from` `kai` or `user`. `translation` is null on user messages. `options` are the reply options of the last message when Kai wrote it, else empty.
 
 #### Scenario: Empty chat
 - **WHEN** a user who never chatted reads the chat
