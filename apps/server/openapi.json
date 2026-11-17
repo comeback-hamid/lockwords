@@ -48,77 +48,6 @@
           "error"
         ]
       },
-      "WordTest": {
-        "type": "object",
-        "properties": {
-          "supported": {
-            "type": "boolean"
-          },
-          "bands": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "level": {
-                  "type": "string",
-                  "enum": [
-                    "basic",
-                    "intermediate",
-                    "advanced"
-                  ]
-                },
-                "words": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "required": [
-                "level",
-                "words"
-              ]
-            }
-          }
-        },
-        "required": [
-          "supported",
-          "bands"
-        ]
-      },
-      "BadRequest": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "enum": [
-              "bad_request"
-            ]
-          }
-        },
-        "required": [
-          "error"
-        ]
-      },
-      "Estimate": {
-        "type": "object",
-        "properties": {
-          "knownWords": {
-            "type": "integer"
-          },
-          "outOf": {
-            "type": "integer"
-          },
-          "cefr": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "knownWords",
-          "outOf",
-          "cefr"
-        ]
-      },
       "Profile": {
         "type": "object",
         "properties": {
@@ -220,6 +149,181 @@
           "goal",
           "goalOther",
           "interests"
+        ]
+      },
+      "BadRequest": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "bad_request"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "WordTest": {
+        "type": "object",
+        "properties": {
+          "supported": {
+            "type": "boolean"
+          },
+          "pages": {
+            "$ref": "#/components/schemas/TestPages"
+          }
+        },
+        "required": [
+          "supported",
+          "pages"
+        ]
+      },
+      "TestPages": {
+        "type": "object",
+        "properties": {
+          "A": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestWord"
+            }
+          },
+          "B": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestWord"
+            }
+          },
+          "C": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestWord"
+            }
+          },
+          "D": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestWord"
+            }
+          }
+        }
+      },
+      "TestWord": {
+        "type": "object",
+        "properties": {
+          "w": {
+            "type": "string"
+          },
+          "rd": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "w"
+        ]
+      },
+      "NextPage": {
+        "type": "object",
+        "properties": {
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "C",
+              "D",
+              null
+            ]
+          }
+        },
+        "required": [
+          "next"
+        ]
+      },
+      "TestAnswers": {
+        "type": "object",
+        "properties": {
+          "A": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 30
+          },
+          "B": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 30
+          },
+          "C": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 30
+          },
+          "D": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 30
+          }
+        },
+        "required": [
+          "A",
+          "B"
+        ]
+      },
+      "Estimate": {
+        "type": "object",
+        "properties": {
+          "words": {
+            "type": "integer"
+          },
+          "outOf": {
+            "type": "integer"
+          },
+          "plus": {
+            "type": "boolean"
+          },
+          "cefr": {
+            "type": "string",
+            "enum": [
+              "A1",
+              "A2",
+              "B1",
+              "B2",
+              "C1",
+              "C2"
+            ]
+          },
+          "startingFresh": {
+            "type": "boolean"
+          },
+          "reliable": {
+            "type": "boolean"
+          },
+          "fakesTicked": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "words",
+          "outOf",
+          "plus",
+          "cefr",
+          "startingFresh",
+          "reliable",
+          "fakesTicked"
         ]
       },
       "DeckIdeas": {
@@ -577,6 +681,57 @@
         }
       }
     },
+    "/v1/profile": {
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/word-test": {
       "get": {
         "security": [
@@ -598,11 +753,76 @@
         ],
         "responses": {
           "200": {
-            "description": "Three word lists, or supported: false",
+            "description": "The test pages (words only, order fixed per user), or supported: false",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WordTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/word-test/next": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "known": {
+                    "$ref": "#/components/schemas/TestAnswers"
+                  }
+                },
+                "required": [
+                  "language",
+                  "known"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The next page, or null when the test is over",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextPage"
                 }
               }
             }
@@ -650,11 +870,7 @@
                     "maxLength": 40
                   },
                   "known": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "maxItems": 200
+                    "$ref": "#/components/schemas/TestAnswers"
                   }
                 },
                 "required": [
@@ -667,62 +883,11 @@
         },
         "responses": {
           "200": {
-            "description": "About how many common words the user knows",
+            "description": "About how many of the 5,000 most common words the user recognises",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Estimate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request is not valid",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequest"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No valid login token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/profile": {
-      "put": {
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Profile"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The saved profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Profile"
                 }
               }
             }

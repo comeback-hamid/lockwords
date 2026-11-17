@@ -8,10 +8,12 @@ import { createDb } from './db/client.js';
 import { createDecksStore } from './db/decks.js';
 import { createProfilesStore } from './db/profiles.js';
 import { createUsersStore } from './db/users.js';
+import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
 import { claudeDeckMaker, claudeUseItJudge } from './llm/claude.js';
 import { fixtureDeckMaker, fixtureUseItJudge } from './llm/fixture.js';
+import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
 const env = loadEnv();
 const { db } = createDb(env.DATABASE_URL);
@@ -34,6 +36,9 @@ const app = createApp({
   deckJobs: await createQueuedDeckJobs(boss, db, { profiles, decks, deckMaker }),
   cards: createCardsStore(db),
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
+  wordTests: createWordTestStore(db),
+  // No key = a typed language gets no word test (the listed 13 always have one).
+  wordPackMaker: env.ANTHROPIC_API_KEY ? claudeWordPackMaker(env.ANTHROPIC_API_KEY) : fixtureWordPackMaker,
 });
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`server on http://localhost:${info.port}`);
