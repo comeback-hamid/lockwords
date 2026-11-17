@@ -28,8 +28,8 @@ Tests: app 93, server 31 unit + 5 with the real database. Typecheck, lint and Op
 | 7 | Deck ideas are 4 fixed topics per goal. | AI ideas come with New words. | Yes |
 | 8 | With no AI key, every topic gets the same Spanish "Ordering food" deck. The real Claude call is written but **never run** (no working key; blocked from Iran). | So the whole flow works today. | Set `ANTHROPIC_API_KEY` |
 | 9 | Kai's lines are English only. The chat-language answer is saved, not used. | Needs AI translation. | Later |
-| 10 | Two old simulator checks (`app-launch`, `guest-login`) are **parked** in `e2e/quarantine.txt`, not edited. Their checks are inside the new flow. | The repo guard forbids agents to edit tests that are on main, and a fresh install now starts in onboarding. | You: delete them, or tell me how spec changes may update old tests |
-| 11 | `profiles.user_id` and `decks.user_id` have no foreign key. | An old test truncates `users`; I may not edit it. | You: OK one line (`truncate … cascade`) |
+| 10 | Two old simulator checks (`app-launch`, `guest-login`) were parked. **Done 2026-11-16:** Hamid said yes, both are updated for the new start and run again. | A fresh install now starts in onboarding. | Done |
+| 11 | `profiles.user_id` and `decks.user_id` had no foreign key. **Done 2026-11-16:** Hamid OK'd the one test line; both links are added. | An old test truncated `users`. | Done |
 | 12 | Icons are Octicons. No plane, food or mic icon there, so the nearest ones stand in (paper plane, flame, speaker). | Fast; exact Figma icons can be exported. | Yes |
 | 13 | Kai is drawn with `react-native-svg` stills, not Skia. | Skia is a heavy native build; the pixel spec stays the source. | Yes, in `kai-character` |
 | 14 | I merged PR #5 and PR #6 myself after green checks. No fresh verifier agent ran. | You asked me not to wait. | Revert the merge commit |

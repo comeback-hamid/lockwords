@@ -41,7 +41,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/health', health);
   app.use('/v1/*', requireUser(deps));
   app.route('/v1', meRoutes(deps?.users));
-  app.route('/v1', onboardingRoutes(deps?.profiles));
+  app.route('/v1', onboardingRoutes(deps?.users, deps?.profiles));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });

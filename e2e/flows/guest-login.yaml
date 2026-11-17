@@ -6,8 +6,9 @@ tags:
 - launchApp:
     clearState: true
     clearKeychain: true
-- startRecording: local-backend-and-guest-login
-- assertVisible: "New words"
+- startRecording: guest-login
+# A fresh install starts in onboarding. Go through it to reach the tabs.
+- runFlow: ../subflows/finish-onboarding.yaml
 # Silent guest sign-in: no login screen, and the server knows us.
 - extendedWaitUntil:
     visible:
@@ -17,8 +18,13 @@ tags:
     id: "dev-user-id"
 - stopApp
 - launchApp
-# Same user after a restart.
+# Same user after a restart, on every tab.
 - extendedWaitUntil:
     visible: ${maestro.copiedText}
     timeout: 20000
+- assertVisible: "New words"
+- tapOn: "Speak"
+- assertVisible: ${maestro.copiedText}
+- tapOn: "Review"
+- assertVisible: ${maestro.copiedText}
 - stopRecording
