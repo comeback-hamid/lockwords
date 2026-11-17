@@ -16,10 +16,11 @@ run=$(mktemp -d)
 status=0
 # LOCKWORDS_METRO=127.0.0.1:<port>: the app loads its code from that Metro, not 8081 (one Metro per parallel session).
 # The flows are copied and every launchApp gets the RCT_jsLocation launch argument; the files in e2e/ do not change.
+# It matches `- launchApp` at the start of a line with no `arguments:` of its own, as every flow writes it today.
 src=e2e
 if [[ -n "${LOCKWORDS_METRO:-}" ]]; then
   src="$run/e2e"
-  cp -R e2e "$src"
+  mkdir -p "$src" && cp -R e2e/flows e2e/subflows "$src"/
   find "$src/flows" "$src/subflows" -name '*.yaml' -exec perl -0pi -e \
     's/^- launchApp:?\n/- launchApp:\n    arguments:\n      RCT_jsLocation: "$ENV{LOCKWORDS_METRO}"\n/mg' {} +
 fi

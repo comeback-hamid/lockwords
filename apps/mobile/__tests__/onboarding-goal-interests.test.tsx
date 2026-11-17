@@ -52,6 +52,17 @@ describe('O9 Interests: 20 to choose, 1 to 5 picked (Figma O9b)', () => {
     for (const gone of ['Cooking', 'Fitness', 'Fashion', 'Gaming']) expect(screen.queryByRole('checkbox', { name: gone })).toBeNull();
   });
 
+  test('picked tiles show as picked; others stay free under 5', async () => {
+    await render(<InterestsScreen />);
+    await fireEvent.press(tile('Food'));
+    await fireEvent.press(tile('Music'));
+    expect(isPicked('Food')).toBe(true);
+    expect(isPicked('Music')).toBe(true);
+    expect(isPicked('Travel')).toBe(false);
+    expect(isDisabled('Travel')).toBe(false);
+    expect(screen.getByText('2 SELECTED')).toBeOnTheScreen();
+  });
+
   test('the fifth pick locks the rest; a sixth tap does nothing', async () => {
     await render(<InterestsScreen />);
     for (const name of five) await fireEvent.press(tile(name));
