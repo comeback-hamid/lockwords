@@ -10,8 +10,9 @@ export const users = pgTable('users', {
 
 // Onboarding answers (O1–O9). One row per user; a new save replaces the old one.
 export const profiles = pgTable('profiles', {
-  // = users.id. shortcut: no foreign key yet (see docs/tech-debt.md), add it with the decks tables.
-  userId: uuid('user_id').primaryKey(),
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id),
   learningLanguage: text('learning_language').notNull(),
   nativeLanguage: text('native_language').notNull(),
   level: text('level').notNull(),
@@ -27,8 +28,9 @@ export const profiles = pgTable('profiles', {
 
 export const decks = pgTable('decks', {
   id: uuid('id').primaryKey().defaultRandom(),
-  // = users.id. shortcut: no foreign key yet (see docs/tech-debt.md).
-  userId: uuid('user_id').notNull(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
   topic: text('topic').notNull(),
   title: text('title').notNull(),
   reason: text('reason').notNull(),

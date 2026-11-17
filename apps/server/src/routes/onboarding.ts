@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-import type { ProfilesStore } from '../app.js';
+import type { ProfilesStore, UsersStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { ProfileSchema } from '../onboarding/profile.js';
 import { estimate, wordTestFor } from '../onboarding/word-test.js';
@@ -42,7 +42,7 @@ const putProfile = createRoute({
   responses: { 200: json(ProfileSchema, 'The saved profile'), ...errors },
 });
 
-export function onboardingRoutes(profiles: ProfilesStore | undefined) {
+export function onboardingRoutes(users: UsersStore | undefined, profiles: ProfilesStore | undefined) {
   const app = new OpenAPIHono<{ Variables: { user: AuthUser } }>({
     // Every bad query or body gets the same short answer.
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
@@ -59,7 +59,10 @@ export function onboardingRoutes(profiles: ProfilesStore | undefined) {
       return c.json(estimate(bands, known), 200);
     })
     .openapi(putProfile, async (c) => {
-      if (!profiles) throw new Error('profiles store is not set');
-      return c.json(await profiles.upsert(c.get('user').id, c.req.valid('json')), 200);
+      if (!users || !profiles) throw new Error('profiles store is not set');
+      // The profile row points to the user row, and this can be the user's first call.
+      const { id, isGuest } = c.get('user');
+      await users.upsert(id, isGuest);
+      return c.json(await profiles.upsert(id, c.req.valid('json')), 200);
     });
 }

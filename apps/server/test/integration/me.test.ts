@@ -15,7 +15,7 @@ let app: ReturnType<typeof createApp>;
 
 beforeAll(async () => {
   await migrate(db, { migrationsFolder: new URL('../../drizzle', import.meta.url).pathname });
-  await db.execute(sql`truncate table users`);
+  await db.execute(sql`truncate table users cascade`);
   t = await makeTestKeys();
   app = createApp({ keys: t.keys, issuer: ISSUER, users: createUsersStore(db) });
 });

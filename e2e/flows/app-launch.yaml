@@ -1,13 +1,14 @@
+# Smoke test: a fresh install opens on the first onboarding screen, and stays there after a restart.
 appId: com.comebackhamid.lockwords
 tags:
   - platform
 ---
 - launchApp:
     clearState: true
-- assertVisible: "New words"
-- tapOn: "Review"
-- assertVisible:
-    text: "Review"
-- tapOn: "Speak"
-- assertVisible:
-    text: "Speak"
+    clearKeychain: true
+- assertVisible: "What do you want to learn?"
+# The tabs are closed until onboarding is finished.
+- assertNotVisible: "New words"
+- stopApp
+- launchApp
+- assertVisible: "What do you want to learn?"
