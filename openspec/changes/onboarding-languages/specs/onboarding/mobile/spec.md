@@ -37,12 +37,14 @@ O1c SHALL NOT accept the language picked on O1. When the picked (or typed and ch
 - **THEN** the check maps it to Spanish, the same line shows and the app stays on O1c
 
 ### Requirement: Typed language is checked
-On O1 and O1c, tapping Continue with Other SHALL send the typed text to the server's language check. While it runs, Continue SHALL show it is busy and not take a second tap. Then:
-- a listed language → that listed language is picked and the app goes on;
-- a real language with the same spelling → it is kept with the server's English name and the app goes on;
-- a suggestion → a box "Did you mean <name>?" with the button "Yes, <name>" shows and the app stays; tapping the button picks that language and goes on; editing the text hides the box;
-- not a language → a pop-up "We didn't recognise this language. Please check the spelling or pick one from the list." with OK; the app stays with the text kept;
-- the check fails (network or server error) → the typed text is kept as typed and the app goes on.
+On O1 and O1c, tapping Continue with Other SHALL send the typed text to the server's language check. While it runs, Continue SHALL show it is busy and SHALL NOT take a second tap.
+
+#### Scenario: Busy
+- **WHEN** the user taps Continue with "swedish" typed and the server has not answered yet
+- **THEN** Continue shows it is busy and a second tap sends nothing
+
+### Requirement: A matched language goes on
+When the check answers match, the app SHALL save that language and go on: a listed language as the listed choice, any other with the server's English name.
 
 #### Scenario: Typed name of a listed language
 - **WHEN** the user types "spanish" and taps Continue, and the server answers match Spanish (`es`)
@@ -52,13 +54,26 @@ On O1 and O1c, tapping Continue with Other SHALL send the typed text to the serv
 - **WHEN** the user types "swedish" and the server answers match Swedish (`sv`, not listed)
 - **THEN** the learning answer is `{ code: null, name: "Swedish" }` and O1c shows
 
-#### Scenario: Did you mean
+### Requirement: Did you mean
+When the check answers suggestion, the app SHALL stay and show a box "Did you mean <name>?" with the button "Yes, <name>". Tapping it SHALL save that language and go on. Editing the text SHALL hide the box.
+
+#### Scenario: Accept the suggestion
 - **WHEN** the user types "spansh" and the server answers suggestion Spanish
 - **THEN** "Did you mean Spanish?" shows; tapping "Yes, Spanish" saves Spanish and O1c shows
+
+#### Scenario: Edit instead
+- **WHEN** the box shows and the user changes the text
+- **THEN** the box goes away
+
+### Requirement: Not recognised pop-up
+When the check answers unknown, the app SHALL show a pop-up "We didn't recognise this language. Please check the spelling or pick one from the list." with OK, and stay on the screen with the text kept.
 
 #### Scenario: Not a language
 - **WHEN** the user types "qwzx" and the server answers unknown
 - **THEN** the pop-up shows with the message and OK, and the app stays on the screen
+
+### Requirement: A failed check does not block
+When the check fails (network or server error), the app SHALL save the typed text as typed and go on.
 
 #### Scenario: Check fails
 - **WHEN** the server cannot be reached
