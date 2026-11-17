@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 
 import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
+import { buildKaiPrompt, type KaiChat } from './kai-chat.js';
 import { CardsSchema, DECK_SIZE, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
 
@@ -64,4 +65,47 @@ export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJ
 export function claudeLanguageChecker(apiKey: string, fetchFn: Fetch = fetch): LanguageChecker {
   const ask = asker(apiKey, fetchFn);
   return { check: (text) => ask(checkLanguagePrompt(text), LanguageCheckSchema) };
+}
+
+// 20 seconds in all, as two tries of 10: a normal answer takes 2 to 5 seconds, and in the real-AI check about one call
+// in twenty stalled on the network. A second try answers in time; one long wait would not.
+const KAI_TRY_MS = 10_000;
+const KAI_TRIES = 2;
+
+// One turn of the New words chat. Returns the model's JSON as it is: src/kai/chat.ts checks the shape and asks once more if it is wrong.
+// Low effort and no thinking (`between_tools` is how this model turns it off): the learner is waiting, and the answer is a few short lines.
+export function claudeKaiChat(apiKey: string, fetchFn: Fetch = fetch): KaiChat {
+  async function call(system: string, user: string): Promise<string> {
+    const res = await fetchFn('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 2000, thinking: { type: 'between_tools' }, output_config: { effort: 'low' }, system, messages: [{ role: 'user', content: user }] }),
+      signal: AbortSignal.timeout(KAI_TRY_MS),
+    });
+    if (!res.ok) throw new Error(`model answered ${res.status}`);
+    const body = (await res.json()) as { content?: { type: string; text?: string }[] };
+    return body.content?.find((c) => c.type === 'text')?.text ?? '';
+  }
+  return {
+    async answer(ctx) {
+      const { system, user } = buildKaiPrompt(ctx);
+      let text: string;
+      for (let attempt = 1; ; attempt++) {
+        try {
+          text = await call(system, user);
+          break;
+        } catch (e) {
+          if (attempt >= KAI_TRIES) throw e;
+        }
+      }
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if (start < 0 || end < start) return null; // not JSON: a wrong shape, the service asks once more
+      try {
+        return JSON.parse(text.slice(start, end + 1)) as unknown;
+      } catch {
+        return null;
+      }
+    },
+  };
 }

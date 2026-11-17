@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // Drizzle tables live here. Migrations are add-only: add tables and columns; drop or rename in a later deploy.
 
@@ -23,6 +23,7 @@ export const profiles = pgTable('profiles', {
   interests: text('interests').array().notNull(),
   name: text('name'), // from the Kai chat (O10)
   chatLanguage: text('chat_language'), // 'native' | 'target' (O10b)
+  kaiTranslationOn: boolean('kai_translation_on'), // New words chat: null = follow the level (on for A1/A2)
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -53,5 +54,39 @@ export const cards = pgTable('cards', {
   dueAt: timestamp('due_at', { withTimezone: true }), // null = new or known
   known: boolean('known').notNull().default(false), // swiped up: never shown again
   hard: boolean('hard').notNull().default(false), // swiped left: goes to the lock screen
+  lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }), // last swipe or Use it; Kai tells the learner how much they practiced
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// The New words chat with Kai. One row per bubble. Kai's last line of a turn holds that turn's reply options.
+export const kaiMessages = pgTable(
+  'kai_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    role: text('role').notNull(), // 'kai' | 'user'
+    text: text('text').notNull(),
+    translation: text('translation'), // Kai's lines only; always saved, the app shows or hides it
+    options: text('options').array().notNull().default([]),
+    opening: boolean('opening').notNull().default(false), // part of a turn where Kai spoke first
+    position: integer('position').notNull().default(0), // order inside one turn (same created_at)
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('kai_messages_user_time').on(t.userId, t.createdAt)],
+);
+
+// What Kai remembers about a learner: short plain sentences. At most 50 per user, oldest dropped.
+export const kaiNotes = pgTable(
+  'kai_notes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    text: text('text').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('kai_notes_user_time').on(t.userId, t.createdAt)],
+);

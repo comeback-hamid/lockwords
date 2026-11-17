@@ -2,13 +2,16 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 
 import { requireUser, type AuthSettings } from './auth.js';
 import type { DeckJobs } from './decks/jobs.js';
+import type { KaiStore } from './kai/chat.js';
 import { health } from './routes/health.js';
+import type { KaiChat } from './llm/kai-chat.js';
 import type { DeckMaker, NewCard } from './llm/make-deck.js';
 import type { LanguageChecker } from './llm/check-language.js';
 import type { UseItJudge } from './llm/use-it.js';
 import type { Profile } from './onboarding/profile.js';
 import type { CardState } from './review/srs.js';
 import { deckRoutes, type Deck } from './routes/decks.js';
+import { kaiChatRoutes } from './routes/kai-chat.js';
 import { languageRoutes } from './routes/languages.js';
 import { meRoutes } from './routes/me.js';
 import { onboardingRoutes } from './routes/onboarding.js';
@@ -36,7 +39,7 @@ export type CardsStore = {
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; deckJobs?: DeckJobs; deckWaitMs?: number; languageChecker?: LanguageChecker };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; deckJobs?: DeckJobs; deckWaitMs?: number; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -48,6 +51,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/v1', languageRoutes(deps?.languageChecker));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));
+  app.route('/v1', kaiChatRoutes(deps ?? {}));
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });
   app.doc31('/openapi.json', { openapi: '3.1.0', info: { title: 'Lockwords API', version: '1' } });
   return app;
