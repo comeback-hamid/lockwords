@@ -52,7 +52,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #13 | 2026-11-17 | `docs/vocab-engine.md` added (the word test and deck level method) |
 | #14 | 2026-11-17 | Cloud: server and Postgres on DigitalOcean, Supabase cloud, deploy workflow |
 | #21 | 2026-11-17 | `docs/product-review.md` (empty, for Hamid's Review notes); login page noted in the roadmap |
-| #16 | 2026-11-17 | Word test and estimate follow the vocabulary engine: 13 languages, made-up words, up to 4 pages, AI pages for a typed language, Try again for guessers |
+| #16 | 2026-11-17 | Word test and estimate follow the vocabulary engine: 13 languages, made-up words, up to 4 pages, AI pages for a typed language, Try again for guessers. CI security check: picomatch advisory GHSA-fc5q-39xc-vjpf allowed until 2026-12-15 (no fix exists; `.github/audit-allow.json`) |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
