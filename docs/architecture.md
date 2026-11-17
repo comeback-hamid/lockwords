@@ -5,16 +5,24 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 ## Services
 | Part | Where |
 |---|---|
-| API server | DigitalOcean App Platform (deploy from GitHub; health check `GET /health`, rollback after 60 s of failures) |
-| Database | DigitalOcean Managed Postgres, Frankfurt (FRA1). pg-boss jobs in the same database. |
-| Files | DigitalOcean Spaces + CDN |
-| Login | Supabase Auth only (guest, Apple, Google, email code). Server checks the token. |
+| API server | DigitalOcean App Platform, Frankfurt. App `lockwords`, live at `https://lockwords-rhaic.ondigitalocean.app` (since 2026-11-17). Built from `apps/server/Dockerfile`. Health check `GET /health`; a deploy that fails it for 60 s is rolled back. |
+| Database | DigitalOcean Managed Postgres 17, Frankfurt (FRA1). Cluster `lockwords-db`, database `lockwords`. Only the app can reach it (trusted sources). pg-boss jobs in the same database. |
+| Files | DigitalOcean Spaces + CDN. Not made yet: nothing stores files today. |
+| Login | Supabase Auth only, cloud project `Lockwords` in Frankfurt (`https://sskhsgygvdpnnokvuuyd.supabase.co`). Guest login is on. Apple, Google and email code come when those accounts exist. Server checks the token. |
 | Builds, updates | Expo EAS (release builds on GitHub Actions only) |
+
+## Deploy
+- **How:** a merge to `main` that touches `apps/server/`, `.do/` or `package-lock.json` runs `.github/workflows/deploy.yml`. It can also be run by hand (Actions → Deploy server → Run workflow).
+- **Steps:** the workflow fills `.do/app.yaml` and calls `doctl apps update`. App Platform builds the image, runs the `migrate` job (`npm run db:migrate`, Drizzle), then swaps the server. A failed migration or a failed `/health` stops the deploy and the old server stays.
+- **Settings:** all in `.do/app.yaml`. Public values are written there. `DATABASE_URL` and the database's TLS certificate come from App Platform (`${db.DATABASE_URL}`, `${db.CA_CERT}`; `.do/with-db-ca.sh` hands the certificate to Node).
+- **Secrets:** GitHub Actions secrets `DIGITALOCEAN_ACCESS_TOKEN` and `ANTHROPIC_API_KEY`. Hamid's copy is `~/.config/lockwords/secrets.env`. Never in git.
+- **Cost:** about $20 a month (server $5, database about $15).
+- **Point the app at the cloud:** in `apps/mobile/.env.local` set `EXPO_PUBLIC_API_URL=https://lockwords-rhaic.ondigitalocean.app`, `EXPO_PUBLIC_SUPABASE_URL=https://sskhsgygvdpnnokvuuyd.supabase.co` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` = the project's publishable key (Supabase dashboard → Project settings → API keys; Hamid's copy is `SUPABASE_PUBLISHABLE_KEY` in `~/.config/lockwords/secrets.env`). It is a public value, but the secret scan in CI flags it, so it is not written in git.
 
 ## Databases
 | Name | Used by |
 |---|---|
-| production | the live server only |
+| production (`lockwords` on the `lockwords-db` cluster) | the live server only |
 | `lockwords_dev` | local server, for the app |
 | `lockwords_test` | integration tests (wiped each run; name must contain "test") |
 
