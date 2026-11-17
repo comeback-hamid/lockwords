@@ -1,0 +1,50 @@
+# O1–O1c languages: 13 languages + Other, a typed language checked by the server (fixture), O1c blocks the learned language.
+# Needs the local stack (server without ANTHROPIC_API_KEY = the fixture checker). Dev build only.
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: onboarding-languages
+# O1: the long list scrolls down to Korean and Other
+- extendedWaitUntil:
+    visible: "What do you want to learn?"
+    timeout: 20000
+- assertVisible: "English"
+- assertVisible: "French"
+- scrollUntilVisible:
+    element: "Other"
+    direction: DOWN
+- assertVisible: "Korean"
+- assertVisible: "Continue"
+# O1b: not a language → pop-up
+- tapOn: "Other"
+# The text box takes focus on its own
+- inputText: "qwzx"
+- tapOn: "Continue"
+- extendedWaitUntil:
+    visible: "We didn't recognise this language. Please check the spelling or pick one from the list."
+    timeout: 10000
+- tapOn: "OK"
+# O1b: a misspelling → Did you mean Spanish?
+- eraseText: 10
+- inputText: "spansh"
+- tapOn: "Continue"
+- extendedWaitUntil:
+    visible: "Did you mean Spanish?"
+    timeout: 10000
+- tapOn: "Yes, Spanish"
+# O1c: Spanish is blocked, English works
+- assertVisible: "What language do you speak?"
+- tapOn: "Spanish"
+- assertVisible: "You're learning Spanish. Pick the language you already speak."
+- tapOn: "English"
+- assertNotVisible: "You're learning Spanish. Pick the language you already speak."
+- tapOn: "Continue"
+# The choice reaches the next screens: O3 uses the language name
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+- assertVisible: "Your Spanish level"
+- stopRecording
