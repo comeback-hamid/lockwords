@@ -35,7 +35,7 @@ export const decks = pgTable('decks', {
   title: text('title').notNull(),
   reason: text('reason').notNull(),
   cefr: text('cefr').notNull(),
-  status: text('status').notNull().default('proposed'), // 'proposed' | 'ready'
+  status: text('status').notNull().default('proposed'), // 'proposed' | 'generating' | 'ready'
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

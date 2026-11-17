@@ -14,10 +14,12 @@ export type UseItResult = components['schemas']['UseItResult'];
 export type HardWord = components['schemas']['HardWords']['words'][number];
 export type Direction = 'easy' | 'hard' | 'known';
 
-type Options = { baseUrl: string; getToken(): Promise<string | null>; fetch?: typeof fetch };
+type Options = { baseUrl: string; getToken(): Promise<string | null>; fetch?: typeof fetch; deckPollMs?: number };
+
+const DECK_WAIT_MS = 180_000; // the server gives a deck job 3 minutes
 
 // The one place the app talks to our server. Types come from the server's OpenAPI file (npm run api:gen).
-export function createApi({ baseUrl, getToken, fetch: customFetch }: Options) {
+export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 2000 }: Options) {
   const client = createClient<paths>({ baseUrl, fetch: customFetch });
   client.use({
     async onRequest({ request }) {
@@ -48,8 +50,16 @@ export function createApi({ baseUrl, getToken, fetch: customFetch }: Options) {
     async proposeDeck(topic: string): Promise<Deck> {
       return unwrap(await client.POST('/v1/decks', { body: { topic } }));
     },
+    // The words are made by a background job. A slow job answers "generating": read the deck again until it is done.
     async generateDeck(id: string): Promise<Deck> {
-      return unwrap(await client.POST('/v1/decks/{id}/generate', { params: { path: { id } } }));
+      let deck = unwrap(await client.POST('/v1/decks/{id}/generate', { params: { path: { id } } }));
+      const until = Date.now() + DECK_WAIT_MS;
+      while (deck.status === 'generating' && Date.now() < until) {
+        await new Promise((resolve) => setTimeout(resolve, deckPollMs));
+        deck = unwrap(await client.GET('/v1/decks/{id}', { params: { path: { id } } }));
+      }
+      if (deck.status !== 'ready') throw new Error('deck not made'); // back to proposed = the job failed
+      return deck;
     },
     async fetchDeck(id: string): Promise<Deck> {
       return unwrap(await client.GET('/v1/decks/{id}', { params: { path: { id } } }));

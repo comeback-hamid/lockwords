@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import { bootSession } from '@/auth/boot';
 import { clearOnFreshInstall } from '@/auth/session-storage';
 import { loadOnboardingFinished, useOnboardingFinished } from '@/onboarding/finished';
+import { loadSpeechLanguage } from '@/review/speech-language';
 import { fonts } from '@/theme/fonts';
 
 SplashScreen.preventAutoHideAsync();
@@ -27,6 +28,7 @@ export default function RootLayout() {
     clearOnFreshInstall()
       .catch(() => {})
       .then(loadOnboardingFinished)
+      .then(loadSpeechLanguage)
       .then(bootSession); // silent guest sign-in; the screens never wait for it
   }, []);
 

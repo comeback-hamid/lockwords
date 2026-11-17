@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
 import { requireUser, type AuthSettings } from './auth.js';
+import type { DeckJobs } from './decks/jobs.js';
 import { health } from './routes/health.js';
 import type { DeckMaker, NewCard } from './llm/make-deck.js';
 import type { UseItJudge } from './llm/use-it.js';
@@ -33,7 +34,7 @@ export type CardsStore = {
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; deckJobs?: DeckJobs; deckWaitMs?: number };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {

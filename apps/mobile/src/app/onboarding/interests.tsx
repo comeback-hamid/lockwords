@@ -8,6 +8,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { QuestionScreen } from '@/components/question-screen';
 import { profileBody, stepFor } from '@/onboarding/flow';
 import { getAnswers, setAnswers } from '@/onboarding/store';
+import { saveSpeechLanguage } from '@/review/speech-language';
 import { colors, levelColors, radius, space, type } from '@/theme/theme';
 
 type Interest = Profile['interests'][number];
@@ -51,6 +52,7 @@ export default function InterestsScreen() {
     setFailed(false);
     try {
       await api.saveProfile(profileBody(getAnswers()));
+      await saveSpeechLanguage(getAnswers().learning?.code ?? null);
       router.push('/onboarding/kai'); // onboarding is marked finished at the end of the Kai chat
     } catch {
       setFailed(true);

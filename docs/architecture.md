@@ -30,7 +30,7 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 | PUT | `/v1/profile/chat` | `{ name, chatLanguage }` from the Kai chat. `409` with no profile. | onboarding-kai-deck |
 | GET | `/v1/deck-ideas` | Four first-deck topics for the user's goal. | onboarding-kai-deck |
 | POST | `/v1/decks` | `{ topic }` → a proposed deck (title, level, reason; no cards). | onboarding-kai-deck |
-| POST | `/v1/decks/{id}/generate` | Makes the 10 cards (AI task `make-deck`). `502` if the AI fails; nothing saved. | onboarding-kai-deck |
+| POST | `/v1/decks/{id}/generate` | Starts the background job that makes the 10 cards (pg-boss queue `make-deck`, AI task `make-deck`) and waits up to 20 s. Answers the deck as `ready`, or as `generating` (read it again). `502` if the AI fails; nothing saved. | onboarding-kai-deck |
 | GET | `/v1/decks/{id}` | The deck with its cards. Other users get `404`. | onboarding-kai-deck |
 | GET | `/v1/review` | Today's round: due cards, then up to 20 new cards. | first-review |
 | POST | `/v1/cards/{id}/swipe` | `{ direction: easy / hard / known }` → `{ stage, known, hard, backInDays }`. Rules in `src/review/srs.ts`. | first-review |
@@ -44,7 +44,7 @@ Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The ser
 |---|---|---|
 | `users` | `id` uuid PK (= Supabase user id), `is_guest` boolean, `created_at` timestamptz | local-backend-and-guest-login |
 | `profiles` | `user_id` uuid PK, `learning_language`, `native_language`, `level`, `known_words`, `cefr`, `goal`, `goal_other`, `interests` text[], `updated_at` | onboarding-profile (+ `name`, `chat_language` in onboarding-kai-deck) |
-| `decks` | `id` uuid PK, `user_id`, `topic`, `title`, `reason`, `cefr`, `status` (`proposed`/`ready`), `created_at` | onboarding-kai-deck |
+| `decks` | `id` uuid PK, `user_id`, `topic`, `title`, `reason`, `cefr`, `status` (`proposed`/`generating`/`ready`), `created_at` | onboarding-kai-deck |
 | `cards` | `id` uuid PK, `deck_id` → `decks.id`, `position`, `word`, `translation`, `example`, `example_translation`, `stage` (0 = new), `due_at`, `known`, `hard`, `created_at` | onboarding-kai-deck, first-review |
 
 ## AI

@@ -7,9 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
-import { getAnswers } from '@/onboarding/store';
 import { isIntroDone } from '@/review/intro';
 import { advance, useRound } from '@/review/round-store';
+import { getSpeechLanguage } from '@/review/speech-language';
 import { colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 type Stamp = { title: string; sub: string; kind: Direction };
@@ -175,10 +175,8 @@ export default function RoundScreen() {
 }
 
 function Speaker({ word }: { word: string }) {
-  // shortcut: the language comes from the onboarding answers, so after a restart the phone's default voice is used; send the language with the round later.
-  const language = getAnswers().learning?.code ?? undefined;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => Speech.speak(word, { language })} style={styles.speaker}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => Speech.speak(word, { language: getSpeechLanguage() })} style={styles.speaker}>
       <Icon name="speaker" color={colors.text2} />
     </Pressable>
   );

@@ -1,7 +1,7 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, lte } from 'drizzle-orm';
 
 import type { CardsStore } from '../app.js';
-import { pickRound } from '../review/srs.js';
+import { MAX_NEW_PER_ROUND, pickRound } from '../review/srs.js';
 import type { createDb } from './client.js';
 import { cards, decks, profiles } from './schema.js';
 
@@ -27,9 +27,13 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
   });
   return {
     async round(userId, now) {
-      // shortcut: loads all of the user's live cards and picks in memory; fine for hundreds, add SQL limits later.
-      const rows = await mine().where(and(eq(decks.userId, userId), eq(decks.status, 'ready'), eq(cards.known, false)));
-      return pickRound(rows.map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), now);
+      // The database picks the rows (due cards, and the first 20 new ones); pickRound owns the final order.
+      const live = and(eq(decks.userId, userId), eq(decks.status, 'ready'), eq(cards.known, false));
+      const [due, fresh] = await Promise.all([
+        mine().where(and(live, gt(cards.stage, 0), lte(cards.dueAt, now))),
+        mine().where(and(live, eq(cards.stage, 0))).orderBy(asc(decks.createdAt), asc(cards.position)).limit(MAX_NEW_PER_ROUND),
+      ]);
+      return pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), now);
     },
     async get(userId, id) {
       const [row] = await mine().where(and(eq(decks.userId, userId), eq(cards.id, id)));
