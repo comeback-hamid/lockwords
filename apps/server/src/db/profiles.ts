@@ -1,5 +1,5 @@
 import type { ProfilesStore } from '../app.js';
-import type { Profile } from '../onboarding/profile.js';
+import { readInterests, type Profile } from '../onboarding/profile.js';
 import type { createDb } from './client.js';
 import { eq } from 'drizzle-orm';
 
@@ -36,5 +36,5 @@ const toProfile = (r: typeof profiles.$inferSelect) =>
     cefr: r.cefr,
     goal: r.goal,
     goalOther: r.goalOther,
-    interests: r.interests,
+    interests: readInterests(r.interests),
   }) as Profile;

@@ -221,12 +221,12 @@ test('O8 Goal: seven goals; pick one and continue', async () => {
 describe('O9 Interests', () => {
   beforeEach(() => setAnswers({ learning: spanish, speaks: { code: 'en', name: 'English' }, level: 'brand_new', goal: 'travel' }));
 
-  test('24 tiles; select and count; save; then the Kai chat', async () => {
+  test('20 tiles; select and count; save; then the Kai chat', async () => {
     mockApi.saveProfile.mockImplementation(async (p) => p);
     await render(<InterestsScreen />);
     expect(screen.getByRole('header', { name: 'What are you into?' })).toBeOnTheScreen();
     expect(screen.getByText('8/10')).toBeOnTheScreen();
-    expect(screen.getAllByRole('checkbox')).toHaveLength(24);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(20);
     expect(isOff(continueButton())).toBe(true);
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Food' }));
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Music' }));
