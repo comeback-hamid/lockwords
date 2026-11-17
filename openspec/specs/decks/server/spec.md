@@ -32,7 +32,7 @@ How the server proposes and makes decks of words for a user, and returns them.
 - **THEN** the answer is `400`
 
 ### Requirement: Make the cards
-`POST /v1/decks/{id}/generate` SHALL start a background job that fills the caller's proposed deck with exactly 10 cards, and wait up to 20 seconds for it. While the job runs the deck's `status` is `generating`. A finished job answers `200` with the deck in state `ready`; a job that is still running answers `200` with the deck in state `generating`. Each card has `word`, `translation`, `example`, `exampleTranslation` and `stage` 0. If the AI call fails, the answer is `502` with `{ "error": "generation_failed" }` and nothing is saved.
+`POST /v1/decks/{id}/generate` SHALL start a background job that fills the caller's proposed deck with exactly 10 cards, and wait up to 20 seconds for it. While the job runs the deck's `status` is `generating`. The answer is `200` with the deck, `ready` or still `generating`. Each card has `word`, `translation`, `example`, `exampleTranslation` and `stage` 0. If the AI call fails, the answer is `502` and nothing is saved.
 
 #### Scenario: Generate
 - **WHEN** the owner calls generate on a proposed deck and the job finishes in time
