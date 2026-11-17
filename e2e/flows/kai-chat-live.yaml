@@ -1,0 +1,96 @@
+# Kai chat live (kai-chat-live): Kai types with dots, answers a question off the script and asks again,
+# reads a name in a sentence, a tapped option rises into the chat, the deck count runs while Kai is making.
+# Needs the local stack (server without an AI key uses the fixture Kai reply). Dev build only.
+appId: com.comebackhamid.lockwords
+tags:
+  - kai
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: kai-chat-live
+# O1 I'm learning
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+# O1c I speak
+- assertVisible: "What language do you speak?"
+- tapOn: "English"
+- tapOn: "Continue"
+# O2 Welcome
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+# O3 Level
+- assertVisible: "Your Spanish level"
+- tapOn: "Some basics"
+- tapOn: "Continue"
+# O4–O6 Word test
+- assertVisible: "BASIC · 1 OF 3"
+- tapOn: "hola"
+- tapOn: "gracias"
+- tapOn: "la casa"
+- assertVisible: "3 SELECTED"
+- tapOn: "Continue"
+- assertVisible: "INTERMEDIATE · 2 OF 3"
+- tapOn: "aunque"
+- tapOn: "Continue"
+- assertVisible: "ADVANCED · 3 OF 3"
+- tapOn: "I don’t know any of these"
+# O7 Your estimate: 3 of 22 basic + 1 of 21 intermediate ≈ 250 words
+- assertVisible: "YOU ALREADY KNOW"
+- assertVisible: "250"
+- assertVisible: "A1"
+- tapOn: "Continue"
+# O8 Goal
+- assertVisible: "Why are you learning?"
+- tapOn: "Travel"
+- tapOn: "Continue"
+# O9 Interests
+- assertVisible: "What are you into?"
+- tapOn: "Food"
+- tapOn: "Music"
+- assertVisible: "2 SELECTED"
+- tapOn: "Continue"
+# O10: Kai types (dots), then asks the name
+- extendedWaitUntil:
+    visible: ".*What’s your name.*"
+    timeout: 20000
+# A question instead of a name: Kai answers, then asks again
+- tapOn: "Message"
+- inputText: "Why do you need my name?"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*greet you.*"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: ".*So, what’s your name.*"
+    timeout: 20000
+# A name in a sentence
+- tapOn: "Message"
+- inputText: "I'm Maya"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*Nice to meet you, Maya.*"
+    timeout: 20000
+# A tapped option rises into the chat
+- extendedWaitUntil:
+    visible: "English"
+    timeout: 20000
+- tapOn: "English"
+- extendedWaitUntil:
+    visible: "Ordering food"
+    timeout: 30000
+- tapOn: "Ordering food"
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 20000
+- tapOn: "Generate"
+# Kai is making: the count runs
+- extendedWaitUntil:
+    visible: ".*/ 10 WORDS"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: ".*Shall we practice them now.*"
+    timeout: 60000
+- assertVisible: "Open deck"
+- stopRecording
