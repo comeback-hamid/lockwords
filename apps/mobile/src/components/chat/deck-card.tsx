@@ -5,10 +5,27 @@ import type { Deck } from '@/api/client';
 import { Icon } from '@/components/icon';
 import { colors, levelColors, radius, space, type } from '@/theme/theme';
 
-type Props = { deck: Deck; state: 'proposed' | 'generating' | 'ready'; onGenerate(): void; onOpen(): void };
+type Props = { deck: Deck; state: 'proposed' | 'generating' | 'ready'; onGenerate(): void; onOpen(): void; count?: number };
+
+// A timed count: the server's job reports no progress, only generating → ready.
+// One word about every 1.6 s, never past N − 1; the screen shares it with Kai's `making`.
+export const WORD_MS = 1600;
+export function useTimedCount(active: boolean, total: number) {
+  const [n, setN] = useState(1);
+  useEffect(() => {
+    if (!active) return;
+    const start = Date.now();
+    const timer = setInterval(() => setN(Math.min(Math.max(1, Math.floor((Date.now() - start) / WORD_MS)), total - 1)), 200);
+    return () => {
+      clearInterval(timer);
+      setN(1);
+    };
+  }, [active, total]);
+  return n;
+}
 
 // Figma deck card in a Kai chat: proposed (Generate) → generating (progress) → ready (tap to open).
-export function DeckCard({ deck, state, onGenerate, onOpen }: Props) {
+export function DeckCard({ deck, state, onGenerate, onOpen, count }: Props) {
   const body = (
     <>
       <View style={styles.row}>
@@ -25,7 +42,7 @@ export function DeckCard({ deck, state, onGenerate, onOpen }: Props) {
           </Pressable>
         </View>
       ) : state === 'generating' ? (
-        <Making total={deck.wordCount} />
+        <Making total={deck.wordCount} count={count} />
       ) : (
         <View style={styles.readyRows}>
           <View style={styles.squares}>
@@ -47,13 +64,9 @@ export function DeckCard({ deck, state, onGenerate, onOpen }: Props) {
   );
 }
 
-// A timed count: the server's job reports no progress, only generating → ready.
-function Making({ total }: { total: number }) {
-  const [n, setN] = useState(1);
-  useEffect(() => {
-    const timer = setInterval(() => setN((v) => Math.min(v + 1, total - 1)), 700);
-    return () => clearInterval(timer);
-  }, [total]);
+function Making({ total, count }: { total: number; count?: number }) {
+  const own = useTimedCount(count === undefined, total);
+  const n = count ?? own;
   return (
     <View style={styles.readyRows}>
       <View style={styles.row}>

@@ -40,7 +40,7 @@ The Kai header SHALL show: `greeting` when the chat opens (then `idle`); `listen
 ## MODIFIED Requirements
 
 ### Requirement: Deck card
-The deck card SHALL show the level and word count ("A2+ · 10 WORDS") and the title in quotes, in one of three states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / 10 WORDS", no button), ready ("JUST NOW", ten level squares and "10 WORDS · ADDED TO YOUR DECKS"; tapping it opens the deck). While generating, the count SHALL go up by one about every 1.6 seconds, stop at 9, and jump to 10 when the deck is ready. Kai's `making` state shows the same progress.
+The deck card SHALL show the level and word count ("A2+ · 10 WORDS") and the title in quotes, in one of three states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / N WORDS", no button), ready ("JUST NOW", level squares and "N WORDS · ADDED TO YOUR DECKS"; tapping it opens the deck). N is the deck's word count (10 for the first deck; New words decks have 10 to 30). While generating, the count SHALL go up by one about every 1.6 seconds, stop at N − 1, and jump to N when the deck is ready. Kai's `making` state shows the same progress.
 
 #### Scenario: States
 - **WHEN** the card is shown as proposed, then generating, then ready
