@@ -45,13 +45,16 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 
 | ID | Screen | Figma |
 |---|---|---|
-| N1 | Chat home | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-871) |
-| N2 | Chat home · swiped | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1018) |
+| N1 | First visit | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-871) |
+| N1b | Kai is typing | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2053-640) |
+| N2 | Deck ideas | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1018) |
 | N3 | Making a deck | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1164) |
 | N4 | Deck ready | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1279) |
+| N4b | Going to Review | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2053-745) |
 | N5 | My own deck | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1433) |
-| N6 | How do I say…? | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1558) |
+| N6 | A single word (Random Words) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=247-1558) |
 | N7 | Deck (words) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=132-1077) |
+| N8 | A normal day · translation off | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2053-868) |
 
 ## Review
 

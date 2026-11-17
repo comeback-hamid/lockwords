@@ -103,12 +103,18 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 ### 7.2 Tabs: New words · Review · Progress
 **Changed 2026-11-16:** v1 has no Speak tab. **My words moves into the tab bar** in Speak's place, as the **Progress** tab (chart icon, `Icon/24/graph`). There is no My words button in the top bar any more. Speak comes back as a tab in a later version.
 
-**New words (Figma page "New words"):** one ongoing **chat with Kai**.
-- Each day Kai offers **3 deck ideas** made for the user. Tap Create → the deck is made in the chat → Add to My words.
-- **My own deck:** the user says what they need; Kai asks a short question with tap answers, then makes the deck. No form.
-- **How do I say…?** Kai answers with a word card (word, sound, meaning, example) + Add to My words.
-- **I have a question:** free language questions. Kai only helps with language learning.
-- Decks have up to 30 words (the first deck has 10).
+**New words (Figma page "New words"):** one ongoing **chat with Kai**. **Changed 2026-11-17** (Hamid's voice note and answers).
+- **Kai is an agent with memory.** Kai knows the learner's level, goal, interests, their words and the chat history, and saves what the learner says about themselves. Kai never asks for the goal; Kai may guess it.
+- **Kai does not always offer decks.** Kai can praise what the learner practiced, talk about one of their words (meaning, use, culture), or lead them to Review. Kai offers deck ideas when the learner asks, or when they practiced and need new words. Always around the learner's words and level, and brief.
+- **Deck ideas:** three at a time, as cards with **Generate**. On the first visit Kai asks before showing them. A made deck is **in the word list at once** (no "Add to My words" step). Kai then says it is in Review, the **Review tab gets a red dot**, and the options are "Let's practice" (Kai takes them to Review after one second) and "Make another deck".
+- **My own deck:** the learner says what they need; Kai asks at most one short question with tap answers, then shows the deck card. No form.
+- **Single words:** Kai answers "How do I say…?" with a word card (word, sound, meaning, example) and the button **Add to Random Words 1**. "Random Words 1" is a deck for single words from the app or daily life. It takes 30 words; then "Random Words 2", and so on.
+- **Questions:** free language questions. Kai only helps with language learning.
+- **No fixed buttons** for "My own deck", "How do I say…?" or "I have a question". Kai brings them up in the talk.
+- **Translation:** every Kai message has a translation under it (a line, then smaller text). One on/off button next to Kai. It starts **on for A1 and A2** learners and **off for B1 and above** (the learner's level, not the deck's). On: messages and deck titles show a translation. Off: none do.
+- **Language:** Kai speaks the language being learned, also when the learner writes in their own language. Kai speaks the learner's language only when they ask. A1 and A2 learners are told they may write in their own language.
+- Text only for now. A photo of a word comes in a later version. Free limits on this page are not decided yet.
+- **Deck size:** the first deck in onboarding has 10 words. A deck made here has **10 to 30 words**; Kai decides the number for each deck (Hamid, 2026-11-17).
 
 **Review (Figma page "Review"):** one stack of all words due today, in one round.
 - Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**.
@@ -126,6 +132,8 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - No page title. One big animated Kai in a **Kai header** at the top. Messages scroll under it. Kai changes pose with the chat.
 - **No small Kai avatar circles**, not in the top bar and not next to messages.
 - Kai talks in **separate short bubbles** on the left, with emoji and **bold** key words.
+- Before every Kai message, three gray dots show for about one second. Several messages come one by one, each with its dots.
+- Options are shown only when they help: none (an open question like a name), one, or a few. Never a long list.
 - When the choices are fixed, show **tap answers** (stacked on the right, above the text box) with the hint "Tap an option, or type your own". Free questions (like the name) are typed.
 - Deck flow: deck card + Generate → same card while generating → deck widget (tap to open the words; Kai does not print the word list) → "Shall we practice?".
 
