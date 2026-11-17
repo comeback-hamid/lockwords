@@ -1,0 +1,17 @@
+# Keep the server image small and free of secrets.
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+.claude
+docs
+e2e
+openspec
+supabase
+apps/mobile/*
+!apps/mobile/package.json
+apps/server/reference
+apps/server/test
