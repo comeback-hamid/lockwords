@@ -21,7 +21,8 @@ const PagesSchema = z
   .object({ A: z.array(WordSchema), B: z.array(WordSchema), C: z.array(WordSchema), D: z.array(WordSchema) })
   .partial()
   .openapi('TestPages');
-const WordTestSchema = z.object({ supported: z.boolean(), pages: PagesSchema }).openapi('WordTest');
+// madeUp: the pages hold made-up words (the 13 word files do; an AI pack for a typed language does not).
+const WordTestSchema = z.object({ supported: z.boolean(), madeUp: z.boolean(), pages: PagesSchema }).openapi('WordTest');
 const words = z.array(z.string().max(60)).max(30);
 const KnownSchema = z.object({ A: words, B: words, C: words.optional(), D: words.optional() }).openapi('TestAnswers');
 const NextSchema = z.object({ next: z.enum(['C', 'D']).nullable() }).openapi('NextPage');
@@ -86,7 +87,7 @@ export function wordTestRoutes(deps: Deps) {
     .openapi(getWordTest, async (c) => {
       const lang = c.req.valid('query').language;
       const vocab = await vocabOf(lang, true);
-      return c.json(vocab ? { supported: true, pages: publicPages(vocab, c.get('user').id) } : { supported: false, pages: {} }, 200);
+      return c.json(vocab ? { supported: true, madeUp: vocabFor(lang) !== null, pages: publicPages(vocab, c.get('user').id) } : { supported: false, madeUp: false, pages: {} }, 200);
     })
     .openapi(postNext, async (c) => {
       const { language: lang, known } = c.req.valid('json');

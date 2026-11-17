@@ -163,8 +163,8 @@ test('GET /v1/word-test: 4 pages of 23 words, no rank or made-up flag, same orde
   const alice = await as(crypto.randomUUID());
   const res = await alice('/v1/word-test?language=es');
   expect(res.status).toBe(200);
-  const body = (await res.json()) as { supported: boolean; pages: Pages };
-  expect(body.supported).toBe(true);
+  const body = (await res.json()) as { supported: boolean; madeUp: boolean; pages: Pages };
+  expect([body.supported, body.madeUp]).toEqual([true, true]);
   expect(Object.keys(body.pages)).toEqual(['A', 'B', 'C', 'D']);
   for (const items of Object.values(body.pages)) {
     expect(items).toHaveLength(23);
@@ -178,8 +178,8 @@ test('GET /v1/word-test: 4 pages of 23 words, no rank or made-up flag, same orde
 });
 
 test('GET /v1/word-test: a typed language gets an AI pack once, kept for everyone', async () => {
-  const first = (await (await (await as(crypto.randomUUID()))('/v1/word-test?language=Swedish')).json()) as { supported: boolean; pages: Pages };
-  expect(first.supported).toBe(true);
+  const first = (await (await (await as(crypto.randomUUID()))('/v1/word-test?language=Swedish')).json()) as { supported: boolean; madeUp: boolean; pages: Pages };
+  expect([first.supported, first.madeUp]).toEqual([true, false]);
   expect(Object.keys(first.pages)).toEqual(['A', 'B', 'C']);
   expect(first.pages.A).toHaveLength(20);
   await (await as(crypto.randomUUID()))('/v1/word-test?language=swedish');
@@ -189,7 +189,7 @@ test('GET /v1/word-test: a typed language gets an AI pack once, kept for everyon
 test('GET /v1/word-test: the AI pack fails → not supported; missing language → 400', async () => {
   maker = { make: async () => null };
   const me = await as(crypto.randomUUID());
-  expect(await (await me('/v1/word-test?language=Klingonish')).json()).toEqual({ supported: false, pages: {} });
+  expect(await (await me('/v1/word-test?language=Klingonish')).json()).toEqual({ supported: false, madeUp: false, pages: {} });
   expect((await me('/v1/word-test')).status).toBe(400);
   expect((await me('/v1/word-test?language=')).status).toBe(400);
 });

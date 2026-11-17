@@ -29,7 +29,7 @@ export default function LevelScreen() {
         onPress: () => {
           if (!level) return;
           // Brand new skips the test, so old test answers must not leak into the profile.
-          setAnswers(level === 'brand_new' ? { level, known: [[], [], []], estimate: null } : { level });
+          setAnswers(level === 'brand_new' ? { level, known: { A: [], B: [] }, estimate: null, retried: false } : { level });
           router.push(afterLevel(level));
         },
       }}>

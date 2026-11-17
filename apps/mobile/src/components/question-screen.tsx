@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { ComponentRef, ReactNode, Ref } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TOTAL_STEPS } from '@/onboarding/flow';
@@ -17,10 +17,12 @@ type Props = {
   button: { label: string; onPress(): void; disabled?: boolean };
   link?: { label: string; onPress(): void };
   message?: string; // a short error line above the button
+  // Optional: lets a screen watch and move the scroll (the word test's "See all words").
+  scroll?: { ref?: Ref<ComponentRef<typeof ScrollView>> } & Pick<ScrollViewProps, 'onScroll' | 'onLayout' | 'onContentSizeChange'>;
 };
 
 // The frame of every onboarding question: Figma Top bar + Content + Footer.
-export function QuestionScreen({ step, back = true, title, children, button, link, message }: Props) {
+export function QuestionScreen({ step, back = true, title, children, button, link, message, scroll }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -42,7 +44,13 @@ export function QuestionScreen({ step, back = true, title, children, button, lin
           </>
         ) : null}
       </View>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        testID="question-scroll"
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={64}
+        {...scroll}>
         {title ? (
           <Text accessibilityRole="header" style={[type.title, styles.title]}>
             {title}

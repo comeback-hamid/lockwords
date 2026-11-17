@@ -12,7 +12,7 @@
 - **Redo is counted in the app.** The server always answers `reliable: true/false`. The app shows the Try again screen only the first time; after a second unreliable try it shows the number (engine 1.5, step 10).
 - **Typed language → AI word pack.** `GET /v1/word-test` for a language with no file asks the word-pack task (Claude Sonnet, fixture in tests) for 20 words in each of 3 bands (1–1,000, 1,000–2,500, 2,500–5,000 most common lemmas), stores them in `word_packs` by language name, and scores them with engine `packVocab()` (A → k 173, B → 1,581, C → 3,536). Same pages for every user of that language. If the AI call fails, the answer is `supported: false` and the user skips the test, so onboarding never blocks.
 - **One new table** `word_test_results` (user, language, version, numbers, ticks as text). Written by the estimate call. Add-only migration.
-- **Step numbers.** The top bar stays "n/10": the pages take steps 3 to 6 (A, B, C, D), the result is step 7. Skipped pages jump the number forward, as "Brand new" already does.
+- **Step numbers.** The top bar stays "n/10": pages A, B, C take steps 3 to 5 and the result stays step 6, as today. The rare EXPERT page (D) keeps step 5, so the steps of the later screens do not move. A skipped page jumps the number forward, as "Brand new" already does.
 - **Seeing all words.** The page scrolls. When some chips are below the screen, the main button reads "See all words ↓" and scrolls down first (engine 1.4, step 6).
 - **Tests to port:** data checks, the 1.8 result table, the invariants (300 random answer sets per language), and the recovery run, as server unit tests. The recovery run takes about 40 s, so it runs in its own script (`npm run test:engine`) and in CI.
 

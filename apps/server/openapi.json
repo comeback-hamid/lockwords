@@ -171,12 +171,16 @@
           "supported": {
             "type": "boolean"
           },
+          "madeUp": {
+            "type": "boolean"
+          },
           "pages": {
             "$ref": "#/components/schemas/TestPages"
           }
         },
         "required": [
           "supported",
+          "madeUp",
           "pages"
         ]
       },

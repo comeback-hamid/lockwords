@@ -5,6 +5,8 @@ import type { components, paths } from './schema';
 export type Me = components['schemas']['Me'];
 export type WordTest = components['schemas']['WordTest'];
 export type Estimate = components['schemas']['Estimate'];
+export type TestAnswers = components['schemas']['TestAnswers'];
+export type TestPage = 'A' | 'B' | 'C' | 'D';
 export type Profile = components['schemas']['Profile'];
 export type Deck = components['schemas']['Deck'];
 export type ProfileChat = components['schemas']['ProfileChat'];
@@ -38,7 +40,11 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async fetchWordTest(language: string): Promise<WordTest> {
       return unwrap(await client.GET('/v1/word-test', { params: { query: { language } } }));
     },
-    async fetchEstimate(language: string, known: string[]): Promise<Estimate> {
+    // After page B or C: which page comes next, or null when the test is over. The server knows the made-up words.
+    async fetchNextPage(language: string, known: TestAnswers): Promise<'C' | 'D' | null> {
+      return unwrap(await client.POST('/v1/word-test/next', { body: { language, known } })).next;
+    },
+    async fetchEstimate(language: string, known: TestAnswers): Promise<Estimate> {
       return unwrap(await client.POST('/v1/word-test/estimate', { body: { language, known } }));
     },
     async saveChat(chat: ProfileChat): Promise<ProfileChat> {

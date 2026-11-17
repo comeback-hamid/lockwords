@@ -21,7 +21,7 @@ export default function LearningScreen() {
       initial={getAnswers().learning}
       onContinue={(learning) => {
         // A new language means the old word test and estimate no longer fit.
-        setAnswers({ learning, wordTest: null, known: [[], [], []], estimate: null });
+        setAnswers({ learning, wordTest: null, known: { A: [], B: [] }, estimate: null, retried: false });
         router.push('/onboarding/speaks');
       }}
     />
