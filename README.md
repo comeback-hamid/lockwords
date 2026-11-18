@@ -26,3 +26,6 @@ npm run spec:validate    # OpenSpec, strict
 
 ## Tools this repo expects
 Node 22, Xcode + iOS simulator, Maestro, OpenSpec CLI (`npm i -g @fission-ai/openspec`), PostgreSQL, EAS CLI, gitleaks.
+
+## Credits
+Word test frequencies: FrequencyWords by Hermit Dave (CC BY-SA 4.0), from OpenSubtitles. Lemma data: simplemma (MIT). See `docs/vocab-engine.md`.

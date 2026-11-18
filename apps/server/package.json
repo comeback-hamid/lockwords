@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && cp -R src/onboarding/vocab dist/onboarding/",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
@@ -12,7 +12,8 @@
     "test:integration": "DATABASE_URL=${TEST_DATABASE_URL:-postgres://localhost:5432/lockwords_test} vitest run --config vitest.integration.config.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "openapi": "tsx scripts/write-openapi.ts"
+    "openapi": "tsx scripts/write-openapi.ts",
+    "test:engine": "tsx scripts/engine-check.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.8",

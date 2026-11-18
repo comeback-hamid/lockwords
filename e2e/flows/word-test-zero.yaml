@@ -1,0 +1,16 @@
+# Word test, situation 1: starting from zero. "Brand new" skips the test (docs/vocab-engine.md 1.4).
+# Needs the local stack: `npm run dev:up`.
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: word-test-zero
+- runFlow: ../subflows/to-level.yaml
+- tapOn: "Brand new"
+- tapOn: "Continue"
+- assertVisible: "Why are you learning?"
+- assertNotVisible: "BASIC WORDS"
+- stopRecording
