@@ -19,7 +19,10 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 | O4 | Word test · Basic | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-395) |
 | O5 | Word test · Intermediate | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1440) |
 | O6 | Word test · Advanced | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1615) |
+| O6b | Word test · Expert (only after 15+ advanced words) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2193) |
 | O7 | Your estimate | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=37-1870) |
+| O7b | Your estimate · Starting fresh | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2277) |
+| O7c | Were you guessing? (Try again) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2028-2308) |
 | O8 | Goal | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=9-263) |
 | O8b | Goal · Other (Your reason) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2020-2129) |
 | O9 | Interests (20, pick 1–5) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=28-618) |

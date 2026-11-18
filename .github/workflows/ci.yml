@@ -39,6 +39,8 @@ jobs:
         run: npm test
       - name: Server integration tests (real database)
         run: npm run test:integration
+      - name: Vocabulary engine check (docs/vocab-engine.md 1.11, about 1 minute)
+        run: npm run test:engine -w @lockwords/server
       - name: OpenSpec validate
         run: npx -y @fission-ai/openspec@1.14.2 validate --all --strict --no-interactive
 

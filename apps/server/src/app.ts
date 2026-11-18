@@ -15,6 +15,9 @@ import { languageRoutes } from './routes/languages.js';
 import { meRoutes } from './routes/me.js';
 import { onboardingRoutes } from './routes/onboarding.js';
 import { reviewRoutes } from './routes/review.js';
+import { wordTestRoutes } from './routes/word-test.js';
+import type { WordPackMaker } from './llm/word-pack.js';
+import type { WordTestStore } from './onboarding/word-test-store.js';
 
 export type UsersStore = {
   upsert(id: string, isGuest: boolean): Promise<{ id: string; isGuest: boolean; createdAt: Date }>;
@@ -38,7 +41,7 @@ export type CardsStore = {
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; languageChecker?: LanguageChecker };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -47,6 +50,7 @@ export function createApp(deps?: AppDeps) {
   app.use('/v1/*', requireUser(deps));
   app.route('/v1', meRoutes(deps?.users));
   app.route('/v1', onboardingRoutes(deps?.users, deps?.profiles));
+  app.route('/v1', wordTestRoutes(deps ?? {}));
   app.route('/v1', languageRoutes(deps?.languageChecker));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));

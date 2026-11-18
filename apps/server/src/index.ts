@@ -8,11 +8,13 @@ import { createDb } from './db/client.js';
 import { createDecksStore } from './db/decks.js';
 import { createProfilesStore } from './db/profiles.js';
 import { createUsersStore } from './db/users.js';
+import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
 import { fixtureLanguageChecker } from './llm/check-language.js';
 import { claudeDeckMaker, claudeKaiReplier, claudeLanguageChecker, claudeUseItJudge } from './llm/claude.js';
 import { fixtureDeckMaker, fixtureKaiReplier, fixtureUseItJudge } from './llm/fixture.js';
+import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
 const env = loadEnv();
 const { db } = createDb(env.DATABASE_URL);
@@ -36,6 +38,9 @@ const app = createApp({
   cards: createCardsStore(db),
   languageChecker: env.ANTHROPIC_API_KEY ? claudeLanguageChecker(env.ANTHROPIC_API_KEY) : fixtureLanguageChecker,
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
+  wordTests: createWordTestStore(db),
+  // No key = a typed language gets no word test (the listed 13 always have one).
+  wordPackMaker: env.ANTHROPIC_API_KEY ? claudeWordPackMaker(env.ANTHROPIC_API_KEY) : fixtureWordPackMaker,
   kaiReplier: env.ANTHROPIC_API_KEY ? claudeKaiReplier(env.ANTHROPIC_API_KEY) : fixtureKaiReplier,
 });
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {

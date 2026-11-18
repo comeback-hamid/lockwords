@@ -1,0 +1,9 @@
+# Leave a word test page: "See all words ↓" first when some words are below the screen, then Continue.
+appId: com.comebackhamid.lockwords
+---
+- runFlow:
+    when:
+      visible: "See all words ↓"
+    commands:
+      - tapOn: "See all words ↓"
+- tapOn: "Continue"
