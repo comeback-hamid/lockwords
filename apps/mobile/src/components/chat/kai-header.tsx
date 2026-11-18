@@ -10,7 +10,8 @@ import { colors, layout, lift } from '@/theme/theme';
 // Kai is live (src/kai): the state moves, blinks and plays its effect. Still SVGs stay only for widgets.
 const KAI_WIDTH = 150;
 
-export function KaiHeader({ pose, back = true, icon = 'back' }: { pose: KaiState; back?: boolean; icon?: 'back' | 'close' }) {
+// progress (0 to 1) feeds Kai's `making` state while a deck is made.
+export function KaiHeader({ pose, back = true, icon = 'back', progress }: { pose: KaiState; back?: boolean; icon?: 'back' | 'close'; progress?: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -20,7 +21,7 @@ export function KaiHeader({ pose, back = true, icon = 'back' }: { pose: KaiState
           <Icon name={icon} size={24} color={colors.text} />
         </Pressable>
       ) : null}
-      <Kai state={pose} size={KAI_WIDTH} />
+      <Kai state={pose} size={KAI_WIDTH} progress={progress} />
     </View>
   );
 }

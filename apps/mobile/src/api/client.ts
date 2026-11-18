@@ -14,6 +14,8 @@ export type ProfileChat = components['schemas']['ProfileChat'];
 export type ReviewCard = components['schemas']['ReviewCard'];
 export type SwipeResult = components['schemas']['SwipeResult'];
 export type UseItResult = components['schemas']['UseItResult'];
+export type KaiReply = components['schemas']['KaiReply'];
+export type KaiStep = components['schemas']['KaiReplyRequest']['step'];
 export type HardWord = components['schemas']['HardWords']['words'][number];
 export type Direction = 'easy' | 'hard' | 'known';
 
@@ -82,6 +84,10 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     },
     async fetchHardWords(): Promise<HardWord[]> {
       return unwrap(await client.GET('/v1/hard-words')).words;
+    },
+    // Kai reads typed text in a Kai chat: the answer to the current step, or Kai's own short lines.
+    async kaiReply(step: KaiStep, text: string, options: string[]): Promise<KaiReply> {
+      return unwrap(await client.POST('/v1/kai/reply', { body: { step, text, options } }));
     },
     async useIt(id: string, sentence: string): Promise<UseItResult> {
       return unwrap(await client.POST('/v1/cards/{id}/use-it', { params: { path: { id } }, body: { sentence } }));

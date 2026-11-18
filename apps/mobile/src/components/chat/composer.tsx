@@ -5,8 +5,13 @@ import { Icon } from '@/components/icon';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Figma Composer: text box + one round button (mic when empty, green send when there is text).
-export function Composer({ placeholder, onSend, maxLength = 80 }: { placeholder: string; onSend(text: string): void; maxLength?: number }) {
-  const [text, setText] = useState('');
+// onTextChange: the screen hears typing (Kai listens while there is text).
+export function Composer({ placeholder, onSend, maxLength = 80, onTextChange }: { placeholder: string; onSend(text: string): void; maxLength?: number; onTextChange?(text: string): void }) {
+  const [text, setTextState] = useState('');
+  const setText = (t: string) => {
+    setTextState(t);
+    onTextChange?.(t);
+  };
   const ready = text.trim() !== '';
   const send = () => {
     if (!ready) return;
