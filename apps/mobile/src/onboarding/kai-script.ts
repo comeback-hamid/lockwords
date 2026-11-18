@@ -1,11 +1,12 @@
 import type { ProfileChat } from '@/api/client';
+import type { KaiState } from '@/kai/states';
 
 import type { LanguageChoice } from './store';
 
 // Kai's lines for the onboarding chat (O10–O10f). **word** = bold.
 // shortcut: English only; the chosen chat language is saved but not used until Kai's lines come from the server.
 export type Step = 'name' | 'language' | 'topic' | 'proposed' | 'generating' | 'ready';
-export type KaiPose = 'greeting' | 'idle' | 'listening' | 'thinking' | 'celebrate';
+export type KaiPose = KaiState;
 
 const POSE: Record<Step, KaiPose> = { name: 'greeting', language: 'idle', topic: 'idle', proposed: 'listening', generating: 'thinking', ready: 'celebrate' };
 export const poseFor = (step: Step) => POSE[step];
