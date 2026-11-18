@@ -1,5 +1,5 @@
 # Kai chat live (kai-chat-live): Kai types with dots, answers a question off the script and asks again,
-# reads a name in a sentence, a tapped option rises into the chat, the deck count runs while Kai is making.
+# reads a name in a sentence, a tapped option rises into the chat, then the deck is made.
 # Needs the local stack (server without an AI key uses the fixture Kai reply). Dev build only.
 appId: com.comebackhamid.lockwords
 tags:
@@ -85,10 +85,8 @@ tags:
     visible: "Generate"
     timeout: 20000
 - tapOn: "Generate"
-# Kai is making: the count runs
-- extendedWaitUntil:
-    visible: ".*/ 10 WORDS"
-    timeout: 10000
+# Kai is making. With the local stand-in AI the deck is ready at once, so the count shows only for a moment
+# (its timing is tested in __tests__/kai-chat-live.test.tsx).
 - extendedWaitUntil:
     visible: ".*Shall we practice them now.*"
     timeout: 60000
