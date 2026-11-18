@@ -5,7 +5,8 @@ import type { Deck } from '@/api/client';
 import { Icon } from '@/components/icon';
 import { colors, levelColors, radius, space, type } from '@/theme/theme';
 
-type Props = { deck: Deck; state: 'proposed' | 'generating' | 'ready'; onGenerate(): void; onOpen(): void; count?: number };
+// hideGenerate: Kai is still typing; Generate keeps its place (no jump) but cannot be seen or tapped yet.
+type Props = { deck: Deck; state: 'proposed' | 'generating' | 'ready'; onGenerate(): void; onOpen(): void; count?: number; hideGenerate?: boolean };
 
 // A timed count: the server's job reports no progress, only generating → ready.
 // One word about every 1.6 s, never past N − 1; the screen shares it with Kai's `making`.
@@ -25,7 +26,7 @@ export function useTimedCount(active: boolean, total: number) {
 }
 
 // Figma deck card in a Kai chat: proposed (Generate) → generating (progress) → ready (tap to open).
-export function DeckCard({ deck, state, onGenerate, onOpen, count }: Props) {
+export function DeckCard({ deck, state, onGenerate, onOpen, count, hideGenerate = false }: Props) {
   const body = (
     <>
       <View style={styles.row}>
@@ -36,7 +37,15 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count }: Props) {
       {state === 'proposed' ? (
         <View style={styles.row}>
           <Text style={[type.caption, styles.muted]}>{deck.reason}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Generate" onPress={onGenerate} style={styles.generate}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Generate"
+            onPress={onGenerate}
+            disabled={hideGenerate}
+            accessibilityElementsHidden={hideGenerate}
+            importantForAccessibility={hideGenerate ? 'no-hide-descendants' : 'auto'}
+            style={[styles.generate, hideGenerate && styles.hidden]}
+          >
             <Icon name="generate" color={colors.text} />
             <Text style={[type.calloutMedium, styles.ink]}>Generate</Text>
           </Pressable>
@@ -81,6 +90,7 @@ function Making({ total, count }: { total: number; count?: number }) {
 }
 
 const styles = StyleSheet.create({
+  hidden: { opacity: 0 },
   card: { alignSelf: 'stretch', marginRight: 24, padding: space[16], gap: space[12], borderRadius: radius.control, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   cardBusy: { borderColor: levelColors[3] },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[8] },

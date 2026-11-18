@@ -177,7 +177,7 @@ export default function KaiScreen() {
         {messages.map((m, i) =>
           m.from === 'deck' ? (
             deck ? (
-              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : deck.status} count={made} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
+              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : deck.status} count={made} hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
             <RiseIn key={i}>

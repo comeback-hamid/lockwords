@@ -114,3 +114,19 @@ test('Use it chat: each of Kai’s lines comes after its own dots', async () => 
   expect(screen.getByLabelText('Kai: 👍 You used propina well.')).toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Next card' })).toBeOnTheScreen();
 });
+
+test('the deck card’s Generate waits for Kai’s last bubble, so the chat does not move under the tap', async () => {
+  await render(<KaiScreen />);
+  await wait(5000);
+  await send('Maya');
+  await wait(5000);
+  await fireEvent.press(screen.getByRole('button', { name: 'English' }));
+  await wait(10000);
+  await fireEvent.press(screen.getByRole('button', { name: 'Ordering food' }));
+  await wait(typingMs('Good choice! Here’s your first deck 👇') + 100);
+  expect(screen.getByText('“Order food”')).toBeOnTheScreen(); // the card is in the chat
+  expect(screen.queryByRole('button', { name: 'Generate' })).toBeNull(); // Kai is still typing the next line
+  await wait(1200);
+  expect(screen.getByLabelText('Kai: Tap Generate and I will make it for you ✨')).toBeOnTheScreen();
+  expect(screen.getByRole('button', { name: 'Generate' })).toBeOnTheScreen();
+});
