@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // Drizzle tables live here. Migrations are add-only: add tables and columns; drop or rename in a later deploy.
 
@@ -55,6 +55,36 @@ export const cards = pgTable('cards', {
   known: boolean('known').notNull().default(false), // swiped up: never shown again
   hard: boolean('hard').notNull().default(false), // swiped left: goes to the lock screen
   lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }), // last swipe or Use it; Kai tells the learner how much they practiced
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Typed-language word tests made by AI (docs/vocab-engine.md 1.3), kept and reused for every user of that language.
+export const wordPacks = pgTable('word_packs', {
+  language: text('language').primaryKey(), // the typed name, trimmed, lower case
+  pages: jsonb('pages').$type<{ A: string[]; B: string[]; C: string[] }>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Every finished word test, for tuning the word lists later (docs/vocab-engine.md 1.12).
+export const wordTestResults = pgTable('word_test_results', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  language: text('language').notNull(),
+  version: integer('version').notNull(), // engine version (4)
+  words: integer('words').notNull(),
+  raw: integer('raw').notNull(),
+  lo: integer('lo').notNull(),
+  hi: integer('hi').notNull(),
+  r50: integer('r50').notNull(),
+  g: real('g').notNull(),
+  realKnown: integer('real_known').notNull(),
+  fakes: integer('fakes').notNull(),
+  fn: integer('fn').notNull(),
+  pages: text('pages').notNull(), // e.g. "ABC"
+  reliable: boolean('reliable').notNull(),
+  ticks: text('ticks').notNull(), // "A:1101…,B:…" (1 or 0 per item, file order)
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

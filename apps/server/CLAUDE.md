@@ -26,7 +26,7 @@ Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` a
 - Migrations are add-only. Drop or rename in a later deploy.
 - AI keys live only here. Every model call has a timeout and a user message. A failed call saves nothing.
 - Slow AI work is a pg-boss job, not a web request: see `src/decks/jobs.ts` (the job, and an inline runner for tests) and `src/decks/queued-jobs.ts` (the real queue). The row's own status tells the app how the job is doing.
-- Word test, estimate and deck word choice follow `docs/vocab-engine.md` (scoring code in its section 1.5, deck bands in 2.1–2.2). Today's `src/onboarding/word-test.ts` is an older stand-in that does not follow it yet (roadmap epic 1, `vocab-engine`).
+- Word test, estimate and deck word choice follow `docs/vocab-engine.md` (scoring code in its section 1.5, deck bands in 2.1–2.2). Word test code: `src/onboarding/estimate.ts` (the engine's scoring, ported as is), `src/onboarding/word-test.ts` (pages, next page, scoring), `src/onboarding/vocab/*.json` (13 word files, CC BY-SA), `src/llm/word-pack.ts` (AI pack for a typed language). Run `npm run test:engine` (about 1 minute, also in CI) after any change there.
 - The New words chat: `src/kai/chat.ts` (a turn: limits, what Kai knows, notes), `src/llm/kai-chat.ts` (prompt, answer shape, fixture), `src/db/kai.ts`. A new thing Kai can do goes in its own file in `src/kai/abilities/`. See "Kai, the agent" in `docs/architecture.md`.
 - Tests never call a real model. One fixture replaces Langfuse and the model.
 - Each user reads only their own rows. Keep Speak text, never audio.

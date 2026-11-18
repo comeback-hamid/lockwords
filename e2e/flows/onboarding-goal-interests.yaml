@@ -7,37 +7,9 @@ tags:
 - launchApp:
     clearState: true
     clearKeychain: true
-# O1 I'm learning
-- assertVisible: "What do you want to learn?"
-- tapOn: "Spanish"
-- tapOn: "Continue"
-# O1c I speak
-- assertVisible: "What language do you speak?"
-- tapOn: "English"
-- tapOn: "Continue"
-# O2 Welcome
-- assertVisible: "Learn a word every time you unlock."
-- tapOn: "Get started"
-# O3 Level
-- assertVisible: "Your Spanish level"
-- tapOn: "Some basics"
-- tapOn: "Continue"
-# O4–O6 Word test
-- assertVisible: "BASIC · 1 OF 3"
-- tapOn: "hola"
-- tapOn: "gracias"
-- tapOn: "la casa"
-- assertVisible: "3 SELECTED"
-- tapOn: "Continue"
-- assertVisible: "INTERMEDIATE · 2 OF 3"
-- tapOn: "aunque"
-- tapOn: "Continue"
-- assertVisible: "ADVANCED · 3 OF 3"
-- tapOn: "I don’t know any of these"
-# O7 Your estimate: 3 of 22 basic + 1 of 21 intermediate ≈ 250 words
-- assertVisible: "YOU ALREADY KNOW"
-- assertVisible: "250"
-- assertVisible: "A1"
+# O1–O3, then "Brand new" skips the word test (O4–O7 have their own flows: word-test-*.yaml)
+- runFlow: ../subflows/to-level.yaml
+- tapOn: "Brand new"
 - tapOn: "Continue"
 - startRecording: onboarding-goal-interests
 # O8 Goal: Other opens the "Your reason" box; Continue waits for text

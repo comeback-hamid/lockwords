@@ -9,6 +9,10 @@ while [[ $# -gt 0 ]]; do
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
+# Maestro runs `flutter --version` when it starts. On a Mac with Flutter installed and a slow network, that call hangs
+# and Maestro never starts (found 2026-11-17). Lockwords has no Flutter, so take Flutter off the PATH for Maestro.
+PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -v '/flutter/' | paste -sd: -)
+export PATH
 command -v maestro >/dev/null || { echo "maestro is not installed: brew install mobile-dev-inc/tap/maestro" >&2; exit 1; }
 xcrun simctl list devices booted | grep -q Booted || { echo "No booted iOS simulator. Run: cd apps/mobile && npm run ios" >&2; exit 1; }
 # Maestro saves recordings under a dated run folder. We copy them to e2e/videos/<name>.mp4 afterwards.

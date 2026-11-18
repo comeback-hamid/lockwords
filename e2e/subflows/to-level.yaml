@@ -1,0 +1,12 @@
+# A fresh install up to O3 Level (Spanish, speaks English).
+appId: com.comebackhamid.lockwords
+---
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+- assertVisible: "What language do you speak?"
+- tapOn: "English"
+- tapOn: "Continue"
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+- assertVisible: "Your Spanish level"
