@@ -31,11 +31,14 @@ The composer SHALL show a text box with a placeholder and a round button: a mic 
 - **THEN** the message is sent and the box is empty
 
 ### Requirement: Deck card
-The deck card SHALL show the level and word count ("A2+ · 10 WORDS") and the title in quotes, in one of three states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / N WORDS", no button), ready ("JUST NOW", level squares and "N WORDS · ADDED TO YOUR DECKS"; tapping it opens the deck). N is the deck's word count (10 for the first deck; New words decks have 10 to 30). While generating, the count SHALL go up by one about every 1.6 seconds, stop at N − 1, and jump to N when the deck is ready. Kai's `making` state shows the same progress.
+The deck card SHALL show the level and word count ("A2+ · 10 WORDS") and the title in quotes, in one of three states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / N WORDS", no button), ready ("JUST NOW", level squares and "N WORDS · ADDED TO YOUR DECKS"; tapping it opens the deck). N is the deck's word count (10 for the first deck; New words decks have 10 to 30).
 
 #### Scenario: States
 - **WHEN** the card is shown as proposed, then generating, then ready
 - **THEN** it shows the Generate button, then the progress bar with no button, then "ADDED TO YOUR DECKS"
+
+### Requirement: Deck card count
+While a deck is generating, its card's count SHALL go up by one about every 1.6 seconds, stop at N − 1, and jump to N when the deck is ready. Kai's `making` state shows the same progress.
 
 #### Scenario: Timed count
 - **WHEN** the deck has been generating for 5 seconds
@@ -95,6 +98,10 @@ In every chat with Kai (the onboarding chat and the Use it chat), each Kai bubbl
 #### Scenario: Options wait
 - **WHEN** Kai's turn ends with reply options
 - **THEN** the options show after the last bubble, not before
+
+#### Scenario: Generate waits
+- **WHEN** a proposed deck card is shown and Kai is still typing the line after it
+- **THEN** the card's Generate button keeps its place but cannot be seen or tapped until that line is shown
 
 ### Requirement: A tapped option moves up
 Tapping a reply option SHALL move that pill up into the chat, where it becomes the user's green bubble (about 0.3 s). The other pills fade out. With Reduce Motion on, the bubble just appears.
