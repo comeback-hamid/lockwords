@@ -19,7 +19,7 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - `src/components/`: shared UI. Copy Figma component names (Chat bubble, Reply option, Composer, Kai header, Level square…).
 - `src/theme/theme.ts`: all tokens from Figma. No raw colors or sizes anywhere else.
 - `src/theme/fonts.ts`: the fonts loaded at start (Mona Sans 400/500/600, JetBrains Mono 500/700). Use `type.*` styles; never set `fontWeight` (the weight is in the font name).
-- `src/kai/character-spec.json`: Kai's data. Never type Kai numbers into code. Port `createCharacter()` from `docs/design/CHARACTER.html` (Skia on the phone).
+- `src/kai/`: live Kai. `character-spec.json` is Kai's data (never type Kai numbers into code). `step.ts` is the port of `step()` from `docs/design/CHARACTER.html` (a worklet, tested in Jest); `kai-canvas.tsx` draws it with Skia on the UI thread; `kai.tsx` is the one component screens use: `<Kai state playKey? progress? size? onPress? />`. One-shot states (greeting, celebrate, oops…) return by themselves. Reduce Motion = still poses. Jest swaps the canvas for a plain view (`jest.setup.tsx`).
 - `src/api/`: `schema.ts` is generated from `apps/server/openapi.json` (`npm run api:gen`); `client.ts` is the one place that calls the server. Never hand-write API shapes.
 - Word test (O4–O7): `src/app/onboarding/word-test.tsx` (?page=A..D; the server says which page comes next, the app never knows the made-up words), `estimate.tsx` (count-up, "About level X", the "Were you guessing?" screen once). Rules: `docs/vocab-engine.md`.
 - `src/app/onboarding/` + `src/onboarding/`: question screens O1–O9. Answers live in `store.ts` until O9 saves them; route rules in `flow.ts`; the "finished" flag in `finished.ts`. The tabs layout sends an unfinished user to O1.
@@ -30,7 +30,7 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - Review: `(tabs)/review.tsx` (start / all done) loads the round into `src/review/round-store.ts`; `src/app/review/round.tsx` walks it (tap to flip, swipe or tap Hard / Know it / Easy); `src/app/use-it/[id].tsx` is the Use it chat. After the first round only: `src/app/intro/` (hard words, trial reminder, paywall), flag in `src/review/intro.ts`. The speaker's language is kept on the phone (`src/review/speech-language.ts`).
 - The paywall sells nothing yet (no RevenueCat). Both buttons open the app.
 - `src/auth/`: silent guest sign-in at start (`boot.ts`), Supabase client, session kept in SecureStore (`session-storage.ts`).
-- `assets/kai/`: still SVG poses for widgets. `assets/tabs/`: tab bar icons exported from Figma as PNG (1x, 2x, 3x). Native tabs take PNG or SF Symbols, not our SVG `Icon`.
+- `assets/kai/`: still SVG poses, for widgets only (screens use the live `Kai`). `assets/tabs/`: tab bar icons exported from Figma as PNG (1x, 2x, 3x). Native tabs take PNG or SF Symbols, not our SVG `Icon`.
 - `api.generateDeck` waits for the server's background job (it reads the deck again while the status is `generating`).
 
 ## Rules
