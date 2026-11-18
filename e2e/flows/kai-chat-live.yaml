@@ -24,22 +24,25 @@ tags:
 - assertVisible: "Your Spanish level"
 - tapOn: "Some basics"
 - tapOn: "Continue"
-# O4–O6 Word test
-- assertVisible: "BASIC · 1 OF 3"
-- tapOn: "hola"
-- tapOn: "gracias"
+# O4–O7 Word test (docs/vocab-engine.md): 5 basic words + 1 intermediate word → no advanced page → ≈ 150, A1
+- assertVisible: "BASIC WORDS"
 - tapOn: "la casa"
-- assertVisible: "3 SELECTED"
-- tapOn: "Continue"
-- assertVisible: "INTERMEDIATE · 2 OF 3"
-- tapOn: "aunque"
-- tapOn: "Continue"
-- assertVisible: "ADVANCED · 3 OF 3"
-- tapOn: "I don’t know any of these"
-# O7 Your estimate: 3 of 22 basic + 1 of 21 intermediate ≈ 250 words
-- assertVisible: "YOU ALREADY KNOW"
-- assertVisible: "250"
-- assertVisible: "A1"
+- tapOn: "la noche"
+- tapOn: "comer"
+- tapOn: "la familia"
+- tapOn: "la mano"
+- assertVisible: "5 SELECTED"
+- runFlow: ../subflows/next-page.yaml
+- assertVisible: "INTERMEDIATE WORDS"
+- tapOn: "el reloj"
+- runFlow: ../subflows/next-page.yaml
+- extendedWaitUntil:
+    visible: "YOU ALREADY KNOW"
+    timeout: 15000
+- assertVisible: "About level A1"
+- extendedWaitUntil:
+    visible: "150"
+    timeout: 5000
 - tapOn: "Continue"
 # O8 Goal
 - assertVisible: "Why are you learning?"
