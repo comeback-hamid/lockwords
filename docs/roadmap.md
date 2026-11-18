@@ -3,7 +3,7 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-17 (after PR #15 languages, PR #17 goal and interests, PR #24 New words specs, PR #16 word test, PR #18 live Kai).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-18 (after PR #15 languages, PR #17 goal and interests, PR #24 New words specs, PR #16 word test, PR #18 live Kai, PR #20 live Kai chat).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
@@ -11,8 +11,8 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 - **Live in the cloud (2026-11-17):** the server at `https://lockwords-rhaic.ondigitalocean.app` with its Postgres (DigitalOcean, Frankfurt) and guest login on Supabase cloud (Frankfurt). The Anthropic key is set there, so cloud decks and Use it call the real AI.
 - **Not real yet:** the AI (a stand-in makes every deck), the paywall (sells nothing), the app does not point at the cloud server yet.
 - **Blocked on Hamid:** accounts and keys still missing: Expo, Apple, RevenueCat, Google, PostHog. (Anthropic, Supabase and DigitalOcean are done.)
-- **Done 2026-11-17:** the word test and estimate follow `docs/vocab-engine.md` (#16); live Kai in every chat header and on O2 (#18).
-- **In progress (2026-11-17):** the rest of onboarding section 1 in parallel PRs: level-matched deck (#19) and live Kai chat (#20).
+- **Done 2026-11-17:** the word test and estimate follow `docs/vocab-engine.md` (#16); live Kai in every chat header and on O2 (#18); Kai types with dots in every chat, talking back to Kai, Kai's state follows the chat (#20).
+- **In progress (2026-11-17):** the rest of onboarding section 1 in parallel PRs: level-matched deck (#19).
 
 ## Phase 0: Setup (days 1–4)
 
@@ -27,7 +27,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 
 | # | Epic | Done | Still open | Figma | Status |
 |---|---|---|---|---|---|
-| 1 | Onboarding + first deck | `onboarding-profile` (O1–O9) · `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, first deck) · `first-review` (O12–O16) · `deck-background-job` (deck words made by a pg-boss job, 2026-11-17) · `onboarding-languages` (O1–O1c: 13 languages, a typed language checked by the server with Did you mean and a pop-up, O1c blocks the learned language, 2026-11-17) · `onboarding-goal-interests` (O8 Other box as Figma O8b, O9: 20 interests, pick 1–5, old saved interests read clean, 2026-11-17) · `vocab-engine-word-test` (word test and estimate follow `docs/vocab-engine.md`, 13 languages + AI pages for typed ones, 2026-11-17) · `kai-character` (live Kai drawn with Skia from the spec in every chat header and on O2, 2026-11-17) | level-matched decks (#19) · card and deck pictures · Kai's lines in the user's language · "I have an account" on O1 (needs real sign-in) | Onboarding | 🟨 |
+| 1 | Onboarding + first deck | `onboarding-profile` (O1–O9) · `onboarding-kai-deck` (O10–O10f: chat parts, deck tables, first deck) · `first-review` (O12–O16) · `deck-background-job` (deck words made by a pg-boss job, 2026-11-17) · `onboarding-languages` (O1–O1c: 13 languages, a typed language checked by the server with Did you mean and a pop-up, O1c blocks the learned language, 2026-11-17) · `onboarding-goal-interests` (O8 Other box as Figma O8b, O9: 20 interests, pick 1–5, old saved interests read clean, 2026-11-17) · `vocab-engine-word-test` (word test and estimate follow `docs/vocab-engine.md`, 13 languages + AI pages for typed ones, 2026-11-17) · `kai-character` (live Kai drawn with Skia from the spec in every chat header and on O2, 2026-11-17) · `kai-chat-live` (Kai types with dots in every chat, talk back to Kai (`POST /v1/kai/reply`), Kai's state follows the chat, a tapped option rises, timed deck count, 2026-11-18) | level-matched decks (#19) · card and deck pictures · Kai's lines in the user's language · "I have an account" on O1 (needs real sign-in) | Onboarding | 🟨 |
 | 2 | Review | `first-review`: swipe rules on the server, today's round, card round with stamps, flip, speaker · round picked by the database, speaker language kept after a restart (2026-11-17) | `review-done-streak` (A7, A9) · undo for "I know it" (no design yet) · sounds · pictures | Review | 🟨 |
 | 3 | Progress tab | The tab exists with its Figma icon (empty screen, 2026-11-17) | `progress-home` (P1: total, meadow, goal grid, word plan) · `decks-and-words` (P2–P3, swipe delete) | My words | ⬜ |
 | 4 | New words tab | The tab exists with its Figma icon (empty screen). Figma N1–N8 updated 2026-11-17 (Kai speaks the learned language with a translation line and an on/off button, no fixed buttons, deck ready → Review dot, Random Words, a normal day). | Specs written 2026-11-17, **waiting for Hamid (checkpoint 1)**: `new-words-kai-chat` (the chat, Kai as an agent with memory, translation; first) · then at the same time `new-words-decks` (deck ideas, own deck, ready → Review) and `new-words-single-words` (word card, Random Words decks) | New words | 🟨 |
@@ -56,6 +56,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #15 | 2026-11-17 | O1–O1c: 13 languages, typed language check (`POST /v1/languages/check`), same-language block |
 | #16 | 2026-11-17 | Word test and estimate follow the vocabulary engine: 13 languages, made-up words, up to 4 pages, AI pages for a typed language, Try again for guessers. |
 | #18 | 2026-11-17 | Live Kai: a Skia port of the character (`src/kai/`), in every chat header and waving on O2; pauses on hidden screens; Reduce Motion = still |
+| #20 | 2026-11-18 | Live Kai chat: typing dots before every Kai bubble in every chat, talk back to Kai (`POST /v1/kai/reply`), Kai's state follows the chat |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
