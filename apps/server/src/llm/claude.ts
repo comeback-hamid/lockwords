@@ -1,12 +1,15 @@
 import type { z } from 'zod';
 
+import { z as zod } from 'zod';
+
 import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
-import { CardsSchema, DECK_SIZE, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
+import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
 
 const MODEL = 'claude-sonnet-5-5';
 const TIMEOUT_MS = 30_000;
+const DECK_TIMEOUT_MS = 60_000; // Sonnet takes 14–20 s for 10 cards (vocab-engine 2.3)
 
 // The real model. Used only when ANTHROPIC_API_KEY is set; tests pass a fake fetch.
 // shortcut: plain fetch + one try; Langfuse prompts, tracing and "retry once" come with the llm client (see README.md).
@@ -29,6 +32,49 @@ function asker(apiKey: string, fetchFn: Fetch) {
   };
 }
 
+// The deck words: vocab-engine 2.3 prompt, Sonnet 5.5 at effort low, JSON schema output.
+const DECK_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['cards'],
+  properties: {
+    cards: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['word', 'translation', 'example', 'example_translation'],
+        properties: { word: { type: 'string' }, translation: { type: 'string' }, example: { type: 'string' }, example_translation: { type: 'string' } },
+      },
+    },
+  },
+};
+const DeckAnswer = zod.object({
+  cards: zod.array(zod.object({ word: zod.string().nullish(), translation: zod.string().nullish(), example: zod.string().nullish(), example_translation: zod.string().nullish(), exampleTranslation: zod.string().nullish() })),
+});
+
+async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
+  const res = await fetchFn('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 16000,
+      system: DECK_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: deckPrompt(i) }],
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: DECK_SCHEMA } },
+    }),
+    signal: AbortSignal.timeout(DECK_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`model answered ${res.status}`);
+  const body = (await res.json()) as { stop_reason?: string; content?: { type: string; text?: string }[] };
+  if (body.stop_reason === 'refusal') throw new Error('model refused');
+  const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
+  const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
+  const { cards } = DeckAnswer.parse(JSON.parse(json));
+  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation })));
+}
+
 export function claudeDeckMaker(apiKey: string, fetchFn: Fetch = fetch): DeckMaker {
   const ask = asker(apiKey, fetchFn);
 
@@ -41,13 +87,7 @@ export function claudeDeckMaker(apiKey: string, fetchFn: Fetch = fetch): DeckMak
         `${who(i)}\nWrite the title of a ${DECK_SIZE}-word flashcard deck for this topic: one short sentence in ${i.nativeLanguage} saying what they will be able to do. Also a reason of at most 4 words, like "For your trip".\nAnswer with JSON only: {"title": string, "reason": string}`,
         ProposalSchema,
       ),
-    cards: async (i) =>
-      (
-        await ask(
-          `${who(i)}\nPick exactly ${DECK_SIZE} useful ${i.learningLanguage} words or short phrases for this topic and level. Nouns keep their article. No duplicates.\nFor each: "word", "translation" (in ${i.nativeLanguage}), "example" (one natural sentence in ${i.learningLanguage} that uses the word), "exampleTranslation" (in ${i.nativeLanguage}).\nAnswer with JSON only: {"cards": [{"word": string, "translation": string, "example": string, "exampleTranslation": string}]}`,
-          CardsSchema,
-        )
-      ).cards,
+    cards: (i) => askDeck(apiKey, fetchFn, i),
   };
 }
 
