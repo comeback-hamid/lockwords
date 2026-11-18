@@ -36,7 +36,14 @@ test('answer shape: 1 to 3 lines with text and translation, at most 3 options, d
   expect(KaiAnswerSchema.safeParse({ lines: [{ text: 'no translation' }] }).success).toBe(false);
   expect(KaiAnswerSchema.safeParse({ lines: [line('a')], options: ['1', '2', '3', '4'] }).success).toBe(false);
   expect(KaiAnswerSchema.safeParse({ lines: [line('a')], options: ['x'.repeat(31)] }).success).toBe(false);
-  expect(KaiAnswerSchema.safeParse({ lines: [line('a')], remember: ['x'.repeat(201)] }).success).toBe(false);
+});
+
+test('answer shape: a bad note or a long translation never fails the lines', () => {
+  const a = KaiAnswerSchema.parse({ lines: [{ text: 'a', translation: `**b** ${'x'.repeat(400)}` }], remember: ['x'.repeat(230), '  ', 7, 'ok', 'n3', 'n4', 'n5', 'n6', 'n7'] });
+  expect(a.lines[0]!.translation).toHaveLength(300);
+  expect(a.lines[0]!.translation.startsWith('b x')).toBe(true);
+  expect(a.remember).toEqual(['x'.repeat(200), 'ok', 'n3', 'n4', 'n5']);
+  expect(KaiAnswerSchema.parse({ lines: [line('a')], remember: 'not a list' }).remember).toEqual([]);
 });
 
 test('answer shape: action "review" is kept, any other value is dropped', () => {
@@ -287,6 +294,27 @@ test('Kai fails safely: a wrong shape is tried once more; two wrong shapes are 5
   expect(rows).toHaveLength(before);
 });
 
+test('both tries of a turn share one deadline of 20 seconds', async () => {
+  const deadlines: number[] = [];
+  kaiChat = { answer: async (_c, deadline) => (deadlines.push(deadline!), deadlines.length === 1 ? { lines: [] } : { lines: [line('ok')] }) };
+  const before = Date.now();
+  expect((await alice('/v1/kai/chat/turns', 'POST', { text: 'Hola' })).status).toBe(200);
+  expect(deadlines).toHaveLength(2);
+  expect(deadlines[0]).toBe(deadlines[1]);
+  expect(deadlines[0]! - before).toBeGreaterThanOrEqual(19_000);
+  expect(deadlines[0]! - before).toBeLessThanOrEqual(21_000);
+});
+
+test('an opening another request saved first comes back empty', async () => {
+  const real = store.addTurn;
+  store.addTurn = async () => ({ userMessage: null, messages: [] });
+  try {
+    expect(await json<Turn>(alice('/v1/kai/chat/turns', 'POST', { open: true }))).toEqual({ userMessage: null, messages: [], options: [], action: null });
+  } finally {
+    store.addTurn = real;
+  }
+});
+
 test('daily limit: the 201st message in 24 hours is 429 and nothing is saved; an opening does not count', async () => {
   for (let i = 0; i < 200; i++) rows.push({ id: `u${i}`, userId: ids.a, from: 'user', text: 'x', translation: null, options: [], opening: false, createdAt: new Date(now.getTime() - 60_000) });
   const res = await alice('/v1/kai/chat/turns', 'POST', { text: 'one more' });
@@ -341,6 +369,10 @@ test('claudeKaiChat tries a failed call once more (two tries inside the 20 s lim
   const down = (async () => (calls++, Promise.reject(new Error('stalled')))) as unknown as typeof fetch;
   await expect(claudeKaiChat('k', down).answer(ctx())).rejects.toThrow('stalled');
   expect(calls).toBe(2);
+  // No time left: no call at all.
+  calls = 0;
+  await expect(claudeKaiChat('k', down).answer(ctx(), Date.now() + 100)).rejects.toThrow('no time left');
+  expect(calls).toBe(0);
   const prose = (async () => new Response(JSON.stringify({ content: [{ type: 'text', text: 'Sorry, no JSON here' }] }), { status: 200 })) as unknown as typeof fetch;
   expect(await claudeKaiChat('k', prose).answer(ctx())).toBeNull();
 });

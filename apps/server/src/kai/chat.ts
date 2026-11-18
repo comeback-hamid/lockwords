@@ -19,7 +19,9 @@ export type KaiStore = {
   notes(userId: string): Promise<string[]>; // oldest first
   facts(userId: string, now: Date): Promise<KaiFacts>;
   setTranslation(userId: string, on: boolean): Promise<boolean>; // false = no profile
-  addTurn(userId: string, turn: KaiTurnToSave, now: Date): Promise<{ userMessage: KaiMessage | null; messages: KaiMessage[] }>; // all of it or nothing
+  // All of it or nothing. One turn at a time per user. An opening is not saved when another one was saved in the last 12 hours
+  // (two requests at once): the answer then has no messages.
+  addTurn(userId: string, turn: KaiTurnToSave, now: Date): Promise<{ userMessage: KaiMessage | null; messages: KaiMessage[] }>;
 };
 
 export const SHOWN_MESSAGES = 50;
@@ -27,6 +29,7 @@ export const HISTORY_FOR_KAI = 20;
 export const MAX_NOTES = 50;
 export const MAX_TURNS_PER_DAY = 200;
 export const OPENING_GAP_MS = 12 * 60 * 60 * 1000;
+export const KAI_LIMIT_MS = 20_000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Which notes to add (new ones only, each once) and how many of the oldest to drop so at most 50 stay.
@@ -53,9 +56,11 @@ export type TurnResult =
 type Deps = { kai: KaiStore; profiles: ProfilesStore; kaiChat: KaiChat };
 
 // The model's answer, checked. A wrong shape is asked for once more; a thrown call is not.
+// Both tries share one limit of 20 seconds, so a turn never takes longer than that.
 async function ask(kaiChat: KaiChat, ctx: KaiContext): Promise<KaiAnswer | null> {
+  const deadline = Date.now() + KAI_LIMIT_MS;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const parsed = KaiAnswerSchema.safeParse(await kaiChat.answer(ctx));
+    const parsed = KaiAnswerSchema.safeParse(await kaiChat.answer(ctx, deadline));
     if (parsed.success) return parsed.data;
   }
   return null;
@@ -101,6 +106,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null, 
   if (!answer) return { ok: false, error: 'kai_unavailable' };
 
   const saved = await deps.kai.addTurn(userId, { user: input, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember) }, now);
+  if (opening && saved.messages.length === 0) return { ok: true, userMessage: null, messages: [], options: [], action: null }; // another request opened first
   return { ok: true, ...saved, options: answer.options, action: answer.action };
 }
 

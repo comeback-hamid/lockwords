@@ -108,6 +108,17 @@ test('a failed AI call saves nothing; no profile is 409', async () => {
   expect(Number((await db.execute(sql`select count(*) as n from kai_messages where user_id = ${sub}`)).rows[0]?.n)).toBe(0);
 });
 
+test('two openings at once: Kai greets once', async () => {
+  const sub = crypto.randomUUID();
+  const me = await call(sub);
+  await me('/v1/profile', 'PUT', profileOf('A2'));
+  now = new Date('2027-01-05T10:00:00Z');
+  const [a, b] = await Promise.all([json<Turn>(me('/v1/kai/chat/turns', 'POST', { open: true })), json<Turn>(me('/v1/kai/chat/turns', 'POST', { open: true }))]);
+  expect([a.messages.length, b.messages.length].filter((n) => n > 0)).toHaveLength(1);
+  const saved = Number((await db.execute(sql`select count(*) as n from kai_messages where user_id = ${sub}`)).rows[0]?.n);
+  expect(saved).toBe(Math.max(a.messages.length, b.messages.length));
+});
+
 test('notes: no copies, and only the newest 50 are kept', async () => {
   const sub = crypto.randomUUID();
   const me = await call(sub);
@@ -166,9 +177,15 @@ test('word facts: total, reviewed in the last day, due now, hard words first', a
   const later = new Date(Date.now() + 3 * 86_400_000);
   const facts = await kai.facts(sub, later);
   expect(facts.words.total).toBe(10);
-  expect(facts.words.dueNow).toBe(2);
+  // What Review shows that day: 2 due cards and the 8 new ones.
+  expect(facts.words.dueNow).toBe(10);
   expect(facts.words.reviewedLastDay).toBe(0);
   expect((await kai.facts(sub, new Date(Date.now() + 60_000))).words.reviewedLastDay).toBe(2);
+  // "I know it" is practice too: the card leaves the word list but still counts as reviewed.
+  await me(`/v1/cards/${ready.cards[2]!.id}/swipe`, 'POST', { direction: 'known' });
+  const after = await kai.facts(sub, new Date(Date.now() + 60_000));
+  expect(after.words.reviewedLastDay).toBe(3);
+  expect(after.words.total).toBe(9);
   expect(facts.words.sample).toHaveLength(10);
   expect(facts.words.sample[0]!.word).toBe(ready.cards[1]!.word);
 });

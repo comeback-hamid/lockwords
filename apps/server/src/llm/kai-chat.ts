@@ -25,6 +25,8 @@ export const MAX_LINE_CHARS = 160;
 export const MAX_OPTIONS = 3;
 export const MAX_OPTION_CHARS = 30;
 export const MAX_NOTE_CHARS = 200;
+export const MAX_NOTES_PER_TURN = 5;
+export const MAX_TRANSLATION_CHARS = 300;
 
 export const KaiAnswerSchema = z.object({
   lines: z
@@ -33,13 +35,23 @@ export const KaiAnswerSchema = z.object({
         // Shown as small plain text, so bold marks the model adds anyway are taken out.
         translation: z
           .string()
-          .transform((t) => t.replaceAll('**', '').trim())
-          .pipe(z.string().min(1).max(300)),
+          .transform((t) => t.replaceAll('**', '').trim().slice(0, MAX_TRANSLATION_CHARS))
+          .pipe(z.string().min(1)),
       }))
     .min(1)
     .max(MAX_LINES),
   options: z.array(z.string().trim().min(1).max(MAX_OPTION_CHARS)).max(MAX_OPTIONS).default([]),
-  remember: z.array(z.string().trim().min(1).max(MAX_NOTE_CHARS)).max(5).default([]),
+  // Notes are extra. A bad one (not text, empty, too long, too many) is cut or dropped; it never fails Kai's lines.
+  remember: z
+    .unknown()
+    .optional()
+    .transform((r) =>
+      (Array.isArray(r) ? r : [])
+        .filter((n): n is string => typeof n === 'string')
+        .map((n) => n.trim().slice(0, MAX_NOTE_CHARS))
+        .filter((n) => n !== '')
+        .slice(0, MAX_NOTES_PER_TURN),
+    ),
   // Only "review" means something. Anything else the model invents is dropped.
   action: z
     .unknown()
@@ -49,7 +61,8 @@ export const KaiAnswerSchema = z.object({
 export type KaiAnswer = z.infer<typeof KaiAnswerSchema>;
 
 // The raw answer. The service checks it with KaiAnswerSchema and asks once more when the shape is wrong.
-export type KaiChat = { answer(ctx: KaiContext): Promise<unknown> };
+// `deadline` (a clock time in ms) is when the whole turn must be done; a real call spends no longer than what is left.
+export type KaiChat = { answer(ctx: KaiContext, deadline?: number): Promise<unknown> };
 
 const isBeginner = (cefr: string | null) => cefr === null || /^A[12]/.test(cefr);
 

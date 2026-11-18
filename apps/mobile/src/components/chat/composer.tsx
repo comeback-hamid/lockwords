@@ -6,12 +6,13 @@ import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Figma Composer: text box + one round button (mic when empty, green send when there is text).
 // `mic={false}` is for text-only screens: no round button until there is text. `defaultValue` puts a text back in the box.
-type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string };
-export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '' }: Props) {
+// `canSend={false}` (Kai is still answering): the learner can keep typing, the text stays in the box, and send waits.
+type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string; canSend?: boolean };
+export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '', canSend = true }: Props) {
   const [text, setText] = useState(defaultValue);
   const ready = text.trim() !== '';
   const send = () => {
-    if (!ready) return;
+    if (!ready || !canSend) return;
     onSend(text.trim());
     setText('');
   };
@@ -31,7 +32,7 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
           selectionColor={colors.button}
         />
         {ready ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Send" onPress={send} style={[styles.round, styles.send]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Send" accessibilityState={{ disabled: !canSend }} onPress={send} style={[styles.round, styles.send, !canSend && styles.waiting]}>
             <Icon name="send" color={colors.white} />
           </Pressable>
         ) : !mic ? null : (
@@ -52,4 +53,5 @@ const styles = StyleSheet.create({
   input: { flex: 1, lineHeight: undefined, color: colors.text },
   round: { width: 36, height: 36, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.chip },
   send: { backgroundColor: colors.button },
+  waiting: { opacity: 0.4 },
 });

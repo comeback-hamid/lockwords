@@ -71,28 +71,31 @@ export function claudeLanguageChecker(apiKey: string, fetchFn: Fetch = fetch): L
 // in twenty stalled on the network. A second try answers in time; one long wait would not.
 const KAI_TRY_MS = 10_000;
 const KAI_TRIES = 2;
+const MIN_TRY_MS = 1500; // less than this is not worth a call
 
 // One turn of the New words chat. Returns the model's JSON as it is: src/kai/chat.ts checks the shape and asks once more if it is wrong.
 // Low effort and no thinking (`between_tools` is how this model turns it off): the learner is waiting, and the answer is a few short lines.
 export function claudeKaiChat(apiKey: string, fetchFn: Fetch = fetch): KaiChat {
-  async function call(system: string, user: string): Promise<string> {
+  async function call(system: string, user: string, ms: number): Promise<string> {
     const res = await fetchFn('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model: MODEL, max_tokens: 2000, thinking: { type: 'between_tools' }, output_config: { effort: 'low' }, system, messages: [{ role: 'user', content: user }] }),
-      signal: AbortSignal.timeout(KAI_TRY_MS),
+      signal: AbortSignal.timeout(ms),
     });
     if (!res.ok) throw new Error(`model answered ${res.status}`);
     const body = (await res.json()) as { content?: { type: string; text?: string }[] };
     return body.content?.find((c) => c.type === 'text')?.text ?? '';
   }
   return {
-    async answer(ctx) {
+    async answer(ctx, deadline = Date.now() + KAI_TRY_MS * KAI_TRIES) {
       const { system, user } = buildKaiPrompt(ctx);
       let text: string;
       for (let attempt = 1; ; attempt++) {
+        const left = deadline - Date.now();
+        if (left < MIN_TRY_MS) throw new Error('no time left for the model');
         try {
-          text = await call(system, user);
+          text = await call(system, user, Math.min(KAI_TRY_MS, left));
           break;
         } catch (e) {
           if (attempt >= KAI_TRIES) throw e;

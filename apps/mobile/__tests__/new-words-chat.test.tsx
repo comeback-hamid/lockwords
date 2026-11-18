@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 
 import { createApi, type KaiChat, type KaiMessage, type KaiTurn } from '@/api/client';
 import NewWordsScreen from '@/app/(tabs)/index';
@@ -9,7 +10,19 @@ import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { languageCode, typingMs } from '@/new-words/chat';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), navigate: jest.fn(), canGoBack: () => true };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+let mockBlur: (() => void) | void;
+jest.mock('expo-router', () => ({
+  useRouter: () => mockRouter,
+  // The tab is in view while the screen is mounted; `mockBlur()` moves to another tab.
+  useFocusEffect: (effect: () => (() => void) | void) => {
+    const { useEffect } = jest.requireActual<typeof import('react')>('react');
+    useEffect(() => {
+      mockBlur = effect();
+      return () => void mockBlur?.();
+    }, [effect]);
+  },
+}));
+jest.mock('@/auth/me-store', () => ({ useMe: () => ({ id: 'user-1', isGuest: true, createdAt: '' }) }));
 jest.mock('@/auth/boot', () => ({ api: { fetchKaiChat: jest.fn(), openKaiChat: jest.fn(), sendKaiMessage: jest.fn(), setKaiTranslation: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
@@ -35,12 +48,16 @@ const settle = async (ms = 0) => {
 beforeEach(() => {
   jest.useFakeTimers();
   jest.clearAllMocks();
+  jest.spyOn(AppState, 'addEventListener').mockImplementation(() => ({ remove: jest.fn() }) as never);
   mockApi.fetchKaiChat.mockResolvedValue(chat());
   mockApi.openKaiChat.mockResolvedValue(NOTHING);
   mockApi.sendKaiMessage.mockResolvedValue(NOTHING);
   mockApi.setKaiTranslation.mockResolvedValue(undefined);
 });
-afterEach(() => jest.useRealTimers());
+afterEach(() => {
+  jest.useRealTimers();
+  jest.restoreAllMocks();
+});
 
 describe('chat parts', () => {
   test('Kai bubble shows the translation under a divider when translations are on', async () => {
@@ -230,6 +247,74 @@ describe('New words screen', () => {
     await fireEvent.press(screen.getByRole('switch', { name: 'Translation, off' }));
     await settle();
     expect(screen.getByRole('switch', { name: 'Translation, off' })).toBeOnTheScreen();
+  });
+
+  test('typing while Kai answers: the text stays in the box and send waits; no line is lost', async () => {
+    let answer: (t: { ok: true; turn: KaiTurn }) => void = () => {};
+    mockApi.sendKaiMessage.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+    await render(<NewWordsScreen />);
+    await settle();
+    await send('Hola');
+    await send('¿Y tú?'); // Kai is still thinking
+    expect(mockApi.sendKaiMessage).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText('Message').props.value).toBe('¿Y tú?');
+    expect(screen.queryByLabelText('You: ¿Y tú?')).toBeNull();
+
+    await act(async () => answer(turn({ userMessage: user('Hola'), messages: [kai('Uno'), kai('Dos')] })));
+    await settle(900);
+    await fireEvent.press(screen.getByRole('button', { name: 'Send' })); // line two is still coming
+    expect(mockApi.sendKaiMessage).toHaveBeenCalledTimes(1);
+    await settle(900);
+    expect(kaiSays('Dos')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Message').props.value).toBe('¿Y tú?'); // the box was not reset by Kai's answer
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Send' }));
+    expect(mockApi.sendKaiMessage).toHaveBeenCalledTimes(2);
+    expect(screen.getByLabelText('You: ¿Y tú?')).toBeOnTheScreen();
+  });
+
+  test('a failed turn gives the options back', async () => {
+    mockApi.fetchKaiChat.mockResolvedValue(chat({ messages: [kai('¿Practicamos?')], options: ['Sí', 'Ahora no'] }));
+    mockApi.sendKaiMessage.mockResolvedValueOnce({ ok: false, error: 'failed' });
+    await render(<NewWordsScreen />);
+    await settle();
+    await fireEvent.press(screen.getByRole('button', { name: 'Sí' }));
+    await settle();
+    expect(screen.getByRole('button', { name: 'Sí' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Ahora no' })).toBeOnTheScreen();
+  });
+
+  test('Kai is asked to open again when the app comes back to the front, not while a turn runs', async () => {
+    await render(<NewWordsScreen />);
+    await settle();
+    expect(mockApi.openKaiChat).toHaveBeenCalledTimes(1);
+    const listeners = (AppState.addEventListener as jest.Mock).mock.calls.map((c) => c[1] as (s: string) => void);
+    mockApi.openKaiChat.mockResolvedValue(turn({ messages: [kai('¡Hola de nuevo!')] }));
+    await act(async () => listeners.forEach((l) => l('active')));
+    await settle(1200);
+    expect(mockApi.openKaiChat).toHaveBeenCalledTimes(2);
+    expect(kaiSays('¡Hola de nuevo!')).toBeOnTheScreen();
+    // On another tab: nothing is asked.
+    await act(async () => void mockBlur?.());
+    await act(async () => listeners.forEach((l) => l('active')));
+    expect(mockApi.openKaiChat).toHaveBeenCalledTimes(2);
+  });
+
+  test('the learner left for another tab before the second was over: Review does not open', async () => {
+    mockApi.sendKaiMessage.mockResolvedValue(turn({ userMessage: user('Vamos'), messages: [kai('Te llevo a Review')], action: 'review' }));
+    await render(<NewWordsScreen />);
+    await settle();
+    await send('Vamos');
+    await settle(900);
+    await act(async () => void mockBlur?.());
+    await settle(1500);
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+  });
+
+  test('dev builds show the user id (the guest-login flows read it)', async () => {
+    await render(<NewWordsScreen />);
+    await settle();
+    expect(screen.getByTestId('dev-user-id')).toHaveTextContent('user-1');
   });
 
   test('lead to Review: Kai’s line shows, and one second later the Review tab opens', async () => {

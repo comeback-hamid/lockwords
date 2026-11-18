@@ -1,9 +1,10 @@
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { AppState, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { KaiMessage, KaiTurnResult } from '@/api/client';
 import { api } from '@/auth/boot';
+import { useMe } from '@/auth/me-store';
 import { ChatBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
 import { KaiHeader } from '@/components/chat/kai-header';
@@ -12,7 +13,7 @@ import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { TypingBubble } from '@/components/chat/typing-bubble';
 import { LoadError } from '@/components/load-state';
 import { languageCode, REVIEW_DELAY_MS, TOO_MANY, typingMs } from '@/new-words/chat';
-import { colors, layout, space } from '@/theme/theme';
+import { colors, layout, space, type } from '@/theme/theme';
 
 type Line = Pick<KaiMessage, 'id' | 'from' | 'text' | 'translation'>;
 // Kai's lines that still wait behind a typing bubble, and what comes after the last one.
@@ -24,6 +25,7 @@ const local = (from: Line['from'], text: string): Line => ({ id: `local-${localI
 // New words (Figma N1, N1b, N8): one ongoing chat with Kai. Kai's lines come from the server (an agent with memory).
 export default function NewWordsScreen() {
   const router = useRouter();
+  const me = useMe();
   const [load, setLoad] = useState<'loading' | 'error' | 'ready'>('loading');
   const [attempt, setAttempt] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
@@ -47,15 +49,34 @@ export default function NewWordsScreen() {
     };
   }, []);
 
-  // What a finished turn adds to the screen.
+  // Queues Kai's lines of a finished turn. False when there is nothing to show.
   const take = useCallback((result: KaiTurnResult) => {
-    if (!result.ok) return false;
+    if (!result.ok || result.turn.messages.length === 0) return false;
     const { messages, options: next, action } = result.turn;
-    if (messages.length) setComing({ lines: messages, options: next, action });
+    setComing({ lines: messages, options: next, action });
     return true;
   }, []);
 
-  // Load the chat, then let Kai open it (the server decides if Kai has something new to say).
+  // Kai opens the chat when it has something new to say (the server decides: at most once in 12 hours).
+  // Asked when the tab is in view with the chat loaded, and when the app comes back to the front.
+  const quiet = useRef(true); // false while a turn runs or Kai's lines are still showing
+  const focused = useRef(false);
+  const open = useCallback(async () => {
+    if (!quiet.current) return;
+    quiet.current = false;
+    setBusy(true);
+    const opening = await api.openKaiChat();
+    setBusy(false);
+    // A failed opening is quiet: the learner can still write, and Kai opens next time.
+    if (opening.ok && opening.turn.messages.length) {
+      setOptions([]);
+      setGreeting(true);
+      take(opening);
+    } else {
+      quiet.current = true;
+    }
+  }, [take]);
+
   useEffect(() => {
     let live = true;
     void (async () => {
@@ -68,23 +89,29 @@ export default function NewWordsScreen() {
         setLoad('ready');
       } catch {
         if (live) setLoad('error');
-        return;
-      }
-      setBusy(true);
-      const opening = await api.openKaiChat();
-      if (!live) return;
-      setBusy(false);
-      // A failed opening is quiet: the learner can still write, and Kai opens next time.
-      if (opening.ok && opening.turn.messages.length) {
-        setOptions([]);
-        setGreeting(true);
-        take(opening);
       }
     })();
     return () => {
       live = false;
     };
-  }, [attempt, take]);
+  }, [attempt]);
+
+  const ready = load === 'ready';
+  useFocusEffect(
+    useCallback(() => {
+      focused.current = true;
+      if (ready) void open();
+      return () => {
+        focused.current = false;
+      };
+    }, [ready, open]),
+  );
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && ready && focused.current) void open();
+    });
+    return () => sub.remove();
+  }, [ready, open]);
 
   // One line at a time: typing dots for about a second, then the line. Options come after the last line.
   useEffect(() => {
@@ -93,7 +120,10 @@ export default function NewWordsScreen() {
     const timer = setTimeout(() => {
       setLines((all) => [...all, next]);
       setComing((c) => ({ ...c, lines: rest }));
-      if (rest.length === 0) setOptions(coming.options);
+      if (rest.length === 0) {
+        setOptions(coming.options);
+        if (coming.action !== 'review') quiet.current = true;
+      }
     }, typingMs(next.text));
     return () => clearTimeout(timer);
   }, [coming]);
@@ -104,7 +134,8 @@ export default function NewWordsScreen() {
     if (!leaving) return;
     const timer = setTimeout(() => {
       setComing(NONE);
-      router.navigate('/review');
+      quiet.current = true;
+      if (focused.current) router.navigate('/review'); // the learner may have left for another tab in that second
     }, REVIEW_DELAY_MS);
     return () => clearTimeout(timer);
   }, [leaving, router]);
@@ -115,7 +146,10 @@ export default function NewWordsScreen() {
   }, [lines, typing, options, failed]);
 
   async function send(text: string) {
-    if (busy) return;
+    if (!quiet.current) return; // Kai is still answering; the composer keeps the text
+    quiet.current = false;
+    const retry = failed !== null;
+    const before = options;
     const mine = local('user', text);
     setLines((all) => [...all, mine]);
     setOptions([]);
@@ -124,10 +158,17 @@ export default function NewWordsScreen() {
     setBusy(true);
     const result = await api.sendKaiMessage(text);
     setBusy(false);
-    if (take(result)) return setDraft((d) => ({ key: d.key + 1, text: '' }));
-    if (!result.ok && result.error === 'too_many_messages') return setComing({ lines: [local('kai', TOO_MANY)], options: [], action: null });
-    // Nothing was saved: take the bubble back and give the learner their text again.
+    if (result.ok) {
+      // The composer cleared itself on send. After a retry the text was put back by us, so take it out again.
+      if (retry) setDraft((d) => ({ key: d.key + 1, text: '' }));
+      if (!take(result)) quiet.current = true;
+      return;
+    }
+    if (result.error === 'too_many_messages') return setComing({ lines: [local('kai', TOO_MANY)], options: [], action: null });
+    // Nothing was saved: take the bubble back, and give the learner their text and the options again.
+    quiet.current = true;
     setLines((all) => all.filter((l) => l.id !== mine.id));
+    setOptions(before);
     setFailed(text);
     setDraft((d) => ({ key: d.key + 1, text }));
   }
@@ -142,14 +183,23 @@ export default function NewWordsScreen() {
     <KaiHeader
       pose={busy ? 'thinking' : greeting ? 'greeting' : 'idle'}
       back={false}
-      right={load === 'ready' ? <TranslationToggle code={translation.code} on={translation.on} onToggle={toggleTranslation} /> : undefined}
+      right={ready ? <TranslationToggle code={translation.code} on={translation.on} onToggle={toggleTranslation} /> : undefined}
     />
   );
 
-  if (load !== 'ready')
+  // Dev builds only: lets the Maestro flows check that the guest user survives a restart (as on the other tabs).
+  const devId =
+    __DEV__ && me ? (
+      <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
+        {me.id}
+      </Text>
+    ) : null;
+
+  if (!ready)
     return (
       <View style={styles.root}>
         {header}
+        {devId}
         {load === 'loading' ? (
           <View accessible accessibilityLabel="Loading the chat" style={styles.center} />
         ) : (
@@ -169,6 +219,7 @@ export default function NewWordsScreen() {
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {header}
+      {devId}
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {lines.map((l) => (
           <ChatBubble key={l.id} from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
@@ -178,7 +229,7 @@ export default function NewWordsScreen() {
       </ScrollView>
       <ReplyOptions options={typing ? [] : options} onPick={(o) => void send(o)} />
       <View style={keyboard ? styles.composerTyping : styles.composer}>
-        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} maxLength={500} mic={false} />
+        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} maxLength={500} mic={false} canSend={!typing} />
       </View>
     </KeyboardAvoidingView>
   );
@@ -191,4 +242,5 @@ const styles = StyleSheet.create({
   messages: { paddingHorizontal: layout.sideMargin, paddingVertical: space[16], gap: space[8] },
   composer: { paddingBottom: layout.tabBarClearance },
   composerTyping: { paddingBottom: space[12] },
+  dev: { color: colors.subtle, textAlign: 'center', paddingTop: space[4] },
 });
