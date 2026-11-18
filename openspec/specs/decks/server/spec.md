@@ -32,7 +32,7 @@ How the server proposes and makes decks of words for a user, and returns them.
 - **THEN** the answer is `400`
 
 ### Requirement: Make the cards
-`POST /v1/decks/{id}/generate` SHALL start a background job that fills the caller's proposed deck with exactly 10 cards, and wait up to 20 seconds for it. While the job runs the deck's `status` is `generating`. A finished job answers `200` with the deck in state `ready`; a job that is still running answers `200` with the deck in state `generating`. Each card has `word`, `translation`, `example`, `exampleTranslation` and `stage` 0. The words SHALL fit the learner's deck band, goal and interests (see "Deck band" and "Deck words fit the learner"). If the first AI try fails in under 12 seconds, the job SHALL try once more. If the AI fails, the answer is `502` with `{ "error": "generation_failed" }` and nothing is saved.
+`POST /v1/decks/{id}/generate` SHALL start a background job that fills the caller's proposed deck with exactly 10 cards, and wait up to 20 seconds for it. While the job runs the deck's `status` is `generating`. The answer is `200` with the deck in its current state (`ready`, or `generating` if the job still runs). Each card has `word`, `translation`, `example`, `exampleTranslation` and `stage` 0. If the AI fails, the answer is `502` with `{ "error": "generation_failed" }` and nothing is saved.
 
 #### Scenario: Generate
 - **WHEN** the owner calls generate on a proposed deck and the job finishes in time
@@ -49,6 +49,9 @@ How the server proposes and makes decks of words for a user, and returns them.
 #### Scenario: AI fails
 - **WHEN** the AI task throws or returns fewer than 10 valid cards, twice
 - **THEN** the answer is `502`, the deck goes back to `proposed` and has no cards
+
+### Requirement: Retry a fast failure
+If the first AI try for a deck's cards fails in under 12 seconds, the job SHALL try once more. The words SHALL fit the learner's deck band, goal and interests (see "Deck band" and "Deck words fit the learner").
 
 #### Scenario: Fast failure, then success
 - **WHEN** the first AI try fails at once and the second returns 10 good cards
