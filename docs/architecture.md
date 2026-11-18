@@ -32,8 +32,9 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 | GET | `/health` | `{ ok: true }` | repo skeleton |
 | GET | `/openapi.json` | OpenAPI 3.1 document, made from the server's Zod shapes. Saved as `apps/server/openapi.json` (`npm run openapi`); the app's types come from it (`npm run api:gen` in `apps/mobile`). | local-backend-and-guest-login |
 | GET | `/v1/me` | `{ id, isGuest, createdAt }`. Makes the user row on the first call. | local-backend-and-guest-login |
-| GET | `/v1/word-test?language=` | `{ supported, bands[3] }`: the onboarding word test. Seeded for Spanish only. | onboarding-profile |
-| POST | `/v1/word-test/estimate` | `{ language, known[] }` → `{ knownWords, outOf: 5000, cefr }` | onboarding-profile |
+| GET | `/v1/word-test?language=` | `{ supported, madeUp, pages: { A, B, C, D } }`: the onboarding word test (`docs/vocab-engine.md`). Words only, order fixed per user. 13 word files; a typed language gets an AI pack (A, B, C) once. | vocab-engine-word-test |
+| POST | `/v1/word-test/next` | `{ language, known }` → `{ next: "C" \| "D" \| null }`: the server decides the next page. | vocab-engine-word-test |
+| POST | `/v1/word-test/estimate` | `{ language, known }` → `{ words, outOf: 5000, plus, cefr, startingFresh, reliable, fakesTicked }`; saves a `word_test_results` row. | vocab-engine-word-test |
 | PUT | `/v1/profile` | Saves the onboarding answers (one row per user). | onboarding-profile |
 | PUT | `/v1/profile/chat` | `{ name, chatLanguage }` from the Kai chat. `409` with no profile. | onboarding-kai-deck |
 | GET | `/v1/deck-ideas` | Four first-deck topics for the user's goal. | onboarding-kai-deck |

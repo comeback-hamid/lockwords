@@ -1,0 +1,51 @@
+# Word test, situation 4: a guesser. 3 of the 6 made-up words ticked → "Were you guessing?" once, then an honest retry.
+# Needs the local stack: `npm run dev:up`.
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: word-test-guesser
+- runFlow: ../subflows/to-level.yaml
+- tapOn: "Some basics"
+- tapOn: "Continue"
+- assertVisible: "BASIC WORDS"
+- tapOn: "la casa"
+- tapOn: "la noche"
+- tapOn: "comer"
+- tapOn: "la familia"
+- tapOn: "la mano"
+# made-up words
+- tapOn: "el tarbo"
+- tapOn: "la mesilda"
+- tapOn: "pindar"
+- assertVisible: "8 SELECTED"
+- runFlow: ../subflows/next-page.yaml
+- assertVisible: "INTERMEDIATE WORDS"
+- tapOn: "I don’t know any of these"
+- extendedWaitUntil:
+    visible: "Were you guessing?"
+    timeout: 15000
+- tapOn: "Try again"
+# Back on the first page, every answer cleared
+- assertVisible: "BASIC WORDS"
+- assertVisible: "0 SELECTED"
+- tapOn: "la casa"
+- tapOn: "la noche"
+- tapOn: "comer"
+- tapOn: "la familia"
+- tapOn: "la mano"
+- runFlow: ../subflows/next-page.yaml
+- assertVisible: "INTERMEDIATE WORDS"
+- tapOn: "el reloj"
+- runFlow: ../subflows/next-page.yaml
+- extendedWaitUntil:
+    visible: "YOU ALREADY KNOW"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "150"
+    timeout: 5000
+- assertVisible: "About level A1"
+- stopRecording

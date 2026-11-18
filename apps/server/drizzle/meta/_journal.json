@@ -36,6 +36,13 @@
       "when": 1794895454115,
       "tag": "0004_dear_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794919824246,
+      "tag": "0005_white_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }

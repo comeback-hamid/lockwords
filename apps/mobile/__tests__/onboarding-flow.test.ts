@@ -7,7 +7,7 @@ test('step numbers match Figma (n/10)', () => {
   expect(stepFor('learning')).toBe(1);
   expect(stepFor('speaks')).toBe(1);
   expect(stepFor('level')).toBe(2);
-  expect([0, 1, 2].map((band) => stepFor('word-test', band))).toEqual([3, 4, 5]);
+  expect([0, 1, 2, 3].map((page) => stepFor('word-test', page))).toEqual([3, 4, 5, 5]);
   expect(stepFor('estimate')).toBe(6);
   expect(stepFor('goal')).toBe(7);
   expect(stepFor('interests')).toBe(8);
@@ -15,7 +15,7 @@ test('step numbers match Figma (n/10)', () => {
 
 test('Brand new skips the word test', () => {
   expect(afterLevel('brand_new')).toBe('/onboarding/goal');
-  expect(afterLevel('some_basics')).toBe('/onboarding/word-test?band=0');
+  expect(afterLevel('some_basics')).toBe('/onboarding/word-test?page=A');
 });
 
 test('start rule: onboarding until finished, then tabs', () => {
@@ -37,7 +37,7 @@ test('profile body: listed languages send the code, typed ones send the text', (
     learning: { code: null, name: ' Swedish ' },
     speaks: { code: 'en', name: 'English' },
     level: 'some_basics',
-    estimate: { knownWords: 1850, outOf: 5000, cefr: 'A2+' },
+    estimate: { words: 1850, outOf: 5000, plus: false, cefr: 'A2', startingFresh: false, reliable: true, fakesTicked: 0 },
     goal: 'other',
     goalOther: ' For my grandmother ',
     interests: ['food', 'music'],
@@ -47,7 +47,7 @@ test('profile body: listed languages send the code, typed ones send the text', (
     nativeLanguage: 'en',
     level: 'some_basics',
     knownWords: 1850,
-    cefr: 'A2+',
+    cefr: 'A2',
     goal: 'other',
     goalOther: 'For my grandmother',
     interests: ['food', 'music'],
