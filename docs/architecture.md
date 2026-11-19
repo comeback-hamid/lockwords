@@ -41,6 +41,8 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 | POST | `/v1/decks` | `{ topic }` → a proposed deck (title, level, reason; no cards). | onboarding-kai-deck |
 | POST | `/v1/decks/{id}/generate` | Starts the background job that makes the 10 cards (pg-boss queue `make-deck`, AI task `make-deck`) and waits up to 20 s. Answers the deck as `ready`, or as `generating` (read it again). `502` if the AI fails; nothing saved. | onboarding-kai-deck |
 | GET | `/v1/decks/{id}` | The deck with its cards. Other users get `404`. | onboarding-kai-deck |
+| DELETE | `/v1/decks/{id}` | Removes the deck and its cards → `204`. `404` for another user's, an unknown or a removed deck; `409 deck_generating` while its words are being made. | remove-words-and-decks |
+| DELETE | `/v1/cards/{id}` | Removes one card → `204` (`404` like above). The deck's `wordCount` follows. | remove-words-and-decks |
 | GET | `/v1/review` | Today's round: due cards, then up to 20 new cards. | first-review |
 | POST | `/v1/cards/{id}/swipe` | `{ direction: easy / hard / known }` → `{ stage, known, hard, backInDays }`. Rules in `src/review/srs.ts`. | first-review |
 | GET | `/v1/hard-words` | Words swiped Hard (for the lock screen). | first-review |
@@ -58,6 +60,7 @@ Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The ser
 | `profiles` | `user_id` uuid PK, `learning_language`, `native_language`, `level`, `known_words`, `cefr`, `goal`, `goal_other`, `interests` text[], `updated_at` | onboarding-profile (+ `name`, `chat_language` in onboarding-kai-deck) |
 | `decks` | `id` uuid PK, `user_id`, `topic`, `title`, `reason`, `cefr`, `status` (`proposed`/`generating`/`ready`), `created_at` | onboarding-kai-deck |
 | `cards` | `id` uuid PK, `deck_id` → `decks.id`, `position`, `word`, `translation`, `example`, `example_translation`, `stage` (0 = new), `due_at`, `known`, `hard`, `created_at` | onboarding-kai-deck, first-review |
+| `decks`, `cards` | `removed_at` timestamptz (empty = not removed). **Removing is a mark, never a delete:** chat messages point at decks, and "no lost cards" is a product rule. Every query that reads cards or decks adds "not removed" (`db/decks.ts`, `db/cards.ts`, `db/kai.ts`, `decks/random-words.ts`): a new reader must do the same. | remove-words-and-decks |
 | `kai_messages` | `id` uuid PK, `user_id`, `role` (`kai`/`user`), `text`, `translation` (Kai's lines), `options` text[] (on Kai's last line of a turn), `opening`, `position` (order inside a turn), `created_at` | new-words-kai-chat (also `cards.last_reviewed_at` and `profiles.kai_translation_on`) |
 | `kai_notes` | `id` uuid PK, `user_id`, `text`, `created_at`. What Kai remembers about a learner. At most 50 per user. | new-words-kai-chat |
 
