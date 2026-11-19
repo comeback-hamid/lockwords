@@ -28,8 +28,8 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="review">
         <NativeTabs.Trigger.Label>Review</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/review.png')} renderingMode="template" />
-        {/* A badge with no number: iOS draws it as a small red dot. */}
-        <NativeTabs.Trigger.Badge hidden={!dot || onReview}> </NativeTabs.Trigger.Badge>
+        {/* A badge with no text: iOS draws a red dot. (With text in it the `hidden` prop is not read, so it is left out when off.) */}
+        {dot && !onReview ? <NativeTabs.Trigger.Badge /> : null}
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>

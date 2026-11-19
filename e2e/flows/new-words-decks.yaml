@@ -27,6 +27,7 @@ tags:
 - tapOn: "Message"
 - inputText: "Sí, quiero verlos"
 - tapOn: "Send"
+- hideKeyboard
 - extendedWaitUntil:
     visible: "Deck 1 of 3"
     timeout: 60000
@@ -34,38 +35,40 @@ tags:
     notVisible: "Kai is typing"
     timeout: 40000
 - assertVisible: "Generate"
-# Swipe the ideas sideways: the dots follow
+- assertVisible:
+    id: "deck-ideas-row"
+# Swipe the ideas sideways (the row sits just above the message box): the dots follow
 - swipe:
-    from:
-      id: "deck-ideas-row"
-    direction: LEFT
+    start: "85%, 66%"
+    end: "15%, 66%"
+    duration: 250
 - extendedWaitUntil:
     visible: "Deck 2 of 3"
     timeout: 10000
 - swipe:
-    from:
-      id: "deck-ideas-row"
-    direction: LEFT
+    start: "85%, 66%"
+    end: "15%, 66%"
+    duration: 250
 - extendedWaitUntil:
     visible: "Deck 3 of 3"
     timeout: 10000
 - swipe:
-    from:
-      id: "deck-ideas-row"
-    direction: RIGHT
+    start: "15%, 66%"
+    end: "85%, 66%"
+    duration: 250
 - swipe:
-    from:
-      id: "deck-ideas-row"
-    direction: RIGHT
+    start: "15%, 66%"
+    end: "85%, 66%"
+    duration: 250
 - extendedWaitUntil:
     visible: "Deck 1 of 3"
     timeout: 10000
 # N3 Generate the first idea → N4 the deck is ready and in the word list; the other cards are gone
 - tapOn: "Generate"
+# (the ready card is one button named "Open deck"; its texts are inside it)
 - extendedWaitUntil:
-    visible: ".*IN YOUR WORD LIST"
+    visible: "Open deck"
     timeout: 180000
-- assertVisible: "Open deck"
 - assertNotVisible: "Generate"
 - assertNotVisible: "Deck 1 of 3"
 # Kai says the deck is ready, and the Review tab has its red dot
@@ -73,7 +76,6 @@ tags:
     notVisible: "Kai is typing"
     timeout: 60000
 - waitForAnimationToEnd
-- takeScreenshot: e2e/videos/new-words-decks-ready
 # The ready card opens the deck page
 - tapOn: "Open deck"
 - extendedWaitUntil:
@@ -84,6 +86,7 @@ tags:
 - tapOn: "Message"
 - inputText: "Vamos a practicar"
 - tapOn: "Send"
+- hideKeyboard
 - extendedWaitUntil:
     visible: ".* cards to review today"
     timeout: 60000
@@ -94,6 +97,7 @@ tags:
 - tapOn: "Message"
 - inputText: "Quiero un mazo sobre trabajar en una cafetería"
 - tapOn: "Send"
+- hideKeyboard
 - extendedWaitUntil:
     notVisible: "Kai is typing"
     timeout: 60000
@@ -104,6 +108,7 @@ tags:
       - tapOn: "Message"
       - inputText: "Palabras sueltas, 10 palabras. Hazlo así, por favor."
       - tapOn: "Send"
+      - hideKeyboard
 - extendedWaitUntil:
     visible: "Generate"
     timeout: 60000
