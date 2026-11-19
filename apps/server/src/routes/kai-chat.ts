@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
 import type { ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
+import type { RandomWordsStore } from '../decks/random-words.js';
 import { kaiTurn, readChat, type KaiMessage, type KaiStore } from '../kai/chat.js';
 import type { KaiChat } from '../llm/kai-chat.js';
 import { UnauthorizedSchema } from './me.js';
@@ -17,9 +18,16 @@ const Unavailable = error('kai_unavailable', 'KaiUnavailable');
 const unauthorized = { 401: json(UnauthorizedSchema, 'No valid login token') };
 const security = [{ bearer: [] }];
 
+// A word card on a Kai message: the word, the Random Words deck that takes it now (or took it), and what happened to it.
+const WordSchema = z
+  .object({ word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), addTo: z.string(), added: z.boolean(), already: z.boolean() })
+  .openapi('KaiWord');
 const MessageSchema = z
-  .object({ id: z.string(), from: z.enum(['kai', 'user']), text: z.string(), translation: z.string().nullable(), createdAt: z.string() })
+  .object({ id: z.string(), from: z.enum(['kai', 'user']), text: z.string(), translation: z.string().nullable(), createdAt: z.string(), word: WordSchema.optional() })
   .openapi('KaiMessage');
+const NotFound = error('not_found', 'KaiNotFound');
+const NoWord = error('no_word', 'KaiNoWord');
+const AddedWordSchema = z.object({ deckId: z.string(), deckTitle: z.string(), count: z.number().int(), already: z.boolean() }).openapi('KaiAddedWord');
 const ChatSchema = z
   .object({ messages: z.array(MessageSchema), options: z.array(z.string()), translationOn: z.boolean(), nativeLanguage: z.string().nullable() })
   .openapi('KaiChat');
@@ -60,10 +68,22 @@ const putTranslation = createRoute({
     ...unauthorized,
   },
 });
+const postAddWord = createRoute({
+  method: 'post',
+  path: '/kai/chat/messages/{id}/add-word',
+  security,
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: json(AddedWordSchema, 'The deck that has the word now. Safe to repeat. `already` = the learner had this word, nothing was added'),
+    404: json(NotFound, 'No such message'),
+    409: json(NoWord, 'The message has no word card'),
+    ...unauthorized,
+  },
+});
 
-const toMessage = (m: KaiMessage) => ({ id: m.id, from: m.from, text: m.text, translation: m.translation, createdAt: m.createdAt.toISOString() });
+const toMessage = (m: KaiMessage) => ({ id: m.id, from: m.from, text: m.text, translation: m.translation, createdAt: m.createdAt.toISOString(), ...(m.word ? { word: m.word } : {}) });
 
-type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date };
+type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore };
 
 export function kaiChatRoutes(deps: Deps) {
   const need = <K extends keyof Deps>(key: K) => {
@@ -95,5 +115,12 @@ export function kaiChatRoutes(deps: Deps) {
       const { on } = c.req.valid('json');
       if (!(await need('kai').setTranslation(c.get('user').id, on))) return c.json({ error: 'no_profile' as const }, 409);
       return c.json({ translationOn: on }, 200);
+    })
+    .openapi(postAddWord, async (c) => {
+      const { id } = c.req.valid('param');
+      // A malformed id is simply "not found".
+      const added = z.uuid().safeParse(id).success ? await need('randomWords').add(c.get('user').id, id) : { ok: false as const, error: 'not_found' as const };
+      if (added.ok) return c.json(added.result, 200);
+      return added.error === 'no_word' ? c.json({ error: added.error }, 409) : c.json({ error: added.error }, 404);
     });
 }

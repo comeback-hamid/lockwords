@@ -449,6 +449,13 @@
           "cefr": {
             "type": "string"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "random"
+            ]
+          },
           "wordCount": {
             "type": "integer"
           },
@@ -839,6 +846,9 @@
           },
           "createdAt": {
             "type": "string"
+          },
+          "word": {
+            "$ref": "#/components/schemas/KaiWord"
           }
         },
         "required": [
@@ -847,6 +857,41 @@
           "text",
           "translation",
           "createdAt"
+        ]
+      },
+      "KaiWord": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "example": {
+            "type": "string"
+          },
+          "exampleTranslation": {
+            "type": "string"
+          },
+          "addTo": {
+            "type": "string"
+          },
+          "added": {
+            "type": "boolean"
+          },
+          "already": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "word",
+          "translation",
+          "example",
+          "exampleTranslation",
+          "addTo",
+          "added",
+          "already"
         ]
       },
       "KaiTurn": {
@@ -959,6 +1004,57 @@
         },
         "required": [
           "translationOn"
+        ]
+      },
+      "KaiAddedWord": {
+        "type": "object",
+        "properties": {
+          "deckId": {
+            "type": "string"
+          },
+          "deckTitle": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "already": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deckId",
+          "deckTitle",
+          "count",
+          "already"
+        ]
+      },
+      "KaiNotFound": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_found"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiNoWord": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "no_word"
+            ]
+          }
+        },
+        "required": [
+          "error"
         ]
       }
     },
@@ -2048,6 +2144,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/KaiNoProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/chat/messages/{id}/add-word": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deck that has the word now. Safe to repeat. `already` = the learner had this word, nothing was added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiAddedWord"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The message has no word card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNoWord"
                 }
               }
             }

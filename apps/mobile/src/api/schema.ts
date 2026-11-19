@@ -1145,6 +1145,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/kai/chat/messages/{id}/add-word": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The deck that has the word now. Safe to repeat. `already` = the learner had this word, nothing was added */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiAddedWord"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description No such message */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNotFound"];
+                    };
+                };
+                /** @description The message has no word card */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNoWord"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1243,6 +1307,8 @@ export interface components {
             title: string;
             reason: string;
             cefr: string;
+            /** @enum {string} */
+            kind?: "topic" | "random";
             wordCount: number;
             /** @enum {string} */
             status: "proposed" | "generating" | "ready";
@@ -1329,6 +1395,16 @@ export interface components {
             text: string;
             translation: string | null;
             createdAt: string;
+            word?: components["schemas"]["KaiWord"];
+        };
+        KaiWord: {
+            word: string;
+            translation: string;
+            example: string;
+            exampleTranslation: string;
+            addTo: string;
+            added: boolean;
+            already: boolean;
         };
         KaiTurn: {
             userMessage: components["schemas"]["KaiMessage"] | null;
@@ -1356,6 +1432,20 @@ export interface components {
         };
         KaiTranslation: {
             translationOn: boolean;
+        };
+        KaiAddedWord: {
+            deckId: string;
+            deckTitle: string;
+            count: number;
+            already: boolean;
+        };
+        KaiNotFound: {
+            /** @enum {string} */
+            error: "not_found";
+        };
+        KaiNoWord: {
+            /** @enum {string} */
+            error: "no_word";
         };
     };
     responses: never;

@@ -75,6 +75,10 @@ What Kai knows on every turn (its memory), built in `src/kai/chat.ts`:
 
 Rules live in the prompt (`buildKaiPrompt`): write at the learner's level in the learning language, give every line a translation, switch to the native language only when asked, help only with language learning, never ask for the goal.
 New abilities (deck ideas, word cards) add an optional field to the answer and one file in `src/kai/abilities/`.
+
+**Word cards** (`src/kai/abilities/words.ts`): when the learner asks how to say something or what a word means, the answer carries `word: { word, translation, example, exampleTranslation }`. It is saved with Kai's last line of the turn (`kai_messages.word`). A message then shows the word plus `addTo` (the Random Words deck that would take it now), `added` and `already`. A word with a missing field fails the whole answer.
+**Random Words decks** (`src/decks/random-words.ts`): `POST /v1/kai/chat/messages/{id}/add-word` adds the word as a normal new card to the newest deck of `kind: "random"` with fewer than 30 cards, or makes "Random Words N+1". One transaction with a per-user lock; the result is kept on the message, so a second call gives the same answer. A word the learner already has in any deck (capital letters ignored) is not added (`already: true`).
+Check real word cards by hand with `npx tsx scripts/kai-words-try.ts` (20 turns, Spanish and Persian).
 Check real answers by hand with `npx tsx scripts/kai-try.ts` in `apps/server` (20 turns in 5 languages; needs `ANTHROPIC_API_KEY`).
 
 ## Run it all locally (no cloud accounts)

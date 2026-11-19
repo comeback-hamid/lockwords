@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
 import { AppState, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { KaiMessage, KaiTurnResult } from '@/api/client';
@@ -10,11 +10,13 @@ import { Composer } from '@/components/chat/composer';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
+import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { languageCode, REVIEW_DELAY_MS, TOO_MANY, typingMs } from '@/new-words/chat';
+import { showReviewDot } from '@/review/dot';
 import { colors, layout, space, type } from '@/theme/theme';
 
-type Line = Pick<KaiMessage, 'id' | 'from' | 'text' | 'translation'>;
+type Line = Pick<KaiMessage, 'id' | 'from' | 'text' | 'translation' | 'word'>;
 // Kai's lines that still wait behind a typing bubble, and what comes after the last one.
 type Coming = { lines: Line[]; options: string[]; action: 'review' | null };
 const NONE: Coming = { lines: [], options: [], action: null };
@@ -172,6 +174,13 @@ export default function NewWordsScreen() {
     setDraft((d) => ({ key: d.key + 1, text }));
   }
 
+  // The Add button of a word card. A new word is waiting in Review, so its tab gets the red dot.
+  async function addWord(messageId: string) {
+    const { already } = await api.addKaiWord(messageId);
+    if (!already) void showReviewDot();
+    return already ? ('already' as const) : ('added' as const);
+  }
+
   function toggleTranslation() {
     const on = !translation.on;
     setTranslation((t) => ({ ...t, on }));
@@ -221,7 +230,10 @@ export default function NewWordsScreen() {
       {devId}
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {lines.map((l) => (
-          <ChatBubble key={l.id} from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
+          <Fragment key={l.id}>
+            <ChatBubble from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
+            {l.word ? <WordCard word={l.word} onAdd={() => addWord(l.id)} /> : null}
+          </Fragment>
         ))}
         {typing ? <TypingBubble /> : null}
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}

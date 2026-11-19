@@ -23,6 +23,7 @@ export const DeckSchema = z
     title: z.string(),
     reason: z.string(),
     cefr: z.string(),
+    kind: z.enum(['topic', 'random']).optional(), // always set by the server; "random" = a Random Words deck
     wordCount: z.number().int(),
     status: z.enum(['proposed', 'generating', 'ready']),
     cards: z.array(CardSchema.extend({ id: z.string(), position: z.number().int(), stage: z.number().int() }).openapi('Card')),
