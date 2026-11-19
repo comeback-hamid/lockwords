@@ -36,6 +36,8 @@ tags:
 - extendedWaitUntil:
     visible: "Added"
     timeout: 20000
+# The Review tab has its red dot now (dev builds say so in a line Maestro can read)
+- assertVisible: "review dot on"
 - assertNotVisible: "Add to Random Words 1"
 # A tap on the card (not on a button) puts the keyboard away, so the tab bar shows again
 - tapOn:

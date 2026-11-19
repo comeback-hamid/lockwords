@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
+import { backend } from '@/config/backend';
+
 import { SECURE_KEYS, sessionStorage } from './session-storage';
 
 // Supabase does login only. Our data goes through our own server (src/api/client.ts).
 export const supabase = createClient(
-  process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321',
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'missing-anon-key',
+  backend.supabaseUrl,
+  backend.supabaseKey,
   {
     auth: {
       storage: sessionStorage,

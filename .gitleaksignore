@@ -1,0 +1,4 @@
+# Findings the secret scan may skip. One line per finding, with the reason. Keep this list short.
+# The Supabase PUBLISHABLE key in the app's cloud setting. It is public by design: it ships inside every copy of the app.
+# (The line itself also carries `gitleaks:allow`; this entry covers the first commit, made before that note was added.)
+c296e3480ad050279bcea6522f79ea4b17e49ba4:apps/mobile/src/config/backend.ts:generic-api-key:10
