@@ -782,6 +782,184 @@
           "step",
           "text"
         ]
+      },
+      "KaiChat": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KaiMessage"
+            }
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "translationOn": {
+            "type": "boolean"
+          },
+          "nativeLanguage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "messages",
+          "options",
+          "translationOn",
+          "nativeLanguage"
+        ]
+      },
+      "KaiMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "enum": [
+              "kai",
+              "user"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "translation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "text",
+          "translation",
+          "createdAt"
+        ]
+      },
+      "KaiTurn": {
+        "type": "object",
+        "properties": {
+          "userMessage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KaiMessage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KaiMessage"
+            }
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "action": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "review",
+              null
+            ]
+          }
+        },
+        "required": [
+          "userMessage",
+          "messages",
+          "options",
+          "action"
+        ]
+      },
+      "KaiBadRequest": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "bad_request"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiNoProfile": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "no_profile"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiTooManyMessages": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "too_many_messages"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiTurnRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "open": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        }
+      },
+      "KaiTranslation": {
+        "type": "object",
+        "properties": {
+          "translationOn": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "translationOn"
+        ]
       }
     },
     "parameters": {}
@@ -1689,6 +1867,187 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/KaiUnavailable"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/chat": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The newest messages, oldest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiChat"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/chat/turns": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KaiTurnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kai's new lines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiTurn"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiBadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The user has no profile yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNoProfile"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 200 messages in 24 hours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiTooManyMessages"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The AI call failed; nothing was saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiUnavailable"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/chat/translation": {
+      "put": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "on": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "on"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved choice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiTranslation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiBadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The user has no profile yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNoProfile"
                 }
               }
             }

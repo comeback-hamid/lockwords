@@ -45,6 +45,9 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 | POST | `/v1/cards/{id}/swipe` | `{ direction: easy / hard / known }` → `{ stage, known, hard, backInDays }`. Rules in `src/review/srs.ts`. | first-review |
 | GET | `/v1/hard-words` | Words swiped Hard (for the lock screen). | first-review |
 | POST | `/v1/cards/{id}/use-it` | `{ sentence }` → `{ good, lines, movedUp, stage }` (AI task `use-it`). `502` if the AI fails. | first-review |
+| GET | `/v1/kai/chat` | The New words chat: `{ messages, options, translationOn, nativeLanguage }` (newest 50 messages, oldest first). | new-words-kai-chat |
+| POST | `/v1/kai/chat/turns` | `{ text }` (the learner speaks) or `{ open: true }` (Kai opens, at most once in 12 hours) → `{ userMessage, messages, options, action }` (AI task `kai-chat`). `409` no profile, `429` over 200 messages in 24 h, `502` if the AI fails (nothing saved). | new-words-kai-chat |
+| PUT | `/v1/kai/chat/translation` | `{ on }`: the learner's choice for the translation line. | new-words-kai-chat |
 
 Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The server checks it against Supabase's public keys (`<SUPABASE_URL>/auth/v1/.well-known/jwks.json`), the issuer, the audience `authenticated` and the expiry. Bad or missing → `401 { error: "unauthorized" }`.
 
@@ -55,9 +58,24 @@ Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The ser
 | `profiles` | `user_id` uuid PK, `learning_language`, `native_language`, `level`, `known_words`, `cefr`, `goal`, `goal_other`, `interests` text[], `updated_at` | onboarding-profile (+ `name`, `chat_language` in onboarding-kai-deck) |
 | `decks` | `id` uuid PK, `user_id`, `topic`, `title`, `reason`, `cefr`, `status` (`proposed`/`generating`/`ready`), `created_at` | onboarding-kai-deck |
 | `cards` | `id` uuid PK, `deck_id` → `decks.id`, `position`, `word`, `translation`, `example`, `example_translation`, `stage` (0 = new), `due_at`, `known`, `hard`, `created_at` | onboarding-kai-deck, first-review |
+| `kai_messages` | `id` uuid PK, `user_id`, `role` (`kai`/`user`), `text`, `translation` (Kai's lines), `options` text[] (on Kai's last line of a turn), `opening`, `position` (order inside a turn), `created_at` | new-words-kai-chat (also `cards.last_reviewed_at` and `profiles.kai_translation_on`) |
+| `kai_notes` | `id` uuid PK, `user_id`, `text`, `created_at`. What Kai remembers about a learner. At most 50 per user. | new-words-kai-chat |
 
 ## AI
 With `ANTHROPIC_API_KEY` set the server calls Claude (`src/llm/claude.ts`). Without it (local, tests, CI) it uses the fixture deck (`src/llm/fixture.ts`).
+
+### Kai, the agent in the New words chat
+One model call per turn (`src/llm/kai-chat.ts`, real call in `claude.ts`: Claude Sonnet 5.5, low effort, no thinking, two tries of 10 seconds). The answer is JSON: `{ lines: [{ text, translation }], options, remember, action }`, checked with Zod in `src/kai/chat.ts`; a wrong shape is asked for once more.
+
+What Kai knows on every turn (its memory), built in `src/kai/chat.ts`:
+- **The profile:** name, both languages, CEFR level, known-words estimate, goal, interests.
+- **Notes** (`kai_notes`): short sentences Kai saved when the learner said something new about themselves (the `remember` field). New ones only, newest 50 kept.
+- **History:** the newest 20 messages. Older ones stay in the table for the screen.
+- **Word facts:** how many words, how many reviewed in the last 24 hours (`cards.last_reviewed_at`), how many due, and up to 10 of their words (hard first).
+
+Rules live in the prompt (`buildKaiPrompt`): write at the learner's level in the learning language, give every line a translation, switch to the native language only when asked, help only with language learning, never ask for the goal.
+New abilities (deck ideas, word cards) add an optional field to the answer and one file in `src/kai/abilities/`.
+Check real answers by hand with `npx tsx scripts/kai-try.ts` in `apps/server` (20 turns in 5 languages; needs `ANTHROPIC_API_KEY`).
 
 ## Run it all locally (no cloud accounts)
 `npm run dev:up` from the repo root: checks Docker → starts local Supabase (login only, `127.0.0.1:54321`) → writes `apps/server/.env` and `apps/mobile/.env.local` if missing → creates the databases → runs migrations → starts the server on `:8787`. Then `cd apps/mobile && npm run ios`.

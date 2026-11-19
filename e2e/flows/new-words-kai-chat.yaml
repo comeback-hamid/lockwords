@@ -1,0 +1,56 @@
+# New words: the chat with Kai. First visit, translation switch, a message, Kai leads to Review, the history after a restart.
+# Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's words differ, the steps do not).
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-kai-chat
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+# New words: Kai opens the chat and says who they are
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# The translation switch: on for this beginner; off hides the translations; on again
+- assertVisible: "Translation, on"
+- tapOn: "Translation, on"
+- assertVisible: "Translation, off"
+- tapOn: "Translation, off"
+- assertVisible: "Translation, on"
+# Say something; Kai answers
+- tapOn: "Message"
+- inputText: "Hola Kai"
+- tapOn: "Send"
+- assertVisible: "You: Hola Kai"
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# Ask to practice: Kai says it takes us to Review, then the Review tab opens by itself
+- tapOn: "Message"
+- inputText: "Vamos a practicar"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 40000
+# Back on New words the chat is still there
+- tapOn: "New words"
+- assertVisible: "You: Hola Kai"
+- assertVisible: "You: Vamos a practicar"
+# After a restart too
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "You: Vamos a practicar"
+    timeout: 20000
+- stopRecording

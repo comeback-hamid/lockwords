@@ -3,6 +3,7 @@ import type { z } from 'zod';
 import { z as zod } from 'zod';
 
 import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
+import { buildKaiPrompt, type KaiChat } from './kai-chat.js';
 import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
@@ -152,6 +153,52 @@ They typed: "${i.text}"`;
       const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
       const r = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)) as { onScript: boolean; answer: string; lines: string[] };
       return checkReply(i.step, r.onScript ? { onScript: true, answer: r.answer } : { onScript: false, lines: r.lines });
+    },
+  };
+}
+
+// 20 seconds in all, as two tries of 10: a normal answer takes 2 to 5 seconds, and in the real-AI check about one call
+// in twenty stalled on the network. A second try answers in time; one long wait would not.
+const KAI_TRY_MS = 10_000;
+const KAI_TRIES = 2;
+const MIN_TRY_MS = 1500; // less than this is not worth a call
+
+// One turn of the New words chat. Returns the model's JSON as it is: src/kai/chat.ts checks the shape and asks once more if it is wrong.
+// Low effort and no thinking (`between_tools` is how this model turns it off): the learner is waiting, and the answer is a few short lines.
+export function claudeKaiChat(apiKey: string, fetchFn: Fetch = fetch): KaiChat {
+  async function call(system: string, user: string, ms: number): Promise<string> {
+    const res = await fetchFn('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 2000, thinking: { type: 'between_tools' }, output_config: { effort: 'low' }, system, messages: [{ role: 'user', content: user }] }),
+      signal: AbortSignal.timeout(ms),
+    });
+    if (!res.ok) throw new Error(`model answered ${res.status}`);
+    const body = (await res.json()) as { content?: { type: string; text?: string }[] };
+    return body.content?.find((c) => c.type === 'text')?.text ?? '';
+  }
+  return {
+    async answer(ctx, deadline = Date.now() + KAI_TRY_MS * KAI_TRIES) {
+      const { system, user } = buildKaiPrompt(ctx);
+      let text: string;
+      for (let attempt = 1; ; attempt++) {
+        const left = deadline - Date.now();
+        if (left < MIN_TRY_MS) throw new Error('no time left for the model');
+        try {
+          text = await call(system, user, Math.min(KAI_TRY_MS, left));
+          break;
+        } catch (e) {
+          if (attempt >= KAI_TRIES) throw e;
+        }
+      }
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if (start < 0 || end < start) return null; // not JSON: a wrong shape, the service asks once more
+      try {
+        return JSON.parse(text.slice(start, end + 1)) as unknown;
+      } catch {
+        return null;
+      }
     },
   };
 }

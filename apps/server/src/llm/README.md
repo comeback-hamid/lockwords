@@ -14,4 +14,5 @@ Tests never call a real model: one fixture replaces Langfuse and the model.
 - `fixture.ts`: the stand-in used by tests, CI and local runs with no key.
 - `claude.ts`: the real call (plain `fetch`). Deck words: Sonnet 5.5, effort low, JSON schema output, 60 s timeout; tried against the real API on 2026-11-17 (about 7 s per deck). Titles and Use it: 30 s timeout.
 - The deck job (`src/decks/jobs.ts`) retries once when the first try failed in under 12 s (vocab-engine 2.4).
+- `kai-chat.ts`: one turn of the New words chat (`KaiChat`, the Zod shape, the prompt, the fixture). The real call in `claude.ts` is tried against the real API: `npx tsx scripts/kai-try.ts`.
 - Not built yet: the shared `client.ts` (Langfuse prompts, retry once, tracing). Move `claude.ts` onto it with the next AI task.

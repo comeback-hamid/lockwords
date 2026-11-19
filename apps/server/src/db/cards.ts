@@ -40,7 +40,8 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
       return row ? toCard(row) : null;
     },
     async save(id, patch) {
-      await db.update(cards).set(patch).where(eq(cards.id, id));
+      // Every save is a swipe or a good Use it sentence, so it also counts as practice.
+      await db.update(cards).set({ ...patch, lastReviewedAt: new Date() }).where(eq(cards.id, id));
     },
     async hardWords(userId) {
       const rows = await mine()
