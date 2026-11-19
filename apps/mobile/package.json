@@ -54,6 +54,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "start:cloud": "EXPO_PUBLIC_API_URL= EXPO_PUBLIC_SUPABASE_URL= EXPO_PUBLIC_SUPABASE_ANON_KEY= expo start --dev-client",
     "test": "jest",
     "api:gen": "npx -y openapi-typescript@7 ../server/openapi.json -o src/api/schema.ts",
     "icons:gen": "node scripts/gen-icons.mjs"

@@ -44,4 +44,4 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - RN Testing Library v14: `render` is async. Write `await render(...)`.
 - Every screen test covers its states: loading, empty, error, locked.
 - iOS Keychain survives deleting the app: every secure key is in `SECURE_KEYS` (`src/auth/session-storage.ts`) and is cleared on a fresh install.
-- Env values: `.env.local` (git-ignored, written by `npm run dev:up`); names in `.env.example`.
+- Which server the app talks to: `src/config/backend.ts`. No settings = the cloud (a release build can never point at a Mac). The local stack = the three `EXPO_PUBLIC_*` values in `.env.local` (git-ignored, written by `npm run dev:up`; names in `.env.example`); set all three or none. `npm run start:cloud` runs the dev build against the cloud even when `.env.local` exists.

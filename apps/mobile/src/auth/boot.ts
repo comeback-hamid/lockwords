@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
 import { createApi } from '@/api/client';
+import { backend } from '@/config/backend';
 
 import { ensureGuest } from './guest';
 import { setMe } from './me-store';
@@ -9,7 +10,7 @@ import { startSession } from './start-session';
 import { supabase } from './supabase';
 
 export const api = createApi({
-  baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787',
+  baseUrl: backend.apiUrl,
   getToken: async () => (await supabase.auth.getSession()).data.session?.access_token ?? null,
 });
 
