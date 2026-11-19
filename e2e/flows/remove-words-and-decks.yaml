@@ -1,0 +1,177 @@
+# Removing words and a deck. Make a deck in the New words chat, open it, swipe three words left and delete them,
+# see the count and Review follow; then remove the whole deck and see Review and the chat follow.
+# Needs the local stack: `npm run dev:up`. Dev build. Written for the stand-in AI (its deck of 12 has these words).
+appId: com.comebackhamid.lockwords
+tags:
+  - my-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: remove-words-and-decks
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 90000
+# New words: ask Kai for our own deck (12 words) and make it
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Message"
+- inputText: "Quiero un mazo sobre el hotel"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn:
+    text: "Generate"
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: "Open deck"
+    timeout: 180000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- waitForAnimationToEnd
+# Review now has both decks: a round shows at most 20 new cards of the 22
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "20 cards to review today"
+    timeout: 20000
+- tapOn: "New words"
+# Open the deck page (the card's middle can sit under Kai's header: pull the chat down a little and tap)
+- repeat:
+    times: 4
+    while:
+      notVisible: "Close"
+    commands:
+      - swipe:
+          start: "50%, 40%"
+          end: "50%, 60%"
+          duration: 400
+      - waitForAnimationToEnd
+      - tapOn: "Open deck"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: ".* 12 WORDS"
+    timeout: 20000
+- assertVisible: "Swipe left on a word to remove it"
+- assertVisible: "Remove deck"
+# Swipe a word left: the red Delete shows. Delete it: the word is gone and the count falls.
+- assertNotVisible: "Delete la propina"
+- swipe:
+    from:
+      text: "la propina, the tip"
+    direction: LEFT
+    duration: 400
+- extendedWaitUntil:
+    visible: "Delete la propina"
+    timeout: 10000
+- tapOn: "Delete la propina"
+- extendedWaitUntil:
+    visible: ".* 11 WORDS"
+    timeout: 10000
+- assertNotVisible: "la propina, the tip"
+# An open row closes when another one opens; a tap on an open row closes it too
+- swipe:
+    from:
+      text: "pedir, to order"
+    direction: LEFT
+    duration: 400
+- extendedWaitUntil:
+    visible: "Delete pedir"
+    timeout: 10000
+- swipe:
+    from:
+      text: "la carta, the menu"
+    direction: LEFT
+    duration: 400
+- extendedWaitUntil:
+    visible: "Delete la carta"
+    timeout: 10000
+- assertNotVisible: "Delete pedir"
+- tapOn: "la carta, the menu"
+- extendedWaitUntil:
+    notVisible: "Delete la carta"
+    timeout: 10000
+- assertVisible: ".* 11 WORDS"
+# Two more words go
+- swipe:
+    from:
+      text: "pedir, to order"
+    direction: LEFT
+    duration: 400
+- tapOn: "Delete pedir"
+- extendedWaitUntil:
+    visible: ".* 10 WORDS"
+    timeout: 10000
+- swipe:
+    from:
+      text: "la cuenta, the bill"
+    direction: LEFT
+    duration: 400
+- tapOn: "Delete la cuenta"
+- extendedWaitUntil:
+    visible: ".* 9 WORDS"
+    timeout: 10000
+- assertNotVisible: "Could not remove the word."
+# Review follows: 10 + 9 new cards
+- tapOn: "Close"
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "19 cards to review today"
+    timeout: 20000
+# Open the deck again: the three words stayed away. Remove deck asks first; Cancel keeps it.
+- tapOn: "New words"
+- repeat:
+    times: 4
+    while:
+      notVisible: "Close"
+    commands:
+      - tapOn: "Open deck"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: ".* 9 WORDS"
+    timeout: 20000
+- assertNotVisible: "la propina, the tip"
+- tapOn: "Remove deck"
+- extendedWaitUntil:
+    visible: "Remove this deck\\?"
+    timeout: 10000
+- assertVisible: "Its 9 words leave Review. This cannot be undone."
+- tapOn: "Cancel"
+- assertVisible: ".* 9 WORDS"
+# Remove: back in the chat, and Review has only the first deck again
+- tapOn: "Remove deck"
+- extendedWaitUntil:
+    visible: "Remove this deck\\?"
+    timeout: 10000
+- tapOn: "Remove"
+- extendedWaitUntil:
+    notVisible: "Close"
+    timeout: 20000
+- assertVisible: "Message"
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+# After a restart the chat loads without the removed deck's card; the messages are still there
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "You: Quiero un mazo sobre el hotel"
+    timeout: 30000
+- assertNotVisible: "Open deck"
+- assertNotVisible: "Generate"
+- stopRecording

@@ -562,6 +562,20 @@
           "error"
         ]
       },
+      "DeckGenerating": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "deck_generating"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
       "Round": {
         "type": "object",
         "properties": {
@@ -1759,6 +1773,102 @@
           },
           "404": {
             "description": "No such deck",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The deck and its cards are removed"
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such deck",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The deck is being made; try again when it is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeckGenerating"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cards/{id}": {
+      "delete": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The card is removed"
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such card",
             "content": {
               "application/json": {
                 "schema": {
