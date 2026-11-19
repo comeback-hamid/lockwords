@@ -19,8 +19,15 @@
   - Not done: moving the line queue to the shared `useKaiTyping`. Why: the screen's existing tests cannot stay green with it, and we may not edit them. (1) Jest switches the shared typing off for every screen test (`jest.setup.tsx`), and `new-words-chat.test.tsx` expects the typing bubble before each line. (2) The shared rule types slower (0.8 s + 8 ms a letter; this screen: 0.8 s + 4 ms a letter after the first 20). "Lead to Review" expects Kai's line "¡Perfecto! Te llevo a Review… 🚀" on screen after 0.9 s; the shared rule shows it after 1.06 s. (3) One test checks `typingMs` of `new-words/chat.ts` itself. So the old queue stays, as the brief says for this case. To finish it later: change those three tests together with the move.
 - [x] 2.5 Text direction: `components/chat/direction.ts`, used by the bubble, the composer, the word card and the deck card.
 - [x] 2.6 Older messages on scroll to the top. Verify: `npm test`, `npm run typecheck`, `npm run lint` green.
-- [ ] 2.7 Maestro flow `e2e/flows/new-words-polish.yaml` (tag `new-words`) with the stand-in AI. All other flows still pass.
-- [ ] 2.8 Real AI check on the simulator: a profile learning Persian (native English) and one learning English (native Persian). Screenshots in the PR. Video `e2e/videos/new-words-polish.mp4`.
+- [x] 2.7 Maestro flow `e2e/flows/new-words-polish.yaml` (tag `new-words`) with the stand-in AI. All other flows still pass.
+  - The flow: Kai opens, tap the first option (the bubble shows), send "سلام", 30 more short turns, restart, then scroll up until "You: سلام" shows. That message is not among the newest 50, so it can only show after an older page loaded.
+  - The flow takes about 10 minutes because of the 30 turns. A chat needs more than 50 messages before there is an older page, and a flow cannot fill the database by itself.
+  - The reply options got the test id `reply-option`, so the flow can tap the first one whatever Kai wrote.
+  - The flow does not check the learner's bubble inside the 30 turns: with the real AI a long answer (a word card) pushes it off the screen before Maestro looks. Found on the first two real-AI runs.
+  - Not done: the flow does not check Kai's header state or the side a text is aligned to. Maestro cannot see either. Both are tested in Jest and show in the video and the screenshots.
+- [x] 2.8 Real AI check on the simulator, 2026-11-19: a profile learning Persian (native English) and one learning English (native Persian). Screenshots: `screenshots/rtl-learning-persian.png` and `screenshots/rtl-learning-english.png` in this change (opening, composer, word card, deck cards, the other language in the composer). Video with the real AI: `e2e/videos/new-words-polish.mp4`.
+  - The two profiles were made by finishing onboarding and then setting the profile's two languages in the local database. Onboarding itself was not run in Persian.
+  - Seen and correct: Persian lines right-aligned with the English translation left-aligned under them, and the other way round; the Persian word on the right of the word card with the speaker on its left; the deck title by its own script; the composer turns with the typed text.
 
 ## 3. Docs
 
