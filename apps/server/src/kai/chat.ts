@@ -21,6 +21,7 @@ export type KaiTurnToSave = { user: string | null; kai: { text: string; translat
 };
 export type KaiStore = {
   messages(userId: string, limit: number): Promise<KaiMessage[]>; // the newest `limit`, oldest first
+  older?(userId: string, before: string, limit: number): Promise<KaiMessage[] | null>; // the `limit` just before that message, oldest first; null = not a message of this user
   lastOpeningAt(userId: string): Promise<Date | null>;
   userTurnsSince(userId: string, since: Date): Promise<number>;
   notes(userId: string): Promise<string[]>; // oldest first
@@ -132,12 +133,21 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
   return { ok: true, ...saved, options: answer.options, action: event ? null : answer.action };
 }
 
-export async function readChat(deps: Pick<Deps, 'kai' | 'profiles'>, userId: string, now: Date) {
-  const [messages, facts, profile] = await Promise.all([deps.kai.messages(userId, SHOWN_MESSAGES), deps.kai.facts(userId, now), deps.profiles.get(userId)]);
+// The newest 50 messages, or with `before` (a message id) the 50 just before that one. Null: `before` is not a message of this user.
+// One more than a page is read, so the answer can say if older messages are left.
+export async function readChat(deps: Pick<Deps, 'kai' | 'profiles'>, userId: string, now: Date, before?: string) {
+  const [found, facts, profile] = await Promise.all([
+    before === undefined ? deps.kai.messages(userId, SHOWN_MESSAGES + 1) : (deps.kai.older?.(userId, before, SHOWN_MESSAGES + 1) ?? null),
+    deps.kai.facts(userId, now),
+    deps.profiles.get(userId),
+  ]);
+  if (!found) return null;
+  const messages = found.slice(-SHOWN_MESSAGES);
   const last = messages.at(-1);
   return {
     messages,
-    options: last?.from === 'kai' ? last.options : [],
+    hasMore: found.length > SHOWN_MESSAGES,
+    options: before === undefined && last?.from === 'kai' ? last.options : [], // the options belong to the newest line only
     translationOn: defaultTranslationOn(facts.translationOn, profile?.cefr ?? null, profile?.level ?? 'beginner'),
     nativeLanguage: profile?.nativeLanguage ?? null, // the translation button shows its code ("EN")
   };
