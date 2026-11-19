@@ -2,6 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 
 import { requireUser, type AuthSettings } from './auth.js';
 import type { DeckJobs } from './decks/jobs.js';
+import type { RandomWordsStore } from './decks/random-words.js';
 import type { KaiStore } from './kai/chat.js';
 import { health } from './routes/health.js';
 import type { KaiChat } from './llm/kai-chat.js';
@@ -44,7 +45,7 @@ export type CardsStore = {
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {

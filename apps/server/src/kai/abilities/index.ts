@@ -3,4 +3,4 @@
 //
 // An ability adds: an optional field on Kai's answer (Zod shape), a part of the prompt, facts for the context,
 // and what the server saves when the field comes back. See openspec/changes/new-words-decks and new-words-single-words.
-export const abilities: readonly never[] = [];
+export * as words from './words.js';

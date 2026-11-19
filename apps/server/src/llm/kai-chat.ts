@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { words } from '../kai/abilities/index.js';
+
 // AI task: one turn of the New words chat. Kai answers as an agent that knows and remembers the learner.
 // Later abilities (decks, word cards) add optional fields to the answer; see src/kai/abilities/.
 
@@ -57,6 +59,8 @@ export const KaiAnswerSchema = z.object({
     .unknown()
     .optional()
     .transform((a) => (a === 'review' ? ('review' as const) : null)),
+  // A word card (src/kai/abilities/words.ts). A word with a bad or missing field fails the whole answer.
+  word: words.KaiWordSchema.nullish().transform((w) => w ?? undefined),
 });
 export type KaiAnswer = z.infer<typeof KaiAnswerSchema>;
 
@@ -91,8 +95,10 @@ export function buildKaiPrompt(c: KaiContext): { system: string; user: string } 
     `- When the learner wants to practice or review now, set "action" to "review" and say in one line that you take them to Review. Otherwise leave "action" null. The app opens the Review tab by itself.`,
     `- "remember": short notes in English (at most ${MAX_NOTE_CHARS} characters each) about new facts the learner told you about themselves: a goal, a plan, an interest, a preference (for example that they asked you to speak ${N}). Only new facts the learner said in this chat that are not in your notes yet. Never save what you were already given below (name, level, goal, interests, word counts). Usually this is empty.`,
     ``,
+    ...words.wordPromptPart(L, N),
+    ``,
     `Answer with JSON only, in this shape:`,
-    `{"lines": [{"text": string, "translation": string}], "options": string[], "remember": string[], "action": "review" | null}`,
+    `{"lines": [{"text": string, "translation": string}], "options": string[], "remember": string[], "action": "review" | null, ${words.WORD_SHAPE}}`,
   ].join('\n');
 
   const who = [
@@ -142,6 +148,8 @@ export const fixtureKaiChat: KaiChat = {
         options: ['Vamos a practicar', 'Ahora no'],
       };
     const text = c.userText ?? '';
+    const card = words.fixtureWordAnswer(text);
+    if (card) return card;
     if (wantsPractice.test(text)) return { lines: [{ text: '¡Perfecto! Te llevo a **Review**… 🚀', translation: 'Great! Taking you to Review…' }], action: 'review' };
     return {
       lines: [{ text: '¡Qué interesante! 🙂 Cuéntame **más**.', translation: 'How interesting! Tell me more.' }],

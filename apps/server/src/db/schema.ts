@@ -37,6 +37,7 @@ export const decks = pgTable('decks', {
   reason: text('reason').notNull(),
   cefr: text('cefr').notNull(),
   status: text('status').notNull().default('proposed'), // 'proposed' | 'generating' | 'ready'
+  kind: text('kind').notNull().default('topic'), // 'topic' | 'random' ("Random Words N": single words from the chat)
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -102,6 +103,8 @@ export const kaiMessages = pgTable(
     options: text('options').array().notNull().default([]),
     opening: boolean('opening').notNull().default(false), // part of a turn where Kai spoke first
     position: integer('position').notNull().default(0), // order inside one turn (same created_at)
+    // A word card on Kai's last line of a turn, and what adding it gave (src/decks/random-words.ts).
+    word: jsonb('word').$type<{ word: string; translation: string; example: string; exampleTranslation: string; result?: { deckId: string; deckTitle: string; count: number; already: boolean } }>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('kai_messages_user_time').on(t.userId, t.createdAt)],

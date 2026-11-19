@@ -50,6 +50,13 @@
       "when": 1794969765638,
       "tag": "0006_blue_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795065906060,
+      "tag": "0007_careful_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

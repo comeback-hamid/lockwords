@@ -16,7 +16,8 @@ export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksSt
       title: deck.title,
       reason: deck.reason,
       cefr: deck.cefr,
-      wordCount: 10,
+      kind: deck.kind as 'topic' | 'random',
+      wordCount: deck.kind === 'random' ? rows.length : 10, // a Random Words deck grows one word at a time
       status: deck.status as 'proposed' | 'generating' | 'ready',
       cards: rows.map((c) => ({ id: c.id, position: c.position, word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.exampleTranslation, stage: c.stage })),
     };

@@ -2,16 +2,17 @@ import type { ProfilesStore } from '../app.js';
 import { KaiAnswerSchema, type KaiAnswer, type KaiChat, type KaiContext } from '../llm/kai-chat.js';
 import { listedLanguage } from '../onboarding/languages.js';
 import type { Profile } from '../onboarding/profile.js';
+import { wordInHistory, type KaiMessageWord, type KaiWord } from './abilities/words.js';
 
 // One turn of the New words chat: check the limits, tell Kai what it knows, save what it said.
 
-export type KaiMessage = { id: string; from: 'kai' | 'user'; text: string; translation: string | null; options: string[]; opening: boolean; createdAt: Date };
+export type KaiMessage = { id: string; from: 'kai' | 'user'; text: string; translation: string | null; options: string[]; opening: boolean; createdAt: Date; word?: KaiMessageWord };
 export type KaiFacts = {
   name: string | null;
   translationOn: boolean | null; // null = the learner never chose
   words: KaiContext['words'];
 };
-export type KaiTurnToSave = { user: string | null; kai: { text: string; translation: string }[]; options: string[]; opening: boolean; notes: { add: string[]; drop: number } };
+export type KaiTurnToSave = { user: string | null; kai: { text: string; translation: string }[]; options: string[]; opening: boolean; notes: { add: string[]; drop: number }; word?: KaiWord | null };
 export type KaiStore = {
   messages(userId: string, limit: number): Promise<KaiMessage[]>; // the newest `limit`, oldest first
   lastOpeningAt(userId: string): Promise<Date | null>;
@@ -90,7 +91,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null, 
     goalOther: profile.goalOther,
     interests: profile.interests,
     notes,
-    history: history.map((m) => ({ from: m.from, text: m.text })),
+    history: history.map((m) => ({ from: m.from, text: wordInHistory(m.text, m.word) })),
     words: { ...facts.words, sample: facts.words.sample.slice(0, 10) },
     opening,
     firstVisit: opening && history.length === 0,
@@ -105,7 +106,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null, 
   }
   if (!answer) return { ok: false, error: 'kai_unavailable' };
 
-  const saved = await deps.kai.addTurn(userId, { user: input, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember) }, now);
+  const saved = await deps.kai.addTurn(userId, { user: input, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), word: answer.word }, now);
   if (opening && saved.messages.length === 0) return { ok: true, userMessage: null, messages: [], options: [], action: null }; // another request opened first
   return { ok: true, ...saved, options: answer.options, action: answer.action };
 }

@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gt, gte, inArray, lte, sql } from 'drizzle-orm';
 
+import { nextRandomDeckTitle } from '../decks/random-words.js';
 import { OPENING_GAP_MS, type KaiMessage, type KaiStore } from '../kai/chat.js';
 import { MAX_NEW_PER_ROUND } from '../review/srs.js';
 import type { createDb } from './client.js';
@@ -8,7 +9,17 @@ import { cards, decks, kaiMessages, kaiNotes, profiles } from './schema.js';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore {
-  const toMessage = (r: typeof kaiMessages.$inferSelect): KaiMessage => ({
+  type Row = typeof kaiMessages.$inferSelect;
+  // Rows → messages. A word card also says which Random Words deck takes it now (or took it) and what happened to it.
+  const toMessages = async (reader: Pick<typeof db, 'select'>, userId: string, rows: Row[]): Promise<KaiMessage[]> => {
+    const next = rows.some((r) => r.word && !r.word.result) ? await nextRandomDeckTitle(reader, userId) : '';
+    return rows.map((r) => {
+      if (!r.word) return toMessage(r);
+      const { result, ...word } = r.word;
+      return { ...toMessage(r), word: { ...word, addTo: result?.deckTitle ?? next, added: result ? !result.already : false, already: result?.already ?? false } };
+    });
+  };
+  const toMessage = (r: Row): KaiMessage => ({
     id: r.id,
     from: r.role === 'user' ? 'user' : 'kai',
     text: r.text,
@@ -20,7 +31,7 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
   return {
     async messages(userId, limit) {
       const rows = await db.select().from(kaiMessages).where(eq(kaiMessages.userId, userId)).orderBy(desc(kaiMessages.createdAt), desc(kaiMessages.position)).limit(limit);
-      return rows.reverse().map(toMessage);
+      return toMessages(db, userId, rows.reverse());
     },
     async lastOpeningAt(userId) {
       const [row] = await db
@@ -85,10 +96,10 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         const saved = new Set((await tx.select({ text: kaiNotes.text }).from(kaiNotes).where(eq(kaiNotes.userId, userId))).map((n) => n.text));
         const notesToAdd = turn.notes.add.filter((n) => !saved.has(n));
         const values = [
-          ...(turn.user === null ? [] : [{ role: 'user', text: turn.user, translation: null as string | null, options: [] as string[] }]),
-          ...turn.kai.map((l, i) => ({ role: 'kai', text: l.text, translation: l.translation as string | null, options: i === turn.kai.length - 1 ? turn.options : [] })),
+          ...(turn.user === null ? [] : [{ role: 'user', text: turn.user, translation: null as string | null, options: [] as string[], word: null }]),
+          ...turn.kai.map((l, i) => ({ role: 'kai', text: l.text, translation: l.translation as string | null, options: i === turn.kai.length - 1 ? turn.options : [], word: i === turn.kai.length - 1 ? (turn.word ?? null) : null })),
         ].map((v, position) => ({ ...v, userId, position, opening: turn.opening, createdAt: now }));
-        const rows = (await tx.insert(kaiMessages).values(values).returning()).sort((a, b) => a.position - b.position).map(toMessage);
+        const rows = await toMessages(tx, userId, (await tx.insert(kaiMessages).values(values).returning()).sort((a, b) => a.position - b.position));
         if (turn.notes.drop > 0) {
           const oldest = await tx.select({ id: kaiNotes.id }).from(kaiNotes).where(eq(kaiNotes.userId, userId)).orderBy(asc(kaiNotes.createdAt), asc(kaiNotes.id)).limit(turn.notes.drop);
           if (oldest.length) await tx.delete(kaiNotes).where(inArray(kaiNotes.id, oldest.map((o) => o.id)));

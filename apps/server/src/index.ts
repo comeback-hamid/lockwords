@@ -7,6 +7,7 @@ import { createCardsStore } from './db/cards.js';
 import { createDb } from './db/client.js';
 import { createDecksStore } from './db/decks.js';
 import { createKaiStore } from './db/kai.js';
+import { createRandomWordsStore } from './decks/random-words.js';
 import { createProfilesStore } from './db/profiles.js';
 import { createUsersStore } from './db/users.js';
 import { createWordTestStore } from './db/word-tests.js';
@@ -41,6 +42,7 @@ const app = createApp({
   languageChecker: env.ANTHROPIC_API_KEY ? claudeLanguageChecker(env.ANTHROPIC_API_KEY) : fixtureLanguageChecker,
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
   kai: createKaiStore(db),
+  randomWords: createRandomWordsStore(db),
   kaiChat: env.ANTHROPIC_API_KEY ? claudeKaiChat(env.ANTHROPIC_API_KEY) : fixtureKaiChat,
   wordTests: createWordTestStore(db),
   // No key = a typed language gets no word test (the listed 13 always have one).
