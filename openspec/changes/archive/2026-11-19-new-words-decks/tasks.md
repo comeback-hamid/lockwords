@@ -25,12 +25,13 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/roadmap.md` (epic 4).
+- [x] 3.1 `docs/roadmap.md` (epic 4). Also `docs/architecture.md` (decks in the chat), `docs/vocab-engine.md` 2.5 (decks of other sizes) and the two app guides.
 
 ## Decisions made while building (not in the spec; Hamid said to decide, 2026-11-18)
 
 - **No existing test was edited.** Two older tests fix the old shapes: one server test checks the exact keys of a chat message, and the app tests build `Deck` and `KaiMessage` objects without the new fields. So a message has `decks` only when it has deck cards (left out when empty), and `titleTranslation` is optional in the API type (the server still sends it on every deck, `null` when there is none). The spec text says this now.
 - **The onboarding deck card keeps "ADDED TO YOUR DECKS".** Its tests assert that text and the brief says they stay as they are. The New words chat shows "IN YOUR WORD LIST" (`DeckCard` prop `inWordList`). The spec text says this now.
+- **After the merge with part 3 (`new-words-single-words`, PR #26):** the migration was made again as `0008` on top of main's `0007`, with `ADD COLUMN IF NOT EXISTS`; one Kai answer can carry a word card and deck ideas; a Random Words deck keeps its own count, every other deck has `word_count`; the Review dot is the one module both changes use (`src/review/dot.ts`).
 - **A fourth column: `kai_messages.ready_deck_id`.** The spec names three columns. This one marks Kai's "your deck is ready" line, so the ready event is answered once per deck, also when two events come at once.
 - **A text that is too long is cut at a word, it does not fail the turn.** In the first real AI run 9 of 12 idea sets had a `topic` of 81 to 110 characters, which failed the whole turn twice. Now `topic` (80), `title` (120) and `reason` (30) are cut at the last whole word. A wrong number of ideas and a size outside 10 to 30 still fail, as the spec says. The prompt asks for shorter texts.
 - **Ideas on the first visit are dropped by the server,** also when the AI sends them. The cards come only after a yes.

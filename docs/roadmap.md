@@ -3,7 +3,7 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-19 (after PR #25 New words chat with Kai, PR #26 single words and PR #PRNUM New words decks: the three parts of the New words tab are built).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-19 (after PR #25 New words chat with Kai, PR #26 single words and PR #27 New words decks: the three parts of the New words tab are built).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
@@ -60,7 +60,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #19 | 2026-11-18 | Level-matched first deck: band from level + word test (vocab-engine Part 2), deck prompt with mix and size, Sonnet 5.5, word checks, one retry on a fast failure |
 | #25 | 2026-11-19 | New words tab: one ongoing chat with Kai, an agent with memory on the real AI (`POST /v1/kai/chat/turns`); a translation under every Kai line with an on/off button; Kai leads to Review |
 | #26 | 2026-11-19 | Single words: Kai's word card in the chat, "Add to Random Words N" (`POST /v1/kai/chat/messages/{id}/add-word`), decks of `kind: random` with 30 words, the red dot on the Review tab |
-| #PRNUM | 2026-11-19 | New words decks: deck ideas on Kai's answer (3, or 1 for the learner's own idea), deck cards in the chat, a deck's own size (10 to 30) and title translation, the `deck_ready` event, the Review dot |
+| #27 | 2026-11-19 | New words decks: deck ideas on Kai's answer (3, or 1 for the learner's own idea), deck cards in the chat, a deck's own size (10 to 30) and title translation, the `deck_ready` event, the Review dot |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
