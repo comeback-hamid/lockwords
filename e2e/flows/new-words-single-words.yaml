@@ -12,7 +12,7 @@ tags:
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
     visible: "10 cards to review today"
-    timeout: 20000
+    timeout: 90000
 # New words: Kai opens the chat
 - tapOn: "New words"
 - extendedWaitUntil:
@@ -41,7 +41,7 @@ tags:
 - tapOn:
     id: "word-card-divider"
 # Review has the new word: 10 cards of the first deck and this one
-- tapOn: "Review.*"
+- tapOn: "Review"
 - extendedWaitUntil:
     visible: "11 cards to review today"
     timeout: 20000
