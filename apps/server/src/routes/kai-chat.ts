@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-import type { ProfilesStore } from '../app.js';
+import type { DecksStore, ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import type { RandomWordsStore } from '../decks/random-words.js';
 import { kaiTurn, readChat, type KaiMessage, type KaiStore } from '../kai/chat.js';
@@ -15,6 +15,8 @@ const BadRequest = error('bad_request', 'KaiBadRequest');
 const NoProfile = error('no_profile', 'KaiNoProfile');
 const TooMany = error('too_many_messages', 'KaiTooManyMessages');
 const Unavailable = error('kai_unavailable', 'KaiUnavailable');
+const DeckNotFound = error('not_found', 'KaiDeckNotFound');
+const NotReady = error('deck_not_ready', 'KaiDeckNotReady');
 const unauthorized = { 401: json(UnauthorizedSchema, 'No valid login token') };
 const security = [{ bearer: [] }];
 
@@ -22,8 +24,20 @@ const security = [{ bearer: [] }];
 const WordSchema = z
   .object({ word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), addTo: z.string(), added: z.boolean(), already: z.boolean() })
   .openapi('KaiWord');
+// A deck card under a Kai line. `status` is the deck's status now; `current` is true only for the newest line that has decks.
+const ChatDeckSchema = z
+  .object({ id: z.string(), title: z.string(), titleTranslation: z.string().nullable(), reason: z.string(), cefr: z.string(), wordCount: z.number().int(), status: z.enum(['proposed', 'generating', 'ready']), current: z.boolean() })
+  .openapi('KaiChatDeck');
 const MessageSchema = z
-  .object({ id: z.string(), from: z.enum(['kai', 'user']), text: z.string(), translation: z.string().nullable(), createdAt: z.string(), word: WordSchema.optional() })
+  .object({
+    id: z.string(),
+    from: z.enum(['kai', 'user']),
+    text: z.string(),
+    translation: z.string().nullable(),
+    createdAt: z.string(),
+    word: WordSchema.optional(), // left out when the line has no word card
+    decks: z.array(ChatDeckSchema).optional(), // left out when the line has no deck cards (most lines)
+  })
   .openapi('KaiMessage');
 const NotFound = error('not_found', 'KaiNotFound');
 const NoWord = error('no_word', 'KaiNoWord');
@@ -35,10 +49,11 @@ const ChatSchema = z
 const TurnSchema = z
   .object({ userMessage: z.union([MessageSchema, z.null()]), messages: z.array(MessageSchema), options: z.array(z.string()), action: z.enum(['review']).nullable() })
   .openapi('KaiTurn');
-// Exactly one of: the learner's text, or `open` for Kai's opening.
+// Exactly one of: the learner's text, `open` for Kai's opening, or the event "deck_ready" with its deck.
 const TurnBody = z
-  .object({ text: z.string().trim().min(1).max(500).optional(), open: z.literal(true).optional() })
-  .refine((b) => (b.text === undefined) !== (b.open === undefined), 'send text or open, not both')
+  .object({ text: z.string().trim().min(1).max(500).optional(), open: z.literal(true).optional(), event: z.literal('deck_ready').optional(), deckId: z.string().min(1).max(64).optional() })
+  .refine((b) => [b.text, b.open, b.event].filter((v) => v !== undefined).length === 1, 'send one of text, open or event')
+  .refine((b) => (b.event === undefined) === (b.deckId === undefined), 'deckId comes with event')
   .openapi('KaiTurnRequest');
 
 const getChat = createRoute({ method: 'get', path: '/kai/chat', security, responses: { 200: json(ChatSchema, 'The newest messages, oldest first'), ...unauthorized } });
@@ -50,7 +65,8 @@ const postTurn = createRoute({
   responses: {
     200: json(TurnSchema, "Kai's new lines"),
     400: json(BadRequest, 'The request is not valid'),
-    409: json(NoProfile, 'The user has no profile yet'),
+    404: json(DeckNotFound, 'The event names a deck that is not the caller’s'),
+    409: json(z.union([NoProfile, NotReady]), 'The user has no profile yet; or the event names a deck that is not ready'),
     429: json(TooMany, 'More than 200 messages in 24 hours'),
     502: json(Unavailable, 'The AI call failed; nothing was saved'),
     ...unauthorized,
@@ -81,9 +97,9 @@ const postAddWord = createRoute({
   },
 });
 
-const toMessage = (m: KaiMessage) => ({ id: m.id, from: m.from, text: m.text, translation: m.translation, createdAt: m.createdAt.toISOString(), ...(m.word ? { word: m.word } : {}) });
+const toMessage = (m: KaiMessage) => ({ id: m.id, from: m.from, text: m.text, translation: m.translation, createdAt: m.createdAt.toISOString(), ...(m.word ? { word: m.word } : {}), ...(m.decks?.length ? { decks: m.decks } : {}) });
 
-type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore };
+type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore; decks?: DecksStore };
 
 export function kaiChatRoutes(deps: Deps) {
   const need = <K extends keyof Deps>(key: K) => {
@@ -91,7 +107,7 @@ export function kaiChatRoutes(deps: Deps) {
     if (!dep) throw new Error(`${key} is not set`);
     return dep as NonNullable<Deps[K]>;
   };
-  const all = () => ({ kai: need('kai'), profiles: need('profiles'), kaiChat: need('kaiChat') });
+  const all = () => ({ kai: need('kai'), profiles: need('profiles'), kaiChat: need('kaiChat'), decks: deps.decks });
   const now = () => (deps.kaiNow ? deps.kaiNow() : new Date());
   const app = new OpenAPIHono<{ Variables: { user: AuthUser } }>({
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
@@ -103,9 +119,11 @@ export function kaiChatRoutes(deps: Deps) {
     })
     .openapi(postTurn, async (c) => {
       const body = c.req.valid('json');
-      const result = await kaiTurn(all(), c.get('user').id, body.text ?? null, now());
+      const input = body.event && body.deckId ? { event: body.event, deckId: body.deckId } : (body.text ?? null);
+      const result = await kaiTurn(all(), c.get('user').id, input, now());
       if (!result.ok) {
-        if (result.error === 'no_profile') return c.json({ error: result.error }, 409);
+        if (result.error === 'not_found') return c.json({ error: result.error }, 404);
+        if (result.error === 'no_profile' || result.error === 'deck_not_ready') return c.json({ error: result.error }, 409);
         if (result.error === 'too_many_messages') return c.json({ error: result.error }, 429);
         return c.json({ error: result.error }, 502);
       }

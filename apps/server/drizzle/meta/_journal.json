@@ -57,6 +57,13 @@
       "when": 1795113479915,
       "tag": "0007_pale_scarlet_witch",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795116034299,
+      "tag": "0008_concerned_gunslinger",
+      "breakpoints": true
     }
   ]
 }

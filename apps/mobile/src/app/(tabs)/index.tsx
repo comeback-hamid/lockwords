@@ -2,23 +2,25 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Fragment, useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
 import { AppState, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import type { KaiMessage, KaiTurnResult } from '@/api/client';
+import type { ChatDeck, KaiTurnResult } from '@/api/client';
 import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
+import { useTimedCount } from '@/components/chat/deck-card';
+import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
-import { languageCode, REVIEW_DELAY_MS, TOO_MANY, typingMs } from '@/new-words/chat';
+import { languageCode, MAKE_FAILED, pendingDeck, REVIEW_DELAY_MS, TOO_MANY, typingMs, withDeckStatus, withLine, type Line } from '@/new-words/chat';
 import { showReviewDot } from '@/review/dot';
 import { colors, layout, space, type } from '@/theme/theme';
 
-type Line = Pick<KaiMessage, 'id' | 'from' | 'text' | 'translation' | 'word'>;
 // Kai's lines that still wait behind a typing bubble, and what comes after the last one.
-type Coming = { lines: Line[]; options: string[]; action: 'review' | null };
+// keepOptions: a line the app adds by itself (making a deck failed) leaves the options as they are.
+type Coming = { lines: Line[]; options: string[]; action: 'review' | null; keepOptions?: boolean };
 const NONE: Coming = { lines: [], options: [], action: null };
 let localId = 0;
 const local = (from: Line['from'], text: string): Line => ({ id: `local-${localId++}`, from, text, translation: null });
@@ -38,6 +40,15 @@ export default function NewWordsScreen() {
   const [draft, setDraft] = useState({ key: 0, text: '' }); // a new key puts `text` back in the composer
   const [translation, setTranslation] = useState({ on: true, code: '' });
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  // Decks (Figma N2–N5): the deck being made now, how Kai feels about the last one, and the decks Kai was asked to speak about.
+  const [making, setMaking] = useState<ChatDeck | null>(null);
+  const [mood, setMood] = useState<'celebrate' | 'oops' | null>(null);
+  const madeWords = useTimedCount(making !== null, making?.wordCount ?? 10);
+  const told = useRef(new Set<string>());
+  const shown = useRef<Line[]>([]);
+  useEffect(() => {
+    shown.current = lines;
+  }, [lines]);
 
   // The tab bar floats over the screen, so the composer sits above it. With the keyboard up the tab bar is hidden behind it.
   const [keyboard, setKeyboard] = useState(false);
@@ -60,11 +71,59 @@ export default function NewWordsScreen() {
 
   // Kai opens the chat when it has something new to say (the server decides: at most once in 12 hours).
   // Asked when the tab is in view with the chat loaded, and when the app comes back to the front.
-  const quiet = useRef(true); // false while a turn runs or Kai's lines are still showing
+  const quiet = useRef(true); // false while a turn runs, a deck is made or Kai's lines are still showing
   const focused = useRef(false);
+
+  // The deck is made: Kai says so (the server answers once per deck). False when Kai has nothing to add.
+  const sayReady = useCallback(
+    async (deckId: string, justMade: boolean) => {
+      told.current.add(deckId);
+      if (justMade) void showReviewDot();
+      setBusy(true);
+      const result = await api.deckReady(deckId);
+      setBusy(false);
+      if (!take(result)) return false;
+      if (!justMade) void showReviewDot(); // made while the learner was away
+      setMood('celebrate');
+      return true;
+    },
+    [take],
+  );
+  // Makes a deck Kai offered. The caller has taken the turn (`quiet`).
+  const makeDeck = useCallback(
+    async (deck: ChatDeck) => {
+      setMaking(deck);
+      setGreeting(false);
+      setFailed(null);
+      setMood(null);
+      try {
+        await api.generateDeck(deck.id); // waits for the server's job, also one that was started before
+      } catch {
+        // Nothing was made: the cards come back and Kai says so.
+        setMaking(null);
+        setMood('oops');
+        setLines((all) => withDeckStatus(all, deck.id, 'proposed'));
+        return setComing({ lines: [local('kai', MAKE_FAILED)], options: [], action: null, keepOptions: true });
+      }
+      setLines((all) => withDeckStatus(all, deck.id, 'ready'));
+      setMaking(null);
+      if (!(await sayReady(deck.id, true))) quiet.current = true;
+    },
+    [sayReady],
+  );
+  function generate(deck: ChatDeck) {
+    if (!quiet.current) return; // Kai is answering, or another deck is being made
+    quiet.current = false;
+    void makeDeck(deck);
+  }
+
   const open = useCallback(async () => {
     if (!quiet.current) return;
     quiet.current = false;
+    // First a deck that was left half way: still being made, or made while the learner was away.
+    const pending = pendingDeck(shown.current, told.current);
+    if (pending?.status === 'generating') return void makeDeck(pending);
+    if (pending && (await sayReady(pending.id, false))) return;
     setBusy(true);
     const opening = await api.openKaiChat();
     setBusy(false);
@@ -76,7 +135,7 @@ export default function NewWordsScreen() {
     } else {
       quiet.current = true;
     }
-  }, [take]);
+  }, [take, makeDeck, sayReady]);
 
   useEffect(() => {
     let live = true;
@@ -119,10 +178,10 @@ export default function NewWordsScreen() {
     const [next, ...rest] = coming.lines;
     if (!next) return;
     const timer = setTimeout(() => {
-      setLines((all) => [...all, next]);
+      setLines((all) => withLine(all, next));
       setComing((c) => ({ ...c, lines: rest }));
       if (rest.length === 0) {
-        setOptions(coming.options);
+        if (!coming.keepOptions) setOptions(coming.options);
         if (coming.action !== 'review') quiet.current = true;
       }
     }, typingMs(next.text));
@@ -144,7 +203,7 @@ export default function NewWordsScreen() {
   const typing = busy || coming.lines.length > 0;
   useEffect(() => {
     scroll.current?.scrollToEnd({ animated: true });
-  }, [lines, typing, options, failed]);
+  }, [lines, typing, options, failed, making]);
 
   async function send(text: string) {
     if (!quiet.current) return; // Kai is still answering; the composer keeps the text
@@ -156,6 +215,7 @@ export default function NewWordsScreen() {
     setOptions([]);
     setFailed(null);
     setGreeting(false);
+    setMood(null);
     setBusy(true);
     const result = await api.sendKaiMessage(text);
     setBusy(false);
@@ -189,7 +249,8 @@ export default function NewWordsScreen() {
 
   const header = (
     <KaiHeader
-      pose={busy ? 'thinking' : greeting ? 'greeting' : 'idle'}
+      pose={making ? 'making' : busy ? 'thinking' : (mood ?? (greeting ? 'greeting' : 'idle'))}
+      progress={making ? madeWords / making.wordCount : undefined}
       back={false}
       right={ready ? <TranslationToggle code={translation.code} on={translation.on} onToggle={toggleTranslation} /> : undefined}
     />
@@ -233,14 +294,17 @@ export default function NewWordsScreen() {
           <Fragment key={l.id}>
             <ChatBubble from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
             {l.word ? <WordCard word={l.word} onAdd={() => addWord(l.id)} /> : null}
+            {l.decks?.length ? (
+              <DeckIdeas decks={l.decks} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
+            ) : null}
           </Fragment>
         ))}
         {typing ? <TypingBubble /> : null}
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}
       </ScrollView>
-      <ReplyOptions options={typing ? [] : options} onPick={(o) => void send(o)} />
+      <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o)} />
       <View style={keyboard ? styles.composerTyping : styles.composer}>
-        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} maxLength={500} mic={false} canSend={!typing} />
+        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} maxLength={500} mic={false} canSend={!typing && !making} />
       </View>
     </KeyboardAvoidingView>
   );

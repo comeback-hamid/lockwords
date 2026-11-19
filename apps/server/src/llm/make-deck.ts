@@ -15,6 +15,7 @@ export type DeckInput = {
   goal: Profile['goal'];
   goalOther: string | null;
   interests: string[];
+  wordCount?: number; // how many cards to make: the deck's own size (10 to 30). None = 10, the first deck.
 };
 
 export const ProposalSchema = z.object({ title: z.string().min(1).max(120), reason: z.string().min(1).max(60) });
@@ -24,7 +25,7 @@ export const CardSchema = z.object({
   example: z.string().min(1).max(240),
   exampleTranslation: z.string().min(1).max(240),
 });
-export const DECK_SIZE = 10;
+export const DECK_SIZE = 10; // the first deck (onboarding). A deck from the New words chat has its own size.
 export const CardsSchema = z.object({ cards: z.array(CardSchema).length(DECK_SIZE) });
 
 export type NewCard = z.infer<typeof CardSchema>;
@@ -36,8 +37,8 @@ export type DeckMaker = {
 };
 
 // vocab-engine 2.3 "Checks after the answer": drop items with no word, translation or example; drop duplicates
-// (ignoring case); remove the *asterisks* around the word. Fewer than 10 left = a failed try. More = the first 10.
-export function checkCards(raw: RawCard[]): NewCard[] {
+// (ignoring case); remove the *asterisks* around the word. Fewer than the deck's size left = a failed try. More = the first ones.
+export function checkCards(raw: RawCard[], size = DECK_SIZE): NewCard[] {
   const seen = new Set<string>();
   const out: NewCard[] = [];
   for (const r of raw) {
@@ -48,8 +49,8 @@ export function checkCards(raw: RawCard[]): NewCard[] {
     seen.add(key);
     out.push({ word, translation, example, exampleTranslation: (r.exampleTranslation ?? '').replace(/\*/g, '').trim() || translation });
   }
-  if (out.length < DECK_SIZE) throw new Error(`only ${out.length} good cards`);
-  return CardsSchema.parse({ cards: out.slice(0, DECK_SIZE) }).cards;
+  if (out.length < size) throw new Error(`only ${out.length} good cards`);
+  return z.array(CardSchema).length(size).parse(out.slice(0, size));
 }
 
 export const DECK_SYSTEM_PROMPT =
@@ -71,6 +72,7 @@ export function languageName(code: string): string {
 export function deckPrompt(i: DeckInput): string {
   const language = languageName(i.learningLanguage), native = languageName(i.nativeLanguage);
   const band = bandForProfile(i.level, i.knownWords);
+  const size = i.wordCount ?? DECK_SIZE;
   const test = i.knownWords != null ? `; a short word test says they recognise about ${i.knownWords.toLocaleString('en-US')} of the 5,000 most common words` : '';
   const goal = i.goal === 'other' && i.goalOther ? `${GOAL_NAME[i.goal]} (in their words: "${i.goalOther}")` : GOAL_NAME[i.goal];
   return `Learner:
@@ -82,8 +84,8 @@ Interests: ${i.interests.length ? i.interests.join(', ') : 'none given'}
 
 Deck they asked for (their words): "${i.topic}"
 
-Make a deck of exactly ${DECK_SIZE} different words or short phrases in ${language} that fit the request, the learner's level, their goal and their interests.
-What to put in this deck for this learner's level: ${deckMix(band, i.knownWords)}
+Make a deck of exactly ${size} different words or short phrases in ${language} that fit the request, the learner's level, their goal and their interests.
+What to put in this deck for this learner's level: ${deckMix(band, i.knownWords, size)}
 For each item:
 - word: in ${language}, standard spelling, usual script. Nouns with the article learners normally see where the language has one (e.g. Spanish "la propina", German "das Trinkgeld", French "le pourboire"); verbs in dictionary form.
 - translation: the word in ${native}, 1 to 4 words.

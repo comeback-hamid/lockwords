@@ -21,6 +21,8 @@ export const DeckSchema = z
     id: z.string(),
     topic: z.string(),
     title: z.string(),
+    // The title in the user's native language; null for a deck with none (onboarding). Optional in the type so older callers still fit.
+    titleTranslation: z.string().nullable().optional(),
     reason: z.string(),
     cefr: z.string(),
     kind: z.enum(['topic', 'random']).optional(), // always set by the server; "random" = a Random Words deck
@@ -71,6 +73,9 @@ type Deps = { profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMake
 const POLL_MS = 300;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Every answer that returns a deck includes titleTranslation (null when the deck has none).
+const out = (deck: Deck) => ({ ...deck, titleTranslation: deck.titleTranslation ?? null });
+
 export function deckRoutes(deps: Deps) {
   // Stores are optional in AppDeps so tests of other routes can leave them out.
   const need = <K extends keyof Deps>(key: K) => {
@@ -98,14 +103,14 @@ export function deckRoutes(deps: Deps) {
       if (!profile) return c.json({ error: 'no_profile' as const }, 409);
       const cefr = profile.cefr ?? 'A1';
       const proposal = await need('deckMaker').propose({ topic, learningLanguage: profile.learningLanguage, nativeLanguage: profile.nativeLanguage, cefr, level: profile.level, knownWords: profile.knownWords, goal: profile.goal, goalOther: profile.goalOther, interests: profile.interests });
-      return c.json(await need('decks').create(userId, { topic, cefr, ...proposal }), 201);
+      return c.json(out(await need('decks').create(userId, { topic, cefr, ...proposal })), 201);
     })
     .openapi(postGenerate, async (c) => {
       const userId = c.get('user').id;
       const { id } = c.req.valid('param');
       const deck = isUuid(id) ? await need('decks').get(userId, id) : null;
       if (!deck) return c.json({ error: 'not_found' as const }, 404);
-      if (deck.status === 'ready') return c.json(deck, 200);
+      if (deck.status === 'ready') return c.json(out(deck), 200);
       const failed = () => c.json({ error: 'generation_failed' as const }, 502);
       if (deck.status === 'proposed') {
         const jobs = deps.deckJobs ?? inlineDeckJobs({ profiles: need('profiles'), decks: need('decks'), deckMaker: need('deckMaker') });
@@ -117,13 +122,13 @@ export function deckRoutes(deps: Deps) {
       for (;;) {
         const now = await need('decks').get(userId, id);
         if (!now || now.status === 'proposed') return failed(); // the job failed and saved nothing
-        if (now.status === 'ready' || Date.now() >= until) return c.json(now, 200);
+        if (now.status === 'ready' || Date.now() >= until) return c.json(out(now), 200);
         await sleep(POLL_MS);
       }
     })
     .openapi(getDeck, async (c) => {
       const { id } = c.req.valid('param');
       const deck = isUuid(id) ? await need('decks').get(c.get('user').id, id) : null;
-      return deck ? c.json(deck, 200) : c.json({ error: 'not_found' as const }, 404);
+      return deck ? c.json(out(deck), 200) : c.json({ error: 'not_found' as const }, 404);
     });
 }

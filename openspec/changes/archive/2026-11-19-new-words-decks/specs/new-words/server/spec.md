@@ -19,16 +19,24 @@ A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80
 - **WHEN** an idea has `wordCount` 5 or 40
 - **THEN** nothing is saved and the turn fails as "Kai fails safely" says
 
+#### Scenario: A text that is too long
+- **WHEN** an idea has a `topic` of 95 characters or a `reason` of 40
+- **THEN** the text is cut at a word to fit its limit, and the turn does not fail
+
 #### Scenario: Two ideas
 - **WHEN** the AI answers with 2 ideas
 - **THEN** nothing is saved and the turn fails as "Kai fails safely" says
 
 ### Requirement: Decks in chat messages
-A chat message SHALL have `decks`: a list (empty for most messages) of `{ id, title, titleTranslation, reason, cefr, wordCount, status, current }`. `status` is the deck's status now. `current` is true only for decks of the newest message that has decks.
+A chat message that has deck cards SHALL have `decks`: a list of `{ id, title, titleTranslation, reason, cefr, wordCount, status, current }`. A message with no deck cards (most messages) has no `decks` field. `status` is the deck's status now. `current` is true only for decks of the newest message that has decks.
 
 #### Scenario: Status follows the deck
 - **WHEN** a deck offered in the chat becomes `ready` and the user reads the chat
 - **THEN** that message's deck has `status: "ready"`
+
+#### Scenario: No decks
+- **WHEN** the user reads a message Kai sent with no ideas
+- **THEN** the message has no `decks` field
 
 #### Scenario: Older ideas
 - **WHEN** Kai offered 3 ideas, then later 3 new ones

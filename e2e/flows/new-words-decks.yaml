@@ -1,0 +1,140 @@
+# New words: decks. First visit (Kai asks first), yes, swipe the three ideas, Generate, the deck is ready and in the word list,
+# the Review dot, "Let's practice" lands on Review; then the learner asks for their own deck.
+# Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's words differ, the steps do not).
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-decks
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+# N1 First visit: Kai says hello and asks if we want to see 3 decks. No cards yet.
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- assertNotVisible: "Generate"
+# Yes: N2 three deck ideas in a row
+- tapOn: "Message"
+- inputText: "Sí, quiero verlos"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- assertVisible: "Generate"
+- assertVisible:
+    id: "deck-ideas-row"
+# Swipe the ideas sideways (the row sits just above the message box): the dots follow
+- swipe:
+    start: "85%, 66%"
+    end: "15%, 66%"
+    duration: 250
+- extendedWaitUntil:
+    visible: "Deck 2 of 3"
+    timeout: 10000
+- swipe:
+    start: "85%, 66%"
+    end: "15%, 66%"
+    duration: 250
+- extendedWaitUntil:
+    visible: "Deck 3 of 3"
+    timeout: 10000
+- swipe:
+    start: "15%, 66%"
+    end: "85%, 66%"
+    duration: 250
+- swipe:
+    start: "15%, 66%"
+    end: "85%, 66%"
+    duration: 250
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 10000
+# N3 Generate the first idea → N4 the deck is ready and in the word list; the other cards are gone
+- tapOn: "Generate"
+# (the ready card is one button named "Open deck"; its texts are inside it)
+- extendedWaitUntil:
+    visible: "Open deck"
+    timeout: 180000
+- assertNotVisible: "Generate"
+- assertNotVisible: "Deck 1 of 3"
+# Kai says the deck is ready, and the Review tab has its red dot
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- waitForAnimationToEnd
+# The ready card opens the deck page. With long lines the card's middle can sit under Kai's header, where a tap does
+# nothing: pull the chat down a little and tap, until the deck page (it has a Close button) is open.
+- repeat:
+    times: 4
+    while:
+      notVisible: "Close"
+    commands:
+      - swipe:
+          start: "50%, 40%"
+          end: "50%, 60%"
+          duration: 400
+      - waitForAnimationToEnd
+      - tapOn: "Open deck"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Close"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: ".* WORDS"
+    timeout: 20000
+- tapOn: "Close"
+# N4b "Let's practice": Kai says it takes us to Review, then the Review tab opens by itself
+- tapOn: "Message"
+- inputText: "Vamos a practicar"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: ".* cards to review today"
+    timeout: 60000
+- assertNotVisible: "10 cards to review today"
+# N5 My own deck: say what we need. Kai may ask one short question first, then shows one card.
+- tapOn: "New words"
+- tapOn: "Message"
+- inputText: "Quiero un mazo sobre trabajar en una cafetería"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- runFlow:
+    when:
+      notVisible: "Generate"
+    commands:
+      - tapOn: "Message"
+      - inputText: "Palabras sueltas, 10 palabras. Hazlo así, por favor."
+      - tapOn: "Send"
+      - hideKeyboard
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 60000
+- assertNotVisible: "Deck 1 of 3"
+# After a restart the cards are still there
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Open deck"
+    direction: UP
+- stopRecording

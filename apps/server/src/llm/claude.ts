@@ -10,7 +10,7 @@ import { UseItSchema, type UseItJudge } from './use-it.js';
 
 const MODEL = 'claude-sonnet-5-5';
 const TIMEOUT_MS = 30_000;
-const DECK_TIMEOUT_MS = 60_000; // Sonnet takes 14–20 s for 10 cards (vocab-engine 2.3)
+const DECK_TIMEOUT_MS = 90_000; // Sonnet takes 14–20 s for 10 cards (vocab-engine 2.3); a deck of 30 takes about three times that
 
 // The real model. Used only when ANTHROPIC_API_KEY is set; tests pass a fake fetch.
 // shortcut: plain fetch + one try; Langfuse prompts, tracing and "retry once" come with the llm client (see README.md).
@@ -73,7 +73,7 @@ async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
   const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
   const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
   const { cards } = DeckAnswer.parse(JSON.parse(json));
-  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation })));
+  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation })), i.wordCount);
 }
 
 export function claudeDeckMaker(apiKey: string, fetchFn: Fetch = fetch): DeckMaker {

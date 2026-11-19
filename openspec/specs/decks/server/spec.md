@@ -32,22 +32,26 @@ How the server proposes and makes decks of words for a user, and returns them.
 - **THEN** the answer is `400`
 
 ### Requirement: Make the cards
-`POST /v1/decks/{id}/generate` SHALL start a background job that fills the caller's proposed deck with exactly 10 cards, and wait up to 20 seconds for it. While the job runs the deck's `status` is `generating`. The answer is `200` with the deck in its current state (`ready`, or `generating` if the job still runs). Each card has `word`, `translation`, `example`, `exampleTranslation` and `stage` 0. If the AI fails, the answer is `502` with `{ "error": "generation_failed" }` and nothing is saved.
+`POST /v1/decks/{id}/generate` SHALL start a background job that fills the caller's proposed deck with exactly `wordCount` cards, and wait up to 20 seconds for it. While the job runs the deck's `status` is `generating`. The answer is `200` with the deck as it is now (`ready` or `generating`). Each card has `word`, `translation`, `example`, `exampleTranslation` and `stage` 0. If the AI fails, the answer is `502` with `{ "error": "generation_failed" }` and nothing is saved.
 
 #### Scenario: Generate
-- **WHEN** the owner calls generate on a proposed deck and the job finishes in time
+- **WHEN** the owner calls generate on a proposed deck of 10 and the job finishes in time
 - **THEN** the answer is `200`, `status` is `ready`, and there are 10 cards in order, each with `stage: 0`
+
+#### Scenario: A bigger deck
+- **WHEN** the owner calls generate on a proposed deck with `wordCount` 24
+- **THEN** the ready deck has exactly 24 cards
 
 #### Scenario: Slow job
 - **WHEN** the job is still running after the wait
-- **THEN** the answer is `200` with `status` `generating` and no cards, and reading the deck later shows `ready` with 10 cards
+- **THEN** the answer is `200` with `status` `generating` and no cards, and reading the deck later shows `ready` with all its cards
 
 #### Scenario: Generate twice
 - **WHEN** the owner calls generate again, on a ready deck or while the job runs
-- **THEN** no second job starts and the deck never has more than 10 cards
+- **THEN** no second job starts and the deck never has more than `wordCount` cards
 
 #### Scenario: AI fails
-- **WHEN** the AI task throws or returns fewer than 10 valid cards, twice
+- **WHEN** the AI task throws or returns fewer valid cards than `wordCount`, twice
 - **THEN** the answer is `502`, the deck goes back to `proposed` and has no cards
 
 ### Requirement: Retry a fast failure
@@ -129,3 +133,25 @@ A deck SHALL have `kind`: `topic` or `random`. Random decks are titled "Random W
 #### Scenario: Read
 - **WHEN** the owner reads a random deck
 - **THEN** the answer has `kind: "random"`, the title and its cards in the order they were added
+
+### Requirement: Deck size
+A deck SHALL have `wordCount`: how many cards it gets when it is made. It is 10 for a deck proposed with `POST /v1/decks` (onboarding) and 10 to 30 for a deck Kai offers in the New words chat. Every answer that returns a deck includes it.
+
+#### Scenario: Onboarding deck
+- **WHEN** a user proposes a deck with `POST /v1/decks`
+- **THEN** `wordCount` is 10
+
+#### Scenario: Chat deck
+- **WHEN** the owner reads a proposed deck Kai offered with 20 words
+- **THEN** `wordCount` is 20 and there are no cards yet
+
+### Requirement: Title translation
+A deck SHALL have `titleTranslation`: the title in the user's native language, or null when the deck has none. Every answer that returns a deck includes it.
+
+#### Scenario: A deck from the chat
+- **WHEN** the owner reads a deck that Kai offered with the title "Pedir comida" and the translation "Ordering food"
+- **THEN** the answer has `title: "Pedir comida"` and `titleTranslation: "Ordering food"`
+
+#### Scenario: An older deck
+- **WHEN** the owner reads a deck made in onboarding
+- **THEN** `titleTranslation` is null

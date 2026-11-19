@@ -374,6 +374,16 @@ Before you answer, check every item: Is the word real and correctly spelled? Doe
 - Cache decks by (answers + deck band + request). Same band → reuse.
 - When the learner picks a deck: wait for it (up to 32 s), retry once if it failed fast (under 12 s). Only if both fail, show a basic ready-made deck, and say honestly that the AI was busy. (A basic fallback deck shown to a C1 learner is exactly what made "train, ticket, far" appear.)
 
+### 2.5 Decks of other sizes (10 to 30 words)
+
+A deck Kai offers in the New words chat has its own size, from 10 to 30 words (Kai picks it; the first deck in onboarding is always 10). The rules above stay the same. Only the counts grow with the size (`bandText`, `mixText` in `apps/server/src/decks/band.ts`):
+
+- **The prompt** says "exactly N different words".
+- **The mix** keeps 25 % easy, 50 % at level, 25 % stretch: at-level = N ÷ 2 (rounded), stretch = half of the rest (rounded down), easy = what is left. So 10 → 3 / 5 / 2 (the text above), 20 → 5 / 10 / 5, 30 → 8 / 15 / 7.
+- **The counts in the band texts** grow by N ÷ 10 (rounded, at least 1): band 0 "at most 2 tiny fixed phrases" → 4 at 20; band 3 "4 single words, 3 collocations, 3 phrases" → 8, 6, 6 at 20; band 4 "3 single words, 4 collocations, 3 phrases" → 9, 12, 9 at 30. At 10 every text is the one above, word for word.
+- **Checks after the answer:** fewer than N good items left → treat as failed. More → the first N.
+- **Timing:** a deck of 30 takes about three times as long as a deck of 10, so the call's limit is 90 s.
+
 ---
 
 ## Part 3 — Porting checklist

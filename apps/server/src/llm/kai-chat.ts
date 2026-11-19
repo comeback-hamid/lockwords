@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { words } from '../kai/abilities/index.js';
+import { fixtureDecks, type DeckFacts, type DeckReady } from '../kai/abilities/decks.js';
+import { abilities, abilityAnswer, words } from '../kai/abilities/index.js';
 
 // AI task: one turn of the New words chat. Kai answers as an agent that knows and remembers the learner.
 // Later abilities (decks, word cards) add optional fields to the answer; see src/kai/abilities/.
@@ -20,6 +21,8 @@ export type KaiContext = {
   opening: boolean; // Kai speaks first (the learner just opened the tab)
   firstVisit: boolean;
   userText: string | null; // null on an opening
+  decks?: DeckFacts; // ability "decks": what the learner has and was offered
+  event?: { deckReady: DeckReady }; // ability "decks": something happened in the app that Kai speaks about (no learner text)
 };
 
 export const MAX_LINES = 3;
@@ -61,6 +64,7 @@ export const KaiAnswerSchema = z.object({
     .transform((a) => (a === 'review' ? ('review' as const) : null)),
   // A word card (src/kai/abilities/words.ts). A word with a bad or missing field fails the whole answer.
   word: words.KaiWordSchema.nullish().transform((w) => w ?? undefined),
+  ...abilityAnswer,
 });
 export type KaiAnswer = z.infer<typeof KaiAnswerSchema>;
 
@@ -94,11 +98,12 @@ export function buildKaiPrompt(c: KaiContext): { system: string; user: string } 
     `- "options": 0 to ${MAX_OPTIONS} short replies the learner can tap (at most ${MAX_OPTION_CHARS} characters each, in ${L}, written as the learner would say them). Give options only when they help. Give none for an open question (like asking a name) or when the learner should just type.`,
     `- When the learner wants to practice or review now, set "action" to "review" and say in one line that you take them to Review. Otherwise leave "action" null. The app opens the Review tab by itself.`,
     `- "remember": short notes in English (at most ${MAX_NOTE_CHARS} characters each) about new facts the learner told you about themselves: a goal, a plan, an interest, a preference (for example that they asked you to speak ${N}). Only new facts the learner said in this chat that are not in your notes yet. Never save what you were already given below (name, level, goal, interests, word counts). Usually this is empty.`,
+    ...abilities.flatMap((a) => a.rules(c)),
     ``,
     ...words.wordPromptPart(L, N),
     ``,
     `Answer with JSON only, in this shape:`,
-    `{"lines": [{"text": string, "translation": string}], "options": string[], "remember": string[], "action": "review" | null, ${words.WORD_SHAPE}}`,
+    `{"lines": [{"text": string, "translation": string}], "options": string[], "remember": string[], "action": "review" | null, ${words.WORD_SHAPE}${abilities.map((a) => `, ${a.shape}`).join('')}}`,
   ].join('\n');
 
   const who = [
@@ -107,11 +112,12 @@ export function buildKaiPrompt(c: KaiContext): { system: string; user: string } 
     `Your notes about them: ${c.notes.length ? c.notes.map((n) => `\n- ${n}`).join('') : 'none yet.'}`,
     `Their words in the app: ${c.words.total} in total, ${c.words.reviewedLastDay} reviewed in the last 24 hours, ${c.words.dueNow} due for review now.`,
     c.words.sample.length ? `Some of their words (hard ones first): ${c.words.sample.map((w) => `${w.word} (${w.translation})`).join('; ')}.` : null,
+    ...abilities.flatMap((a) => a.facts(c)),
   ].filter((l): l is string => l !== null);
 
   const history = c.history.length ? ['', 'The chat so far (oldest first):', ...c.history.map((m) => `${m.from === 'kai' ? 'Kai' : 'Learner'}: ${m.text}`)] : [];
 
-  const now = c.opening
+  const base = c.opening
     ? c.firstVisit
       ? [
           '',
@@ -121,6 +127,7 @@ export function buildKaiPrompt(c: KaiContext): { system: string; user: string } 
         ]
       : ['', `The learner just opened the chat again. Greet them in a fresh way that fits what you know: their practice, one of their words, or a nudge to review if words are due. Do not repeat your last greeting.`]
     : ['', `The learner now says: ${c.userText ?? ''}`];
+  const now = abilities.reduce((lines, a) => a.now?.(c, lines) ?? lines, base);
 
   return { system, user: [...who, ...history, ...now].join('\n') };
 }
@@ -135,9 +142,9 @@ export const fixtureKaiChat: KaiChat = {
         lines: [
           { text: `¡Hola${c.name ? ` ${c.name}` : ''}! 👋 Soy **Kai**.`, translation: `Hi${c.name ? ` ${c.name}` : ''}! I'm Kai.` },
           { text: 'Te ayudo a encontrar palabras para **tu nivel** y **tus metas**.', translation: 'I help you find words for your level and your goals.' },
-          { text: '¿De qué quieres hablar hoy? 😊', translation: 'What do you want to talk about today?' },
+          { text: 'Tengo **3 mazos** listos para ti. ¿Quieres verlos? 👀', translation: 'I have 3 decks ready for you. Want to see them?' },
         ],
-        options: ['Vamos a practicar'],
+        options: ['Sí, quiero verlos', 'Ahora no'],
       };
     if (c.opening)
       return {
@@ -147,6 +154,8 @@ export const fixtureKaiChat: KaiChat = {
         ],
         options: ['Vamos a practicar', 'Ahora no'],
       };
+    const decks = fixtureDecks(c);
+    if (decks) return decks;
     const text = c.userText ?? '';
     const card = words.fixtureWordAnswer(text);
     if (card) return card;

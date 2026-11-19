@@ -23,6 +23,7 @@ export type KaiMessage = components['schemas']['KaiMessage'];
 export type KaiTurn = components['schemas']['KaiTurn'];
 export type KaiWord = components['schemas']['KaiWord'];
 export type KaiAddedWord = components['schemas']['KaiAddedWord'];
+export type ChatDeck = components['schemas']['KaiChatDeck'];
 // A Kai turn can fail in two ways the screen treats differently, so it does not throw.
 export type KaiTurnResult = { ok: true; turn: KaiTurn } | { ok: false; error: 'too_many_messages' | 'failed' };
 
@@ -45,8 +46,8 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     if (result.data === undefined) throw new Error('request failed');
     return result.data;
   };
-  // One turn of the New words chat: the learner's text, or `open` for Kai's opening.
-  async function kaiTurn(body: { text: string } | { open: true }): Promise<KaiTurnResult> {
+  // One turn of the New words chat: the learner's text, `open` for Kai's opening, or an event Kai speaks about.
+  async function kaiTurn(body: { text: string } | { open: true } | { event: 'deck_ready'; deckId: string }): Promise<KaiTurnResult> {
     try {
       const { data, response } = await client.POST('/v1/kai/chat/turns', { body });
       if (data) return { ok: true, turn: data };
@@ -62,6 +63,8 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     },
     sendKaiMessage: (text: string) => kaiTurn({ text }),
     openKaiChat: () => kaiTurn({ open: true }),
+    // A deck Kai offered is made: Kai says so. Answered once per deck; a second call brings no messages.
+    deckReady: (deckId: string) => kaiTurn({ event: 'deck_ready', deckId }),
     async setKaiTranslation(on: boolean): Promise<void> {
       unwrap(await client.PUT('/v1/kai/chat/translation', { body: { on } }));
     },

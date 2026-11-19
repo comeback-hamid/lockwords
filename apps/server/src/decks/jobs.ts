@@ -12,10 +12,10 @@ export const FAST_FAILURE_MS = 12_000;
 async function cardsWithRetry(deckMaker: DeckMaker, input: DeckInput, now: () => number): Promise<NewCard[]> {
   const started = now();
   try {
-    return checkCards(await deckMaker.cards(input));
+    return checkCards(await deckMaker.cards(input), input.wordCount);
   } catch (error) {
     if (now() - started >= FAST_FAILURE_MS) throw error;
-    return checkCards(await deckMaker.cards(input));
+    return checkCards(await deckMaker.cards(input), input.wordCount);
   }
 }
 
@@ -27,7 +27,7 @@ export async function makeDeckCards({ profiles, decks, deckMaker, now = Date.now
     if (deck.status === 'ready') return true; // a job that runs twice makes one set of words
     const profile = await profiles.get(userId);
     const input: DeckInput = {
-      topic: deck.topic, cefr: deck.cefr,
+      topic: deck.topic, cefr: deck.cefr, wordCount: deck.wordCount, // the deck's own size
       learningLanguage: profile?.learningLanguage ?? '', nativeLanguage: profile?.nativeLanguage ?? '',
       level: profile?.level ?? 'some_basics', knownWords: profile?.knownWords ?? null,
       goal: profile?.goal ?? 'other', goalOther: profile?.goalOther ?? null, interests: profile?.interests ?? [],

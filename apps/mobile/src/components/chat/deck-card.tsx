@@ -3,10 +3,22 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Deck } from '@/api/client';
 import { Icon } from '@/components/icon';
-import { colors, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, levelColors, opacity, radius, space, type } from '@/theme/theme';
 
-// hideGenerate: Kai is still typing; Generate keeps its place (no jump) but cannot be seen or tapped yet.
-type Props = { deck: Deck; state: 'proposed' | 'generating' | 'ready'; onGenerate(): void; onOpen(): void; count?: number; hideGenerate?: boolean };
+// What the card needs of a deck. A full deck fits, and so does a deck idea in the New words chat (no cards yet).
+export type CardDeck = Pick<Deck, 'cefr' | 'wordCount' | 'title' | 'reason'> & { titleTranslation?: string | null; cards?: Pick<Deck['cards'][number], 'id' | 'stage'>[] };
+
+type Props = {
+  deck: CardDeck;
+  state: 'proposed' | 'generating' | 'ready' | 'disabled'; // disabled: an older idea, grayed, not tappable
+  onGenerate(): void;
+  onOpen(): void;
+  count?: number;
+  hideGenerate?: boolean; // Kai is still typing; Generate keeps its place (no jump) but cannot be seen or tapped yet
+  showTranslation?: boolean; // the title in the learner's own language, under the title (New words: follows the translation button)
+  inWordList?: boolean; // New words: the deck is in the word list at once, so the ready card says so
+  flat?: boolean; // in a row of cards: no room kept on the right
+};
 
 // A timed count: the server's job reports no progress, only generating → ready.
 // One word about every 1.6 s, never past N − 1; the screen shares it with Kai's `making`.
@@ -26,15 +38,26 @@ export function useTimedCount(active: boolean, total: number) {
 }
 
 // Figma deck card in a Kai chat: proposed (Generate) → generating (progress) → ready (tap to open).
-export function DeckCard({ deck, state, onGenerate, onOpen, count, hideGenerate = false }: Props) {
+export function DeckCard({ deck, state, onGenerate, onOpen, count, hideGenerate = false, showTranslation = false, inWordList = false, flat = false }: Props) {
+  // One level square per word. An idea has no cards yet: every word is new.
+  const squares = deck.cards?.length ? deck.cards : Array.from({ length: deck.wordCount }, (_, i) => ({ id: String(i), stage: 0 }));
   const body = (
     <>
       <View style={styles.row}>
         <Text style={[type.labelTag, styles.muted]}>{`${deck.cefr} · ${deck.wordCount} WORDS`}</Text>
         {state === 'ready' ? <Text style={[type.labelTag, styles.green]}>JUST NOW</Text> : null}
       </View>
-      <Text style={[type.bodyStrong, styles.title]}>{`“${deck.title}”`}</Text>
-      {state === 'proposed' ? (
+      <View>
+        <Text style={[type.bodyStrong, styles.title]}>{`“${deck.title}”`}</Text>
+        {showTranslation && deck.titleTranslation ? (
+          <Text testID="deck-title-translation" style={[type.caption, styles.muted, styles.translation]}>
+            {deck.titleTranslation}
+          </Text>
+        ) : null}
+      </View>
+      {state === 'disabled' ? (
+        <Text style={[type.caption, styles.muted]}>{deck.reason}</Text>
+      ) : state === 'proposed' ? (
         <View style={styles.row}>
           <Text style={[type.caption, styles.muted]}>{deck.reason}</Text>
           <Pressable
@@ -55,21 +78,21 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count, hideGenerate 
       ) : (
         <View style={styles.readyRows}>
           <View style={styles.squares}>
-            {deck.cards.map((card) => (
-              <View key={card.id} style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+            {squares.map((card) => (
+              <View key={card.id} testID="level-square" style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
             ))}
           </View>
-          <Text style={[type.labelTag, styles.muted]}>{`${deck.wordCount} WORDS · ADDED TO YOUR DECKS`}</Text>
+          <Text style={[type.labelTag, styles.muted]}>{`${deck.wordCount} WORDS · ${inWordList ? 'IN YOUR WORD LIST' : 'ADDED TO YOUR DECKS'}`}</Text>
         </View>
       )}
     </>
   );
   return state === 'ready' ? (
-    <Pressable accessibilityRole="button" accessibilityLabel="Open deck" onPress={onOpen} style={styles.card}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Open deck" onPress={onOpen} style={[styles.card, flat && styles.flat]}>
       {body}
     </Pressable>
   ) : (
-    <View style={[styles.card, state === 'generating' && styles.cardBusy]}>{body}</View>
+    <View style={[styles.card, flat && styles.flat, state === 'generating' && styles.cardBusy, state === 'disabled' && styles.disabled]}>{body}</View>
   );
 }
 
@@ -93,6 +116,9 @@ const styles = StyleSheet.create({
   hidden: { opacity: 0 },
   card: { alignSelf: 'stretch', marginRight: 24, padding: space[16], gap: space[12], borderRadius: radius.control, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   cardBusy: { borderColor: levelColors[3] },
+  flat: { marginRight: 0 },
+  disabled: { opacity: opacity.disabled },
+  translation: { marginTop: space[4] },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[8] },
   title: { color: colors.text, marginRight: space[48] },
   ink: { color: colors.text },
@@ -100,7 +126,7 @@ const styles = StyleSheet.create({
   green: { color: colors.greenText },
   generate: { height: 36, flexDirection: 'row', alignItems: 'center', gap: space[8], paddingHorizontal: space[12], borderRadius: radius.badge, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   readyRows: { gap: space[8] },
-  squares: { flexDirection: 'row', gap: 2 },
+  squares: { flexDirection: 'row', flexWrap: 'wrap', gap: 2 },
   square: { width: 10, height: 10, borderRadius: 2 },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.divider, overflow: 'hidden' },
   fill: { height: 4, borderRadius: 2, backgroundColor: colors.button },

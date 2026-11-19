@@ -31,11 +31,27 @@ The composer SHALL show a text box with a placeholder and a round button: a mic 
 - **THEN** the message is sent and the box is empty
 
 ### Requirement: Deck card
-The deck card SHALL show the level and word count ("A2+ · 10 WORDS") and the title in quotes, in one of three states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / N WORDS", no button), ready ("JUST NOW", level squares and "N WORDS · ADDED TO YOUR DECKS"; tapping it opens the deck). N is the deck's word count (10 for the first deck; New words decks have 10 to 30).
+The deck card SHALL show the level, the deck's own word count ("A2+ · 20 WORDS" for a deck of 20) and the title in quotes, in one of four states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / 20 WORDS", no button), ready ("JUST NOW" and one level square per word; tapping it opens the deck), disabled (grayed, no button, not tappable). With translations on, a title translation shows under the title in smaller gray text.
 
 #### Scenario: States
-- **WHEN** the card is shown as proposed, then generating, then ready
-- **THEN** it shows the Generate button, then the progress bar with no button, then "ADDED TO YOUR DECKS"
+- **WHEN** the card is shown in the New words chat as proposed, then generating, then ready
+- **THEN** it shows the Generate button, then the progress bar with no button, then "IN YOUR WORD LIST"
+
+#### Scenario: Ready wording
+- **WHEN** a ready card of 20 words is shown in the New words chat, and the first deck (10 words) in onboarding
+- **THEN** the first says "20 WORDS · IN YOUR WORD LIST" and the second "10 WORDS · ADDED TO YOUR DECKS"
+
+#### Scenario: Size
+- **WHEN** a ready card is shown for a deck of 10 and for a deck of 30
+- **THEN** the first shows "10 WORDS" and 10 squares, the second "30 WORDS" and 30 squares
+
+#### Scenario: Translation
+- **WHEN** a card with the title "Pedir comida" and the translation "Ordering food" is shown with translations on, then off
+- **THEN** "Ordering food" shows under the title, then does not
+
+#### Scenario: Disabled
+- **WHEN** a card is shown as disabled
+- **THEN** it has no Generate button and tapping it does nothing
 
 ### Requirement: Deck card count
 While a deck is generating, its card's count SHALL go up by one about every 1.6 seconds, stop at N − 1, and jump to N when the deck is ready. Kai's `making` state shows the same progress.
