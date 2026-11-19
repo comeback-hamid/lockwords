@@ -17,7 +17,7 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 - **Settings:** all in `.do/app.yaml`. Public values are written there. `DATABASE_URL` and the database's TLS certificate come from App Platform (`${db.DATABASE_URL}`, `${db.CA_CERT}`; `.do/with-db-ca.sh` hands the certificate to Node).
 - **Secrets:** GitHub Actions secrets `DIGITALOCEAN_ACCESS_TOKEN` and `ANTHROPIC_API_KEY`. Hamid's copy is `~/.config/lockwords/secrets.env`. Never in git.
 - **Cost:** about $20 a month (server $5, database about $15).
-- **Point the app at the cloud:** in `apps/mobile/.env.local` set `EXPO_PUBLIC_API_URL=https://lockwords-rhaic.ondigitalocean.app`, `EXPO_PUBLIC_SUPABASE_URL=https://sskhsgygvdpnnokvuuyd.supabase.co` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` = the project's publishable key (Supabase dashboard → Project settings → API keys; Hamid's copy is `SUPABASE_PUBLISHABLE_KEY` in `~/.config/lockwords/secrets.env`). It is a public value, but the secret scan in CI flags it, so it is not written in git.
+- **The app and the cloud:** the app talks to the cloud by default (`apps/mobile/src/config/backend.ts` holds the server address, the Supabase address and the publishable key, which is public). The local stack is used only when `apps/mobile/.env.local` sets the three `EXPO_PUBLIC_*` values, as `npm run dev:up` does; Maestro and day-to-day development run that way. `npm run start:cloud` in `apps/mobile` runs the dev build against the cloud.
 
 ## Databases
 | Name | Used by |

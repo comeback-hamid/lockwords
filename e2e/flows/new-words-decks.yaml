@@ -71,7 +71,10 @@ tags:
     timeout: 180000
 - assertNotVisible: "Generate"
 - assertNotVisible: "Deck 1 of 3"
-# Kai says the deck is ready, and the Review tab has its red dot
+# Kai says the deck is ready, and the Review tab has its red dot (dev builds say so in a line Maestro can read)
+- extendedWaitUntil:
+    visible: "review dot on"
+    timeout: 20000
 - extendedWaitUntil:
     notVisible: "Kai is typing"
     timeout: 60000

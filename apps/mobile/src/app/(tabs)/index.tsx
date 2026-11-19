@@ -16,7 +16,7 @@ import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
-import { showReviewDot } from '@/review/dot';
+import { showReviewDot, useReviewDot } from '@/review/dot';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Kai's lines that still wait behind a typing bubble, and what comes after the last one.
@@ -32,6 +32,7 @@ const local = (from: Line['from'], text: string, tapped = false): Line => ({ id:
 export default function NewWordsScreen() {
   const router = useRouter();
   const me = useMe();
+  const reviewDot = useReviewDot();
   const [load, setLoad] = useState<'loading' | 'error' | 'ready'>('loading');
   const [attempt, setAttempt] = useState(0);
   const [lines, setLines] = useState<Line[]>([]);
@@ -342,9 +343,15 @@ export default function NewWordsScreen() {
   // Dev builds only: lets the Maestro flows check that the guest user survives a restart (as on the other tabs).
   const devId =
     __DEV__ && me ? (
-      <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
-        {me.id}
-      </Text>
+      <>
+        <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
+          {me.id}
+        </Text>
+        {/* The Review tab's red dot is a native badge with no text, which Maestro cannot see. This line says the same thing. */}
+        <Text testID="dev-review-dot" style={[type.caption, styles.dev]}>
+          {reviewDot ? 'review dot on' : 'review dot off'}
+        </Text>
+      </>
     ) : null;
 
   if (!ready)
