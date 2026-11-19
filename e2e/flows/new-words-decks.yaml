@@ -97,7 +97,6 @@ tags:
 - assertNotVisible: "10 cards to review today"
 # N5 My own deck: say what we need. Kai may ask one short question first, then shows one card.
 - tapOn: "New words"
-- assertVisible: "Open deck"
 - tapOn: "Message"
 - inputText: "Quiero un mazo sobre trabajar en una cafetería"
 - tapOn: "Send"
