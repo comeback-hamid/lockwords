@@ -6,7 +6,6 @@ import { AppState, StyleSheet } from 'react-native';
 import { createApi, type KaiChat, type KaiMessage, type KaiTurn, type KaiWord } from '@/api/client';
 import TabsLayout from '@/app/(tabs)/_layout';
 import NewWordsScreen from '@/app/(tabs)/index';
-import ReviewScreen from '@/app/(tabs)/review';
 import { api } from '@/auth/boot';
 import { SECURE_KEYS } from '@/auth/session-storage';
 import { WordCard } from '@/components/chat/word-card';
@@ -22,8 +21,10 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('expo-speech', () => ({ speak: jest.fn(), stop: jest.fn() }));
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), navigate: jest.fn(), canGoBack: () => true };
+let mockPath = '/';
 jest.mock('expo-router', () => ({
   Redirect: () => null,
+  usePathname: () => mockPath,
   useRouter: () => mockRouter,
   // The tab is in view while the screen is mounted.
   useFocusEffect: (effect: () => (() => void) | void) => {
@@ -38,13 +39,13 @@ jest.mock('expo-router/native-tabs', () => {
   const Trigger = Object.assign(part('tab'), {
     Label: ({ children }: { children: string }) => <Text>{children}</Text>,
     Icon: () => null,
-    Badge: ({ hidden, children }: { hidden?: boolean; children?: string }) => (hidden ? null : <Text testID="tab-badge">{children}</Text>),
+    Badge: () => <Text testID="tab-badge" />,
   });
   return { NativeTabs: Object.assign(part('tabs'), { Trigger }) };
 });
 jest.mock('@/onboarding/finished', () => ({ useOnboardingFinished: () => true }));
 jest.mock('@/auth/me-store', () => ({ useMe: () => ({ id: 'user-1', isGuest: true, createdAt: '' }) }));
-jest.mock('@/auth/boot', () => ({ api: { fetchKaiChat: jest.fn(), openKaiChat: jest.fn(), sendKaiMessage: jest.fn(), setKaiTranslation: jest.fn(), addKaiWord: jest.fn(), fetchRound: jest.fn() } }));
+jest.mock('@/auth/boot', () => ({ api: { fetchKaiChat: jest.fn(), openKaiChat: jest.fn(), sendKaiMessage: jest.fn(), setKaiTranslation: jest.fn(), addKaiWord: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
 const mockApi = jest.mocked(api);
@@ -74,13 +75,13 @@ beforeEach(async () => {
   jest.useFakeTimers();
   jest.clearAllMocks();
   mockStore.clear();
+  mockPath = '/';
   await clearReviewDot();
   jest.spyOn(AppState, 'addEventListener').mockImplementation(() => ({ remove: jest.fn() }) as never);
   mockApi.fetchKaiChat.mockResolvedValue(chat());
   mockApi.openKaiChat.mockResolvedValue(turn());
   mockApi.sendKaiMessage.mockResolvedValue(turn());
   mockApi.setKaiTranslation.mockResolvedValue(undefined);
-  mockApi.fetchRound.mockResolvedValue([]);
 });
 afterEach(() => {
   jest.useRealTimers();
@@ -247,14 +248,10 @@ describe('Review dot', () => {
     await act(async () => loadReviewDot());
     expect(screen.getByTestId('tab-badge')).toBeOnTheScreen();
 
-    await rerender(
-      <>
-        <TabsLayout />
-        <ReviewScreen />
-      </>,
-    );
+    // The learner opens the Review tab.
+    mockPath = '/review';
+    await rerender(<TabsLayout />);
     await settle();
-    expect(screen.getByText('All done for today')).toBeOnTheScreen();
     expect(screen.queryByTestId('tab-badge')).toBeNull();
     expect(mockStore.has('lockwords.reviewDot')).toBe(false);
     await act(async () => loadReviewDot());
