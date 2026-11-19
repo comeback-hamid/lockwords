@@ -9,7 +9,7 @@ import { startSession } from './start-session';
 import { supabase } from './supabase';
 
 export const api = createApi({
-  baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8787',
+  baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787',
   getToken: async () => (await supabase.auth.getSession()).data.session?.access_token ?? null,
 });
 

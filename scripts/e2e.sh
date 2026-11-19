@@ -18,7 +18,7 @@ xcrun simctl list devices booted | grep -q Booted || { echo "No booted iOS simul
 # Maestro saves recordings under a dated run folder. We copy them to e2e/videos/<name>.mp4 afterwards.
 run=$(mktemp -d)
 status=0
-# LOCKWORDS_METRO=127.0.0.1:<port>: the app loads its code from that Metro, not 8081 (one Metro per parallel session).
+# LOCKWORDS_METRO=localhost:<port>: the app loads its code from that Metro, not 8081 (one Metro per parallel session).
 # The flows are copied and every launchApp gets the RCT_jsLocation launch argument; the files in e2e/ do not change.
 # It matches `- launchApp` at the start of a line with no `arguments:` of its own, as every flow writes it today.
 src=e2e
