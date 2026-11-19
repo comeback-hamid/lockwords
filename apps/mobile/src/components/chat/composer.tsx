@@ -7,9 +7,14 @@ import { colors, layout, radius, space, type } from '@/theme/theme';
 // Figma Composer: text box + one round button (mic when empty, green send when there is text).
 // `mic={false}` is for text-only screens: no round button until there is text. `defaultValue` puts a text back in the box.
 // `canSend={false}` (Kai is still answering): the learner can keep typing, the text stays in the box, and send waits.
-type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string; canSend?: boolean };
-export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '', canSend = true }: Props) {
-  const [text, setText] = useState(defaultValue);
+// onTextChange: the screen hears typing (Kai listens while there is text).
+type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string; canSend?: boolean; onTextChange?(text: string): void };
+export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '', canSend = true, onTextChange }: Props) {
+  const [text, setTextState] = useState(defaultValue);
+  const setText = (t: string) => {
+    setTextState(t);
+    onTextChange?.(t);
+  };
   const ready = text.trim() !== '';
   const send = () => {
     if (!ready || !canSend) return;

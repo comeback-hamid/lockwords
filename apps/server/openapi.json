@@ -688,6 +688,101 @@
           "stage"
         ]
       },
+      "KaiReply": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "onScript": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "answer": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "onScript",
+              "answer"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "onScript": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "minItems": 1,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "onScript",
+              "lines"
+            ]
+          }
+        ]
+      },
+      "KaiUnavailable": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "kai_unavailable"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiReplyRequest": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string",
+            "enum": [
+              "name",
+              "language",
+              "topic",
+              "proposed",
+              "generating",
+              "ready"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 6
+          }
+        },
+        "required": [
+          "step",
+          "text"
+        ]
+      },
       "KaiChat": {
         "type": "object",
         "properties": {
@@ -832,20 +927,6 @@
             "type": "string",
             "enum": [
               "too_many_messages"
-            ]
-          }
-        },
-        "required": [
-          "error"
-        ]
-      },
-      "KaiUnavailable": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "enum": [
-              "kai_unavailable"
             ]
           }
         },
@@ -1725,6 +1806,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CheckFailed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/reply": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KaiReplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The text answers the step (answer), or Kai answers it (lines)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiReply"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown step, or text empty or too long",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The AI call failed; the app takes the text as the answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiUnavailable"
                 }
               }
             }

@@ -96,7 +96,7 @@ export function deckRoutes(deps: Deps) {
       const profile = await need('profiles').get(userId);
       if (!profile) return c.json({ error: 'no_profile' as const }, 409);
       const cefr = profile.cefr ?? 'A1';
-      const proposal = await need('deckMaker').propose({ topic, learningLanguage: profile.learningLanguage, nativeLanguage: profile.nativeLanguage, cefr });
+      const proposal = await need('deckMaker').propose({ topic, learningLanguage: profile.learningLanguage, nativeLanguage: profile.nativeLanguage, cefr, level: profile.level, knownWords: profile.knownWords, goal: profile.goal, goalOther: profile.goalOther, interests: profile.interests });
       return c.json(await need('decks').create(userId, { topic, cefr, ...proposal }), 201);
     })
     .openapi(postGenerate, async (c) => {

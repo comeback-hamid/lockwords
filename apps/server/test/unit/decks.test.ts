@@ -155,14 +155,14 @@ test('decks are private: another user or an unknown id gets 404', async () => {
 });
 
 test('claudeDeckMaker: sends the key, reads JSON from the answer, refuses a bad answer', async () => {
-  const cards = await fixtureDeckMaker.cards({ topic: 'Ordering food', learningLanguage: 'es', nativeLanguage: 'en', cefr: 'A2+' });
+  const cards = await fixtureDeckMaker.cards({ ...profile, topic: 'Ordering food', cefr: 'A2+' });
   const calls: { url: string; headers: Record<string, string>; body: { model: string; messages: { content: string }[] } }[] = [];
   const fakeFetch = (text: string, ok = true) =>
     (async (url: string, init: RequestInit) => {
       calls.push({ url, headers: init.headers as Record<string, string>, body: JSON.parse(String(init.body)) });
       return new Response(JSON.stringify({ content: [{ type: 'text', text }] }), { status: ok ? 200 : 500 });
     }) as unknown as typeof fetch;
-  const input = { topic: 'Ordering food', learningLanguage: 'es', nativeLanguage: 'en', cefr: 'A2+' };
+  const input = { ...profile, topic: 'Ordering food', cefr: 'A2+' };
 
   const good = claudeDeckMaker('sk-test', fakeFetch('Here you go:\n```json\n' + JSON.stringify({ cards }) + '\n```'));
   expect(await good.cards(input)).toEqual(cards);

@@ -5,12 +5,11 @@ import { AppState, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSh
 import type { KaiMessage, KaiTurnResult } from '@/api/client';
 import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
-import { ChatBubble } from '@/components/chat/chat-bubble';
+import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
-import { TypingBubble } from '@/components/chat/typing-bubble';
 import { LoadError } from '@/components/load-state';
 import { languageCode, REVIEW_DELAY_MS, TOO_MANY, typingMs } from '@/new-words/chat';
 import { colors, layout, space, type } from '@/theme/theme';

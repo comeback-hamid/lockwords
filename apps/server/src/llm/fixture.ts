@@ -1,3 +1,4 @@
+import type { KaiReplier } from './kai-reply.js';
 import type { DeckMaker } from './make-deck.js';
 import type { UseItJudge } from './use-it.js';
 
@@ -33,5 +34,38 @@ export const fixtureUseItJudge: UseItJudge = {
     return sentence.toLowerCase().includes(bare.toLowerCase())
       ? { good: true, lines: ['🎉 **Great sentence!**', `👍 You used **${bare}** in the right place.`] }
       : { good: false, lines: [`🤔 I can’t find **${bare}** in your sentence.`, 'Try again with the word.'] };
+  },
+};
+
+const languageName = (code: string) => {
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+};
+
+// Kai's reply without a model: a question, or a long text that is not a name, is off the script.
+const OFF = (line: string) => ({ onScript: false as const, lines: [line] });
+export const fixtureKaiReplier: KaiReplier = {
+  reply: async ({ step, text, options, nativeLanguage, learningLanguage }) => {
+    const t = text.trim(), low = t.toLowerCase();
+    const question = t.includes('?');
+    if (step === 'proposed' || step === 'generating') return OFF('😊 Good question! I’ll tell you more once your **words** are ready.');
+    if (step === 'name') {
+      if (question || t.split(/\s+/).length > 4) return OFF('😊 So I can **greet you** by name!');
+      const caps = t.split(/\s+/).filter((w) => /^\p{Lu}/u.test(w) && !/^I('|’)m$/.test(w));
+      return { onScript: true, answer: (caps.at(-1) ?? t).replace(/[.,!]+$/, '').slice(0, 40) };
+    }
+    if (step === 'language') {
+      const has = (name: string | undefined) => !!name && low.includes(name.toLowerCase());
+      if (has(options[0]) || has(languageName(nativeLanguage))) return { onScript: true, answer: 'native' };
+      if (has(options[1]) || has(languageName(learningLanguage))) return { onScript: true, answer: 'target' };
+      return OFF('🙂 I can chat in **' + (options[0] ?? 'English') + '** or **' + (options[1] ?? 'Spanish') + '**.');
+    }
+    if (step === 'topic') return question ? OFF('💡 Any topic works: **food**, **travel**, **work**…') : { onScript: true, answer: t.slice(0, 80) };
+    if (/practi|now|yes|let/.test(low)) return { onScript: true, answer: 'practice' };
+    if (/word|first|see|look/.test(low)) return { onScript: true, answer: 'wordsFirst' };
+    return OFF('💪 Practice now, or look at the **words** first?');
   },
 };

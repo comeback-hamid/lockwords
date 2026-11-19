@@ -883,6 +883,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/kai/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["KaiReplyRequest"];
+                };
+            };
+            responses: {
+                /** @description The text answers the step (answer), or Kai answers it (lines) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiReply"];
+                    };
+                };
+                /** @description Unknown step, or text empty or too long */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The AI call failed; the app takes the text as the answer */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiUnavailable"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/kai/chat": {
         parameters: {
             query?: never;
@@ -1231,6 +1297,25 @@ export interface components {
             movedUp: boolean;
             stage: number;
         };
+        KaiReply: {
+            /** @enum {boolean} */
+            onScript: true;
+            answer: string;
+        } | {
+            /** @enum {boolean} */
+            onScript: false;
+            lines: string[];
+        };
+        KaiUnavailable: {
+            /** @enum {string} */
+            error: "kai_unavailable";
+        };
+        KaiReplyRequest: {
+            /** @enum {string} */
+            step: "name" | "language" | "topic" | "proposed" | "generating" | "ready";
+            text: string;
+            options?: string[];
+        };
         KaiChat: {
             messages: components["schemas"]["KaiMessage"][];
             options: string[];
@@ -1263,10 +1348,6 @@ export interface components {
         KaiTooManyMessages: {
             /** @enum {string} */
             error: "too_many_messages";
-        };
-        KaiUnavailable: {
-            /** @enum {string} */
-            error: "kai_unavailable";
         };
         KaiTurnRequest: {
             text?: string;

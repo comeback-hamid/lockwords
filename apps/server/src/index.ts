@@ -13,8 +13,8 @@ import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
 import { fixtureLanguageChecker } from './llm/check-language.js';
-import { claudeDeckMaker, claudeKaiChat, claudeLanguageChecker, claudeUseItJudge } from './llm/claude.js';
-import { fixtureDeckMaker, fixtureUseItJudge } from './llm/fixture.js';
+import { claudeDeckMaker, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeUseItJudge } from './llm/claude.js';
+import { fixtureDeckMaker, fixtureKaiReplier, fixtureUseItJudge } from './llm/fixture.js';
 import { fixtureKaiChat } from './llm/kai-chat.js';
 import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
@@ -45,6 +45,7 @@ const app = createApp({
   wordTests: createWordTestStore(db),
   // No key = a typed language gets no word test (the listed 13 always have one).
   wordPackMaker: env.ANTHROPIC_API_KEY ? claudeWordPackMaker(env.ANTHROPIC_API_KEY) : fixtureWordPackMaker,
+  kaiReplier: env.ANTHROPIC_API_KEY ? claudeKaiReplier(env.ANTHROPIC_API_KEY) : fixtureKaiReplier,
 });
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`server on http://localhost:${info.port}`);

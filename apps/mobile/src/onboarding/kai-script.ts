@@ -30,6 +30,39 @@ export const LINES = {
   ready: 'Your deck is **ready**! 🎉 Tap it any time to see the words.',
   practice: 'Shall we practice them now? 💪',
 } as const;
+// After Kai answers something off the script, it asks the step's question again.
+export const BACK: Record<Step, string> = {
+  name: 'So, what’s your name? 😊',
+  language: 'Which language should we chat in?',
+  topic: 'So, what do you want to learn? 🌮',
+  proposed: 'Tap **Generate** when you’re ready ✨',
+  generating: 'Your words are almost ready ⏳',
+  ready: 'Shall we practice them now? 💪',
+};
+
+// Kai's state follows the chat (kai-chat-live). One place decides it, in this order.
+export const QUIET_MS = 20_000;
+export type ChatMoment = {
+  step: Step;
+  opened: boolean; // the chat just opened, nothing typed yet
+  typing: boolean; // a dots bubble shows
+  waiting: boolean; // the app waits for the server
+  composerText: boolean; // the user is typing
+  quiet: boolean; // the user's turn, nothing happened for QUIET_MS
+  failed: boolean; // a server call just failed
+};
+export function kaiStateFor(m: ChatMoment): KaiState {
+  if (m.failed) return 'oops';
+  if (m.step === 'generating') return 'making';
+  if (m.waiting) return 'thinking';
+  if (m.typing) return 'speaking';
+  if (m.composerText) return 'listening';
+  if (m.quiet) return 'waiting';
+  if (m.step === 'ready') return 'celebrate';
+  if (m.opened) return 'greeting';
+  return 'idle';
+}
+
 export const REPLIES = { practice: 'OK, let’s practice!', wordsFirst: 'Show me the words first', tryAgain: 'Try again' } as const;
 
 // Each language under its own name, as in Figma ("English", "Español").

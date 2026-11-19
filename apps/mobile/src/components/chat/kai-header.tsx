@@ -12,7 +12,8 @@ import { colors, layout, lift, space } from '@/theme/theme';
 const KAI_WIDTH = 150;
 
 // `right` is a small control at the top right, next to Kai (the translation button on New words).
-export function KaiHeader({ pose, back = true, icon = 'back', right }: { pose: KaiState; back?: boolean; icon?: 'back' | 'close'; right?: ReactNode }) {
+// progress (0 to 1) feeds Kai's `making` state while a deck is made.
+export function KaiHeader({ pose, back = true, icon = 'back', right, progress }: { pose: KaiState; back?: boolean; icon?: 'back' | 'close'; right?: ReactNode; progress?: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -23,7 +24,7 @@ export function KaiHeader({ pose, back = true, icon = 'back', right }: { pose: K
         </Pressable>
       ) : null}
       {right ? <View style={[styles.right, { top: insets.top + space[8] }]}>{right}</View> : null}
-      <Kai state={pose} size={KAI_WIDTH} />
+      <Kai state={pose} size={KAI_WIDTH} progress={progress} />
     </View>
   );
 }
