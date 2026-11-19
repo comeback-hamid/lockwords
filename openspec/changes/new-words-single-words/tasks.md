@@ -12,12 +12,19 @@
 - [x] 2.1 Tests first: word card (all parts, always-on meaning, speaker language), the button (name from the server, busy, Added, Already, fails, kept after restart), the Review dot. Run them, see them fail.
 - [x] 2.2 `npm run api:gen`; `api.addKaiWord` in `src/api/client.ts`.
 - [x] 2.3 `components/chat/word-card.tsx` and the New words screen showing it. Verify: `npm test`, `npm run typecheck`, `npm run lint` green.
-- [ ] 2.4 Maestro flow `e2e/flows/new-words-single-words.yaml` (tag `new-words`): ask how to say a word, see the card, add it, see "Added" and the Review dot, open Review and see the word. Records `e2e/videos/new-words-single-words.mp4`. All other flows still pass.
-- [ ] 2.5 Real AI check: 20 "how do I say" and "what does it mean" answers in Spanish and one non-Latin language, read for the right word, a natural example and the right translation. Results in the PR.
+- [x] 2.4 Maestro flow `e2e/flows/new-words-single-words.yaml` (tag `new-words`): ask how to say a word, see the card, add it, see "Added" and the Review dot, open Review and see the word. Records `e2e/videos/new-words-single-words.mp4`. All other flows still pass.
+- [x] 2.5 Real AI check: 20 "how do I say" and "what does it mean" answers in Spanish and one non-Latin language, read for the right word, a natural example and the right translation. Results in the PR.
 
 ## 3. Docs
 
 - [ ] 3.1 `docs/roadmap.md` (epic 4).
+
+## Results
+
+- **Maestro (2.4):** `new-words-single-words` passes with the stand-in AI, and all 14 flows passed in one plain `npm run e2e` (2026-11-19). The video at `e2e/videos/new-words-single-words.mp4` is from a run with the real AI (the word was "el paraguas").
+  Not asserted by Maestro: the Review dot. The native tab badge has no text and no accessibility value, so a flow cannot see it. It is tested in Jest and is seen in the video.
+  For the real-AI video the flow ran from a copy whose shared onboarding steps wait for the chat to stop scrolling before the tap on "Generate" (with the real AI that first tap is lost now and then). The files in `e2e/` are as committed.
+- **Real AI check (2.5):** 20 answers read by hand with `npx tsx scripts/kai-words-try.ts` (14 Spanish, 6 Persian; "how do I say", "what does it mean", a word to keep, "another way", and questions that must get no card). First read: 19 of 20 right; "another way to say it" gave no card, one card had an emoji in the example and bold marks in its translation. After a tighter prompt and taking bold marks out of the plain fields: 20 of 20, right words, natural examples, right translations.
 
 ## Decisions made while building (not in the spec)
 
