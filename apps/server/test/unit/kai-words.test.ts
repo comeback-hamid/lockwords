@@ -46,6 +46,12 @@ test('answer shape: a word with a missing or empty field, or a word over 60 char
   expect(KaiAnswerSchema.safeParse({ lines: [line], word: 'para llevar' }).success).toBe(false);
 });
 
+test('bold marks in the word, the meaning and the example translation are taken out; the example keeps them', () => {
+  const w = KaiWordSchema.parse({ word: '**para llevar**', translation: '**to go**', example: 'Un café **para llevar**.', exampleTranslation: 'A coffee **to go**.' });
+  expect(w).toEqual({ word: 'para llevar', translation: 'to go', example: 'Un café **para llevar**.', exampleTranslation: 'A coffee to go.' });
+  expect(KaiWordSchema.safeParse({ ...word, word: '****' }).success).toBe(false);
+});
+
 test('the example on a card is plain text: the marks around the word are taken out', () => {
   expect(cardExample('Un café **para llevar**, por favor.')).toBe('Un café para llevar, por favor.');
 });
@@ -54,7 +60,7 @@ test('the example on a card is plain text: the marks around the word are taken o
 test('prompt always carries the word-card rule and the shape of "word"', () => {
   for (const c of [ctx(), ctx({ opening: true, firstVisit: true, userText: null }), ctx({ cefr: 'C1' })]) {
     const p = buildKaiPrompt(c).system;
-    for (const part of ['word card', 'how to say', 'what a word means', '"word"', '"translation"', '"example"', '"exampleTranslation"', 'no card', 'Another way to say it']) expect(p).toContain(part);
+    for (const part of ['word card', 'how to say', 'what a word means', '"word"', '"translation"', '"example"', '"exampleTranslation"', 'no card', 'Another way to say it', 'no emoji']) expect(p).toContain(part);
   }
 });
 

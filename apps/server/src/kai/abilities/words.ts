@@ -5,11 +5,17 @@ import { z } from 'zod';
 // Adding it to a "Random Words N" deck is in src/decks/random-words.ts.
 
 export const MAX_WORD_CHARS = 60;
+// Plain text: bold marks the model adds anyway are taken out before the length is checked.
+const plain = (max: number) =>
+  z
+    .string()
+    .transform((t) => t.replaceAll('**', '').trim())
+    .pipe(z.string().min(1).max(max));
 export const KaiWordSchema = z.object({
-  word: z.string().trim().min(1).max(MAX_WORD_CHARS),
-  translation: z.string().trim().min(1).max(120),
+  word: plain(MAX_WORD_CHARS),
+  translation: plain(120),
   example: z.string().trim().min(1).max(300), // the word may be marked **like this**; the card shows it green
-  exampleTranslation: z.string().trim().min(1).max(300),
+  exampleTranslation: plain(300),
 });
 export type KaiWord = z.infer<typeof KaiWordSchema>;
 // What a chat message shows: the word, the deck that would take it now (or took it), and what happened to it.
@@ -28,7 +34,8 @@ export function wordPromptPart(L: string, N: string): string[] {
     `- Give a word card when the learner asks how to say something in ${L}, asks what a word means, or names a word they want to keep. Then write 1 short line and set "word": {"word", "translation", "example", "exampleTranslation"}.`,
     `- "word": the ${L} word or short phrase (at most ${MAX_WORD_CHARS} characters), as a dictionary shows it (nouns with their article where ${L} has one). "translation": its meaning in ${N}, short. "example": one natural, simple sentence in ${L} that uses the word, with the word marked in **bold**. "exampleTranslation": that sentence in ${N}, plain text.`,
     `- One card per answer, for the most useful word. Every other language question (grammar, the difference between two words, culture) gets a short answer with no card: leave "word" null.`,
-    `- After a word card you may give the one option that means "Another way to say it" in ${L}. If they tap it, give a card with a different word that means the same.`,
+    `- The four card fields have no emoji. Only "example" has bold marks.`,
+    `- After a word card you may give the one option that means "Another way to say it" in ${L}. When the learner says or taps that, answer with a new card: a different ${L} word or phrase with the same meaning as the last card (never the same word again). If there is no other common way, say so in one line with no card.`,
     `- Now and then, not often, remind the learner in one short line that they can ask you how to say something.`,
   ];
 }
