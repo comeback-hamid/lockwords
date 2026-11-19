@@ -76,12 +76,23 @@ tags:
     notVisible: "Kai is typing"
     timeout: 60000
 - waitForAnimationToEnd
-# The ready card opens the deck page (pull the chat down a little first: with long lines the card's middle sits under Kai's header)
-- swipe:
-    start: "50%, 40%"
-    end: "50%, 62%"
-    duration: 400
-- tapOn: "Open deck"
+# The ready card opens the deck page. With long lines the card's middle can sit under Kai's header, where a tap does
+# nothing: pull the chat down a little and tap, until the deck page (it has a Close button) is open.
+- repeat:
+    times: 4
+    while:
+      notVisible: "Close"
+    commands:
+      - swipe:
+          start: "50%, 40%"
+          end: "50%, 60%"
+          duration: 400
+      - waitForAnimationToEnd
+      - tapOn: "Open deck"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Close"
+    timeout: 20000
 - extendedWaitUntil:
     visible: ".* WORDS"
     timeout: 20000
