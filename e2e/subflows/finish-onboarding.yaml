@@ -66,6 +66,10 @@ appId: com.comebackhamid.lockwords
 - extendedWaitUntil:
     visible: "Generate"
     timeout: 20000
+# The Generate button cannot be tapped while Kai still types the line under the card. Wait for that line, then tap.
+- extendedWaitUntil:
+    visible: ".*Tap Generate.*"
+    timeout: 20000
 - tapOn: "Generate"
 # O10e → O10f deck ready
 - extendedWaitUntil:
