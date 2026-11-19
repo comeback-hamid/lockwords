@@ -40,6 +40,7 @@ export const decks = pgTable('decks', {
   titleTranslation: text('title_translation'), // the title in the native language; only decks Kai offers in the New words chat
   wordCount: integer('word_count').notNull().default(10), // how many cards the deck gets: 10 in onboarding, 10 to 30 from the chat
   kind: text('kind').notNull().default('topic'), // 'topic' | 'random' ("Random Words N": single words from the chat)
+  removedAt: timestamp('removed_at', { withTimezone: true }), // set = the learner removed the deck. A mark, not a delete: chat messages point at decks.
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -58,6 +59,7 @@ export const cards = pgTable('cards', {
   known: boolean('known').notNull().default(false), // swiped up: never shown again
   hard: boolean('hard').notNull().default(false), // swiped left: goes to the lock screen
   lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }), // last swipe or Use it; Kai tells the learner how much they practiced
+  removedAt: timestamp('removed_at', { withTimezone: true }), // set = removed by the learner (the card alone, or with its deck). Every reader skips it.
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

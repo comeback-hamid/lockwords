@@ -1,15 +1,15 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, isNull, ne } from 'drizzle-orm';
 
 import type { DecksStore } from '../app.js';
 import type { createDb } from './client.js';
 import { cards, decks } from './schema.js';
 
 export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksStore {
-  // null for an unknown id and for another user's deck: callers cannot tell them apart.
+  // null for an unknown id, another user's deck and a removed deck: callers cannot tell them apart.
   async function get(userId: string, id: string) {
-    const [deck] = await db.select().from(decks).where(and(eq(decks.id, id), eq(decks.userId, userId)));
+    const [deck] = await db.select().from(decks).where(and(eq(decks.id, id), eq(decks.userId, userId), isNull(decks.removedAt)));
     if (!deck) return null;
-    const rows = await db.select().from(cards).where(eq(cards.deckId, id)).orderBy(asc(cards.position));
+    const rows = await db.select().from(cards).where(and(eq(cards.deckId, id), isNull(cards.removedAt))).orderBy(asc(cards.position));
     return {
       id: deck.id,
       topic: deck.topic,
@@ -37,6 +37,20 @@ export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksSt
         return deck!.userId;
       });
       return (await get(userId, id))!;
+    },
+    async remove(userId, id) {
+      return db.transaction(async (tx) => {
+        const now = new Date();
+        // One statement decides: the caller's deck, not removed, not being made. So a job that starts now cannot slip in between.
+        const mine = and(eq(decks.id, id), eq(decks.userId, userId), isNull(decks.removedAt));
+        const [gone] = await tx.update(decks).set({ removedAt: now }).where(and(mine, ne(decks.status, 'generating'))).returning({ id: decks.id });
+        if (!gone) {
+          const [busy] = await tx.select({ id: decks.id }).from(decks).where(mine);
+          return busy ? ('generating' as const) : ('not_found' as const);
+        }
+        await tx.update(cards).set({ removedAt: now }).where(and(eq(cards.deckId, id), isNull(cards.removedAt)));
+        return 'removed' as const;
+      });
     },
   };
 }

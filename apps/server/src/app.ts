@@ -35,6 +35,8 @@ export type DecksStore = {
   create(userId: string, deck: Pick<Deck, 'topic' | 'title' | 'reason' | 'cefr'>): Promise<Deck>; // a deck of 10 with no title translation (onboarding)
   get(userId: string, id: string): Promise<Deck | null>; // null also for another user's deck
   saveCards(id: string, cards: NewCard[]): Promise<Deck>; // also sets the deck to ready
+  // Marks the deck and its cards as removed. `not_found` also for another user's deck. Optional so older test fakes still fit.
+  remove?(userId: string, id: string): Promise<'removed' | 'not_found' | 'generating'>;
 };
 export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number };
 export type CardsStore = {
@@ -43,6 +45,7 @@ export type CardsStore = {
   save(id: string, patch: CardState): Promise<void>;
   hardWords(userId: string): Promise<{ word: string; translation: string }[]>;
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
+  remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
 export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore };

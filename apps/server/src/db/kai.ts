@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 
 import { toChatDecks } from '../kai/abilities/decks.js';
 import { nextRandomDeckTitle } from '../decks/random-words.js';
@@ -26,7 +26,7 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
     const ids = rows.flatMap((r) => r.deckIds);
     if (ids.length === 0) return messages;
     const [found, [newest]] = await Promise.all([
-      tx.select().from(decks).where(and(eq(decks.userId, userId), inArray(decks.id, ids))),
+      tx.select().from(decks).where(and(eq(decks.userId, userId), inArray(decks.id, ids), isNull(decks.removedAt))), // a removed deck is left out of the chat
       tx
         .select({ id: kaiMessages.id })
         .from(kaiMessages)
@@ -73,7 +73,7 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
     },
     async facts(userId, now) {
       // Cards the learner can meet in Review: ready decks, not marked "I know it".
-      const ready = and(eq(decks.userId, userId), eq(decks.status, 'ready'));
+      const ready = and(eq(decks.userId, userId), eq(decks.status, 'ready'), isNull(decks.removedAt), isNull(cards.removedAt)); // removed cards and decks do not count
       const live = and(ready, eq(cards.known, false));
       const mine = () => db.select({ n: sql<number>`count(*)::int` }).from(cards).innerJoin(decks, eq(cards.deckId, decks.id));
       const [[p], [total], [reviewed], [due], [fresh], sample] = await Promise.all([
@@ -96,7 +96,7 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         db
           .select({ topic: decks.topic })
           .from(decks)
-          .where(and(eq(decks.userId, userId), status === 'made' ? inArray(decks.status, ['ready', 'generating']) : eq(decks.status, 'proposed')))
+          .where(and(eq(decks.userId, userId), isNull(decks.removedAt), status === 'made' ? inArray(decks.status, ['ready', 'generating']) : eq(decks.status, 'proposed')))
           .orderBy(desc(decks.createdAt))
           .limit(status === 'made' ? 30 : 15);
       const [made, offered] = await Promise.all([topics('made'), topics('offered')]);

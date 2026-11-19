@@ -2,10 +2,10 @@
 
 ## 1. Server
 
-- [ ] 1.1 Tests first: integration tests for removing a card (204, deck and `wordCount` follow, 404 for another user, unknown id and a second time), removing a deck (204, then 404 everywhere, another user 404, `generating` 409, a `proposed` idea), the round, hard words, swipe and Use it after a removal, Random Words (room again, removed deck → next number, a removed word can be added again), the chat (removed deck left out, "deck ready" 404) and Kai's facts. Unit tests for the routes with fake stores and for the deck number. Run them, see them fail.
-- [ ] 1.2 Columns `decks.removed_at` and `cards.removed_at`, one migration (`ADD COLUMN IF NOT EXISTS`).
-- [ ] 1.3 `DecksStore.remove`, `CardsStore.remove`, the two routes; every reader skips removed rows (`db/decks.ts`, `db/cards.ts`, `decks/random-words.ts`, `db/kai.ts`).
-- [ ] 1.4 `npm run openapi`. Verify: `npm test`, `npm run test:integration`, `npm run typecheck`, `npm run lint` green.
+- [x] 1.1 Tests first: integration tests for removing a card (204, deck and `wordCount` follow, 404 for another user, unknown id and a second time), removing a deck (204, then 404 everywhere, another user 404, `generating` 409, a `proposed` idea), the round, hard words, swipe and Use it after a removal, Random Words (room again, removed deck → next number, a removed word can be added again), the chat (removed deck left out, "deck ready" 404) and Kai's facts. Unit tests for the routes with fake stores and for the deck number. Run them, see them fail.
+- [x] 1.2 Columns `decks.removed_at` and `cards.removed_at`, one migration (`ADD COLUMN IF NOT EXISTS`).
+- [x] 1.3 `DecksStore.remove`, `CardsStore.remove`, the two routes; every reader skips removed rows (`db/decks.ts`, `db/cards.ts`, `decks/random-words.ts`, `db/kai.ts`).
+- [x] 1.4 `npm run openapi`. Verify: `npm test`, `npm run test:integration`, `npm run typecheck`, `npm run lint` green.
 
 ## 2. Mobile
 
