@@ -109,6 +109,15 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async fetchDeck(id: string): Promise<Deck> {
       return unwrap(await client.GET('/v1/decks/{id}', { params: { path: { id } } }));
     },
+    // Removing answers 204 with no body. Anything else (not found, a deck still being made, no network) throws.
+    async removeCard(id: string): Promise<void> {
+      const { response } = await client.DELETE('/v1/cards/{id}', { params: { path: { id } } });
+      if (!response.ok) throw new Error('request failed');
+    },
+    async removeDeck(id: string): Promise<void> {
+      const { response } = await client.DELETE('/v1/decks/{id}', { params: { path: { id } } });
+      if (!response.ok) throw new Error('request failed');
+    },
     async fetchRound(): Promise<ReviewCard[]> {
       return unwrap(await client.GET('/v1/review')).cards;
     },

@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-import type { DecksStore, ProfilesStore } from '../app.js';
+import type { CardsStore, DecksStore, ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { ideasFor } from '../decks/ideas.js';
 import { inlineDeckJobs, type DeckJobs } from '../decks/jobs.js';
@@ -13,6 +13,7 @@ const BadRequest = error('bad_request', 'BadRequest');
 const NoProfile = error('no_profile', 'NoProfile');
 const NotFound = error('not_found', 'NotFound');
 const GenerationFailed = error('generation_failed', 'GenerationFailed');
+const DeckGenerating = error('deck_generating', 'DeckGenerating');
 const unauthorized = { 401: json(UnauthorizedSchema, 'No valid login token') };
 const security = [{ bearer: [] }];
 
@@ -67,8 +68,23 @@ const getDeck = createRoute({
   request: { params: idParam },
   responses: { 200: json(DeckSchema, 'The deck with its cards'), 404: json(NotFound, 'No such deck'), ...unauthorized },
 });
+// Removing: the learner takes a word or a whole deck out of their word list. A mark in the database, never a real delete.
+const deleteDeck = createRoute({
+  method: 'delete',
+  path: '/decks/{id}',
+  security,
+  request: { params: idParam },
+  responses: { 204: { description: 'The deck and its cards are removed' }, 404: json(NotFound, 'No such deck'), 409: json(DeckGenerating, 'The deck is being made; try again when it is ready'), ...unauthorized },
+});
+const deleteCard = createRoute({
+  method: 'delete',
+  path: '/cards/{id}',
+  security,
+  request: { params: idParam },
+  responses: { 204: { description: 'The card is removed' }, 404: json(NotFound, 'No such card'), ...unauthorized },
+});
 
-type Deps = { profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; deckJobs?: DeckJobs; deckWaitMs?: number };
+type Deps = { profiles?: ProfilesStore; decks?: DecksStore; cards?: CardsStore; deckMaker?: DeckMaker; deckJobs?: DeckJobs; deckWaitMs?: number };
 
 const POLL_MS = 300;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -82,6 +98,12 @@ export function deckRoutes(deps: Deps) {
     const dep = deps[key];
     if (!dep) throw new Error(`${key} is not set`);
     return dep as NonNullable<Deps[K]>;
+  };
+  // `remove` is optional on the store types (older test fakes); the real stores always have it.
+  const remover = <K extends 'decks' | 'cards'>(key: K) => {
+    const store = need(key);
+    if (!store.remove) throw new Error(`${key}.remove is not set`);
+    return store.remove.bind(store) as NonNullable<NonNullable<Deps[K]>['remove']>;
   };
   const app = new OpenAPIHono<{ Variables: { user: AuthUser } }>({
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
@@ -130,5 +152,16 @@ export function deckRoutes(deps: Deps) {
       const { id } = c.req.valid('param');
       const deck = isUuid(id) ? await need('decks').get(c.get('user').id, id) : null;
       return deck ? c.json(out(deck), 200) : c.json({ error: 'not_found' as const }, 404);
+    })
+    .openapi(deleteDeck, async (c) => {
+      const { id } = c.req.valid('param');
+      const result = isUuid(id) ? await remover('decks')(c.get('user').id, id) : 'not_found';
+      if (result === 'removed') return c.body(null, 204);
+      return result === 'generating' ? c.json({ error: 'deck_generating' as const }, 409) : c.json({ error: 'not_found' as const }, 404);
+    })
+    .openapi(deleteCard, async (c) => {
+      const { id } = c.req.valid('param');
+      const removed = isUuid(id) && (await remover('cards')(c.get('user').id, id));
+      return removed ? c.body(null, 204) : c.json({ error: 'not_found' as const }, 404);
     });
 }

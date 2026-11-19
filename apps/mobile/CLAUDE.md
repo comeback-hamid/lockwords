@@ -35,6 +35,7 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 - The paywall sells nothing yet (no RevenueCat). Both buttons open the app.
 - `src/auth/`: silent guest sign-in at start (`boot.ts`), Supabase client, session kept in SecureStore (`session-storage.ts`).
 - `assets/kai/`: still SVG poses, for widgets only (screens use the live `Kai`). `assets/tabs/`: tab bar icons exported from Figma as PNG (1x, 2x, 3x). Native tabs take PNG or SF Symbols, not our SVG `Icon`.
+- Deck page (`src/app/deck/[id].tsx`, Figma N7): a word row slides left (`SwipeRow`, PanResponder like the review card) to show the red Delete; each row also has the accessibility action "Delete" (tests use it). "Remove deck" asks with the system pop-up, then goes back. `api.removeCard` / `api.removeDeck` answer nothing (`204`) and throw on any other answer.
 - `api.generateDeck` waits for the server's background job (it reads the deck again while the status is `generating`).
 
 ## Rules

@@ -64,6 +64,13 @@
       "when": 1795116034299,
       "tag": "0008_concerned_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795122325449,
+      "tag": "0009_slow_tinkerer",
+      "breakpoints": true
     }
   ]
 }

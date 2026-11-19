@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 import type { createDb } from '../db/client.js';
 import { cards, decks, kaiMessages, profiles } from '../db/schema.js';
@@ -10,9 +10,10 @@ import { cardExample } from '../kai/abilities/words.js';
 export const RANDOM_DECK_SIZE = 30;
 export const randomDeckTitle = (n: number) => `Random Words ${n}`;
 
-// `existing`: the user's Random Words decks, newest first. `id: null` = make deck number `number`.
-export function pickRandomDeck(existing: readonly { id: string; count: number }[]): { id: string | null; number: number } {
-  const at = existing.findIndex((d) => d.count < RANDOM_DECK_SIZE);
+// `existing`: every Random Words deck the user ever had, newest first. `id: null` = make deck number `number`.
+// A removed deck never takes a word, but it keeps its number: a title is never used twice.
+export function pickRandomDeck(existing: readonly { id: string; count: number; removed?: boolean }[]): { id: string | null; number: number } {
+  const at = existing.findIndex((d) => !d.removed && d.count < RANDOM_DECK_SIZE);
   return at < 0 ? { id: null, number: existing.length + 1 } : { id: existing[at]!.id, number: existing.length - at };
 }
 
@@ -27,7 +28,11 @@ type Reader = Pick<Db, 'select'>; // the database or a transaction
 
 const randomDecksOf = (db: Reader, userId: string) =>
   db
-    .select({ id: decks.id, count: sql<number>`(select count(*)::int from cards where cards.deck_id = decks.id)` /* plain names: Drizzle drops the table name inside a one-table select */ })
+    .select({
+      id: decks.id,
+      count: sql<number>`(select count(*)::int from cards where cards.deck_id = decks.id and cards.removed_at is null)` /* plain names: Drizzle drops the table name inside a one-table select */,
+      removed: sql<boolean>`decks.removed_at is not null`,
+    })
     .from(decks)
     .where(and(eq(decks.userId, userId), eq(decks.kind, 'random')))
     .orderBy(desc(decks.createdAt), desc(decks.title));
@@ -53,14 +58,16 @@ export function createRandomWordsStore(db: Db): RandomWordsStore {
           await tx.update(kaiMessages).set({ word: { ...word, result } }).where(eq(kaiMessages.id, messageId));
           return { ok: true as const, result };
         };
-        const countIn = async (deckId: string) => (await tx.select({ n: sql<number>`count(*)::int` }).from(cards).where(eq(cards.deckId, deckId)))[0]?.n ?? 0;
+        // Cards the learner still has in a deck, and the place for a new one (after every card, removed ones too, so the order holds).
+        const countIn = async (deckId: string) => (await tx.select({ n: sql<number>`count(*)::int` }).from(cards).where(and(eq(cards.deckId, deckId), isNull(cards.removedAt))))[0]?.n ?? 0;
+        const nextPosition = async (deckId: string) => (await tx.select({ n: sql<number>`coalesce(max(${cards.position}) + 1, 0)::int` }).from(cards).where(eq(cards.deckId, deckId)))[0]?.n ?? 0;
 
         // Already in the learner's words (any deck, capital letters ignored): nothing is added.
         const [have] = await tx
           .select({ deckId: decks.id, deckTitle: decks.title })
           .from(cards)
           .innerJoin(decks, eq(cards.deckId, decks.id))
-          .where(and(eq(decks.userId, userId), sql`lower(${cards.word}) = lower(${word.word})`))
+          .where(and(eq(decks.userId, userId), isNull(decks.removedAt), isNull(cards.removedAt), sql`lower(${cards.word}) = lower(${word.word})`))
           .limit(1);
         if (have) return save({ ...have, count: await countIn(have.deckId), already: true });
 
@@ -75,9 +82,8 @@ export function createRandomWordsStore(db: Db): RandomWordsStore {
             .returning({ id: decks.id });
           deckId = made!.id;
         }
-        const position = await countIn(deckId);
-        await tx.insert(cards).values({ deckId, position, word: word.word, translation: word.translation, example: cardExample(word.example), exampleTranslation: word.exampleTranslation });
-        return save({ deckId, deckTitle: title, count: position + 1, already: false });
+        await tx.insert(cards).values({ deckId, position: await nextPosition(deckId), word: word.word, translation: word.translation, example: cardExample(word.example), exampleTranslation: word.exampleTranslation });
+        return save({ deckId, deckTitle: title, count: await countIn(deckId), already: false });
       });
     },
   };
