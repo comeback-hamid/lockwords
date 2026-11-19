@@ -1,13 +1,21 @@
-import { Redirect } from 'expo-router';
+import { Redirect, usePathname } from 'expo-router';
+import { useEffect } from 'react';
 import { NativeTabs } from 'expo-router/native-tabs';
 
 import { useOnboardingFinished } from '@/onboarding/finished';
 import { startRoute } from '@/onboarding/flow';
+import { clearReviewDot, useReviewDot } from '@/review/new-words-dot';
 import { colors } from '@/theme/theme';
 
 export default function TabsLayout() {
   // The tabs are the start route. Until onboarding is finished they send the user to O1.
   const finished = useOnboardingFinished();
+  // The red dot on Review: a deck was just made (New words). It goes away when the learner opens the Review tab.
+  const dot = useReviewDot();
+  const onReview = usePathname() === '/review';
+  useEffect(() => {
+    if (onReview && dot) void clearReviewDot();
+  }, [onReview, dot]);
   if (finished === null) return null; // read at start by the root layout; the splash screen still covers this
   if (!finished) return <Redirect href={startRoute(false)} />;
   return (
@@ -20,6 +28,8 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="review">
         <NativeTabs.Trigger.Label>Review</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/review.png')} renderingMode="template" />
+        {/* A badge with no number: iOS draws it as a small red dot. */}
+        <NativeTabs.Trigger.Badge hidden={!dot || onReview}> </NativeTabs.Trigger.Badge>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
