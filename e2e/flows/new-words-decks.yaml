@@ -1,0 +1,121 @@
+# New words: decks. First visit (Kai asks first), yes, swipe the three ideas, Generate, the deck is ready and in the word list,
+# the Review dot, "Let's practice" lands on Review; then the learner asks for their own deck.
+# Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's words differ, the steps do not).
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-decks
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+# N1 First visit: Kai says hello and asks if we want to see 3 decks. No cards yet.
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- assertNotVisible: "Generate"
+# Yes: N2 three deck ideas in a row
+- tapOn: "Message"
+- inputText: "Sí, quiero verlos"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- assertVisible: "Generate"
+# Swipe the ideas sideways: the dots follow
+- swipe:
+    from:
+      id: "deck-ideas-row"
+    direction: LEFT
+- extendedWaitUntil:
+    visible: "Deck 2 of 3"
+    timeout: 10000
+- swipe:
+    from:
+      id: "deck-ideas-row"
+    direction: LEFT
+- extendedWaitUntil:
+    visible: "Deck 3 of 3"
+    timeout: 10000
+- swipe:
+    from:
+      id: "deck-ideas-row"
+    direction: RIGHT
+- swipe:
+    from:
+      id: "deck-ideas-row"
+    direction: RIGHT
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 10000
+# N3 Generate the first idea → N4 the deck is ready and in the word list; the other cards are gone
+- tapOn: "Generate"
+- extendedWaitUntil:
+    visible: ".*IN YOUR WORD LIST"
+    timeout: 180000
+- assertVisible: "Open deck"
+- assertNotVisible: "Generate"
+- assertNotVisible: "Deck 1 of 3"
+# Kai says the deck is ready, and the Review tab has its red dot
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- waitForAnimationToEnd
+- takeScreenshot: e2e/videos/new-words-decks-ready
+# The ready card opens the deck page
+- tapOn: "Open deck"
+- extendedWaitUntil:
+    visible: ".* WORDS"
+    timeout: 20000
+- tapOn: "Close"
+# N4b "Let's practice": Kai says it takes us to Review, then the Review tab opens by itself
+- tapOn: "Message"
+- inputText: "Vamos a practicar"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".* cards to review today"
+    timeout: 60000
+- assertNotVisible: "10 cards to review today"
+# N5 My own deck: say what we need. Kai may ask one short question first, then shows one card.
+- tapOn: "New words"
+- assertVisible: "Open deck"
+- tapOn: "Message"
+- inputText: "Quiero un mazo sobre trabajar en una cafetería"
+- tapOn: "Send"
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- runFlow:
+    when:
+      notVisible: "Generate"
+    commands:
+      - tapOn: "Message"
+      - inputText: "Palabras sueltas, 10 palabras. Hazlo así, por favor."
+      - tapOn: "Send"
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 60000
+- assertNotVisible: "Deck 1 of 3"
+# After a restart the cards are still there
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Open deck"
+    direction: UP
+- stopRecording

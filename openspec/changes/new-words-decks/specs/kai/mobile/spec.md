@@ -1,10 +1,10 @@
 ## MODIFIED Requirements
 
 ### Requirement: Deck card
-The deck card SHALL show the level and the deck's own word count ("A2+ · 20 WORDS" for a deck of 20) and the title in quotes, in one of four states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / 20 WORDS", no button), ready ("JUST NOW", one level square per word and "20 WORDS · IN YOUR WORD LIST"; tapping it opens the deck), disabled (grayed, no button, not tappable). When translations are on and the deck has a title translation, it shows under the title in one line of smaller gray text; the card grows if the title needs more room.
+The deck card SHALL show the level and the deck's own word count ("A2+ · 20 WORDS" for a deck of 20) and the title in quotes, in one of four states: proposed (the reason line and a Generate button), generating ("Making your deck…", a progress bar and "n / 20 WORDS", no button), ready ("JUST NOW", one level square per word and, in the New words chat, "20 WORDS · IN YOUR WORD LIST"; the first deck in onboarding keeps "10 WORDS · ADDED TO YOUR DECKS"; tapping it opens the deck), disabled (grayed, no button, not tappable). When translations are on and the deck has a title translation, it shows under the title in one line of smaller gray text; the card grows if the title needs more room.
 
 #### Scenario: States
-- **WHEN** the card is shown as proposed, then generating, then ready
+- **WHEN** the card is shown in the New words chat as proposed, then generating, then ready
 - **THEN** it shows the Generate button, then the progress bar with no button, then "IN YOUR WORD LIST"
 
 #### Scenario: Size

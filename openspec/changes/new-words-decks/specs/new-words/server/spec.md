@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Kai offers decks
-A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80 characters), `title` in the learning language, `titleTranslation` in the native language, `reason` (at most 30 characters) and `wordCount` (10 to 30, chosen by Kai for that deck). The server SHALL save each idea as the caller's deck in state `proposed`, with the profile's CEFR level, and link them to Kai's last line of that turn. Any other number of ideas is treated as a failed AI call.
+A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80 characters), `title` in the learning language, `titleTranslation` in the native language, `reason` (at most 30 characters) and `wordCount` (10 to 30, chosen by Kai for that deck). The server SHALL save each idea as the caller's deck in state `proposed`, with the profile's CEFR level, and link them to Kai's last line of that turn. Any other number of ideas is treated as a failed AI call. A text that is longer than its limit is cut at a word; it does not fail the turn.
 
 #### Scenario: Three ideas
 - **WHEN** the AI answers a turn with 3 deck ideas
@@ -24,11 +24,15 @@ A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80
 - **THEN** nothing is saved and the turn fails as "Kai fails safely" says
 
 ### Requirement: Decks in chat messages
-A chat message SHALL have `decks`: a list (empty for most messages) of `{ id, title, titleTranslation, reason, cefr, wordCount, status, current }`. `status` is the deck's status now. `current` is true only for decks of the newest message that has decks.
+A chat message that has deck cards SHALL have `decks`: a list of `{ id, title, titleTranslation, reason, cefr, wordCount, status, current }`. A message with no deck cards (most messages) has no `decks` field. `status` is the deck's status now. `current` is true only for decks of the newest message that has decks.
 
 #### Scenario: Status follows the deck
 - **WHEN** a deck offered in the chat becomes `ready` and the user reads the chat
 - **THEN** that message's deck has `status: "ready"`
+
+#### Scenario: No decks
+- **WHEN** the user reads a message Kai sent with no ideas
+- **THEN** the message has no `decks` field
 
 #### Scenario: Older ideas
 - **WHEN** Kai offered 3 ideas, then later 3 new ones

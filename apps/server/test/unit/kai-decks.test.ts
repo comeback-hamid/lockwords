@@ -41,14 +41,21 @@ test('answer shape: 1 or 3 deck ideas are kept; none is fine; 2 or 4 fail', () =
   expect(KaiAnswerSchema.safeParse({ lines: [line('a')], decks: [idea(), idea(), idea(), idea()] }).success).toBe(false);
 });
 
-test('answer shape: field limits of an idea', () => {
-  const bad = (over: Record<string, unknown>) => KaiAnswerSchema.safeParse({ lines: [line('a')], decks: [{ ...idea(), ...over }] }).success;
-  expect(bad({ topic: '' })).toBe(false);
-  expect(bad({ topic: 'x'.repeat(81) })).toBe(false);
-  expect(bad({ title: '' })).toBe(false);
-  expect(bad({ titleTranslation: undefined })).toBe(false);
-  expect(bad({ reason: 'x'.repeat(31) })).toBe(false);
-  expect(bad({ reason: 'x'.repeat(30) })).toBe(true);
+test('answer shape: field limits of an idea (an empty field fails; a text that is too long is cut at a word)', () => {
+  const ok = (over: Record<string, unknown>) => KaiAnswerSchema.safeParse({ lines: [line('a')], decks: [{ ...idea(), ...over }] }).success;
+  expect(ok({ topic: '' })).toBe(false);
+  expect(ok({ topic: '   ' })).toBe(false);
+  expect(ok({ title: '' })).toBe(false);
+  expect(ok({ titleTranslation: undefined })).toBe(false);
+  expect(ok({ reason: 7 })).toBe(false);
+  const cut = (over: Partial<DeckIdea>) => KaiAnswerSchema.parse({ lines: [line('a')], decks: [idea(over)] }).decks![0]!;
+  expect(cut({ reason: 'x'.repeat(30) }).reason).toHaveLength(30);
+  expect(cut({ reason: 'Para tu interés en la política y más' }).reason).toBe('Para tu interés en la política');
+  expect(cut({ reason: 'x'.repeat(45) }).reason).toHaveLength(30);
+  const long = 'Getting around a city: taxi, bus, metro, asking for directions while traveling abroad';
+  expect(cut({ topic: long }).topic).toBe('Getting around a city: taxi, bus, metro, asking for directions while traveling');
+  expect(cut({ topic: long }).topic.length).toBeLessThanOrEqual(80);
+  expect(cut({ title: 'palabra '.repeat(30) }).title.length).toBeLessThanOrEqual(120);
 });
 
 test('answer shape: wordCount is a whole number from 10 to 30', () => {

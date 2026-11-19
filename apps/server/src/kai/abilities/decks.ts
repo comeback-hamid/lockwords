@@ -14,11 +14,20 @@ export const MAX_TITLE_CHARS = 120;
 export const MAX_REASON_CHARS = 30;
 export const FEW_NEW_WORDS = 10; // fewer new words than this: Kai may offer ideas by itself
 
+// A model counts characters badly. A text that is a little too long is cut at a word, not thrown away with the whole turn.
+// (The real AI check of 2026-11-18: 9 of 12 idea sets had a topic of 81 to 110 characters.)
+const upTo = (max: number) =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    .transform((s) => (s.length <= max ? s : s.slice(0, max + 1).replace(/\s+\S*$/, '').slice(0, max).replace(/[\s,;:·-]+$/, '') || s.slice(0, max)));
+
 export const DeckIdeaSchema = z.object({
-  topic: z.string().trim().min(1).max(MAX_TOPIC_CHARS), // what the word maker is asked for
-  title: z.string().trim().min(1).max(MAX_TITLE_CHARS), // in the learning language
-  titleTranslation: z.string().trim().min(1).max(MAX_TITLE_CHARS * 2), // in the native language
-  reason: z.string().trim().min(1).max(MAX_REASON_CHARS),
+  topic: upTo(MAX_TOPIC_CHARS), // what the word maker is asked for
+  title: upTo(MAX_TITLE_CHARS), // in the learning language
+  titleTranslation: upTo(MAX_TITLE_CHARS * 2), // in the native language
+  reason: upTo(MAX_REASON_CHARS),
   wordCount: z.number().int().min(MIN_DECK_WORDS).max(MAX_DECK_WORDS),
 });
 export type DeckIdea = z.infer<typeof DeckIdeaSchema>;
@@ -79,8 +88,8 @@ export const decksAbility = {
       ``,
       `Decks (sets of new words you can make for the learner):`,
       `- To offer decks, put them in "decks": exactly 3 ideas when they are your suggestions, exactly 1 when the learner asked for their own deck. In every other answer leave "decks" out. Never send 2.`,
-      `- The app shows each idea as a card with a Generate button under your last line. So do not list the titles in your lines. Say something short (like "Look, 3 decks for you") and that they can tap Generate on one, or tell you their own idea.`,
-      `- Each idea has: "topic" (in English, at most ${MAX_TOPIC_CHARS} characters: what the deck is about, concrete, with the learner's own wish in it), "title" (in ${L}: one short sentence that says what they will be able to do, at most 60 characters), "titleTranslation" (the title in ${N}), "reason" (in ${L}, at most ${MAX_REASON_CHARS} characters: why it fits them, like "For your trip") and "wordCount".
+      `- The app shows each idea as a card with a button named Generate under your last line. So do not list the titles in your lines. Say something short (like "Look, 3 decks for you") and that they can tap Generate on one, or tell you their own idea. Always write the button's name as "Generate", never translated.`,
+      `- Each idea has: "topic" (in English, 3 to 8 words, at most 60 characters: what the deck is about, concrete, with the learner's own wish in it, like "Ordering coffee as a barista"), "title" (in ${L}: one short sentence that says what they will be able to do, at most 60 characters), "titleTranslation" (the title in ${N}), "reason" (in ${L}, 2 to 4 words, at most 25 characters: why it fits them, like "For your trip") and "wordCount".
 - "wordCount": you pick the size of each deck, from ${MIN_DECK_WORDS} to ${MAX_DECK_WORDS} words, by how wide the topic is and what the learner asked for. A narrow topic gets 10 to 15, a wide one 20 to 30. A deck for a beginner (A1 or A2) is small: 10 to 15. If the learner names a number, use it (inside ${MIN_DECK_WORDS} to ${MAX_DECK_WORDS}).`,
       `- When to offer your 3 ideas: when the learner asks for new words, a deck or suggestions, or says yes to seeing your decks; or by yourself when they have practiced and have fewer than ${FEW_NEW_WORDS} new words left (see below). Not on every visit.`,
       `- The ideas fit the learner's level, goal, interests and your notes, and are different from each other. Never repeat a topic of a deck they already have or of an idea you already offered (both listed below).`,
