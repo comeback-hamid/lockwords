@@ -15,7 +15,7 @@ const BadRequest = error('bad_request', 'KaiBadRequest');
 const NoProfile = error('no_profile', 'KaiNoProfile');
 const TooMany = error('too_many_messages', 'KaiTooManyMessages');
 const Unavailable = error('kai_unavailable', 'KaiUnavailable');
-const NotFound = error('not_found', 'KaiDeckNotFound');
+const DeckNotFound = error('not_found', 'KaiDeckNotFound');
 const NotReady = error('deck_not_ready', 'KaiDeckNotReady');
 const unauthorized = { 401: json(UnauthorizedSchema, 'No valid login token') };
 const security = [{ bearer: [] }];
@@ -65,7 +65,7 @@ const postTurn = createRoute({
   responses: {
     200: json(TurnSchema, "Kai's new lines"),
     400: json(BadRequest, 'The request is not valid'),
-    404: json(NotFound, 'The event names a deck that is not the caller’s'),
+    404: json(DeckNotFound, 'The event names a deck that is not the caller’s'),
     409: json(z.union([NoProfile, NotReady]), 'The user has no profile yet; or the event names a deck that is not ready'),
     429: json(TooMany, 'More than 200 messages in 24 hours'),
     502: json(Unavailable, 'The AI call failed; nothing was saved'),

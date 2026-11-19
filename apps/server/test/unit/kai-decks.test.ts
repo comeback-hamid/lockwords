@@ -41,6 +41,16 @@ test('answer shape: 1 or 3 deck ideas are kept; none is fine; 2 or 4 fail', () =
   expect(KaiAnswerSchema.safeParse({ lines: [line('a')], decks: [idea(), idea(), idea(), idea()] }).success).toBe(false);
 });
 
+test('answer shape: one answer can carry a word card and deck ideas together', () => {
+  const word = { word: 'la propina', translation: 'the tip', example: 'Dejo una **propina**.', exampleTranslation: 'I leave a tip.' };
+  const a = KaiAnswerSchema.parse({ lines: [line('a')], word, decks: [idea()] });
+  expect(a.word).toEqual(word);
+  expect(a.decks).toEqual([idea()]);
+  const p = buildKaiPrompt(ctx()).system;
+  expect(p).toContain('"word":');
+  expect(p).toContain('"decks":');
+});
+
 test('answer shape: field limits of an idea (an empty field fails; a text that is too long is cut at a word)', () => {
   const ok = (over: Record<string, unknown>) => KaiAnswerSchema.safeParse({ lines: [line('a')], decks: [{ ...idea(), ...over }] }).success;
   expect(ok({ topic: '' })).toBe(false);

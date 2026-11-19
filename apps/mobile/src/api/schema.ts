@@ -1042,13 +1042,22 @@ export interface paths {
                         "application/json": components["schemas"]["Unauthorized"];
                     };
                 };
-                /** @description The user has no profile yet */
+                /** @description The event names a deck that is not the caller’s */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiDeckNotFound"];
+                    };
+                };
+                /** @description The user has no profile yet; or the event names a deck that is not ready */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["KaiNoProfile"];
+                        "application/json": components["schemas"]["KaiNoProfile"] | components["schemas"]["KaiDeckNotReady"];
                     };
                 };
                 /** @description More than 200 messages in 24 hours */
@@ -1305,6 +1314,7 @@ export interface components {
             id: string;
             topic: string;
             title: string;
+            titleTranslation?: string | null;
             reason: string;
             cefr: string;
             /** @enum {string} */
@@ -1396,6 +1406,7 @@ export interface components {
             translation: string | null;
             createdAt: string;
             word?: components["schemas"]["KaiWord"];
+            decks?: components["schemas"]["KaiChatDeck"][];
         };
         KaiWord: {
             word: string;
@@ -1405,6 +1416,17 @@ export interface components {
             addTo: string;
             added: boolean;
             already: boolean;
+        };
+        KaiChatDeck: {
+            id: string;
+            title: string;
+            titleTranslation: string | null;
+            reason: string;
+            cefr: string;
+            wordCount: number;
+            /** @enum {string} */
+            status: "proposed" | "generating" | "ready";
+            current: boolean;
         };
         KaiTurn: {
             userMessage: components["schemas"]["KaiMessage"] | null;
@@ -1417,9 +1439,17 @@ export interface components {
             /** @enum {string} */
             error: "bad_request";
         };
+        KaiDeckNotFound: {
+            /** @enum {string} */
+            error: "not_found";
+        };
         KaiNoProfile: {
             /** @enum {string} */
             error: "no_profile";
+        };
+        KaiDeckNotReady: {
+            /** @enum {string} */
+            error: "deck_not_ready";
         };
         KaiTooManyMessages: {
             /** @enum {string} */
@@ -1429,6 +1459,9 @@ export interface components {
             text?: string;
             /** @enum {boolean} */
             open?: true;
+            /** @enum {string} */
+            event?: "deck_ready";
+            deckId?: string;
         };
         KaiTranslation: {
             translationOn: boolean;

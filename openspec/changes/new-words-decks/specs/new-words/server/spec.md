@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Kai offers decks
-A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80 characters), `title` in the learning language, `titleTranslation` in the native language, `reason` (at most 30 characters) and `wordCount` (10 to 30, chosen by Kai for that deck). The server SHALL save each idea as the caller's deck in state `proposed`, with the profile's CEFR level, and link them to Kai's last line of that turn. Any other number of ideas is treated as a failed AI call. A text that is longer than its limit is cut at a word; it does not fail the turn.
+A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80 characters), `title` in the learning language, `titleTranslation` in the native language, `reason` (at most 30 characters) and `wordCount` (10 to 30, chosen by Kai for that deck). The server SHALL save each idea as the caller's deck in state `proposed`, with the profile's CEFR level, and link them to Kai's last line of that turn. Any other number of ideas is treated as a failed AI call.
 
 #### Scenario: Three ideas
 - **WHEN** the AI answers a turn with 3 deck ideas
@@ -18,6 +18,10 @@ A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80
 #### Scenario: Bad size
 - **WHEN** an idea has `wordCount` 5 or 40
 - **THEN** nothing is saved and the turn fails as "Kai fails safely" says
+
+#### Scenario: A text that is too long
+- **WHEN** an idea has a `topic` of 95 characters or a `reason` of 40
+- **THEN** the text is cut at a word to fit its limit, and the turn does not fail
 
 #### Scenario: Two ideas
 - **WHEN** the AI answers with 2 ideas
