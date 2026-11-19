@@ -14,7 +14,7 @@ import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { LoadError } from '@/components/load-state';
 import { languageCode, MAKE_FAILED, pendingDeck, REVIEW_DELAY_MS, TOO_MANY, typingMs, withDeckStatus, withLine, type Line } from '@/new-words/chat';
-import { showReviewDot } from '@/review/new-words-dot';
+import { showReviewDot } from '@/review/dot';
 import { colors, layout, space, type } from '@/theme/theme';
 
 // Kai's lines that still wait behind a typing bubble, and what comes after the last one.

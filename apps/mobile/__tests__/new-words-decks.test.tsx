@@ -10,7 +10,7 @@ import { SECURE_KEYS } from '@/auth/session-storage';
 import { DeckCard } from '@/components/chat/deck-card';
 import { DeckIdeas, ideaStep } from '@/components/chat/deck-ideas';
 import { MAKE_FAILED } from '@/new-words/chat';
-import { clearReviewDot, loadReviewDot, REVIEW_DOT_KEY, showReviewDot } from '@/review/new-words-dot';
+import { clearReviewDot, loadReviewDot, REVIEW_DOT_KEY, showReviewDot } from '@/review/dot';
 
 const mockStore = new Map<string, string>();
 jest.mock('expo-secure-store', () => ({

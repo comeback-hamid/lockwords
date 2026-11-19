@@ -82,7 +82,7 @@ New abilities (deck ideas, word cards) add an optional field to the answer and o
 - Generate is the same deck job as in onboarding. It makes exactly `wordCount` cards (`decks.word_count`).
 - When the deck is ready the app sends a turn with `{ event: "deck_ready", deckId }`. Kai says the deck is ready, once per deck (`kai_messages.ready_deck_id`); a second event answers with no messages. Not ready is 409, not the caller's deck is 404.
 - What Kai is told: new words left (stage 0), the topics of the learner's decks and of ideas not made, and the offer rules (ask first on the first visit; offer when asked or with fewer than 10 new words left; never repeat a topic; at most one question for an own deck).
-- The Review tab's red dot is a flag on the phone (`apps/mobile/src/review/new-words-dot.ts`).
+- The Review tab's red dot is a flag on the phone (`apps/mobile/src/review/dot.ts`).
 Check real idea sets by hand with `npx tsx scripts/kai-decks-try.ts`.
 Check real answers by hand with `npx tsx scripts/kai-try.ts` in `apps/server` (20 turns in 5 languages; needs `ANTHROPIC_API_KEY`).
 

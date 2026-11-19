@@ -4,7 +4,7 @@ import { NativeTabs } from 'expo-router/native-tabs';
 
 import { useOnboardingFinished } from '@/onboarding/finished';
 import { startRoute } from '@/onboarding/flow';
-import { clearReviewDot, useReviewDot } from '@/review/new-words-dot';
+import { clearReviewDot, useReviewDot } from '@/review/dot';
 import { colors } from '@/theme/theme';
 
 export default function TabsLayout() {
