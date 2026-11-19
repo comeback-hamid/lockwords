@@ -443,17 +443,18 @@
           "title": {
             "type": "string"
           },
-          "titleTranslation": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "reason": {
             "type": "string"
           },
           "cefr": {
             "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "random"
+            ]
           },
           "wordCount": {
             "type": "integer"
@@ -846,11 +847,8 @@
           "createdAt": {
             "type": "string"
           },
-          "decks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/KaiChatDeck"
-            }
+          "word": {
+            "$ref": "#/components/schemas/KaiWord"
           }
         },
         "required": [
@@ -861,51 +859,39 @@
           "createdAt"
         ]
       },
-      "KaiChatDeck": {
+      "KaiWord": {
         "type": "object",
         "properties": {
-          "id": {
+          "word": {
             "type": "string"
           },
-          "title": {
+          "translation": {
             "type": "string"
           },
-          "titleTranslation": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "reason": {
+          "example": {
             "type": "string"
           },
-          "cefr": {
+          "exampleTranslation": {
             "type": "string"
           },
-          "wordCount": {
-            "type": "integer"
+          "addTo": {
+            "type": "string"
           },
-          "status": {
-            "type": "string",
-            "enum": [
-              "proposed",
-              "generating",
-              "ready"
-            ]
+          "added": {
+            "type": "boolean"
           },
-          "current": {
+          "already": {
             "type": "boolean"
           }
         },
         "required": [
-          "id",
-          "title",
-          "titleTranslation",
-          "reason",
-          "cefr",
-          "wordCount",
-          "status",
-          "current"
+          "word",
+          "translation",
+          "example",
+          "exampleTranslation",
+          "addTo",
+          "added",
+          "already"
         ]
       },
       "KaiTurn": {
@@ -965,20 +951,6 @@
           "error"
         ]
       },
-      "KaiDeckNotFound": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "enum": [
-              "not_found"
-            ]
-          }
-        },
-        "required": [
-          "error"
-        ]
-      },
       "KaiNoProfile": {
         "type": "object",
         "properties": {
@@ -986,20 +958,6 @@
             "type": "string",
             "enum": [
               "no_profile"
-            ]
-          }
-        },
-        "required": [
-          "error"
-        ]
-      },
-      "KaiDeckNotReady": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "enum": [
-              "deck_not_ready"
             ]
           }
         },
@@ -1034,17 +992,6 @@
             "enum": [
               true
             ]
-          },
-          "event": {
-            "type": "string",
-            "enum": [
-              "deck_ready"
-            ]
-          },
-          "deckId": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64
           }
         }
       },
@@ -1057,6 +1004,57 @@
         },
         "required": [
           "translationOn"
+        ]
+      },
+      "KaiAddedWord": {
+        "type": "object",
+        "properties": {
+          "deckId": {
+            "type": "string"
+          },
+          "deckTitle": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "already": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deckId",
+          "deckTitle",
+          "count",
+          "already"
+        ]
+      },
+      "KaiNotFound": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_found"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiNoWord": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "no_word"
+            ]
+          }
+        },
+        "required": [
+          "error"
         ]
       }
     },
@@ -2051,29 +2049,12 @@
               }
             }
           },
-          "404": {
-            "description": "The event names a deck that is not the caller’s",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KaiDeckNotFound"
-                }
-              }
-            }
-          },
           "409": {
-            "description": "The user has no profile yet; or the event names a deck that is not ready",
+            "description": "The user has no profile yet",
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/KaiNoProfile"
-                    },
-                    {
-                      "$ref": "#/components/schemas/KaiDeckNotReady"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/KaiNoProfile"
                 }
               }
             }
@@ -2163,6 +2144,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/KaiNoProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/chat/messages/{id}/add-word": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deck that has the word now. Safe to repeat. `already` = the learner had this word, nothing was added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiAddedWord"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The message has no word card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNoWord"
                 }
               }
             }

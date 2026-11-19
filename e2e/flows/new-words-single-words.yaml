@@ -1,0 +1,56 @@
+# New words: a single word. Ask Kai how to say something, get a word card, add it to Random Words 1, see it in Review, and after a restart.
+# Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's word differs, the steps do not).
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-single-words
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 90000
+# New words: Kai opens the chat
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# Ask how to say a word: Kai answers with a word card that names the deck
+- tapOn: "Message"
+- inputText: "How do I say umbrella?"
+- tapOn: "Send"
+- assertVisible: "You: How do I say umbrella\\?"
+- extendedWaitUntil:
+    visible: "Add to Random Words 1"
+    timeout: 40000
+- assertVisible: "Say the word"
+- tapOn: "Say the word"
+# Add it: the button says "Added"
+- tapOn: "Add to Random Words 1"
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 20000
+- assertNotVisible: "Add to Random Words 1"
+# A tap on the card (not on a button) puts the keyboard away, so the tab bar shows again
+- tapOn:
+    id: "word-card-divider"
+# Review has the new word: 10 cards of the first deck and this one
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "11 cards to review today"
+    timeout: 20000
+# After a restart the card still says "Added"
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 20000
+- assertVisible: "You: How do I say umbrella\\?"
+- stopRecording

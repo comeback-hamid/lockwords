@@ -2,11 +2,12 @@ import type { DecksStore, ProfilesStore } from '../app.js';
 import { KaiAnswerSchema, type KaiAnswer, type KaiChat, type KaiContext } from '../llm/kai-chat.js';
 import { listedLanguage } from '../onboarding/languages.js';
 import type { Profile } from '../onboarding/profile.js';
+import { wordInHistory, type KaiMessageWord, type KaiWord } from './abilities/words.js';
 import { deckNote, NO_DECK_FACTS, readyEvent, type ChatDeck, type DeckEvent, type DeckFacts, type DeckIdea } from './abilities/decks.js';
 
 // One turn of the New words chat: check the limits, tell Kai what it knows, save what it said.
 
-export type KaiMessage = { id: string; from: 'kai' | 'user'; text: string; translation: string | null; options: string[]; opening: boolean; createdAt: Date; decks?: ChatDeck[] }; // decks: the deck cards under this line (ability "decks")
+export type KaiMessage = { id: string; from: 'kai' | 'user'; text: string; translation: string | null; options: string[]; opening: boolean; createdAt: Date; word?: KaiMessageWord; decks?: ChatDeck[] }; // word: a word card, decks: the deck cards under this line
 export type KaiFacts = {
   name: string | null;
   translationOn: boolean | null; // null = the learner never chose
@@ -14,6 +15,7 @@ export type KaiFacts = {
   decks?: DeckFacts;
 };
 export type KaiTurnToSave = { user: string | null; kai: { text: string; translation: string }[]; options: string[]; opening: boolean; notes: { add: string[]; drop: number };
+  word?: KaiWord | null; // a word card on Kai's last line
   decks?: { ideas: DeckIdea[]; cefr: string }; // saved as proposed decks and linked to Kai's last line
   readyDeckId?: string; // this turn tells the learner that this deck is ready; saved once per deck (a second one saves nothing)
 };
@@ -102,7 +104,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
     goalOther: profile.goalOther,
     interests: profile.interests,
     notes,
-    history: history.map((m) => ({ from: m.from, text: m.text + deckNote(m.decks) })),
+    history: history.map((m) => ({ from: m.from, text: wordInHistory(m.text, m.word) + deckNote(m.decks) })),
     words: { ...facts.words, sample: facts.words.sample.slice(0, 10) },
     opening,
     firstVisit: opening && history.length === 0,
@@ -123,7 +125,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
   const ideas = ctx.firstVisit || event ? undefined : answer.decks;
   const saved = await deps.kai.addTurn(
     userId,
-    { user: text, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), ...(ideas ? { decks: { ideas, cefr: profile.cefr ?? 'A1' } } : {}), ...(event ? { readyDeckId: event.deckId } : {}) },
+    { user: text, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), word: event ? null : answer.word, ...(ideas ? { decks: { ideas, cefr: profile.cefr ?? 'A1' } } : {}), ...(event ? { readyDeckId: event.deckId } : {}) },
     now,
   );
   if ((opening || event) && saved.messages.length === 0) return NOTHING; // another request opened, or said "ready", first

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { fixtureDecks, type DeckFacts, type DeckReady } from '../kai/abilities/decks.js';
-import { abilities, abilityAnswer } from '../kai/abilities/index.js';
+import { abilities, abilityAnswer, words } from '../kai/abilities/index.js';
 
 // AI task: one turn of the New words chat. Kai answers as an agent that knows and remembers the learner.
 // Later abilities (decks, word cards) add optional fields to the answer; see src/kai/abilities/.
@@ -62,6 +62,8 @@ export const KaiAnswerSchema = z.object({
     .unknown()
     .optional()
     .transform((a) => (a === 'review' ? ('review' as const) : null)),
+  // A word card (src/kai/abilities/words.ts). A word with a bad or missing field fails the whole answer.
+  word: words.KaiWordSchema.nullish().transform((w) => w ?? undefined),
   ...abilityAnswer,
 });
 export type KaiAnswer = z.infer<typeof KaiAnswerSchema>;
@@ -98,8 +100,10 @@ export function buildKaiPrompt(c: KaiContext): { system: string; user: string } 
     `- "remember": short notes in English (at most ${MAX_NOTE_CHARS} characters each) about new facts the learner told you about themselves: a goal, a plan, an interest, a preference (for example that they asked you to speak ${N}). Only new facts the learner said in this chat that are not in your notes yet. Never save what you were already given below (name, level, goal, interests, word counts). Usually this is empty.`,
     ...abilities.flatMap((a) => a.rules(c)),
     ``,
+    ...words.wordPromptPart(L, N),
+    ``,
     `Answer with JSON only, in this shape:`,
-    `{"lines": [{"text": string, "translation": string}], "options": string[], "remember": string[], "action": "review" | null${abilities.map((a) => `, ${a.shape}`).join('')}}`,
+    `{"lines": [{"text": string, "translation": string}], "options": string[], "remember": string[], "action": "review" | null, ${words.WORD_SHAPE}${abilities.map((a) => `, ${a.shape}`).join('')}}`,
   ].join('\n');
 
   const who = [
@@ -153,6 +157,8 @@ export const fixtureKaiChat: KaiChat = {
     const decks = fixtureDecks(c);
     if (decks) return decks;
     const text = c.userText ?? '';
+    const card = words.fixtureWordAnswer(text);
+    if (card) return card;
     if (wantsPractice.test(text)) return { lines: [{ text: '¡Perfecto! Te llevo a **Review**… 🚀', translation: 'Great! Taking you to Review…' }], action: 'review' };
     return {
       lines: [{ text: '¡Qué interesante! 🙂 Cuéntame **más**.', translation: 'How interesting! Tell me more.' }],

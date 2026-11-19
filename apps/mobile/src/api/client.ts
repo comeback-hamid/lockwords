@@ -21,6 +21,8 @@ export type Direction = 'easy' | 'hard' | 'known';
 export type KaiChat = components['schemas']['KaiChat'];
 export type KaiMessage = components['schemas']['KaiMessage'];
 export type KaiTurn = components['schemas']['KaiTurn'];
+export type KaiWord = components['schemas']['KaiWord'];
+export type KaiAddedWord = components['schemas']['KaiAddedWord'];
 export type ChatDeck = components['schemas']['KaiChatDeck'];
 // A Kai turn can fail in two ways the screen treats differently, so it does not throw.
 export type KaiTurnResult = { ok: true; turn: KaiTurn } | { ok: false; error: 'too_many_messages' | 'failed' };
@@ -65,6 +67,10 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     deckReady: (deckId: string) => kaiTurn({ event: 'deck_ready', deckId }),
     async setKaiTranslation(on: boolean): Promise<void> {
       unwrap(await client.PUT('/v1/kai/chat/translation', { body: { on } }));
+    },
+    // Adds the word card of one Kai message to the learner's Random Words deck. Safe to repeat.
+    async addKaiWord(messageId: string): Promise<KaiAddedWord> {
+      return unwrap(await client.POST('/v1/kai/chat/messages/{id}/add-word', { params: { path: { id: messageId } } }));
     },
     async fetchWordTest(language: string): Promise<WordTest> {
       return unwrap(await client.GET('/v1/word-test', { params: { query: { language } } }));

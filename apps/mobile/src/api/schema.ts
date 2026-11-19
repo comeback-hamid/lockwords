@@ -1042,22 +1042,13 @@ export interface paths {
                         "application/json": components["schemas"]["Unauthorized"];
                     };
                 };
-                /** @description The event names a deck that is not the caller’s */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["KaiDeckNotFound"];
-                    };
-                };
-                /** @description The user has no profile yet; or the event names a deck that is not ready */
+                /** @description The user has no profile yet */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["KaiNoProfile"] | components["schemas"]["KaiDeckNotReady"];
+                        "application/json": components["schemas"]["KaiNoProfile"];
                     };
                 };
                 /** @description More than 200 messages in 24 hours */
@@ -1148,6 +1139,70 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/kai/chat/messages/{id}/add-word": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The deck that has the word now. Safe to repeat. `already` = the learner had this word, nothing was added */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiAddedWord"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description No such message */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNotFound"];
+                    };
+                };
+                /** @description The message has no word card */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNoWord"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1250,9 +1305,10 @@ export interface components {
             id: string;
             topic: string;
             title: string;
-            titleTranslation?: string | null;
             reason: string;
             cefr: string;
+            /** @enum {string} */
+            kind?: "topic" | "random";
             wordCount: number;
             /** @enum {string} */
             status: "proposed" | "generating" | "ready";
@@ -1339,18 +1395,16 @@ export interface components {
             text: string;
             translation: string | null;
             createdAt: string;
-            decks?: components["schemas"]["KaiChatDeck"][];
+            word?: components["schemas"]["KaiWord"];
         };
-        KaiChatDeck: {
-            id: string;
-            title: string;
-            titleTranslation: string | null;
-            reason: string;
-            cefr: string;
-            wordCount: number;
-            /** @enum {string} */
-            status: "proposed" | "generating" | "ready";
-            current: boolean;
+        KaiWord: {
+            word: string;
+            translation: string;
+            example: string;
+            exampleTranslation: string;
+            addTo: string;
+            added: boolean;
+            already: boolean;
         };
         KaiTurn: {
             userMessage: components["schemas"]["KaiMessage"] | null;
@@ -1363,17 +1417,9 @@ export interface components {
             /** @enum {string} */
             error: "bad_request";
         };
-        KaiDeckNotFound: {
-            /** @enum {string} */
-            error: "not_found";
-        };
         KaiNoProfile: {
             /** @enum {string} */
             error: "no_profile";
-        };
-        KaiDeckNotReady: {
-            /** @enum {string} */
-            error: "deck_not_ready";
         };
         KaiTooManyMessages: {
             /** @enum {string} */
@@ -1383,12 +1429,23 @@ export interface components {
             text?: string;
             /** @enum {boolean} */
             open?: true;
-            /** @enum {string} */
-            event?: "deck_ready";
-            deckId?: string;
         };
         KaiTranslation: {
             translationOn: boolean;
+        };
+        KaiAddedWord: {
+            deckId: string;
+            deckTitle: string;
+            count: number;
+            already: boolean;
+        };
+        KaiNotFound: {
+            /** @enum {string} */
+            error: "not_found";
+        };
+        KaiNoWord: {
+            /** @enum {string} */
+            error: "no_word";
         };
     };
     responses: never;

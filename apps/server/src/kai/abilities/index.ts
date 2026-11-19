@@ -24,3 +24,4 @@ export const abilities: readonly Ability[] = [
 export const abilityAnswer = {
   ...decksAbility.answer,
 };
+export * as words from './words.js';

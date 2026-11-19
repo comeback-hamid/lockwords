@@ -3,8 +3,8 @@ import { LANGUAGES } from '@/onboarding/languages';
 
 // Small rules of the New words chat that are not screen code.
 
-// A line of the chat. A Kai line may have deck cards under it.
-export type Line = Pick<KaiMessage, 'id' | 'from' | 'text' | 'translation' | 'decks'>;
+// A line of the chat. A Kai line may have a word card or deck cards under it.
+export type Line = Pick<KaiMessage, 'id' | 'from' | 'text' | 'translation' | 'word' | 'decks'>;
 
 // A new line joins the chat. When it brings deck ideas, the older ideas are not current any more.
 export function withLine(all: Line[], next: Line): Line[] {

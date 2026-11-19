@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gt, gte, inArray, lte, sql } from 'drizzle-orm';
 
 import { toChatDecks } from '../kai/abilities/decks.js';
+import { nextRandomDeckTitle } from '../decks/random-words.js';
 import { OPENING_GAP_MS, type KaiMessage, type KaiStore } from '../kai/chat.js';
 import { MAX_NEW_PER_ROUND } from '../review/srs.js';
 import type { createDb } from './client.js';
@@ -9,11 +10,21 @@ import { cards, decks, kaiMessages, kaiNotes, profiles } from './schema.js';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore {
-  type Tx = Pick<typeof db, 'select'>;
+  type Row = typeof kaiMessages.$inferSelect;
+  // Rows → messages. A word card also says which Random Words deck takes it now (or took it) and what happened to it.
+  const toMessages = async (reader: Pick<typeof db, 'select'>, userId: string, rows: Row[]): Promise<KaiMessage[]> => {
+    const next = rows.some((r) => r.word && !r.word.result) ? await nextRandomDeckTitle(reader, userId) : '';
+    return rows.map((r) => {
+      if (!r.word) return toMessage(r);
+      const { result, ...word } = r.word;
+      return { ...toMessage(r), word: { ...word, addTo: result?.deckTitle ?? next, added: result ? !result.already : false, already: result?.already ?? false } };
+    });
+  };
   // Ability "decks": the deck cards under each line. `current` = the user's newest line that has decks.
-  async function withDecks(tx: Tx, userId: string, rows: (typeof kaiMessages.$inferSelect)[]): Promise<KaiMessage[]> {
+  async function withDecks(tx: Pick<typeof db, 'select'>, userId: string, rows: Row[]): Promise<KaiMessage[]> {
+    const messages = await toMessages(tx, userId, rows);
     const ids = rows.flatMap((r) => r.deckIds);
-    if (ids.length === 0) return rows.map(toMessage);
+    if (ids.length === 0) return messages;
     const [found, [newest]] = await Promise.all([
       tx.select().from(decks).where(and(eq(decks.userId, userId), inArray(decks.id, ids))),
       tx
@@ -24,9 +35,9 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         .limit(1),
     ]);
     const byId = new Map(found.map((d) => [d.id, d]));
-    return rows.map((r) => (r.deckIds.length ? { ...toMessage(r), decks: toChatDecks(r.deckIds, byId, r.id === newest?.id) } : toMessage(r)));
+    return rows.map((r, i) => (r.deckIds.length ? { ...messages[i]!, decks: toChatDecks(r.deckIds, byId, r.id === newest?.id) } : messages[i]!));
   }
-  const toMessage = (r: typeof kaiMessages.$inferSelect): KaiMessage => ({
+  const toMessage = (r: Row): KaiMessage => ({
     id: r.id,
     from: r.role === 'user' ? 'user' : 'kai',
     text: r.text,
@@ -129,8 +140,8 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         const saved = new Set((await tx.select({ text: kaiNotes.text }).from(kaiNotes).where(eq(kaiNotes.userId, userId))).map((n) => n.text));
         const notesToAdd = turn.notes.add.filter((n) => !saved.has(n));
         const values = [
-          ...(turn.user === null ? [] : [{ role: 'user', text: turn.user, translation: null as string | null, options: [] as string[] }]),
-          ...turn.kai.map((l, i) => ({ role: 'kai', text: l.text, translation: l.translation as string | null, options: i === turn.kai.length - 1 ? turn.options : [] })),
+          ...(turn.user === null ? [] : [{ role: 'user', text: turn.user, translation: null as string | null, options: [] as string[], word: null }]),
+          ...turn.kai.map((l, i) => ({ role: 'kai', text: l.text, translation: l.translation as string | null, options: i === turn.kai.length - 1 ? turn.options : [], word: i === turn.kai.length - 1 ? (turn.word ?? null) : null })),
         ].map((v, position) => ({ ...v, userId, position, opening: turn.opening, createdAt: now, deckIds: [] as string[], readyDeckId: null as string | null }));
         // Kai's last line carries the turn's deck cards and the "ready" mark.
         const last = values.at(-1)!;

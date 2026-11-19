@@ -12,6 +12,7 @@ import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
+import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { languageCode, MAKE_FAILED, pendingDeck, REVIEW_DELAY_MS, TOO_MANY, typingMs, withDeckStatus, withLine, type Line } from '@/new-words/chat';
 import { showReviewDot } from '@/review/dot';
@@ -233,6 +234,13 @@ export default function NewWordsScreen() {
     setDraft((d) => ({ key: d.key + 1, text }));
   }
 
+  // The Add button of a word card. A new word is waiting in Review, so its tab gets the red dot.
+  async function addWord(messageId: string) {
+    const { already } = await api.addKaiWord(messageId);
+    if (!already) void showReviewDot();
+    return already ? ('already' as const) : ('added' as const);
+  }
+
   function toggleTranslation() {
     const on = !translation.on;
     setTranslation((t) => ({ ...t, on }));
@@ -285,6 +293,7 @@ export default function NewWordsScreen() {
         {lines.map((l) => (
           <Fragment key={l.id}>
             <ChatBubble from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
+            {l.word ? <WordCard word={l.word} onAdd={() => addWord(l.id)} /> : null}
             {l.decks?.length ? (
               <DeckIdeas decks={l.decks} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
             ) : null}
