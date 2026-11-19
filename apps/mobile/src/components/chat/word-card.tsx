@@ -7,9 +7,12 @@ import { Icon } from '@/components/icon';
 import { getSpeechLanguage } from '@/review/speech-language';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
+import { directionStyle, isRtl } from './direction';
+
 // Figma Word card (N6): a single word Kai gave in the chat. The meaning and the example's translation always show,
 // also when the chat's translations are off. One button adds the word to the Random Words deck the server named.
 // onAdd: resolves with what happened, rejects when adding failed.
+// Each text is aligned by its own script; the speaker sits after the word (on the left of a right-to-left word).
 type Props = { word: KaiWord; onAdd(): Promise<'added' | 'already'> };
 type State = 'idle' | 'busy' | 'added' | 'already';
 
@@ -40,15 +43,15 @@ export function WordCard({ word, onAdd }: Props) {
 
   return (
     <View style={styles.card}>
-      <View style={styles.wordRow}>
-        <Text style={[type.headline, styles.word]}>{word.word}</Text>
+      <View testID="word-row" style={[styles.wordRow, isRtl(word.word) && styles.wordRowRtl]}>
+        <Text style={[type.headline, styles.word, directionStyle(word.word)]}>{word.word}</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => Speech.speak(word.word, { language: getSpeechLanguage() })} hitSlop={space[4]} style={styles.speaker}>
           <Icon name="speaker" color={colors.text2} />
         </Pressable>
       </View>
-      <Text style={[type.callout, styles.muted]}>{word.translation}</Text>
+      <Text style={[type.callout, styles.muted, directionStyle(word.translation)]}>{word.translation}</Text>
       <View testID="word-card-divider" style={styles.divider} />
-      <Text accessibilityLabel={parts.join('')} style={[type.body, styles.ink]}>
+      <Text accessibilityLabel={parts.join('')} style={[type.body, styles.ink, directionStyle(word.example)]}>
         {parts.map((part, i) =>
           i % 2 ? (
             <Text key={i} testID="example-word" style={[type.bodyStrong, styles.green]}>
@@ -59,7 +62,7 @@ export function WordCard({ word, onAdd }: Props) {
           ),
         )}
       </Text>
-      <Text style={[type.caption, styles.muted]}>{word.exampleTranslation}</Text>
+      <Text style={[type.caption, styles.muted, directionStyle(word.exampleTranslation)]}>{word.exampleTranslation}</Text>
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
@@ -89,6 +92,7 @@ export function WordCard({ word, onAdd }: Props) {
 const styles = StyleSheet.create({
   card: { alignSelf: 'stretch', marginRight: space[24], paddingHorizontal: 14, paddingTop: 14, paddingBottom: space[12], gap: space[4], borderRadius: radius.control, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   wordRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  wordRowRtl: { flexDirection: 'row-reverse' },
   word: { flex: 1, color: colors.text },
   speaker: { width: 36, height: 36, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.chip },
   ink: { color: colors.text },

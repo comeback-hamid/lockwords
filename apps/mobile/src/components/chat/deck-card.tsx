@@ -5,6 +5,8 @@ import type { Deck } from '@/api/client';
 import { Icon } from '@/components/icon';
 import { colors, levelColors, opacity, radius, space, type } from '@/theme/theme';
 
+import { directionStyle, isRtl } from './direction';
+
 // What the card needs of a deck. A full deck fits, and so does a deck idea in the New words chat (no cards yet).
 export type CardDeck = Pick<Deck, 'cefr' | 'wordCount' | 'title' | 'reason'> & { titleTranslation?: string | null; cards?: Pick<Deck['cards'][number], 'id' | 'stage'>[] };
 
@@ -48,18 +50,18 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count, hideGenerate 
         {state === 'ready' ? <Text style={[type.labelTag, styles.green]}>JUST NOW</Text> : null}
       </View>
       <View>
-        <Text style={[type.bodyStrong, styles.title]}>{`“${deck.title}”`}</Text>
+        <Text style={[type.bodyStrong, styles.title, isRtl(deck.title) && styles.titleRtl, directionStyle(deck.title)]}>{`“${deck.title}”`}</Text>
         {showTranslation && deck.titleTranslation ? (
-          <Text testID="deck-title-translation" style={[type.caption, styles.muted, styles.translation]}>
+          <Text testID="deck-title-translation" style={[type.caption, styles.muted, styles.translation, directionStyle(deck.titleTranslation)]}>
             {deck.titleTranslation}
           </Text>
         ) : null}
       </View>
       {state === 'disabled' ? (
-        <Text style={[type.caption, styles.muted]}>{deck.reason}</Text>
+        <Text style={[type.caption, styles.muted, directionStyle(deck.reason)]}>{deck.reason}</Text>
       ) : state === 'proposed' ? (
         <View style={styles.row}>
-          <Text style={[type.caption, styles.muted]}>{deck.reason}</Text>
+          <Text style={[type.caption, styles.muted, directionStyle(deck.reason)]}>{deck.reason}</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Generate"
@@ -121,6 +123,7 @@ const styles = StyleSheet.create({
   translation: { marginTop: space[4] },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[8] },
   title: { color: colors.text, marginRight: space[48] },
+  titleRtl: { marginRight: 0, marginLeft: space[48] }, // each text is aligned by its own script
   ink: { color: colors.text },
   muted: { color: colors.muted },
   green: { color: colors.greenText },

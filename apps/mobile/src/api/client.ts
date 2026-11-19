@@ -58,8 +58,9 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
   }
   return {
     client,
-    async fetchKaiChat(): Promise<KaiChat> {
-      return unwrap(await client.GET('/v1/kai/chat'));
+    // The newest 50 messages. With `before` (a message id): the 50 before that one.
+    async fetchKaiChat(before?: string): Promise<KaiChat> {
+      return unwrap(await client.GET('/v1/kai/chat', before ? { params: { query: { before } } } : {}));
     },
     sendKaiMessage: (text: string) => kaiTurn({ text }),
     openKaiChat: () => kaiTurn({ open: true }),

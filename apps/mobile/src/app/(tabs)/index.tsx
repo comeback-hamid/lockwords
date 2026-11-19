@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Fragment, useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { AppState, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
 import type { ChatDeck, KaiTurnResult } from '@/api/client';
 import { api } from '@/auth/boot';
@@ -11,10 +11,11 @@ import { useTimedCount } from '@/components/chat/deck-card';
 import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
+import { RiseIn } from '@/components/chat/rise-in';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
-import { languageCode, MAKE_FAILED, pendingDeck, REVIEW_DELAY_MS, TOO_MANY, typingMs, withDeckStatus, withLine, type Line } from '@/new-words/chat';
+import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
 import { showReviewDot } from '@/review/dot';
 import { colors, layout, space, type } from '@/theme/theme';
 
@@ -22,8 +23,10 @@ import { colors, layout, space, type } from '@/theme/theme';
 // keepOptions: a line the app adds by itself (making a deck failed) leaves the options as they are.
 type Coming = { lines: Line[]; options: string[]; action: 'review' | null; keepOptions?: boolean };
 const NONE: Coming = { lines: [], options: [], action: null };
+const KEEP_PLACE = { minIndexForVisible: 0 };
 let localId = 0;
-const local = (from: Line['from'], text: string): Line => ({ id: `local-${localId++}`, from, text, translation: null });
+const LOCAL = 'local-'; // a line the app made itself; the server does not know its id
+const local = (from: Line['from'], text: string, tapped = false): Line => ({ id: `${LOCAL}${localId++}`, from, text, translation: null, tapped });
 
 // New words (Figma N1, N1b, N8): one ongoing chat with Kai. Kai's lines come from the server (an agent with memory).
 export default function NewWordsScreen() {
@@ -42,13 +45,32 @@ export default function NewWordsScreen() {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   // Decks (Figma N2–N5): the deck being made now, how Kai feels about the last one, and the decks Kai was asked to speak about.
   const [making, setMaking] = useState<ChatDeck | null>(null);
-  const [mood, setMood] = useState<'celebrate' | 'oops' | null>(null);
+  const [celebrate, setCelebrate] = useState(0); // 0 = no; a new number plays it again (a deck is ready, a word was added)
   const madeWords = useTimedCount(making !== null, making?.wordCount ?? 10);
   const told = useRef(new Set<string>());
   const shown = useRef<Line[]>([]);
   useEffect(() => {
     shown.current = lines;
   }, [lines]);
+
+  // Kai's state follows the chat (see `newWordsKaiState`). `oops` holds for a moment after a failure.
+  const [composerText, setComposerText] = useState(false);
+  const [oops, setOops] = useState(false);
+  const oopsTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const fail = useCallback(() => {
+    setOops(true);
+    clearTimeout(oopsTimer.current);
+    oopsTimer.current = setTimeout(() => setOops(false), OOPS_MS);
+  }, []);
+  useEffect(() => () => clearTimeout(oopsTimer.current), []);
+  // Anything the learner does (typing, a tap, a scroll) starts the quiet clock again.
+  const [activity, setActivity] = useState(0);
+  const touch = useCallback(() => setActivity((a) => a + 1), []);
+  const [resting, setResting] = useState<{ since: string; level: 'waiting' | 'sleeping' } | null>(null);
+  // Older messages: the server said more are left; one page loads at a time, after the learner's own scroll.
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const dragged = useRef(false);
 
   // The tab bar floats over the screen, so the composer sits above it. With the keyboard up the tab bar is hidden behind it.
   const [keyboard, setKeyboard] = useState(false);
@@ -84,7 +106,7 @@ export default function NewWordsScreen() {
       setBusy(false);
       if (!take(result)) return false;
       if (!justMade) void showReviewDot(); // made while the learner was away
-      setMood('celebrate');
+      setCelebrate((n) => n + 1);
       return true;
     },
     [take],
@@ -95,13 +117,13 @@ export default function NewWordsScreen() {
       setMaking(deck);
       setGreeting(false);
       setFailed(null);
-      setMood(null);
+      setCelebrate(0);
       try {
         await api.generateDeck(deck.id); // waits for the server's job, also one that was started before
       } catch {
         // Nothing was made: the cards come back and Kai says so.
         setMaking(null);
-        setMood('oops');
+        fail();
         setLines((all) => withDeckStatus(all, deck.id, 'proposed'));
         return setComing({ lines: [local('kai', MAKE_FAILED)], options: [], action: null, keepOptions: true });
       }
@@ -109,11 +131,12 @@ export default function NewWordsScreen() {
       setMaking(null);
       if (!(await sayReady(deck.id, true))) quiet.current = true;
     },
-    [sayReady],
+    [sayReady, fail],
   );
   function generate(deck: ChatDeck) {
     if (!quiet.current) return; // Kai is answering, or another deck is being made
     quiet.current = false;
+    touch();
     void makeDeck(deck);
   }
 
@@ -144,6 +167,7 @@ export default function NewWordsScreen() {
         const chat = await api.fetchKaiChat();
         if (!live) return;
         setLines(chat.messages);
+        setHasMore(chat.hasMore === true);
         setOptions(chat.options);
         setTranslation({ on: chat.translationOn, code: languageCode(chat.nativeLanguage) });
         setLoad('ready');
@@ -201,27 +225,78 @@ export default function NewWordsScreen() {
   }, [leaving, router]);
 
   const typing = busy || coming.lines.length > 0;
+  // A new line at the bottom scrolls the chat down. Older messages joining at the top do not.
+  const newest = lines.at(-1)?.id;
   useEffect(() => {
     scroll.current?.scrollToEnd({ animated: true });
-  }, [lines, typing, options, failed, making]);
+  }, [newest, typing, options, failed, making]);
 
-  async function send(text: string) {
+  // The learner's turn and nothing happens: Kai waits after 20 seconds and sleeps after 2 minutes.
+  // `moment` changes with anything that happens, and a rest only counts for the moment it started in.
+  const usersTurn = ready && !typing && making === null;
+  const moment = `${activity}:${lines.length}:${composerText}`;
+  useEffect(() => {
+    if (!usersTurn || composerText) return;
+    const wait = setTimeout(() => setResting({ since: moment, level: 'waiting' }), QUIET_MS);
+    const sleep = setTimeout(() => setResting({ since: moment, level: 'sleeping' }), SLEEP_MS);
+    return () => {
+      clearTimeout(wait);
+      clearTimeout(sleep);
+    };
+  }, [usersTurn, composerText, moment]);
+  const rest = usersTurn && resting?.since === moment ? resting.level : null;
+
+  function typed(text: string) {
+    const has = text.trim() !== '';
+    setComposerText(has);
+    touch();
+    if (!has) return;
+    // Kai listens now: the wave or the cheer is over.
+    setGreeting(false);
+    setCelebrate(0);
+  }
+
+  // The page before the oldest line on screen. A failed load is quiet: the next scroll to the top tries again.
+  async function loadOlder() {
+    const oldest = shown.current.find((l) => !l.id.startsWith(LOCAL));
+    if (!oldest) return;
+    setLoadingOlder(true);
+    try {
+      const page = await api.fetchKaiChat(oldest.id);
+      setLines((all) => withOlder(all, page.messages));
+      setHasMore(page.hasMore === true);
+    } catch {
+      // nothing to show
+    }
+    setLoadingOlder(false);
+  }
+  function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (!hasMore || loadingOlder || !dragged.current || e.nativeEvent.contentOffset.y > TOP_PX) return;
+    dragged.current = false; // one page per scroll of the learner's own
+    void loadOlder();
+  }
+
+  async function send(text: string, tapped = false) {
     if (!quiet.current) return; // Kai is still answering; the composer keeps the text
     quiet.current = false;
+    touch();
     const retry = failed !== null;
     const before = options;
-    const mine = local('user', text);
+    const mine = local('user', text, tapped);
     setLines((all) => [...all, mine]);
     setOptions([]);
     setFailed(null);
     setGreeting(false);
-    setMood(null);
+    setCelebrate(0);
     setBusy(true);
     const result = await api.sendKaiMessage(text);
     setBusy(false);
     if (result.ok) {
       // The composer cleared itself on send. After a retry the text was put back by us, so take it out again.
-      if (retry) setDraft((d) => ({ key: d.key + 1, text: '' }));
+      if (retry) {
+        setDraft((d) => ({ key: d.key + 1, text: '' }));
+        setComposerText(false);
+      }
       if (!take(result)) quiet.current = true;
       return;
     }
@@ -232,24 +307,32 @@ export default function NewWordsScreen() {
     setOptions(before);
     setFailed(text);
     setDraft((d) => ({ key: d.key + 1, text }));
+    setComposerText(true);
+    fail();
   }
 
   // The Add button of a word card. A new word is waiting in Review, so its tab gets the red dot.
   async function addWord(messageId: string) {
+    touch();
     const { already } = await api.addKaiWord(messageId);
-    if (!already) void showReviewDot();
+    if (!already) {
+      void showReviewDot();
+      setCelebrate((n) => n + 1);
+    }
     return already ? ('already' as const) : ('added' as const);
   }
 
   function toggleTranslation() {
     const on = !translation.on;
+    touch();
     setTranslation((t) => ({ ...t, on }));
     api.setKaiTranslation(on).catch(() => setTranslation((t) => ({ ...t, on: !on }))); // not saved: switch back
   }
 
   const header = (
     <KaiHeader
-      pose={making ? 'making' : busy ? 'thinking' : (mood ?? (greeting ? 'greeting' : 'idle'))}
+      pose={newWordsKaiState({ failed: oops, making: making !== null, waiting: busy, typing: coming.lines.length > 0, composerText, rest, celebrate: celebrate > 0, greeting })}
+      playKey={celebrate}
       progress={making ? madeWords / making.wordCount : undefined}
       back={false}
       right={ready ? <TranslationToggle code={translation.code} on={translation.on} onToggle={toggleTranslation} /> : undefined}
@@ -289,10 +372,37 @@ export default function NewWordsScreen() {
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {header}
       {devId}
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
+      {loadingOlder ? (
+        <View style={styles.older}>
+          <Text accessibilityLabel="Loading older messages" style={[type.caption, styles.olderText]}>
+            Loading older messages…
+          </Text>
+        </View>
+      ) : null}
+      <ScrollView
+        ref={scroll}
+        testID="chat-messages"
+        style={styles.scroll}
+        contentContainerStyle={styles.messages}
+        keyboardShouldPersistTaps="handled"
+        // Older messages join at the top: the line the learner is reading stays where it is.
+        maintainVisibleContentPosition={KEEP_PLACE}
+        scrollEventThrottle={16}
+        onScroll={onScroll}
+        onScrollBeginDrag={() => {
+          dragged.current = true;
+          touch();
+        }}
+      >
         {lines.map((l) => (
           <Fragment key={l.id}>
-            <ChatBubble from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
+            {l.tapped ? (
+              <RiseIn>
+                <ChatBubble from={l.from} text={l.text} />
+              </RiseIn>
+            ) : (
+              <ChatBubble from={l.from} text={l.text} translation={l.translation} showTranslation={translation.on} />
+            )}
             {l.word ? <WordCard word={l.word} onAdd={() => addWord(l.id)} /> : null}
             {l.decks?.length ? (
               <DeckIdeas decks={l.decks} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
@@ -302,9 +412,9 @@ export default function NewWordsScreen() {
         {typing ? <TypingBubble /> : null}
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}
       </ScrollView>
-      <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o)} />
+      <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o, true)} />
       <View style={keyboard ? styles.composerTyping : styles.composer}>
-        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} maxLength={500} mic={false} canSend={!typing && !making} />
+        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} onTextChange={typed} maxLength={500} mic={false} canSend={!typing && !making} />
       </View>
     </KeyboardAvoidingView>
   );
@@ -315,6 +425,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: layout.sideMargin },
   scroll: { flex: 1 },
   messages: { paddingHorizontal: layout.sideMargin, paddingVertical: space[16], gap: space[8] },
+  older: { alignItems: 'center', paddingTop: space[8] },
+  olderText: { color: colors.muted },
   composer: { paddingBottom: layout.tabBarClearance },
   composerTyping: { paddingBottom: space[12] },
   dev: { color: colors.subtle, textAlign: 'center', paddingTop: space[4] },
