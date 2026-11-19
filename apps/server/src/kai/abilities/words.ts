@@ -36,6 +36,7 @@ export function wordPromptPart(L: string, N: string): string[] {
     `- One card per answer, for the most useful word. Every other language question (grammar, the difference between two words, culture) gets a short answer with no card: leave "word" null.`,
     `- The four card fields have no emoji. Only "example" has bold marks.`,
     `- After a word card you may give the one option that means "Another way to say it" in ${L}. When the learner says or taps that, answer with a new card: a different ${L} word or phrase with the same meaning as the last card (never the same word again). If there is no other common way, say so in one line with no card.`,
+    `- In the chat so far, "[word card: …]" after one of your lines is the card you gave then. Never write that mark yourself.`,
     `- Now and then, not often, remind the learner in one short line that they can ask you how to say something.`,
   ];
 }

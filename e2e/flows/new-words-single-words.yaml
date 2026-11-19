@@ -37,6 +37,9 @@ tags:
     visible: "Added"
     timeout: 20000
 - assertNotVisible: "Add to Random Words 1"
+# A tap on the card (not on a button) puts the keyboard away, so the tab bar shows again
+- tapOn:
+    id: "word-card-divider"
 # Review has the new word: 10 cards of the first deck and this one
 - tapOn: "Review.*"
 - extendedWaitUntil:
