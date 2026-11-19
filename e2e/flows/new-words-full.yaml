@@ -1,0 +1,120 @@
+# The whole New words page in one run, for Hamid's video. Not part of the repo's flows (the three New words flows cover the same steps).
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-full
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 90000
+# 1. Kai opens the chat
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+# 2. Translation off and on
+- tapOn: "Translation, on"
+- assertVisible: "Translation, off"
+- tapOn: "Translation, off"
+- assertVisible: "Translation, on"
+# 3. Deck ideas, swipe, Generate, ready, the Review dot
+- tapOn: "Message"
+- inputText: "Sí, quiero verlos"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 90000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- swipe:
+    start: "85%, 66%"
+    end: "15%, 66%"
+    duration: 250
+- extendedWaitUntil:
+    visible: "Deck 2 of 3"
+    timeout: 10000
+- swipe:
+    start: "15%, 66%"
+    end: "85%, 66%"
+    duration: 250
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 10000
+- tapOn: "Generate"
+- extendedWaitUntil:
+    visible: "Open deck"
+    timeout: 180000
+- extendedWaitUntil:
+    visible: "review dot on"
+    timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- waitForAnimationToEnd
+# 4. The deck page
+- repeat:
+    times: 4
+    while:
+      notVisible: "Close"
+    commands:
+      - swipe:
+          start: "50%, 40%"
+          end: "50%, 60%"
+          duration: 400
+      - waitForAnimationToEnd
+      - tapOn: "Open deck"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: ".* WORDS"
+    timeout: 20000
+- tapOn: "Close"
+# 5. A single word
+- tapOn: "Message"
+- inputText: "How do I say umbrella?"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: "Add to Random Words 1"
+    timeout: 60000
+- tapOn: "Add to Random Words 1"
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 20000
+- tapOn:
+    id: "word-card-divider"
+# 6. My own deck
+- tapOn: "Message"
+- inputText: "Quiero un mazo sobre trabajar en una cafetería"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- runFlow:
+    when:
+      notVisible: "Generate"
+    commands:
+      - tapOn: "Message"
+      - inputText: "Palabras sueltas, 10 palabras. Hazlo así, por favor."
+      - tapOn: "Send"
+      - hideKeyboard
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 90000
+# 7. Kai leads to Review
+- tapOn: "Message"
+- inputText: "Vamos a practicar"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: ".* cards to review today"
+    timeout: 60000
+- stopRecording

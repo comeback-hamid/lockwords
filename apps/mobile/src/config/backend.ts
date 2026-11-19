@@ -7,7 +7,7 @@ export const CLOUD = {
   apiUrl: 'https://lockwords-rhaic.ondigitalocean.app',
   supabaseUrl: 'https://sskhsgygvdpnnokvuuyd.supabase.co',
   // The publishable key is public by design: it ships inside every copy of the app. It only lets a phone start a login.
-  supabaseKey: 'sb_publishable_vSq8d0XASaKOZDFTWfURIg_vPvUm8Bj',
+  supabaseKey: 'sb_publishable_vSq8d0XASaKOZDFTWfURIg_vPvUm8Bj', // gitleaks:allow (the publishable key is public, not a secret)
 } as const;
 
 export type Backend = { apiUrl: string; supabaseUrl: string; supabaseKey: string; name: 'cloud' | 'custom' };
