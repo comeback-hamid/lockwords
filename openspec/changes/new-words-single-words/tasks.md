@@ -17,7 +17,7 @@
 
 ## 3. Docs
 
-- [ ] 3.1 `docs/roadmap.md` (epic 4).
+- [x] 3.1 `docs/roadmap.md` (epic 4).
 
 ## Results
 
