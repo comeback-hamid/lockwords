@@ -45,3 +45,10 @@ The prompt SHALL tell Kai to set `action: "review"` only when the learner clearl
 #### Scenario: A greeting
 - **WHEN** a learner with 10 words due sends "Hola Kai" to the stand-in AI
 - **THEN** the answer has no action
+
+### Requirement: Kai's lines stay in the learning language
+The prompt SHALL tell Kai to write every line fully in the learning language and never to drop English app words into it. For a set of flashcards Kai uses that language's own everyday word (Spanish "mazo" or "lista de palabras", never "deck"). Kai keeps only the names of things the learner taps as the app shows them: "Generate", "Review" and "Random Words".
+
+#### Scenario: Prompt carries the rule
+- **WHEN** the prompt is built for a learner of Spanish or of Persian
+- **THEN** it has this rule with the learning language's name, and its example line about decks does not use the word "decks"

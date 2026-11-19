@@ -6,6 +6,9 @@
 - [x] 1.2 `KaiStore.messages(userId, limit, before?)`, `readChat(…, before?)`, the route's query. `npm run openapi`. Verify: `npm test`, `npm run test:integration`, `npm run typecheck`, `npm run lint` green.
 - [x] 1.3 Kai goes to Review too fast (reported by the parent session, 2026-11-19: "Hola Kai" → "Vamos a Review ahora"). Test first (`test/unit/kai-review-rule.test.ts`), then the prompt rule in `src/llm/kai-chat.ts`: the action only for a clear ask to practice or a yes to Kai's own offer.
   - Real AI check with `npx tsx scripts/kai-review-try.ts` on 2026-11-19: 24 of 24 answers as expected (12 cases, twice). Greetings, small talk, a word question, "gracias" and "Ahora no" got a normal answer with no action; most offered practice as a question or an option. "Vamos a practicar", "I want to review my words now" and a yes to Kai's offer went to Review.
+- [x] 1.4 Kai mixes the English word "deck" into its lines (reported by the parent session, 2026-11-19: "Tengo 3 decks listos para ti"). Test first (`test/unit/kai-language-rule.test.ts`), then a rule in `src/llm/kai-chat.ts`, and the example sentence in `src/kai/abilities/decks.ts` no longer says "Look, 3 decks for you".
+  - Real AI check with `npx tsx scripts/kai-language-try.ts` on 2026-11-19: 20 of 20 answers with no English app word (Spanish and Persian; first visit, new words, own deck, deck ready, a word question; each twice). Spanish said "mazo" or "lista de palabras"; Persian said "دسته" or "مجموعه". "Generate" and "Review" stayed as in the app.
+  - Seen in that run, not part of this change: for "I need words for a trip to Shiraz" Kai offered 3 ideas, where the rule for an own deck says 1.
 
 ## 2. Mobile
 

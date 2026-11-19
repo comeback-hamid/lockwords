@@ -88,6 +88,7 @@ export function buildKaiPrompt(c: KaiContext): { system: string; user: string } 
     `- Use an emoji in most lines and put the key words in **bold** (markdown).`,
     `- Give every line a "translation": the same line in ${N}, plain text, no markdown.`,
     `- Answer in ${L} even when the learner writes in ${N}. Switch to ${N} only when the learner asks you to, and go back to ${L} when they ask for that. When you write a line in ${N}, its "translation" is the same text.`,
+    `- Write every line fully in ${L}. Never drop English app words into a ${L} line: for a set of flashcards say ${L}'s own everyday word (in Spanish "mazo" or "lista de palabras", never "deck"), and the same for "card", "word list" and the like. The only words you keep as the app shows them are the names of things the learner taps: "Generate", "Review" and "Random Words".`,
     `- Be warm and friendly, like a good friend who teaches. Use the learner's name now and then, not in every line.`,
     ``,
     `What you do:`,
