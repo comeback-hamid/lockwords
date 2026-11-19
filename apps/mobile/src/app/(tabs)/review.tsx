@@ -8,6 +8,7 @@ import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { ButtonPrimary } from '@/components/button';
 import { LoadError, Loading } from '@/components/load-state';
+import { clearReviewDot } from '@/review/dot';
 import { setRound } from '@/review/round-store';
 import { colors, layout, space, type } from '@/theme/theme';
 
@@ -19,6 +20,7 @@ export default function ReviewScreen() {
 
   // Loads every time the tab comes into view, so a finished round shows "all done".
   const load = useCallback(() => {
+    void clearReviewDot(); // the learner opened Review: the tab's red dot goes
     api.fetchRound().then(
       (cards) => setState({ cards, failed: false }),
       () => setState({ cards: null, failed: true }),

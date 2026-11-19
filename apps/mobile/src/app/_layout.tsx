@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import { bootSession } from '@/auth/boot';
 import { clearOnFreshInstall } from '@/auth/session-storage';
 import { loadOnboardingFinished, useOnboardingFinished } from '@/onboarding/finished';
+import { loadReviewDot } from '@/review/dot';
 import { loadSpeechLanguage } from '@/review/speech-language';
 import { fonts } from '@/theme/fonts';
 
@@ -29,6 +30,7 @@ export default function RootLayout() {
       .catch(() => {})
       .then(loadOnboardingFinished)
       .then(loadSpeechLanguage)
+      .then(loadReviewDot)
       .then(bootSession); // silent guest sign-in; the screens never wait for it
   }, []);
 
