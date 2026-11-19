@@ -443,6 +443,12 @@
           "title": {
             "type": "string"
           },
+          "titleTranslation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "reason": {
             "type": "string"
           },
@@ -839,6 +845,12 @@
           },
           "createdAt": {
             "type": "string"
+          },
+          "decks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KaiChatDeck"
+            }
           }
         },
         "required": [
@@ -847,6 +859,53 @@
           "text",
           "translation",
           "createdAt"
+        ]
+      },
+      "KaiChatDeck": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "titleTranslation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "cefr": {
+            "type": "string"
+          },
+          "wordCount": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "generating",
+              "ready"
+            ]
+          },
+          "current": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "titleTranslation",
+          "reason",
+          "cefr",
+          "wordCount",
+          "status",
+          "current"
         ]
       },
       "KaiTurn": {
@@ -906,6 +965,20 @@
           "error"
         ]
       },
+      "KaiDeckNotFound": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_found"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
       "KaiNoProfile": {
         "type": "object",
         "properties": {
@@ -913,6 +986,20 @@
             "type": "string",
             "enum": [
               "no_profile"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "KaiDeckNotReady": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "deck_not_ready"
             ]
           }
         },
@@ -947,6 +1034,17 @@
             "enum": [
               true
             ]
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "deck_ready"
+            ]
+          },
+          "deckId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
           }
         }
       },
@@ -1953,12 +2051,29 @@
               }
             }
           },
-          "409": {
-            "description": "The user has no profile yet",
+          "404": {
+            "description": "The event names a deck that is not the caller’s",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/KaiNoProfile"
+                  "$ref": "#/components/schemas/KaiDeckNotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The user has no profile yet; or the event names a deck that is not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/KaiNoProfile"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KaiDeckNotReady"
+                    }
+                  ]
                 }
               }
             }

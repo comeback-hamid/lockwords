@@ -37,6 +37,8 @@ export const decks = pgTable('decks', {
   reason: text('reason').notNull(),
   cefr: text('cefr').notNull(),
   status: text('status').notNull().default('proposed'), // 'proposed' | 'generating' | 'ready'
+  titleTranslation: text('title_translation'), // the title in the native language; only decks Kai offers in the New words chat
+  wordCount: integer('word_count').notNull().default(10), // how many cards the deck gets: 10 in onboarding, 10 to 30 from the chat
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -102,6 +104,8 @@ export const kaiMessages = pgTable(
     options: text('options').array().notNull().default([]),
     opening: boolean('opening').notNull().default(false), // part of a turn where Kai spoke first
     position: integer('position').notNull().default(0), // order inside one turn (same created_at)
+    deckIds: uuid('deck_ids').array().notNull().default([]), // deck ideas shown under this line (1 or 3), in order
+    readyDeckId: uuid('ready_deck_id'), // set on Kai's "your deck is ready" line, so Kai says it once per deck
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('kai_messages_user_time').on(t.userId, t.createdAt)],

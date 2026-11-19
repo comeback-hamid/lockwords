@@ -16,7 +16,8 @@ export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksSt
       title: deck.title,
       reason: deck.reason,
       cefr: deck.cefr,
-      wordCount: 10,
+      titleTranslation: deck.titleTranslation,
+      wordCount: deck.wordCount,
       status: deck.status as 'proposed' | 'generating' | 'ready',
       cards: rows.map((c) => ({ id: c.id, position: c.position, word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.exampleTranslation, stage: c.stage })),
     };

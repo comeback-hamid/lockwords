@@ -31,7 +31,7 @@ export type ProfilesStore = {
   setChat(userId: string, name: string, chatLanguage: 'native' | 'target'): Promise<boolean>; // false = no profile yet
 };
 export type DecksStore = {
-  create(userId: string, deck: Pick<Deck, 'topic' | 'title' | 'reason' | 'cefr'>): Promise<Deck>;
+  create(userId: string, deck: Pick<Deck, 'topic' | 'title' | 'reason' | 'cefr'>): Promise<Deck>; // a deck of 10 with no title translation (onboarding)
   get(userId: string, id: string): Promise<Deck | null>; // null also for another user's deck
   saveCards(id: string, cards: NewCard[]): Promise<Deck>; // also sets the deck to ready
 };

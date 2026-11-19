@@ -28,10 +28,40 @@ export const MIX_TEXT =
 export const measuredSize = (est: number) =>
   `A short word test says they know ${est >= 5000 ? 'nearly all' : `about ${est.toLocaleString('en-US')}`} of the 5,000 most common words.`;
 
-// The text for "What to put in this deck for this learner's level".
-export function deckMix(band: number, est: number | null): string {
-  const parts: string[] = [BAND_TEXT[band] ?? BAND_TEXT[2]];
-  if (band >= 1) parts.push(MIX_TEXT);
+// 2.5: a deck from the New words chat has its own size (10 to 30). The counts in the texts above are for 10 items;
+// for another size they grow with it. At 10 every text is the doc's, word for word.
+const scaled = (base: number, size: number) => Math.max(1, Math.round((base * size) / DOC_SIZE));
+const DOC_SIZE = 10;
+
+export function bandText(band: number, size = DOC_SIZE): string {
+  const b = BAND_TEXT[band] ? band : 2;
+  const text: string = BAND_TEXT[b]!;
+  if (size === DOC_SIZE) return text;
+  const n = (base: number) => scaled(base, size);
+  if (b === 0) return text.replace('at most 2 tiny fixed phrases', `at most ${n(2)} tiny fixed phrases`);
+  if (b === 1) return text.replace('at most 1 short fixed phrase.', `at most ${n(1)} short fixed phrase${n(1) > 1 ? 's' : ''}.`);
+  if (b === 2) return text.replace('plus 2 short, useful phrases', `plus ${n(2)} short, useful phrases`);
+  if (b === 3)
+    return text
+      .replace('About 4 less common single words, 3 collocations', `About ${size - 2 * n(3)} less common single words, ${n(3)} collocations`)
+      .replace('and 3 useful everyday phrases', `and ${n(3)} useful everyday phrases`);
+  return text.replace('about 3 advanced single words, 4 collocations and 3 idiomatic', `about ${n(3)} advanced single words, ${size - 2 * n(3)} collocations and ${n(3)} idiomatic`);
+}
+
+// 25 % easy, 50 % at level, 25 % stretch (2.2). The three parts add up to the size; at 10 it is the doc's 3 / 5 / 2.
+export function mixText(size = DOC_SIZE): string {
+  if (size === DOC_SIZE) return MIX_TEXT;
+  const level = Math.round(size / 2);
+  const stretch = Math.floor((size - level) / 2);
+  return MIX_TEXT.replace('about 3 easy items', `about ${size - level - stretch} easy items`)
+    .replace('about 5 items right at their level', `about ${level} items right at their level`)
+    .replace('about 2 stretch items', `about ${stretch} stretch items`);
+}
+
+// The text for "What to put in this deck for this learner's level". `size` = how many items the deck gets.
+export function deckMix(band: number, est: number | null, size = DOC_SIZE): string {
+  const parts: string[] = [bandText(band, size)];
+  if (band >= 1) parts.push(mixText(size));
   if (band >= 3 && est != null) parts.push(measuredSize(est));
   return parts.join(' ');
 }

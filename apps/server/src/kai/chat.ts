@@ -1,17 +1,22 @@
-import type { ProfilesStore } from '../app.js';
+import type { DecksStore, ProfilesStore } from '../app.js';
 import { KaiAnswerSchema, type KaiAnswer, type KaiChat, type KaiContext } from '../llm/kai-chat.js';
 import { listedLanguage } from '../onboarding/languages.js';
 import type { Profile } from '../onboarding/profile.js';
+import { deckNote, NO_DECK_FACTS, readyEvent, type ChatDeck, type DeckEvent, type DeckFacts, type DeckIdea } from './abilities/decks.js';
 
 // One turn of the New words chat: check the limits, tell Kai what it knows, save what it said.
 
-export type KaiMessage = { id: string; from: 'kai' | 'user'; text: string; translation: string | null; options: string[]; opening: boolean; createdAt: Date };
+export type KaiMessage = { id: string; from: 'kai' | 'user'; text: string; translation: string | null; options: string[]; opening: boolean; createdAt: Date; decks?: ChatDeck[] }; // decks: the deck cards under this line (ability "decks")
 export type KaiFacts = {
   name: string | null;
   translationOn: boolean | null; // null = the learner never chose
   words: KaiContext['words'];
+  decks?: DeckFacts;
 };
-export type KaiTurnToSave = { user: string | null; kai: { text: string; translation: string }[]; options: string[]; opening: boolean; notes: { add: string[]; drop: number } };
+export type KaiTurnToSave = { user: string | null; kai: { text: string; translation: string }[]; options: string[]; opening: boolean; notes: { add: string[]; drop: number };
+  decks?: { ideas: DeckIdea[]; cefr: string }; // saved as proposed decks and linked to Kai's last line
+  readyDeckId?: string; // this turn tells the learner that this deck is ready; saved once per deck (a second one saves nothing)
+};
 export type KaiStore = {
   messages(userId: string, limit: number): Promise<KaiMessage[]>; // the newest `limit`, oldest first
   lastOpeningAt(userId: string): Promise<Date | null>;
@@ -19,6 +24,7 @@ export type KaiStore = {
   notes(userId: string): Promise<string[]>; // oldest first
   facts(userId: string, now: Date): Promise<KaiFacts>;
   setTranslation(userId: string, on: boolean): Promise<boolean>; // false = no profile
+  saidReady?(userId: string, deckId: string): Promise<boolean>; // Kai already told the learner this deck is ready
   // All of it or nothing. One turn at a time per user. An opening is not saved when another one was saved in the last 12 hours
   // (two requests at once): the answer then has no messages.
   addTurn(userId: string, turn: KaiTurnToSave, now: Date): Promise<{ userMessage: KaiMessage | null; messages: KaiMessage[] }>;
@@ -51,9 +57,10 @@ const languageName = (saved: string) => listedLanguage(saved)?.name ?? saved;
 
 export type TurnResult =
   | { ok: true; userMessage: KaiMessage | null; messages: KaiMessage[]; options: string[]; action: 'review' | null }
-  | { ok: false; error: 'no_profile' | 'too_many_messages' | 'kai_unavailable' };
+  | { ok: false; error: 'no_profile' | 'too_many_messages' | 'kai_unavailable' | 'not_found' | 'deck_not_ready' };
 
-type Deps = { kai: KaiStore; profiles: ProfilesStore; kaiChat: KaiChat };
+type Deps = { kai: KaiStore; profiles: ProfilesStore; kaiChat: KaiChat; decks?: DecksStore };
+const NOTHING: TurnResult = { ok: true, userMessage: null, messages: [], options: [], action: null };
 
 // The model's answer, checked. A wrong shape is asked for once more; a thrown call is not.
 // Both tries share one limit of 20 seconds, so a turn never takes longer than that.
@@ -66,16 +73,21 @@ async function ask(kaiChat: KaiChat, ctx: KaiContext): Promise<KaiAnswer | null>
   return null;
 }
 
-// `input` is the learner's text, or null for Kai's opening.
-export async function kaiTurn(deps: Deps, userId: string, input: string | null, now: Date): Promise<TurnResult> {
+// `input` is the learner's text, null for Kai's opening, or an event from the app that Kai speaks about.
+export async function kaiTurn(deps: Deps, userId: string, input: string | null | DeckEvent, now: Date): Promise<TurnResult> {
   const profile = await deps.profiles.get(userId);
   if (!profile) return { ok: false, error: 'no_profile' };
   const opening = input === null;
+  const event = typeof input === 'object' && input !== null ? input : null;
+  const text = typeof input === 'string' ? input : null;
+  const ready = event ? await readyEvent(deps, userId, event.deckId) : null;
+  if (ready === 'said') return NOTHING;
+  if (typeof ready === 'string') return { ok: false, error: ready };
 
   if (opening) {
     const last = await deps.kai.lastOpeningAt(userId);
-    if (last && now.getTime() - last.getTime() < OPENING_GAP_MS) return { ok: true, userMessage: null, messages: [], options: [], action: null };
-  } else if ((await deps.kai.userTurnsSince(userId, new Date(now.getTime() - DAY_MS))) >= MAX_TURNS_PER_DAY) {
+    if (last && now.getTime() - last.getTime() < OPENING_GAP_MS) return NOTHING;
+  } else if (text !== null && (await deps.kai.userTurnsSince(userId, new Date(now.getTime() - DAY_MS))) >= MAX_TURNS_PER_DAY) {
     return { ok: false, error: 'too_many_messages' };
   }
 
@@ -90,11 +102,13 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null, 
     goalOther: profile.goalOther,
     interests: profile.interests,
     notes,
-    history: history.map((m) => ({ from: m.from, text: m.text })),
+    history: history.map((m) => ({ from: m.from, text: m.text + deckNote(m.decks) })),
     words: { ...facts.words, sample: facts.words.sample.slice(0, 10) },
     opening,
     firstVisit: opening && history.length === 0,
-    userText: input,
+    userText: text,
+    decks: facts.decks ?? NO_DECK_FACTS,
+    ...(ready ? { event: { deckReady: ready } } : {}),
   };
 
   let answer: KaiAnswer | null;
@@ -105,9 +119,15 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null, 
   }
   if (!answer) return { ok: false, error: 'kai_unavailable' };
 
-  const saved = await deps.kai.addTurn(userId, { user: input, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember) }, now);
-  if (opening && saved.messages.length === 0) return { ok: true, userMessage: null, messages: [], options: [], action: null }; // another request opened first
-  return { ok: true, ...saved, options: answer.options, action: answer.action };
+  // Deck ideas come only after the learner said yes (never with the first hello) and never with "your deck is ready".
+  const ideas = ctx.firstVisit || event ? undefined : answer.decks;
+  const saved = await deps.kai.addTurn(
+    userId,
+    { user: text, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), ...(ideas ? { decks: { ideas, cefr: profile.cefr ?? 'A1' } } : {}), ...(event ? { readyDeckId: event.deckId } : {}) },
+    now,
+  );
+  if ((opening || event) && saved.messages.length === 0) return NOTHING; // another request opened, or said "ready", first
+  return { ok: true, ...saved, options: answer.options, action: event ? null : answer.action };
 }
 
 export async function readChat(deps: Pick<Deps, 'kai' | 'profiles'>, userId: string, now: Date) {
