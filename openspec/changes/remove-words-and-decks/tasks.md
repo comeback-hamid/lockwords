@@ -9,9 +9,9 @@
 
 ## 2. Mobile
 
-- [ ] 2.1 Tests first: the deck page (loading, error, words, the hint, Delete by the row action, the count follows, a failed delete puts the word back, the empty deck, Remove deck with Cancel and Remove, a failed removal, where the app goes after). Client tests for the two calls. Run them, see them fail.
-- [ ] 2.2 `npm run api:gen`; `api.removeCard` and `api.removeDeck` in `src/api/client.ts`.
-- [ ] 2.3 The deck page: swipe row with Delete, the hint, Remove deck with the pop-up. Verify: `npm test`, `npm run typecheck`, `npm run lint` green.
+- [x] 2.1 Tests first: the deck page (loading, error, words, the hint, Delete by the row action, the count follows, a failed delete puts the word back, the empty deck, Remove deck with Cancel and Remove, a failed removal, where the app goes after). Client tests for the two calls. Run them, see them fail.
+- [x] 2.2 `npm run api:gen`; `api.removeCard` and `api.removeDeck` in `src/api/client.ts`.
+- [x] 2.3 The deck page: swipe row with Delete, the hint, Remove deck with the pop-up. Verify: `npm test`, `npm run typecheck`, `npm run lint` green.
 - [ ] 2.4 Maestro flow `e2e/flows/remove-words-and-decks.yaml` (tag `my-words`): make a deck in the chat, open it, swipe a word left, Delete, see the count fall and Review follow, then Remove deck and see Review follow. Records `e2e/videos/remove-words-and-decks.mp4`. All other flows still pass.
 
 ## 3. Docs
