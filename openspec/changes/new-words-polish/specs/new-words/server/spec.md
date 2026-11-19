@@ -32,3 +32,16 @@ With `?before=<message id>` the answer SHALL hold the 50 messages just before th
 #### Scenario: Not mine
 - **WHEN** a user reads with `before` set to another user's message, or to a text that is no message id
 - **THEN** the answer is `404`
+
+## ADDED Requirements
+
+### Requirement: When Kai leads to Review
+The prompt SHALL tell Kai to set `action: "review"` only when the learner clearly asks to practice or review now, or says yes to Kai's own offer to practice. A greeting, small talk or a question is never a reason, also when words are due: Kai answers normally and may offer practice as a question or an option, with no action.
+
+#### Scenario: Prompt carries the rule
+- **WHEN** the prompt for any turn is built
+- **THEN** it says that the action is only for a clear ask to practice or a yes to Kai's offer, and that a greeting is never a reason
+
+#### Scenario: A greeting
+- **WHEN** a learner with 10 words due sends "Hola Kai" to the stand-in AI
+- **THEN** the answer has no action

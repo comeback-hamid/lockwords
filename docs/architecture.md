@@ -45,7 +45,7 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 | POST | `/v1/cards/{id}/swipe` | `{ direction: easy / hard / known }` → `{ stage, known, hard, backInDays }`. Rules in `src/review/srs.ts`. | first-review |
 | GET | `/v1/hard-words` | Words swiped Hard (for the lock screen). | first-review |
 | POST | `/v1/cards/{id}/use-it` | `{ sentence }` → `{ good, lines, movedUp, stage }` (AI task `use-it`). `502` if the AI fails. | first-review |
-| GET | `/v1/kai/chat` | The New words chat: `{ messages, options, translationOn, nativeLanguage }` (newest 50 messages, oldest first). | new-words-kai-chat |
+| GET | `/v1/kai/chat` | The New words chat: `{ messages, options, translationOn, nativeLanguage }` (newest 50 messages, oldest first; `hasMore: true` when older ones are left). With `?before=<message id>`: the 50 before that message, no options. | new-words-kai-chat |
 | POST | `/v1/kai/chat/turns` | `{ text }` (the learner speaks) or `{ open: true }` (Kai opens, at most once in 12 hours) → `{ userMessage, messages, options, action }` (AI task `kai-chat`). `409` no profile, `429` over 200 messages in 24 h, `502` if the AI fails (nothing saved). | new-words-kai-chat |
 | PUT | `/v1/kai/chat/translation` | `{ on }`: the learner's choice for the translation line. | new-words-kai-chat |
 

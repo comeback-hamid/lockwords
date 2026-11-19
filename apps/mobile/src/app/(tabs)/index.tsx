@@ -17,7 +17,7 @@ import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
 import { showReviewDot } from '@/review/dot';
-import { colors, layout, space, type } from '@/theme/theme';
+import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Kai's lines that still wait behind a typing bubble, and what comes after the last one.
 // keepOptions: a line the app adds by itself (making a deck failed) leaves the options as they are.
@@ -372,13 +372,7 @@ export default function NewWordsScreen() {
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {header}
       {devId}
-      {loadingOlder ? (
-        <View style={styles.older}>
-          <Text accessibilityLabel="Loading older messages" style={[type.caption, styles.olderText]}>
-            Loading older messages…
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.scroll}>
       <ScrollView
         ref={scroll}
         testID="chat-messages"
@@ -411,7 +405,16 @@ export default function NewWordsScreen() {
         ))}
         {typing ? <TypingBubble /> : null}
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}
-      </ScrollView>
+        </ScrollView>
+        {loadingOlder ? (
+          // Over the chat, not in it: the messages do not move while the page loads.
+          <View pointerEvents="none" style={styles.older}>
+            <Text accessibilityLabel="Loading older messages" style={[type.caption, styles.olderText]}>
+              Loading older messages…
+            </Text>
+          </View>
+        ) : null}
+      </View>
       <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o, true)} />
       <View style={keyboard ? styles.composerTyping : styles.composer}>
         <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} onTextChange={typed} maxLength={500} mic={false} canSend={!typing && !making} />
@@ -425,8 +428,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: layout.sideMargin },
   scroll: { flex: 1 },
   messages: { paddingHorizontal: layout.sideMargin, paddingVertical: space[16], gap: space[8] },
-  older: { alignItems: 'center', paddingTop: space[8] },
-  olderText: { color: colors.muted },
+  older: { position: 'absolute', top: space[8], left: 0, right: 0, alignItems: 'center' },
+  olderText: { color: colors.muted, backgroundColor: colors.canvas, paddingHorizontal: space[12], paddingVertical: space[4], borderRadius: radius.pill, overflow: 'hidden' },
   composer: { paddingBottom: layout.tabBarClearance },
   composerTyping: { paddingBottom: space[12] },
   dev: { color: colors.subtle, textAlign: 'center', paddingTop: space[4] },
