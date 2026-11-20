@@ -185,10 +185,13 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
                   </Text>
                   <Text style={[type.callout, styles.muted]}>{card.exampleTranslation}</Text>
                   <View style={styles.grow} />
-                  <Pressable accessibilityRole="button" accessibilityLabel="Use it" onPress={() => router.push(`/use-it/${card.id}`)} style={styles.useIt}>
-                    <Icon name="mic" color={colors.white} />
-                    <Text style={[type.button, styles.white]}>Use it</Text>
-                  </Pressable>
+                  {/* The server says when Use it is offered (from level 3, and on the first day). */}
+                  {card.canUseIt ? (
+                    <Pressable accessibilityRole="button" accessibilityLabel="Use it" onPress={() => router.push(`/use-it/${card.id}`)} style={styles.useIt}>
+                      <Icon name="mic" color={colors.white} />
+                      <Text style={[type.button, styles.white]}>Use it</Text>
+                    </Pressable>
+                  ) : null}
                 </View>
               ) : (
                 <View style={styles.front}>

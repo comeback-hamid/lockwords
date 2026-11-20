@@ -18,7 +18,7 @@ export function applySwipe(card: CardState, direction: Direction, now: Date): Ca
 }
 
 // What the learner already did today (swipes that were not undone), as the server needs it to judge one more swipe.
-export type Today = { swipesToday: Direction[]; newStartedToday: number };
+export type Today = { swipesToday: Direction[]; newStartedToday: number; usedItToday?: boolean }; // usedItToday: a good sentence already moved this card today
 
 // Is this card in today's round? Due cards, new cards under the daily limit, and one more showing after a first Hard.
 export function canSwipe(card: CardState, today: Today, dayEnd: Date): boolean {
@@ -28,6 +28,11 @@ export function canSwipe(card: CardState, today: Today, dayEnd: Date): boolean {
   if (card.stage === 0) return today.newStartedToday < MAX_NEW_PER_DAY;
   return card.dueAt !== null && card.dueAt < dayEnd;
 }
+
+// Use it (docs/product.md 7.5) starts at stage 3. On the learner's very first review day (the onboarding practice)
+// every card offers it.
+const USE_IT_FROM_STAGE = 3;
+export const canUseIt = (stage: number, firstDay: boolean) => firstDay || stage >= USE_IT_FROM_STAGE;
 
 // The first Hard of the day brings the card back once at the end of the same round.
 export const showsAgain = (direction: Direction, today: Today) => direction === 'hard' && today.swipesToday.length === 0;

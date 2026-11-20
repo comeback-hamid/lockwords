@@ -10,6 +10,7 @@ import type { DeckMaker, NewCard } from './llm/make-deck.js';
 import type { KaiReplier } from './llm/kai-reply.js';
 import type { LanguageChecker } from './llm/check-language.js';
 import type { UseItJudge } from './llm/use-it.js';
+import type { WordAsker } from './llm/ask-word.js';
 import type { Profile } from './onboarding/profile.js';
 import type { ReviewDay } from './review/day.js';
 import type { CardState, Direction, Today } from './review/srs.js';
@@ -50,6 +51,8 @@ export type CardsStore = {
   // Takes back the learner's newest swipe of that review day. null = nothing to take back (none today, or the newest was already undone).
   undoLast?(userId: string, day: string): Promise<(ReviewCard & CardState) | null>;
   // What the summary is made of: the learner's name, the review days that have a swipe (newest first), and that day's swipes (oldest first).
+  // Has the learner any history before this review day? false = this is their first day (Use it shows on every card).
+  reviewedBefore?(userId: string, day: string): Promise<boolean>;
   history?(userId: string, day: string): Promise<{ name: string | null; days: string[]; events: TodayEvent[] }>;
   get(userId: string, id: string): Promise<(ReviewCard & CardState) | null>; // null also for another user's card
   save(id: string, patch: CardState): Promise<void>;
@@ -58,7 +61,7 @@ export type CardsStore = {
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; randomWords?: RandomWordsStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; randomWords?: RandomWordsStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {

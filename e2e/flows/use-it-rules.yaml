@@ -1,0 +1,62 @@
+# Use it: a weak sentence keeps its options, a good one moves the word up, then a follow-up question to Kai.
+# Needs the local stack: `npm run dev:up`. Dev build. The stand-in AI gives fixed answers.
+appId: com.comebackhamid.lockwords
+tags:
+  - review
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: use-it-rules
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "la cuenta"
+# First day: Use it is offered on every card
+- tapOn:
+    id: "review-card"
+- assertVisible: "the bill"
+- tapOn: "Use it"
+- assertVisible: ".*Write one sentence with la cuenta.*"
+# A weak sentence: Kai says what is missing, the two options stay
+- tapOn: "Message"
+- inputText: "No tengo dinero."
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*I can’t find.*"
+    timeout: 20000
+- assertVisible: "Show me an example"
+- assertVisible: "Skip this word"
+# A good sentence: the word moves up, and Kai offers a follow-up question
+- tapOn: "Message"
+- inputText: "Quiero la cuenta, por favor."
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*Great sentence.*"
+    timeout: 20000
+- assertVisible: "LA CUENTA MOVED UP A LEVEL"
+- assertVisible: "Next card"
+# The follow-up question: Kai answers, the level does not move again
+- tapOn: "Can I say it another way?"
+- extendedWaitUntil:
+    visible: ".*Good question.*"
+    timeout: 20000
+- assertVisible: "Next card"
+# A typed question is a question too
+- tapOn: "Ask Kai about this word…"
+- inputText: "Is it formal?"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*You: Is it formal.*"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: "Next card"
+    timeout: 20000
+- tapOn: "Next card"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- assertVisible: "la propina"
+- stopRecording

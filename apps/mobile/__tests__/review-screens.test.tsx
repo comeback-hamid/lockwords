@@ -19,7 +19,7 @@ jest.mock('expo-speech', () => ({ speak: jest.fn(), stop: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
 const mockApi = jest.mocked(api);
-const card = (i: number, word: string): ReviewCard => ({ id: `c${i}`, deckId: 'd1', deckTopic: 'Ordering food', word, translation: 't', example: 'e', exampleTranslation: 'et', stage: 0 });
+const card = (i: number, word: string): ReviewCard => ({ id: `c${i}`, deckId: 'd1', deckTopic: 'Ordering food', word, translation: 't', example: 'e', exampleTranslation: 'et', stage: 0, canUseIt: true });
 const cards20 = Array.from({ length: 20 }, (_, i) => card(i, `w${i}`));
 const summary = (over: Partial<ReviewSummary> = {}): ReviewSummary => ({ day: '2026-11-20', name: 'Maya', streakDays: 3, today: { words: 0, minutes: 0, easy: 0, hard: 0, known: 0, stages: [] }, ...over });
 

@@ -141,6 +141,10 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async kaiReply(step: KaiStep, text: string, options: string[]): Promise<KaiReply> {
       return unwrap(await client.POST('/v1/kai/reply', { body: { step, text, options } }));
     },
+    // A question about the word, after a Use it sentence. It never changes the word's level.
+    async askAboutWord(id: string, question: string, sentence?: string): Promise<{ lines: string[] }> {
+      return unwrap(await client.POST('/v1/cards/{id}/ask', { params: { path: { id } }, body: { question, sentence } }));
+    },
     async useIt(id: string, sentence: string): Promise<UseItResult> {
       return unwrap(await client.POST('/v1/cards/{id}/use-it', { params: { path: { id } }, body: { sentence } }));
     },

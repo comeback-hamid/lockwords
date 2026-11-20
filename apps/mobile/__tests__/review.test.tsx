@@ -26,7 +26,7 @@ jest.mock('expo-speech', () => ({ speak: jest.fn(), stop: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
 const mockApi = jest.mocked(api);
-const card = (i: number, word: string, translation: string): ReviewCard => ({ id: `c${i}`, deckId: 'd1', deckTopic: 'Ordering food', word, translation, example: `Deja un 10 % de ${word.replace('la ', '')}.`, exampleTranslation: 'Leave a 10% tip.', stage: 0 });
+const card = (i: number, word: string, translation: string): ReviewCard => ({ id: `c${i}`, deckId: 'd1', deckTopic: 'Ordering food', word, translation, example: `Deja un 10 % de ${word.replace('la ', '')}.`, exampleTranslation: 'Leave a 10% tip.', stage: 0, canUseIt: true });
 const two = [card(1, 'la propina', 'the tip'), card(2, 'la cuenta', 'the bill')];
 const swiped = (over: object) => ({ id: 'c1', stage: 1, known: false, hard: false, backInDays: 1, again: false, ...over }); // `again` added with review-srs-rules
 const kaiSays = (text: string) => screen.getByLabelText(`Kai: ${text}`);
@@ -202,7 +202,7 @@ describe('Use it', () => {
     expect(mockApi.useIt).toHaveBeenCalledWith('c1', 'Dejé propina al mesero.');
     expect(screen.getByLabelText('You: Dejé propina al mesero.')).toBeOnTheScreen();
     expect(kaiSays('Checking… 👀')).toBeOnTheScreen();
-    await act(async () => answer({ good: true, lines: ['🎉 **Great sentence!**', '👍 You used **propina** in the right place.'], movedUp: true, stage: 1 }));
+    await act(async () => answer({ good: true, lines: ['🎉 **Great sentence!**', '👍 You used **propina** in the right place.'], movedUp: true, stage: 1, followUp: null }));
     expect(kaiSays('🎉 Great sentence!')).toBeOnTheScreen();
     expect(kaiSays('👍 You used propina in the right place.')).toBeOnTheScreen();
     expect(screen.getByText('LA PROPINA MOVED UP A LEVEL')).toBeOnTheScreen();
@@ -213,7 +213,7 @@ describe('Use it', () => {
   });
 
   test('weak sentence: lines, no “moved up”, the user can write again', async () => {
-    mockApi.useIt.mockResolvedValue({ good: false, lines: ['🤔 I can’t find **propina** in your sentence.'], movedUp: false, stage: 0 });
+    mockApi.useIt.mockResolvedValue({ good: false, lines: ['🤔 I can’t find **propina** in your sentence.'], movedUp: false, stage: 0, followUp: null });
     await render(<UseItScreen />);
     await send('Me gusta el café.');
     await waitFor(() => expect(kaiSays('🤔 I can’t find propina in your sentence.')).toBeOnTheScreen());
