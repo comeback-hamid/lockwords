@@ -29,7 +29,7 @@ export const DeckSchema = z
     kind: z.enum(['topic', 'random']).optional(), // always set by the server; "random" = a Random Words deck
     wordCount: z.number().int(),
     status: z.enum(['proposed', 'generating', 'ready']),
-    cards: z.array(CardSchema.extend({ id: z.string(), position: z.number().int(), stage: z.number().int() }).openapi('Card')),
+    cards: z.array(CardSchema.extend({ id: z.string(), position: z.number().int(), stage: z.number().int(), hard: z.boolean().optional(), known: z.boolean().optional() }).openapi('Card')),
   })
   .openapi('Deck');
 export type Deck = z.infer<typeof DeckSchema>;

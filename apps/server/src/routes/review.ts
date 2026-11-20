@@ -33,7 +33,7 @@ const UseItResultSchema = z
   .openapi('UseItResult');
 const AskFailed = error('ask_failed', 'AskFailed');
 
-const getReview = createRoute({ method: 'get', path: '/review', security, responses: { 200: json(z.object({ cards: z.array(ReviewCardSchema) }).openapi('Round'), "Today's cards"), ...unauthorized } });
+const getReview = createRoute({ method: 'get', path: '/review', security, request: { query: z.object({ deckId: z.string().optional() }) }, responses: { 200: json(z.object({ cards: z.array(ReviewCardSchema) }).openapi('Round'), "Today's cards"), ...unauthorized } });
 const getHardWords = createRoute({
   method: 'get',
   path: '/hard-words',
@@ -82,6 +82,19 @@ const postUseIt = createRoute({
   },
 });
 
+const NotKnown = error('not_known', 'NotKnown');
+const postRestore = createRoute({
+  method: 'post',
+  path: '/cards/{id}/restore',
+  security,
+  request: { params: idParam },
+  responses: {
+    200: json(z.object({ id: z.string(), stage: z.number().int(), known: z.literal(false) }).openapi('Restored'), 'The word is back in the word list'),
+    404: json(NotFound, 'No such card'),
+    409: json(NotKnown, 'The card is not marked "I know it"'),
+    ...unauthorized,
+  },
+});
 const postAsk = createRoute({
   method: 'post',
   path: '/cards/{id}/ask',
@@ -121,7 +134,9 @@ export function reviewRoutes(deps: Deps) {
     .openapi(getReview, async (c) => {
       const now = clock();
       const today = reviewDay(now, c.req.header('X-Time-Zone'));
-      const [round, firstDay] = await Promise.all([need('cards').round(c.get('user').id, now, today), isFirstDay(c.get('user').id, today.day)]);
+      const { deckId } = c.req.valid('query');
+      if (deckId !== undefined && !isUuid(deckId)) return c.json({ cards: [] }, 200); // not a deck id: no such deck, an empty round
+      const [round, firstDay] = await Promise.all([need('cards').round(c.get('user').id, now, today, deckId), isFirstDay(c.get('user').id, today.day)]);
       // Only what the app needs: due dates and flags stay on the server.
       return c.json({ cards: round.map((r) => forApp(r, firstDay)) }, 200);
     })
@@ -189,6 +204,14 @@ export function reviewRoutes(deps: Deps) {
       } catch {
         return c.json({ error: 'check_failed' as const }, 502);
       }
+    })
+    .openapi(postRestore, async (c) => {
+      const { id } = c.req.valid('param');
+      const store = need('cards');
+      const result = isUuid(id) && store.restore ? await store.restore(c.get('user').id, id, clock()) : 'not_found';
+      if (result === 'not_found') return c.json({ error: 'not_found' as const }, 404);
+      if (result === 'not_known') return c.json({ error: 'not_known' as const }, 409);
+      return c.json({ ...result, known: false as const }, 200);
     })
     .openapi(postAsk, async (c) => {
       const userId = c.get('user').id;
