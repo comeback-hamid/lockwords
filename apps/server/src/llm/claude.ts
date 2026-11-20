@@ -4,7 +4,7 @@ import { z as zod } from 'zod';
 
 import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
 import { buildKaiPrompt, type KaiChat } from './kai-chat.js';
-import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
+import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker, wantsMeaning } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
 import { AskSchema, type WordAsker } from './ask-word.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
@@ -35,7 +35,7 @@ function asker(apiKey: string, fetchFn: Fetch) {
 }
 
 // The deck words: vocab-engine 2.3 prompt, Sonnet 5.5 at effort low, JSON schema output.
-const DECK_SCHEMA = {
+const deckSchema = (withMeaning: boolean) => ({
   type: 'object',
   additionalProperties: false,
   required: ['cards'],
@@ -45,14 +45,14 @@ const DECK_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['word', 'translation', 'example', 'example_translation'],
-        properties: { word: { type: 'string' }, translation: { type: 'string' }, example: { type: 'string' }, example_translation: { type: 'string' } },
+        required: ['word', 'translation', 'example', 'example_translation', ...(withMeaning ? ['meaning'] : [])],
+        properties: { word: { type: 'string' }, translation: { type: 'string' }, example: { type: 'string' }, example_translation: { type: 'string' }, ...(withMeaning ? { meaning: { type: 'string' } } : {}) },
       },
     },
   },
-};
+});
 const DeckAnswer = zod.object({
-  cards: zod.array(zod.object({ word: zod.string().nullish(), translation: zod.string().nullish(), example: zod.string().nullish(), example_translation: zod.string().nullish(), exampleTranslation: zod.string().nullish() })),
+  cards: zod.array(zod.object({ word: zod.string().nullish(), translation: zod.string().nullish(), example: zod.string().nullish(), example_translation: zod.string().nullish(), exampleTranslation: zod.string().nullish(), meaning: zod.string().nullish() })),
 });
 
 async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
@@ -64,7 +64,7 @@ async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
       max_tokens: 16000,
       system: DECK_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: deckPrompt(i) }],
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: DECK_SCHEMA } },
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: deckSchema(wantsMeaning(i)) } },
     }),
     signal: AbortSignal.timeout(DECK_TIMEOUT_MS),
   });
@@ -74,7 +74,7 @@ async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
   const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
   const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
   const { cards } = DeckAnswer.parse(JSON.parse(json));
-  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation })), i.wordCount);
+  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation, meaning: c.meaning })), i.wordCount);
 }
 
 export function claudeDeckMaker(apiKey: string, fetchFn: Fetch = fetch): DeckMaker {

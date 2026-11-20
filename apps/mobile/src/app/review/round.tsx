@@ -173,7 +173,8 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
                     <Text style={[type.wordXL, styles.ink, styles.grow]}>{card.word}</Text>
                     <Speaker word={card.word} />
                   </View>
-                  <Text style={[type.headline, styles.text2]}>{card.translation}</Text>
+                  {/* Higher levels read the meaning in the language they learn (Figma O12c); others the translation. */}
+                  <Text style={[type.headline, styles.text2]}>{card.meaning ?? card.translation}</Text>
                   <View style={styles.rule} />
                   <Text accessibilityLabel={card.example} style={[type.body, styles.ink]}>
                     {parts.map((part, i) => (

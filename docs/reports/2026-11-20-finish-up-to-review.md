@@ -38,3 +38,7 @@ Hamid answered 14 questions with "Yes, all suggested", then said: do not ask any
 | D12 | A good sentence on a word below Stage 3 (after the first day) still gets Kai's feedback, but the word does not move. | The API can be called directly; the rule must hold there too. | `use-it-rules` |
 | D13 | After a question, only "Next card" is offered (the suggested question shows once). | Keeps the chat short. | `use-it-rules` |
 | D14 | The stand-in AI suggests "Can I say it another way?" and gives one fixed answer. The real question-answer call is written but was **never run against the real API**. | No key on this Mac for it; the cloud has the key. | `use-it-rules` |
+| D15 | "From B2 up" = the top deck band of the vocabulary engine (word test of 3,250 words or more, or level "Advanced" with no test). | It is the band the engine already calls B2–C1. | `card-meaning-by-level` |
+| D16 | The translation is still saved for every word. Only the card back in a round shows the meaning. The lock screen list, the deck page and the Use it word row keep the translation. | Short places need a short text; Figma shows the meaning only on the card back. | `card-meaning-by-level` |
+| D17 | Old words keep their translation. Single words from the chat ("Random Words") get no meaning. | No AI call for old cards; the single-word card has its own design. | `card-meaning-by-level` |
+| D18 | Shared Maestro steps were split into two more files (`advanced-to-goal`, `goal-to-first-deck`) so new flows do not copy them. | Fix now, not later. | `card-meaning-by-level` |

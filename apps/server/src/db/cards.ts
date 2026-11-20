@@ -23,6 +23,7 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
     translation: r.card.translation,
     example: r.card.example,
     exampleTranslation: r.card.exampleTranslation,
+    ...(r.card.meaning ? { meaning: r.card.meaning } : {}),
     stage: r.card.stage,
     known: r.card.known,
     hard: r.card.hard,

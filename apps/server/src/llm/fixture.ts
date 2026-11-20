@@ -1,5 +1,5 @@
 import type { KaiReplier } from './kai-reply.js';
-import type { DeckMaker } from './make-deck.js';
+import { wantsMeaning, type DeckMaker } from './make-deck.js';
 import type { WordAsker } from './ask-word.js';
 import type { UseItJudge } from './use-it.js';
 
@@ -45,9 +45,24 @@ const CARDS = [
   { word: 'buen provecho', translation: 'enjoy your meal', example: 'Digo "buen provecho" a mis amigos.', exampleTranslation: 'I say "enjoy your meal" to my friends.' },
 ];
 
+// Spanish definitions for the first 10 cards (the top band). None repeats its word.
+const MEANINGS = [
+  'El papel que dice cuánto debes pagar.',
+  'Dinero extra que dejas por un buen servicio.',
+  'Decir lo que quieres comer o beber.',
+  'La persona que te sirve en un restaurante.',
+  'La lista de comidas y precios.',
+  'Una comida preparada que se sirve.',
+  'Algo líquido que tomas.',
+  'Guardar un lugar antes de llegar.',
+  'Lo dulce que comes al final.',
+  'Dar dinero por lo que compras.',
+];
+
 export const fixtureDeckMaker: DeckMaker = {
   propose: async ({ topic }) => ({ title: TITLES[topic] ?? `Words for: ${topic}`, reason: 'For your goal' }),
-  cards: async ({ wordCount = 10 }) => CARDS.slice(0, wordCount),
+  // A learner in the top band gets a meaning in the learned language with every word (Figma O12c).
+  cards: async ({ wordCount = 10, ...i }) => CARDS.slice(0, wordCount).map((c, n) => (wantsMeaning(i) ? { ...c, meaning: MEANINGS[n] ?? 'Algo que se usa al comer.' } : c)),
 };
 
 // "Good" = the sentence contains the word without its article. Real feedback needs the model.

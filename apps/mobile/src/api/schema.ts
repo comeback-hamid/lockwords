@@ -1625,6 +1625,7 @@ export interface components {
             translation: string;
             example: string;
             exampleTranslation: string;
+            meaning?: string;
             id: string;
             position: number;
             stage: number;
@@ -1654,6 +1655,7 @@ export interface components {
             exampleTranslation: string;
             stage: number;
             canUseIt: boolean;
+            meaning?: string;
         };
         HardWords: {
             words: {

@@ -41,7 +41,7 @@ export type DecksStore = {
   // Marks the deck and its cards as removed. `not_found` also for another user's deck. Optional so older test fakes still fit.
   remove?(userId: string, id: string): Promise<'removed' | 'not_found' | 'generating'>;
 };
-export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number };
+export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number; meaning?: string };
 export type CardsStore = {
   round(userId: string, now: Date, today?: ReviewDay): Promise<(ReviewCard & CardState)[]>; // today = due by review day and the daily new-word limit
   // What the learner did with this card today, for the "is it in today's round" check. Stores without history leave both out.

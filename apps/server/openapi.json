@@ -514,6 +514,11 @@
             "minLength": 1,
             "maxLength": 240
           },
+          "meaning": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 140
+          },
           "id": {
             "type": "string"
           },
@@ -619,6 +624,9 @@
           },
           "canUseIt": {
             "type": "boolean"
+          },
+          "meaning": {
+            "type": "string"
           }
         },
         "required": [

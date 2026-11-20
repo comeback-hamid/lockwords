@@ -37,43 +37,5 @@ appId: com.comebackhamid.lockwords
     visible: "150"
     timeout: 5000
 - tapOn: "Continue"
-# O8 Goal
-- assertVisible: "Why are you learning?"
-- tapOn: "Travel"
-- tapOn: "Continue"
-# O9 Interests
-- assertVisible: "What are you into?"
-- tapOn: "Food"
-- tapOn: "Music"
-- assertVisible: "2 SELECTED"
-- tapOn: "Continue"
-# O10 Kai asks the name
-- extendedWaitUntil:
-    visible: ".*What’s your name.*"
-    timeout: 20000
-- tapOn: "Message"
-- inputText: "Maya"
-- tapOn: "Send"
-# O10b chat language
-- assertVisible: ".*Nice to meet you, Maya.*"
-- tapOn: "English"
-# O10c what Kai does, pick your words
-- extendedWaitUntil:
-    visible: "Ordering food"
-    timeout: 20000
-- tapOn: "Ordering food"
-# O10d deck card
-- extendedWaitUntil:
-    visible: "Generate"
-    timeout: 20000
-# The Generate button cannot be tapped while Kai still types the line under the card. Wait for that line, then tap.
-- extendedWaitUntil:
-    visible: ".*Tap Generate.*"
-    timeout: 20000
-- tapOn: "Generate"
-# O10e → O10f deck ready
-- extendedWaitUntil:
-    visible: ".*Shall we practice them now.*"
-    timeout: 60000
-- assertVisible: "Open deck"
-- tapOn: "OK, let’s practice!"
+# O8–O10f: goal, interests, the Kai chat and the first deck (shared steps)
+- runFlow: goal-to-first-deck.yaml
