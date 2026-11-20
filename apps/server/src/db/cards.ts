@@ -38,10 +38,11 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
       .where(and(eq(reviewEvents.userId, userId), eq(reviewEvents.reviewDay, day), isNull(reviewEvents.undoneAt)))
       .orderBy(asc(reviewEvents.createdAt));
   return {
-    async round(userId, now, today) {
+    async round(userId, now, today, deckId) {
       // The database picks the rows; pickRound owns the final order. With `today`, a card is due for its whole review
       // day and new cards stop at the daily limit. Without it (callers with no history): due by the clock, 20 new.
-      const live = and(kept(userId), eq(decks.status, 'ready'), eq(cards.known, false));
+      // deckId = "Review this deck": the same round, only that deck's cards.
+      const live = and(kept(userId), eq(decks.status, 'ready'), eq(cards.known, false), deckId ? eq(cards.deckId, deckId) : undefined);
       const events = today ? await todaysEvents(userId, today.day) : [];
       const newLeft = MAX_NEW_PER_DAY - new Set(events.filter((e) => e.before.stage === 0).map((e) => e.cardId)).size;
       // After a first Hard the card is shown once more today, at the end of the round.
@@ -92,6 +93,14 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
           .where(and(kept(userId), eq(cards.id, last.cardId)));
         return row ? toCard(row) : null; // null: the card was removed after the swipe
       });
+    },
+    async restore(userId, id, now) {
+      const [row] = await mine().where(and(kept(userId), eq(cards.id, id)));
+      if (!row) return 'not_found';
+      if (!row.card.known) return 'not_known';
+      // Back in the word list. A word that was reviewed before is due today; a new one waits its turn as a new word.
+      await db.update(cards).set({ known: false, dueAt: row.card.stage > 0 ? now : null }).where(eq(cards.id, id));
+      return { id, stage: row.card.stage };
     },
     async reviewedBefore(userId, day) {
       const [row] = await db.select({ id: reviewEvents.id }).from(reviewEvents).where(and(eq(reviewEvents.userId, userId), lt(reviewEvents.reviewDay, day), isNull(reviewEvents.undoneAt))).limit(1);

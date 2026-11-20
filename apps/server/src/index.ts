@@ -5,6 +5,7 @@ import { PgBoss } from 'pg-boss';
 import { createApp } from './app.js';
 import { createCardsStore } from './db/cards.js';
 import { createKaiScriptStore } from './db/kai-scripts.js';
+import { createProgressStore } from './db/progress.js';
 import { createDb } from './db/client.js';
 import { createDecksStore } from './db/decks.js';
 import { createKaiStore } from './db/kai.js';
@@ -44,6 +45,7 @@ const app = createApp({
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
   wordAsker: env.ANTHROPIC_API_KEY ? claudeWordAsker(env.ANTHROPIC_API_KEY) : fixtureWordAsker,
   kaiScripts: createKaiScriptStore(db),
+  progress: createProgressStore(db),
   scriptTranslator: env.ANTHROPIC_API_KEY ? claudeScriptTranslator(env.ANTHROPIC_API_KEY) : fixtureScriptTranslator,
   kai: createKaiStore(db),
   randomWords: createRandomWordsStore(db),

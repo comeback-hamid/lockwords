@@ -22,6 +22,7 @@ import { kaiChatRoutes } from './routes/kai-chat.js';
 import { languageRoutes } from './routes/languages.js';
 import { meRoutes } from './routes/me.js';
 import { onboardingRoutes } from './routes/onboarding.js';
+import { progressRoutes } from './routes/progress.js';
 import { reviewRoutes } from './routes/review.js';
 import { wordTestRoutes } from './routes/word-test.js';
 import type { WordPackMaker } from './llm/word-pack.js';
@@ -42,11 +43,16 @@ export type DecksStore = {
   // Marks the deck and its cards as removed. `not_found` also for another user's deck. Optional so older test fakes still fit.
   remove?(userId: string, id: string): Promise<'removed' | 'not_found' | 'generating'>;
 };
+// The rows the Progress tab is counted from.
+export type ProgressStore = {
+  decks(userId: string): Promise<{ id: string; topic: string; title: string; kind: 'topic' | 'random'; words: { stage: number; known: boolean; hard: boolean }[] }[]>;
+  startedSince(userId: string, day: string): Promise<number>;
+};
 // Kai's onboarding script in one language (key → line). null = not translated yet.
 export type KaiScriptStore = { get(language: string): Promise<Record<string, string> | null>; save(language: string, lines: Record<string, string>): Promise<void> };
 export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number; meaning?: string };
 export type CardsStore = {
-  round(userId: string, now: Date, today?: ReviewDay): Promise<(ReviewCard & CardState)[]>; // today = due by review day and the daily new-word limit
+  round(userId: string, now: Date, today?: ReviewDay, deckId?: string): Promise<(ReviewCard & CardState)[]>; // today = due by review day and the daily new-word limit
   // What the learner did with this card today, for the "is it in today's round" check. Stores without history leave both out.
   today?(userId: string, cardId: string, day: string): Promise<Today>;
   // Saves the card and its history row together.
@@ -56,6 +62,8 @@ export type CardsStore = {
   // What the summary is made of: the learner's name, the review days that have a swipe (newest first), and that day's swipes (oldest first).
   // Has the learner any history before this review day? false = this is their first day (Use it shows on every card).
   reviewedBefore?(userId: string, day: string): Promise<boolean>;
+  // Brings back a card marked "I know it". 'not_known' = the card is not known; 'not_found' = no such card for this user.
+  restore?(userId: string, id: string, now: Date): Promise<{ id: string; stage: number } | 'not_known' | 'not_found'>;
   history?(userId: string, day: string): Promise<{ name: string | null; days: string[]; events: TodayEvent[] }>;
   get(userId: string, id: string): Promise<(ReviewCard & CardState) | null>; // null also for another user's card
   save(id: string, patch: CardState): Promise<void>;
@@ -64,7 +72,7 @@ export type CardsStore = {
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; progress?: ProgressStore; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -77,6 +85,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/v1', languageRoutes(deps?.languageChecker));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));
+  app.route('/v1', progressRoutes(deps ?? {}));
   app.route('/v1', kaiRoutes(deps ?? {}));
   app.route('/v1', kaiChatRoutes(deps ?? {}));
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });

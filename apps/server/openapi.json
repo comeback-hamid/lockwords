@@ -527,6 +527,12 @@
           },
           "stage": {
             "type": "integer"
+          },
+          "hard": {
+            "type": "boolean"
+          },
+          "known": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -830,6 +836,42 @@
           "stage"
         ]
       },
+      "Restored": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "integer"
+          },
+          "known": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "stage",
+          "known"
+        ]
+      },
+      "NotKnown": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_known"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
       "WordAnswer": {
         "type": "object",
         "properties": {
@@ -860,6 +902,108 @@
         },
         "required": [
           "error"
+        ]
+      },
+      "Progress": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "new": {
+            "type": "integer"
+          },
+          "learning": {
+            "type": "integer"
+          },
+          "mastered": {
+            "type": "integer"
+          },
+          "decks": {
+            "type": "integer"
+          },
+          "goal": {
+            "type": "integer"
+          },
+          "masterBy": {
+            "type": "string"
+          },
+          "grid": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "new",
+          "learning",
+          "mastered",
+          "decks",
+          "goal",
+          "masterBy",
+          "grid"
+        ]
+      },
+      "DeckList": {
+        "type": "object",
+        "properties": {
+          "decks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeckSummary"
+            }
+          }
+        },
+        "required": [
+          "decks"
+        ]
+      },
+      "DeckSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "topic",
+              "random"
+            ]
+          },
+          "words": {
+            "type": "integer"
+          },
+          "learning": {
+            "type": "integer"
+          },
+          "hard": {
+            "type": "integer"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "topic",
+          "title",
+          "kind",
+          "words",
+          "learning",
+          "hard",
+          "stages"
         ]
       },
       "KaiScript": {
@@ -1841,6 +1985,35 @@
             }
           }
         }
+      },
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The learner's decks, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeckList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/decks/{id}/generate": {
@@ -2056,6 +2229,16 @@
         "security": [
           {
             "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "deckId",
+            "in": "query"
           }
         ],
         "responses": {
@@ -2370,6 +2553,67 @@
         }
       }
     },
+    "/v1/cards/{id}/restore": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The word is back in the word list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Restored"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The card is not marked \"I know it\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotKnown"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cards/{id}/ask": {
       "post": {
         "security": [
@@ -2458,6 +2702,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AskFailed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/progress": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The numbers of the Progress tab",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }

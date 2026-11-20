@@ -73,3 +73,30 @@ Hamid answered 14 questions with "Yes, all suggested", then said: do not ask any
 
 ## Videos (on this Mac, not in git)
 `~/apps/lockwords-finish-review/e2e/videos/`: `review-srs-rules.mp4`, `review-round-screens.mp4`, `use-it-rules.mp4`, `card-meaning-by-level.mp4`, `onboarding-kai-language.mp4`.
+
+---
+
+# Progress tab (same session, 2026-11-20)
+
+Hamid answered 10 questions with "Yes, all suggested". The rule "decide on your own for this session" still holds, so the agent approved its own specs and videos again.
+
+## Hamid's answers
+| # | Question | Answer |
+|---|---|---|
+| P1 | Mastered | Stage 5. Learning = Stage 1 to 4. New = not reviewed yet |
+| P2 | "I know it" words | Count as mastered in the total; not in the grid |
+| P3 | Goal and date | Goal = the next round hundred above the word bank. Date = when that many words reach Stage 5 at the pace of the last 7 days |
+| P4 | The grid | One square per word of the goal: green by level, black when not added yet |
+| P5 | Meadows | Both, from the meadow spec, one tree per deck |
+| P6 | Word plan | Kai makes a plan of three next decks; tapping one opens the New words chat with that deck ready to generate |
+| P7 | The "+" on the deck list | Opens the New words chat |
+| P8 | Deck page | One page: the P3 design replaces the current one and keeps swipe to delete and Remove deck |
+| P9 | "Review this deck" | A round with only this deck, same rules |
+| P10 | Restore "I know it" | A filter "Known" on the deck page, with Restore on each word |
+
+## Decisions the agent made (Progress)
+| # | Decision | Why | Change |
+|---|---|---|---|
+| E1 | The pace is never under 5 and never over 20 new words a day. A word needs 24 days from its first Easy to Stage 5 (3 + 7 + 14). | With no history the date would be "never"; 20 is the daily limit. | `progress-server` |
+| E2 | The goal is the next hundred strictly above the words to learn (100 words → goal 200). | The goal must always be ahead. | `progress-server` |
+| E3 | A restored word that was reviewed before is due today; a restored new word waits as a new word. | It should come back at once. | `progress-server` |
