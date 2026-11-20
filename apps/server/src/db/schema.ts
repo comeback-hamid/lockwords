@@ -71,6 +71,13 @@ export const wordPacks = pgTable('word_packs', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Kai's onboarding script in one language, translated once by the AI and kept (src/kai/script.ts).
+export const kaiScripts = pgTable('kai_scripts', {
+  language: text('language').primaryKey(), // the name or code as the app sends it, trimmed, lower case
+  lines: jsonb('lines').$type<Record<string, string>>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Every finished word test, for tuning the word lists later (docs/vocab-engine.md 1.12).
 export const wordTestResults = pgTable('word_test_results', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -112,6 +112,7 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **Questions:** free language questions. Kai only helps with language learning.
 - **No fixed buttons** for "My own deck", "How do I say…?" or "I have a question". Kai brings them up in the talk.
 - **Translation:** every Kai message has a translation under it (a line, then smaller text). One on/off button next to Kai. It starts **on for A1 and A2** learners and **off for B1 and above** (the learner's level, not the deck's). On: messages and deck titles show a translation. Off: none do.
+- **Onboarding chat language (decided 2026-11-20):** Kai's first lines are in the learner's own language. After the learner picks a chat language, Kai uses it; in the learned language each line has the learner's-language line under it.
 - **Language:** Kai speaks the language being learned, also when the learner writes in their own language. Kai speaks the learner's language only when they ask. A1 and A2 learners are told they may write in their own language.
 - Text only for now. A photo of a word comes in a later version. Free limits on this page are not decided yet.
 - **Deck size:** the first deck in onboarding has 10 words. A deck made here has **10 to 30 words**; Kai decides the number for each deck (Hamid, 2026-11-17).

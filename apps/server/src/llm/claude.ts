@@ -7,6 +7,7 @@ import { buildKaiPrompt, type KaiChat } from './kai-chat.js';
 import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker, wantsMeaning } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
 import { AskSchema, type WordAsker } from './ask-word.js';
+import type { ScriptTranslator } from './translate-script.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
 
 const MODEL = 'claude-sonnet-5-5';
@@ -101,6 +102,21 @@ export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJ
         `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They wrote one sentence to practice the word "${i.word}" (${i.translation}):\n"${i.sentence}"\nJudge it kindly. "good" is true when the word is used correctly and the sentence can be understood (small mistakes are fine).\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 4 very short lines, each starting with one emoji, key words in **bold**. If good: praise, then one tip or a more natural way to say it. If not: say what is wrong and how to fix it.\nIf good, also give "followUp": one very short question (at most 6 words, in ${i.nativeLanguage}) the learner might ask next about this word or your tip, like "Why “le”?". Otherwise null.\nAnswer with JSON only: {"good": boolean, "lines": string[], "followUp": string | null}`,
         UseItSchema,
       ),
+  };
+}
+
+// Kai's onboarding script in another language. One call per language, ever (the route keeps the result).
+const ScriptAnswer = zod.object({ lines: zod.record(zod.string(), zod.string()) });
+export function claudeScriptTranslator(apiKey: string, fetchFn: Fetch = fetch): ScriptTranslator {
+  const ask = asker(apiKey, fetchFn);
+  return {
+    translate: async (language, english) =>
+      (
+        await ask(
+          `Translate these short lines of a friendly language-learning app into ${language}. They are said by Kai, a small friendly character, to a learner. Keep them short, warm and natural, as a native speaker would write them.\nRules: keep every key exactly as it is. Keep every emoji. Keep {name} and {language} exactly as written (they are filled in later). Keep the ** marks around the same words (bold). Keys that start with "idea:" are short topic names for a word list.\n${JSON.stringify(english)}\nAnswer with JSON only: {"lines": { ...the same keys, translated values }}`,
+          ScriptAnswer,
+        )
+      ).lines,
   };
 }
 

@@ -862,6 +862,27 @@
           "error"
         ]
       },
+      "KaiScript": {
+        "type": "object",
+        "properties": {
+          "native": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "learning": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "native",
+          "learning"
+        ]
+      },
       "KaiReply": {
         "anyOf": [
           {
@@ -2437,6 +2458,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AskFailed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/script": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "required": true,
+            "name": "native",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "required": true,
+            "name": "learning",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kai's onboarding lines in the learner's language and in the learned language",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiScript"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A language is missing or too long",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }
