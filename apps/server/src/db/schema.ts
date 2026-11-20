@@ -71,6 +71,15 @@ export const wordPacks = pgTable('word_packs', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// The learner's word plan (Progress tab): the next deck ideas, made by the AI and kept (src/llm/plan-decks.ts).
+export const deckPlans = pgTable('deck_plans', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  items: jsonb('items').$type<{ topic: string; words: number; kind: 'words' | 'phrases' | 'words + phrases' }[]>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Kai's onboarding script in one language, translated once by the AI and kept (src/kai/script.ts).
 export const kaiScripts = pgTable('kai_scripts', {
   language: text('language').primaryKey(), // the name or code as the app sends it, trimmed, lower case

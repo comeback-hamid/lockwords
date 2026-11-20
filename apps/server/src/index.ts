@@ -5,6 +5,7 @@ import { PgBoss } from 'pg-boss';
 import { createApp } from './app.js';
 import { createCardsStore } from './db/cards.js';
 import { createKaiScriptStore } from './db/kai-scripts.js';
+import { createPlanStore } from './db/plans.js';
 import { createProgressStore } from './db/progress.js';
 import { createDb } from './db/client.js';
 import { createDecksStore } from './db/decks.js';
@@ -16,8 +17,8 @@ import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
 import { fixtureLanguageChecker } from './llm/check-language.js';
-import { claudeDeckMaker, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeScriptTranslator, claudeUseItJudge, claudeWordAsker } from './llm/claude.js';
-import { fixtureDeckMaker, fixtureKaiReplier, fixtureScriptTranslator, fixtureUseItJudge, fixtureWordAsker } from './llm/fixture.js';
+import { claudeDeckMaker, claudeDeckPlanner, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeScriptTranslator, claudeUseItJudge, claudeWordAsker } from './llm/claude.js';
+import { fixtureDeckMaker, fixtureDeckPlanner, fixtureKaiReplier, fixtureScriptTranslator, fixtureUseItJudge, fixtureWordAsker } from './llm/fixture.js';
 import { fixtureKaiChat } from './llm/kai-chat.js';
 import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
@@ -46,6 +47,8 @@ const app = createApp({
   wordAsker: env.ANTHROPIC_API_KEY ? claudeWordAsker(env.ANTHROPIC_API_KEY) : fixtureWordAsker,
   kaiScripts: createKaiScriptStore(db),
   progress: createProgressStore(db),
+  plans: createPlanStore(db),
+  deckPlanner: env.ANTHROPIC_API_KEY ? claudeDeckPlanner(env.ANTHROPIC_API_KEY) : fixtureDeckPlanner,
   scriptTranslator: env.ANTHROPIC_API_KEY ? claudeScriptTranslator(env.ANTHROPIC_API_KEY) : fixtureScriptTranslator,
   kai: createKaiStore(db),
   randomWords: createRandomWordsStore(db),

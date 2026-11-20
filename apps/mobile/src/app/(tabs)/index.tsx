@@ -15,6 +15,7 @@ import { RiseIn } from '@/components/chat/rise-in';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
+import { hasPendingAsk, takePendingAsk } from '@/new-words/pending';
 import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
 import { showReviewDot, useReviewDot } from '@/review/dot';
 import { colors, layout, radius, space, type } from '@/theme/theme';
@@ -182,14 +183,34 @@ export default function NewWordsScreen() {
   }, [attempt]);
 
   const ready = load === 'ready';
+  // A deck idea tapped in the word plan (Progress tab) waits for this chat: it is sent once the tab is open and Kai is
+  // quiet. Kai may still be saying hello, so look again for a few seconds. Returns how to stop looking.
+  const latestSend = useRef<(text: string) => Promise<void>>(async () => {});
+  useEffect(() => {
+    latestSend.current = send;
+  });
+  const sendPendingAsk = useCallback(() => {
+    if (!hasPendingAsk()) return undefined;
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (quiet.current) {
+        const ask = takePendingAsk();
+        if (ask) void latestSend.current(ask);
+      }
+      if (!hasPendingAsk() || ++tries > 40) clearInterval(timer);
+    }, 500);
+    return () => clearInterval(timer);
+  }, []);
   useFocusEffect(
     useCallback(() => {
       focused.current = true;
       if (ready) void open();
+      const stop = ready ? sendPendingAsk() : undefined;
       return () => {
         focused.current = false;
+        stop?.();
       };
-    }, [ready, open]),
+    }, [ready, open, sendPendingAsk]),
   );
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {

@@ -4,9 +4,10 @@ import { z as zod } from 'zod';
 
 import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from './check-language.js';
 import { buildKaiPrompt, type KaiChat } from './kai-chat.js';
-import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker, wantsMeaning } from './make-deck.js';
+import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker, wantsMeaning, languageName } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
 import { AskSchema, type WordAsker } from './ask-word.js';
+import { planPrompt, PlanSchema, type DeckPlanner } from './plan-decks.js';
 import type { ScriptTranslator } from './translate-script.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
 
@@ -103,6 +104,12 @@ export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJ
         UseItSchema,
       ),
   };
+}
+
+// The learner's word plan: the next decks for their goal.
+export function claudeDeckPlanner(apiKey: string, fetchFn: Fetch = fetch): DeckPlanner {
+  const ask = asker(apiKey, fetchFn);
+  return { plan: (i) => ask(planPrompt(i, languageName(i.learningLanguage), languageName(i.nativeLanguage)), PlanSchema) };
 }
 
 // Kai's onboarding script in another language. One call per language, ever (the route keeps the result).
