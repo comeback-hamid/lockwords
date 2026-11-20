@@ -1088,6 +1088,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cards/{id}/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        question: string;
+                        sentence?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Kai's answer about the word */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WordAnswer"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description No such card */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotFound"];
+                    };
+                };
+                /** @description The AI call failed */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AskFailed"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/kai/reply": {
         parameters: {
             query?: never;
@@ -1573,6 +1653,7 @@ export interface components {
             example: string;
             exampleTranslation: string;
             stage: number;
+            canUseIt: boolean;
         };
         HardWords: {
             words: {
@@ -1615,8 +1696,16 @@ export interface components {
         UseItResult: {
             good: boolean;
             lines: string[];
+            followUp: string | null;
             movedUp: boolean;
             stage: number;
+        };
+        WordAnswer: {
+            lines: string[];
+        };
+        AskFailed: {
+            /** @enum {string} */
+            error: "ask_failed";
         };
         KaiReply: {
             /** @enum {boolean} */

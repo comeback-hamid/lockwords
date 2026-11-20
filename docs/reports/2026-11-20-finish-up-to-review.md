@@ -34,3 +34,7 @@ Hamid answered 14 questions with "Yes, all suggested", then said: do not ask any
 | D8 | Minutes on the done screen: the time between swipes is added up, and any pause over 60 seconds counts as 60. | No timer in the app; a break should not count. | `review-round-screens` |
 | D9 | The very first round (onboarding practice) is full screen with no way out but finishing, as Figma O12. Closing the app and opening it again lands on the Review tab. | Hamid: follow Figma, no Close button. | `review-round-screens` |
 | D10 | The Use it button and the chat box got a real mic icon that I drew (the icon set has none). | Figma shows a mic. | `review-round-screens` |
+| D11 | "First round" for Use it means the learner's first review day: no swipes on any earlier day. | The server needs a rule it can check; the onboarding practice is always that day. | `use-it-rules` |
+| D12 | A good sentence on a word below Stage 3 (after the first day) still gets Kai's feedback, but the word does not move. | The API can be called directly; the rule must hold there too. | `use-it-rules` |
+| D13 | After a question, only "Next card" is offered (the suggested question shows once). | Keeps the chat short. | `use-it-rules` |
+| D14 | The stand-in AI suggests "Can I say it another way?" and gives one fixed answer. The real question-answer call is written but was **never run against the real API**. | No key on this Mac for it; the cloud has the key. | `use-it-rules` |

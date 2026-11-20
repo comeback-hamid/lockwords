@@ -159,7 +159,9 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 | Stage 5 / mastered | 30 days |
 | Known (↑ I know it) | never (can be restored) |
 
-- A good Use it sentence moves a word up one stage. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.
+- A good Use it sentence moves a word up one stage, **once per word per day**. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.
+- **Use it is offered from Stage 3.** In the very first round (the onboarding practice) it is offered on every word (decided 2026-11-20).
+- After a good sentence the learner can **ask Kai about the word** (a suggested question, or their own). Questions never change the level.
 - v1 is online: review needs a connection. The widget still shows the last words it got.
 - **Easy on a brand-new card goes to Stage 2** (back in 3 days). Decided 2026-11-20.
 - **A day starts at 04:00 on the learner's clock.** A word is due for its whole day, not from the hour of the last swipe.

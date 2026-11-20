@@ -616,6 +616,9 @@
           },
           "stage": {
             "type": "integer"
+          },
+          "canUseIt": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -626,7 +629,8 @@
           "translation",
           "example",
           "exampleTranslation",
-          "stage"
+          "stage",
+          "canUseIt"
         ]
       },
       "HardWords": {
@@ -794,12 +798,14 @@
           "lines": {
             "type": "array",
             "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 200
-            },
-            "minItems": 1,
-            "maxItems": 4
+              "type": "string"
+            }
+          },
+          "followUp": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "movedUp": {
             "type": "boolean"
@@ -811,8 +817,41 @@
         "required": [
           "good",
           "lines",
+          "followUp",
           "movedUp",
           "stage"
+        ]
+      },
+      "WordAnswer": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "minItems": 1,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "lines"
+        ]
+      },
+      "AskFailed": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "ask_failed"
+            ]
+          }
+        },
+        "required": [
+          "error"
         ]
       },
       "KaiReply": {
@@ -2295,6 +2334,101 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CheckFailed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cards/{id}/ask": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "sentence": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                },
+                "required": [
+                  "question"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kai's answer about the word",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WordAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such card",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The AI call failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskFailed"
                 }
               }
             }

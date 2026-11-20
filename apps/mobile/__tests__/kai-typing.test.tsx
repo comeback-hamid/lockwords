@@ -92,7 +92,7 @@ test('reply options wait for Kai’s last bubble', async () => {
 });
 
 test('Use it chat: each of Kai’s lines comes after its own dots', async () => {
-  const card = { id: 'c1', deckId: 'd', deckTopic: 'Food', word: 'la propina', translation: 'the tip', example: 'Deja propina.', exampleTranslation: 'Leave a tip.', stage: 0 };
+  const card = { id: 'c1', deckId: 'd', deckTopic: 'Food', word: 'la propina', translation: 'the tip', example: 'Deja propina.', exampleTranslation: 'Leave a tip.', stage: 0, canUseIt: true }; // `canUseIt` added with use-it-rules
   setRound([card]);
   mockParams = { id: 'c1' };
   let answer!: (r: Awaited<ReturnType<typeof api.useIt>>) => void;
@@ -102,7 +102,7 @@ test('Use it chat: each of Kai’s lines comes after its own dots', async () => 
   await send('Dejé propina.');
   expect(screen.getByLabelText('Kai: Checking… 👀')).toBeOnTheScreen(); // a status, shown at once
   expect(dots()).toHaveLength(0);
-  await act(async () => answer({ good: true, lines: ['🎉 **Great sentence!**', '👍 You used **propina** well.'], movedUp: false, stage: 1 }));
+  await act(async () => answer({ good: true, lines: ['🎉 **Great sentence!**', '👍 You used **propina** well.'], movedUp: false, stage: 1, followUp: null }));
   expect(screen.queryByLabelText('Kai: Checking… 👀')).toBeNull();
   expect(dots()).toHaveLength(1);
   expect(screen.queryByLabelText('Kai: 🎉 Great sentence!')).toBeNull();

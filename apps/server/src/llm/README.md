@@ -18,3 +18,4 @@ Tests never call a real model: one fixture replaces Langfuse and the model.
 - `../kai/abilities/decks.ts`: the deck part of Kai's answer (ideas, sizes, the ready event) and of the stand-in Kai. Tried against the real API: `npx tsx scripts/kai-decks-try.ts`.
 - `make-deck.ts` and the fixture take the deck's own size (`DeckInput.wordCount`, 10 to 30; none = 10). The fixture has 30 cards; the first 10 never change.
 - Not built yet: the shared `client.ts` (Langfuse prompts, retry once, tracing). Move `claude.ts` onto it with the next AI task.
+- `ask-word.ts`: Kai answers one question about a word after Use it (`POST /v1/cards/{id}/ask`), 1 to 3 lines; the fixture gives one fixed answer. `use-it.ts` now also returns `followUp`, one suggested question. The real ask call has not been tried against the API yet.

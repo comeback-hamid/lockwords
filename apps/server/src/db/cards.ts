@@ -61,6 +61,7 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
       return {
         swipesToday: events.filter((e) => e.cardId === cardId && e.kind !== 'use_it').map((e) => e.kind as Direction),
         newStartedToday: new Set(events.filter((e) => e.before.stage === 0).map((e) => e.cardId)).size,
+        usedItToday: events.some((e) => e.cardId === cardId && e.kind === 'use_it'),
       };
     },
     async saveSwipe(userId, cardId, event) {
@@ -90,6 +91,10 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
           .where(and(kept(userId), eq(cards.id, last.cardId)));
         return row ? toCard(row) : null; // null: the card was removed after the swipe
       });
+    },
+    async reviewedBefore(userId, day) {
+      const [row] = await db.select({ id: reviewEvents.id }).from(reviewEvents).where(and(eq(reviewEvents.userId, userId), lt(reviewEvents.reviewDay, day), isNull(reviewEvents.undoneAt))).limit(1);
+      return row !== undefined;
     },
     async history(userId, day) {
       const live = and(eq(reviewEvents.userId, userId), isNull(reviewEvents.undoneAt));

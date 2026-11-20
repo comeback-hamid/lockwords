@@ -6,6 +6,7 @@ import { checkLanguagePrompt, LanguageCheckSchema, type LanguageChecker } from '
 import { buildKaiPrompt, type KaiChat } from './kai-chat.js';
 import { checkCards, DECK_SIZE, DECK_SYSTEM_PROMPT, deckPrompt, ProposalSchema, type DeckInput, type DeckMaker } from './make-deck.js';
 import { checkReply, type KaiReplier } from './kai-reply.js';
+import { AskSchema, type WordAsker } from './ask-word.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
 
 const MODEL = 'claude-sonnet-5-5';
@@ -97,8 +98,20 @@ export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJ
   return {
     check: (i) =>
       ask(
-        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They wrote one sentence to practice the word "${i.word}" (${i.translation}):\n"${i.sentence}"\nJudge it kindly. "good" is true when the word is used correctly and the sentence can be understood (small mistakes are fine).\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 4 very short lines, each starting with one emoji, key words in **bold**. If good: praise, then one tip or a more natural way to say it. If not: say what is wrong and how to fix it.\nAnswer with JSON only: {"good": boolean, "lines": string[]}`,
+        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They wrote one sentence to practice the word "${i.word}" (${i.translation}):\n"${i.sentence}"\nJudge it kindly. "good" is true when the word is used correctly and the sentence can be understood (small mistakes are fine).\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 4 very short lines, each starting with one emoji, key words in **bold**. If good: praise, then one tip or a more natural way to say it. If not: say what is wrong and how to fix it.\nIf good, also give "followUp": one very short question (at most 6 words, in ${i.nativeLanguage}) the learner might ask next about this word or your tip, like "Why “le”?". Otherwise null.\nAnswer with JSON only: {"good": boolean, "lines": string[], "followUp": string | null}`,
         UseItSchema,
+      ),
+  };
+}
+
+// Kai answers one question about a word (after Use it). Short, in the learner's own language.
+export function claudeWordAsker(apiKey: string, fetchFn: Fetch = fetch): WordAsker {
+  const ask = asker(apiKey, fetchFn);
+  return {
+    ask: (i) =>
+      ask(
+        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They practice the word "${i.word}" (${i.translation}).${i.sentence ? `\nThey wrote: "${i.sentence}"` : ''}\nThey ask: "${i.question}"\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 3 very short lines, key words in **bold**, an example in ${i.learningLanguage} when it helps. Only help with language learning; if the question is about something else, say so kindly in one line.\nAnswer with JSON only: {"lines": string[]}`,
+        AskSchema,
       ),
   };
 }

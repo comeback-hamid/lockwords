@@ -83,7 +83,7 @@ beforeEach(async () => {
 
 test('GET /v1/review lists my cards without server-only fields', async () => {
   const body = (await (await alice('/v1/review')).json()) as { cards: Record<string, unknown>[] };
-  expect(body.cards).toEqual([{ id: A, deckId: 'd', deckTopic: 'Ordering food', word: 'la propina', translation: 'the tip', example: 'e', exampleTranslation: 't', stage: 0 }]);
+  expect(body.cards).toEqual([{ id: A, deckId: 'd', deckTopic: 'Ordering food', word: 'la propina', translation: 'the tip', example: 'e', exampleTranslation: 't', stage: 0, canUseIt: false }]); // `canUseIt` added with use-it-rules (2026-11-20)
   expect(((await (await bob('/v1/review')).json()) as { cards: unknown[] }).cards).toEqual([]);
 });
 

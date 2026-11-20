@@ -1,5 +1,6 @@
 import type { KaiReplier } from './kai-reply.js';
 import type { DeckMaker } from './make-deck.js';
+import type { WordAsker } from './ask-word.js';
 import type { UseItJudge } from './use-it.js';
 
 // Stands in for the model in tests and in local runs with no ANTHROPIC_API_KEY. Always the same Spanish words.
@@ -55,9 +56,14 @@ export const fixtureUseItJudge: UseItJudge = {
   check: async ({ word, sentence }) => {
     const bare = word.replace(ARTICLE, '');
     return sentence.toLowerCase().includes(bare.toLowerCase())
-      ? { good: true, lines: ['🎉 **Great sentence!**', `👍 You used **${bare}** in the right place.`] }
+      ? { good: true, lines: ['🎉 **Great sentence!**', `👍 You used **${bare}** in the right place.`], followUp: 'Can I say it another way?' }
       : { good: false, lines: [`🤔 I can’t find **${bare}** in your sentence.`, 'Try again with the word.'] };
   },
+};
+
+// Kai answers a question about a word: the stand-in gives one fixed, friendly answer.
+export const fixtureWordAsker: WordAsker = {
+  ask: async ({ word }) => ({ lines: [`💡 Good question! **${word.replace(ARTICLE, '')}** is the usual word here.`, 'Try it in one more sentence.'] }),
 };
 
 const languageName = (code: string) => {

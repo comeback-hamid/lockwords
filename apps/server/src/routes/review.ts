@@ -1,11 +1,12 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-import type { CardsStore } from '../app.js';
+import type { CardsStore, ReviewCard } from '../app.js';
 import type { AuthUser } from '../auth.js';
+import { AskSchema, type WordAsker } from '../llm/ask-word.js';
 import type { UseItJudge } from '../llm/use-it.js';
 import { UseItSchema } from '../llm/use-it.js';
 import { reviewDay } from '../review/day.js';
-import { applySwipe, canSwipe, showsAgain } from '../review/srs.js';
+import { applySwipe, canSwipe, canUseIt, showsAgain } from '../review/srs.js';
 import { streakDays, todayNumbers } from '../review/summary.js';
 import { UnauthorizedSchema } from './me.js';
 
@@ -22,12 +23,15 @@ const idParam = z.object({ id: z.string() });
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 export const ReviewCardSchema = z
-  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int() })
+  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean() })
   .openapi('ReviewCard');
 const SwipeResultSchema = z
   .object({ id: z.string(), stage: z.number().int(), known: z.boolean(), hard: z.boolean(), backInDays: z.number().int().nullable(), again: z.boolean() })
   .openapi('SwipeResult');
-const UseItResultSchema = UseItSchema.extend({ movedUp: z.boolean(), stage: z.number().int() }).openapi('UseItResult');
+const UseItResultSchema = z
+  .object({ good: z.boolean(), lines: z.array(z.string()), followUp: z.string().nullable(), movedUp: z.boolean(), stage: z.number().int() })
+  .openapi('UseItResult');
+const AskFailed = error('ask_failed', 'AskFailed');
 
 const getReview = createRoute({ method: 'get', path: '/review', security, responses: { 200: json(z.object({ cards: z.array(ReviewCardSchema) }).openapi('Round'), "Today's cards"), ...unauthorized } });
 const getHardWords = createRoute({
@@ -78,7 +82,24 @@ const postUseIt = createRoute({
   },
 });
 
-type Deps = { cards?: CardsStore; useItJudge?: UseItJudge; reviewNow?: () => Date };
+const postAsk = createRoute({
+  method: 'post',
+  path: '/cards/{id}/ask',
+  security,
+  request: {
+    params: idParam,
+    body: { required: true, content: { 'application/json': { schema: z.object({ question: z.string().trim().min(1).max(300), sentence: z.string().trim().max(300).optional() }) } } },
+  },
+  responses: {
+    200: json(AskSchema.openapi('WordAnswer'), "Kai's answer about the word"),
+    400: json(BadRequest, 'The request is not valid'),
+    404: json(NotFound, 'No such card'),
+    502: json(AskFailed, 'The AI call failed'),
+    ...unauthorized,
+  },
+});
+
+type Deps = { cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; reviewNow?: () => Date };
 
 export function reviewRoutes(deps: Deps) {
   const need = <K extends keyof Deps>(key: K) => {
@@ -90,12 +111,19 @@ export function reviewRoutes(deps: Deps) {
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
   });
   const clock = () => (deps.reviewNow ? deps.reviewNow() : new Date());
+  // The learner's first review day (the onboarding practice): Use it shows on every card. A store with no history says no.
+  const isFirstDay = async (userId: string, day: string) => {
+    const store = need('cards');
+    return store.reviewedBefore ? !(await store.reviewedBefore(userId, day)) : false;
+  };
+  const forApp = (card: ReviewCard, firstDay: boolean) => ReviewCardSchema.parse({ ...card, canUseIt: canUseIt(card.stage, firstDay) });
   return app
     .openapi(getReview, async (c) => {
       const now = clock();
-      const round = await need('cards').round(c.get('user').id, now, reviewDay(now, c.req.header('X-Time-Zone')));
+      const today = reviewDay(now, c.req.header('X-Time-Zone'));
+      const [round, firstDay] = await Promise.all([need('cards').round(c.get('user').id, now, today), isFirstDay(c.get('user').id, today.day)]);
       // Only what the app needs: due dates and flags stay on the server.
-      return c.json({ cards: round.map((r) => ReviewCardSchema.parse(r)) }, 200);
+      return c.json({ cards: round.map((r) => forApp(r, firstDay)) }, 200);
     })
     .openapi(getHardWords, async (c) => c.json({ words: await need('cards').hardWords(c.get('user').id) }, 200))
     .openapi(postSwipe, async (c) => {
@@ -123,7 +151,7 @@ export function reviewRoutes(deps: Deps) {
       const store = need('cards');
       const { day } = reviewDay(clock(), c.req.header('X-Time-Zone'));
       const card = store.undoLast ? await store.undoLast(c.get('user').id, day) : null;
-      return card ? c.json({ card: ReviewCardSchema.parse(card) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
+      return card ? c.json({ card: forApp(card, await isFirstDay(c.get('user').id, day)) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
     })
     .openapi(getSummary, async (c) => {
       const store = need('cards');
@@ -134,22 +162,46 @@ export function reviewRoutes(deps: Deps) {
     .openapi(postUseIt, async (c) => {
       const userId = c.get('user').id;
       const { id } = c.req.valid('param');
-      const card = isUuid(id) ? await need('cards').get(userId, id) : null;
+      const store = need('cards');
+      const card = isUuid(id) ? await store.get(userId, id) : null;
       if (!card) return c.json({ error: 'not_found' as const }, 404);
       try {
-        const languages = await need('cards').languages(userId);
+        const languages = await store.languages(userId);
         const result = UseItSchema.parse(await need('useItJudge').check({ word: card.word, translation: card.translation, sentence: c.req.valid('json').sentence, ...languages }));
-        const movedUp = result.good && card.stage < 5;
-        let stage = card.stage;
-        if (movedUp) {
-          // A good sentence counts like an Easy swipe.
-          const next = applySwipe(card, 'easy', new Date());
-          stage = next.stage;
-          await need('cards').save(id, { stage: next.stage, known: next.known, hard: next.hard, dueAt: next.dueAt });
+        const answer = { good: result.good, lines: result.lines, followUp: result.good ? (result.followUp ?? null) : null };
+        if (!result.good) return c.json({ ...answer, movedUp: false, stage: card.stage }, 200);
+        // A good sentence counts like an Easy swipe.
+        const now = clock();
+        const next = applySwipe(card, 'easy', now);
+        const after = { stage: next.stage, known: next.known, hard: next.hard, dueAt: next.dueAt };
+        // A store with no history (some tests): the old rule, a level for every good sentence under the top stage.
+        if (!store.today || !store.saveSwipe) {
+          const movedUp = card.stage < 5;
+          if (movedUp) await store.save(id, after);
+          return c.json({ ...answer, movedUp, stage: movedUp ? next.stage : card.stage }, 200);
         }
-        return c.json({ ...result, movedUp, stage }, 200);
+        // Once per card per day, only for a card of today's round, and only when Use it is offered for it.
+        const { day, end } = reviewDay(now, c.req.header('X-Time-Zone'));
+        const [today, firstDay] = await Promise.all([store.today(userId, id, day), isFirstDay(userId, day)]);
+        const movedUp = card.stage < 5 && !today.usedItToday && canSwipe(card, today, end) && canUseIt(card.stage, firstDay);
+        if (movedUp) await store.saveSwipe(userId, id, { kind: 'use_it', day, at: now, before: { stage: card.stage, known: card.known, hard: card.hard, dueAt: card.dueAt }, after });
+        return c.json({ ...answer, movedUp, stage: movedUp ? next.stage : card.stage }, 200);
       } catch {
         return c.json({ error: 'check_failed' as const }, 502);
+      }
+    })
+    .openapi(postAsk, async (c) => {
+      const userId = c.get('user').id;
+      const { id } = c.req.valid('param');
+      const store = need('cards');
+      const card = isUuid(id) ? await store.get(userId, id) : null;
+      if (!card) return c.json({ error: 'not_found' as const }, 404);
+      try {
+        const { question, sentence } = c.req.valid('json');
+        const languages = await store.languages(userId);
+        return c.json(AskSchema.parse(await need('wordAsker').ask({ word: card.word, translation: card.translation, question, sentence: sentence || undefined, ...languages })), 200);
+      } catch {
+        return c.json({ error: 'ask_failed' as const }, 502);
       }
     });
 }

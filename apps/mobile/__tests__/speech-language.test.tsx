@@ -19,7 +19,7 @@ jest.mock('@/auth/boot', () => ({ api: {} }));
 jest.mock('expo-speech', () => ({ speak: jest.fn(), stop: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
-const card: ReviewCard = { id: 'c1', deckId: 'd1', deckTopic: 'Ordering food', word: 'la propina', translation: 'the tip', example: 'e', exampleTranslation: 't', stage: 0 };
+const card: ReviewCard = { id: 'c1', deckId: 'd1', deckTopic: 'Ordering food', word: 'la propina', translation: 'the tip', example: 'e', exampleTranslation: 't', stage: 0, canUseIt: true };
 const say = async () => {
   setRound([card]);
   await render(<RoundScreen />);

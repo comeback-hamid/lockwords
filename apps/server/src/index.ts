@@ -14,8 +14,8 @@ import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
 import { loadEnv } from './env.js';
 import { fixtureLanguageChecker } from './llm/check-language.js';
-import { claudeDeckMaker, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeUseItJudge } from './llm/claude.js';
-import { fixtureDeckMaker, fixtureKaiReplier, fixtureUseItJudge } from './llm/fixture.js';
+import { claudeDeckMaker, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeUseItJudge, claudeWordAsker } from './llm/claude.js';
+import { fixtureDeckMaker, fixtureKaiReplier, fixtureUseItJudge, fixtureWordAsker } from './llm/fixture.js';
 import { fixtureKaiChat } from './llm/kai-chat.js';
 import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
@@ -41,6 +41,7 @@ const app = createApp({
   cards: createCardsStore(db),
   languageChecker: env.ANTHROPIC_API_KEY ? claudeLanguageChecker(env.ANTHROPIC_API_KEY) : fixtureLanguageChecker,
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
+  wordAsker: env.ANTHROPIC_API_KEY ? claudeWordAsker(env.ANTHROPIC_API_KEY) : fixtureWordAsker,
   kai: createKaiStore(db),
   randomWords: createRandomWordsStore(db),
   kaiChat: env.ANTHROPIC_API_KEY ? claudeKaiChat(env.ANTHROPIC_API_KEY) : fixtureKaiChat,

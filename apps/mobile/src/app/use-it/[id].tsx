@@ -16,8 +16,9 @@ import { colors, layout, levelColors, radius, space, type } from '@/theme/theme'
 type Message = { from: 'kai' | 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
 const REPLY = { example: 'Show me an example', skip: 'Skip this word', next: 'Next card' } as const;
 const CHECKING = 'Checking… 👀';
+const THINKING = 'Thinking… 💭';
 // Kai types every line (dots first); the word card and the "Checking" status show at once.
-const typedText = (m: Message) => (m.from === 'kai' && m.text !== CHECKING ? m.text : null);
+const typedText = (m: Message) => (m.from === 'kai' && m.text !== CHECKING && m.text !== THINKING ? m.text : null);
 
 // Use it (Figma O13–O13c / A6): write one sentence with the word; Kai checks it.
 export default function UseItScreen() {
@@ -31,9 +32,11 @@ export default function UseItScreen() {
   const [options, setOptions] = useState<string[]>([REPLY.example, REPLY.skip]);
   const [pose, setPose] = useState<KaiPose>('idle');
   const [cheer, setCheer] = useState(0); // counts good sentences; each one plays the thumbs-up
+  // After a good sentence the chat turns into questions about the word: typed text is asked, not checked.
+  const [goodSentence, setGoodSentence] = useState<string | null>(null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const say = (...next: Message[]) => {
-    edit((all) => all.filter((m) => !(m.from === 'kai' && m.text === CHECKING)));
+    edit((all) => all.filter((m) => !(m.from === 'kai' && (m.text === CHECKING || m.text === THINKING))));
     add(...next);
   };
 
@@ -53,12 +56,29 @@ export default function UseItScreen() {
       setPose(result.good ? 'celebrate' : 'idle');
       if (result.good) {
         setCheer((n) => n + 1);
-        setOptions([REPLY.next]);
+        setGoodSentence(sentence);
+        setOptions(result.followUp ? [REPLY.next, result.followUp] : [REPLY.next]);
+      } else {
+        setOptions([REPLY.example, REPLY.skip]);
       }
     } catch {
       say({ from: 'kai', text: 'I could not check that. Try again.' });
       setPose('idle');
     }
+  }
+
+  async function ask(question: string) {
+    say({ from: 'user', text: question }, { from: 'kai', text: THINKING });
+    setOptions([]);
+    setPose('thinking');
+    try {
+      const { lines } = await api.askAboutWord(card!.id, question, goodSentence ?? undefined);
+      say(...lines.map((text): Message => ({ from: 'kai', text })));
+    } catch {
+      say({ from: 'kai', text: 'I could not answer that. Try again.' });
+    }
+    setPose('idle');
+    setOptions([REPLY.next]);
   }
 
   function reply(text: string) {
@@ -71,6 +91,7 @@ export default function UseItScreen() {
       say({ from: 'user', text }, { from: 'kai', text: card!.example }, { from: 'kai', text: card!.exampleTranslation });
       return setOptions([REPLY.skip]);
     }
+    if (goodSentence !== null) return void ask(text);
     void check(text);
   }
 
@@ -99,7 +120,7 @@ export default function UseItScreen() {
       {cheer ? <ThumbsUp key={cheer} /> : null}
       <ReplyOptions options={busy ? [] : options} onPick={reply} />
       <View style={{ paddingBottom: Math.max(insets.bottom, space[12]) }}>
-        <Composer placeholder={options.includes(REPLY.next) ? 'Ask Kai about this word…' : 'Type a message…'} onSend={reply} maxLength={300} />
+        <Composer placeholder={goodSentence !== null ? 'Ask Kai about this word…' : 'Type a message…'} onSend={reply} maxLength={300} />
       </View>
     </KeyboardAvoidingView>
   );
