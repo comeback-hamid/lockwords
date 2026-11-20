@@ -46,3 +46,10 @@ export function deckSummary(words: Word[]) {
     stages: words.map((w) => (w.known ? MASTERED_STAGE : w.stage)).sort(highestFirst),
   };
 }
+
+// One tree of the meadow: the levels of the deck's words that were met (stage 1 or higher; known = 5), highest first.
+export const treeLevels = (words: Word[]) =>
+  words
+    .filter((w) => w.known || w.stage > 0)
+    .map((w) => (w.known ? MASTERED_STAGE : w.stage))
+    .sort(highestFirst);

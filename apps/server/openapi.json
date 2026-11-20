@@ -933,6 +933,18 @@
             "items": {
               "type": "integer"
             }
+          },
+          "language": {
+            "type": "string"
+          },
+          "trees": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
           }
         },
         "required": [
@@ -943,7 +955,9 @@
           "decks",
           "goal",
           "masterBy",
-          "grid"
+          "grid",
+          "language",
+          "trees"
         ]
       },
       "DeckList": {

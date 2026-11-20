@@ -2,7 +2,7 @@ import { and, desc, eq, gte, isNull, sql } from 'drizzle-orm';
 
 import type { ProgressStore } from '../app.js';
 import type { createDb } from './client.js';
-import { cards, decks, reviewEvents } from './schema.js';
+import { cards, decks, profiles, reviewEvents } from './schema.js';
 
 // Reads the rows the Progress tab is counted from. No rules here: src/progress/numbers.ts counts.
 export function createProgressStore(db: ReturnType<typeof createDb>['db']): ProgressStore {
@@ -20,6 +20,10 @@ export function createProgressStore(db: ReturnType<typeof createDb>['db']): Prog
         .innerJoin(decks, eq(cards.deckId, decks.id))
         .where(and(eq(decks.userId, userId), eq(decks.status, 'ready'), isNull(decks.removedAt), isNull(cards.removedAt)));
       return deckRows.map((d) => ({ ...d, kind: d.kind as 'topic' | 'random', words: cardRows.filter((c) => c.deckId === d.id).map(({ stage, known, hard }) => ({ stage, known, hard })) }));
+    },
+    async learningLanguage(userId) {
+      const [p] = await db.select({ language: profiles.learningLanguage }).from(profiles).where(eq(profiles.userId, userId));
+      return p?.language ?? '';
     },
     // New words started on or after that review day (first swipe or good sentence on a new word, not undone).
     async startedSince(userId, day) {

@@ -1,0 +1,84 @@
+# Progress home (P1): the counts, the goal grid with its date, and the meadow, before and after the first round.
+# Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - my-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: progress-home
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+# Before any review: 10 new words, a goal of 100, one tree that is still a bare stem
+- tapOn: "Progress"
+- extendedWaitUntil:
+    visible: "words in your word bank"
+    timeout: 15000
+- assertVisible: "10 new"
+- assertVisible: "0 learning"
+- assertVisible: "0 mastered"
+- assertVisible: "1 Deck"
+- assertVisible: "10 of 100 words"
+- scrollUntilVisible:
+    element: "Your meadow: 1 tree"
+    direction: DOWN
+- assertVisible: "BY .*"
+- assertVisible: "you’ll master"
+- assertVisible: "new Spanish words"
+# The first round, all Easy
+- tapOn: "Review"
+- tapOn: "Let’s start"
+- assertVisible: "10 words left"
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "8 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "7 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "6 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "5 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "4 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "3 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "2 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+- tapOn: "Continue"
+- tapOn: "Continue"
+- tapOn: "Close"
+# After the round the numbers moved
+- tapOn: "Progress"
+- extendedWaitUntil:
+    visible: "10 learning"
+    timeout: 15000
+- assertVisible: "0 new"
+- stopRecording

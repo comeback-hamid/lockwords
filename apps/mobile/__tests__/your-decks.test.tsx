@@ -12,7 +12,7 @@ jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({
 
 const mockApi = jest.mocked(api);
 const deck = (over: Partial<DeckSummary>): DeckSummary => ({ id: 'd1', topic: 'Ordering food', title: 'Order food, pay and tip', kind: 'topic', words: 20, learning: 8, hard: 2, stages: [5, 2, 2, 0], ...over });
-const progress = (over: Partial<Progress> = {}): Progress => ({ total: 52, new: 30, learning: 18, mastered: 4, decks: 5, goal: 100, masterBy: '2026-12-29', grid: [5, 2, 0], ...over });
+const progress = (over: Partial<Progress> = {}): Progress => ({ total: 52, new: 30, learning: 18, mastered: 4, decks: 5, goal: 100, masterBy: '2026-12-29', grid: [5, 2, 0], language: 'Spanish', trees: [[5, 2]], ...over });
 
 beforeEach(() => jest.clearAllMocks());
 

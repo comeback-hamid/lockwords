@@ -104,3 +104,6 @@ Hamid answered 10 questions with "Yes, all suggested". The rule "decide on your 
 | E5 | Every deck has the same icon. Figma shows one icon per topic. | An icon per topic needs a rule or the AI. | `progress-decks` |
 | E6 | Known words are listed only under the "Known" chip, and are not in the deck's counts. | Hamid's answer P2 (not among the words to learn). | `progress-decks` |
 | E7 | The round opened from a deck is full screen with a Close button (the first round ever still has none). | The deck page is not inside a tab. | `progress-decks` |
+| E8 | A tree's leaves are the deck's words that were met (reviewed at least once, or known). A deck with no met word is a bare stem. | The meadow spec says a tree "grows as you meet its words". | `progress-home` |
+| E9 | The small meadow strip in Figma (above the grid) is Kai standing on a line of ground; the big meadow is below the goal. | Figma shows Kai on the first strip and trees on the second. | `progress-home` |
+| E10 | The grid's empty squares are the dark ink color; the date reads "BY JAN 1" (month and day, English). | As Figma. | `progress-home` |
