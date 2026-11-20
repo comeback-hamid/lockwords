@@ -3,17 +3,34 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Alert, Animated, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import type { Deck } from '@/api/client';
 import { api } from '@/auth/boot';
+import { ButtonPrimary } from '@/components/button';
 import { Icon } from '@/components/icon';
+import { LevelChain } from '@/components/level-chain';
 import { LoadError, Loading } from '@/components/load-state';
 import { useLoad } from '@/components/use-load';
+import { setRound } from '@/review/round-store';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
 
 const DELETE_WIDTH = 86; // the red Delete button behind a word row (Figma N7)
 const plural = (n: number) => (n === 1 ? '1 word' : `${n} words`);
 
-// A deck's words (Figma N7). Swipe a word left to remove it; "Remove deck" removes the whole deck.
-// shortcut: the rest of N7 / P3 (the title in the learning language, pictures, "Practice these words") comes with the decks epic.
+type Card = Deck['cards'][number];
+type Filter = 'all' | 'hard' | 'new' | 'mastered' | 'known';
+const MASTERED_STAGE = 5;
+// Which words a chip shows. Known words ("I know it") are only under Known.
+const IN_FILTER: Record<Filter, (c: Card) => boolean> = {
+  all: (c) => !c.known,
+  hard: (c) => !c.known && !!c.hard,
+  new: (c) => !c.known && c.stage === 0,
+  mastered: (c) => !c.known && c.stage >= MASTERED_STAGE,
+  known: (c) => !!c.known,
+};
+const FILTER_LABEL: Record<Filter, string> = { all: 'All', hard: 'Hard', new: 'New', mastered: 'Mastered', known: 'Known' };
+
+// A deck's words (Figma N7 and P3, one page). Chips filter the list; swipe a word left to remove it; a known word can
+// be restored; "Review this deck" starts a round with only this deck; "Remove deck" removes the whole deck.
 export default function DeckScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -24,7 +41,42 @@ export default function DeckScreen() {
   const [openId, setOpenId] = useState<string | null>(null); // the one row that shows its Delete button
   const [problem, setProblem] = useState<string | null>(null);
   const [removing, setRemoving] = useState(false);
-  const cards = deck ? deck.cards.filter((c) => !gone.has(c.id)) : [];
+  const [filter, setFilter] = useState<Filter>('all');
+  const [reviewing, setReviewing] = useState(false);
+  const [nothingToday, setNothingToday] = useState(false);
+  const kept = deck ? deck.cards.filter((c) => !gone.has(c.id)) : [];
+  const cards = kept.filter(IN_FILTER.all); // the words to learn: every count in the head is about these
+  const shown = kept.filter(IN_FILTER[filter]);
+  const chips = (['all', 'hard', 'new', 'mastered', 'known'] as const).filter((f) => f !== 'known' || kept.some(IN_FILTER.known));
+  const learning = cards.filter((c) => c.stage > 0 && c.stage < MASTERED_STAGE).length;
+
+  async function restore(cardId: string) {
+    setProblem(null);
+    try {
+      await api.restoreCard(cardId);
+      setFilter('all');
+      retry(); // the deck again, as the server has it now
+    } catch {
+      setProblem('Could not restore the word.');
+    }
+  }
+  async function review() {
+    if (reviewing) return;
+    setReviewing(true);
+    setNothingToday(false);
+    setProblem(null);
+    try {
+      const round = await api.fetchRound(id);
+      if (round.length === 0) setNothingToday(true);
+      else {
+        setRound(round);
+        router.push('/review/round');
+      }
+    } catch {
+      setProblem('Could not load the cards.');
+    }
+    setReviewing(false);
+  }
 
   async function removeWord(cardId: string) {
     setOpenId(null);
@@ -84,32 +136,52 @@ export default function DeckScreen() {
                 {deck.topic}
               </Text>
               <Text style={[type.label, styles.muted]}>{`${deck.cefr} · ${plural(cards.length).toUpperCase()}`}</Text>
+              <Text style={[type.label, styles.muted]}>{`${learning} LEARNING · ${cards.filter(IN_FILTER.hard).length} HARD`}</Text>
+              <View style={styles.chain}>
+                <LevelChain stages={cards.map((c) => c.stage).sort((a, b) => b - a)} />
+              </View>
             </View>
             {problem ? (
               <Text accessibilityRole="alert" style={[type.callout, styles.danger]}>
                 {problem}
               </Text>
             ) : null}
-            {cards.length === 0 ? (
+            {kept.length === 0 ? (
               <Text style={[type.callout, styles.muted]}>No words in this deck.</Text>
             ) : (
               <View style={styles.list}>
-                <Text style={[type.caption, styles.muted]}>Swipe left on a word to remove it</Text>
-                <View style={styles.box}>
-                  {cards.map((card, i) => (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+                  {chips.map((f) => {
+                    const label = `${FILTER_LABEL[f]} ${kept.filter(IN_FILTER[f]).length}`;
+                    return (
+                      <Pressable key={f} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: filter === f }} onPress={() => setFilter(f)} style={[styles.chip, filter === f && styles.chipOn]}>
+                        <Text style={[type.captionStrong, filter === f ? styles.green : styles.text2]}>{label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+                {shown.length === 0 ? <Text style={[type.callout, styles.muted]}>No words here.</Text> : <Text style={[type.caption, styles.muted]}>Swipe left on a word to remove it</Text>}
+                <View style={[styles.box, shown.length === 0 && styles.hidden]}>
+                  {shown.map((card, i) => (
                     <SwipeRow
                       key={card.id}
-                      label={`${card.word}, ${card.translation}`}
+                      label={`${card.word}, ${card.translation}${card.hard && !card.known ? ', hard word' : ''}`}
                       deleteLabel={`Delete ${card.word}`}
                       open={openId === card.id}
                       onOpen={() => setOpenId(card.id)}
                       onClose={() => setOpenId((now) => (now === card.id ? null : now))}
                       onDelete={() => void removeWord(card.id)}
-                      divider={i < cards.length - 1}
+                      divider={i < shown.length - 1}
                     >
                       <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
                       <Text style={[type.bodyStrong, styles.ink, styles.word]}>{card.word}</Text>
                       <Text style={[type.callout, styles.muted]}>{card.translation}</Text>
+                      {card.hard && !card.known ? <View testID="hard-mark" style={styles.hardMark} /> : null}
+                      {card.known ? (
+                        <Pressable accessibilityRole="button" accessibilityLabel={`Restore ${card.word}`} onPress={() => void restore(card.id)} hitSlop={8}>
+                          <Text style={[type.captionStrong, styles.green]}>Restore</Text>
+                        </Pressable>
+                      ) : null}
                     </SwipeRow>
                   ))}
                 </View>
@@ -118,6 +190,12 @@ export default function DeckScreen() {
           </>
         )}
       </ScrollView>
+      {deck && cards.length > 0 ? (
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[16]) }]}>
+          {nothingToday ? <Text style={[type.callout, styles.muted, styles.center]}>Nothing to review in this deck today.</Text> : null}
+          <ButtonPrimary label="Review this deck" onPress={() => void review()} disabled={reviewing} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -191,6 +269,16 @@ const styles = StyleSheet.create({
   danger: { color: colors.hard },
   content: { paddingHorizontal: layout.sideMargin, paddingTop: space[24], gap: space[24] },
   head: { gap: space[8] },
+  chain: { alignItems: 'flex-start' },
+  chips: { gap: space[8] },
+  chip: { height: 32, justifyContent: 'center', paddingHorizontal: space[12], borderRadius: radius.pill, backgroundColor: colors.chip },
+  chipOn: { backgroundColor: colors.greenBg },
+  green: { color: colors.greenText },
+  text2: { color: colors.text2 },
+  hidden: { display: 'none' },
+  hardMark: { width: 8, height: 8, borderRadius: 2, backgroundColor: colors.hard },
+  footer: { paddingHorizontal: layout.sideMargin, paddingTop: space[12], gap: space[8], backgroundColor: colors.canvas },
+  center: { textAlign: 'center' },
   list: { gap: space[8] },
   ink: { color: colors.text },
   muted: { color: colors.muted },
