@@ -1,9 +1,9 @@
-import { and, asc, desc, eq, gt, isNull, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 
 import type { CardsStore } from '../app.js';
-import { MAX_NEW_PER_ROUND, pickRound } from '../review/srs.js';
+import { MAX_NEW_PER_DAY, pickRound, type CardState, type Direction } from '../review/srs.js';
 import type { createDb } from './client.js';
-import { cards, decks, profiles } from './schema.js';
+import { cards, decks, profiles, reviewEvents, type ReviewEventState } from './schema.js';
 
 export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsStore {
   // Cards joined to their deck. Every query below also filters decks.user_id, so a user only reaches their own cards.
@@ -27,15 +27,47 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
     hard: r.card.hard,
     dueAt: r.card.dueAt,
   });
+  const toState = (c: CardState): ReviewEventState => ({ stage: c.stage, known: c.known, hard: c.hard, dueAt: c.dueAt ? c.dueAt.toISOString() : null });
+  // The learner's history rows of one review day that were not taken back, oldest first.
+  const todaysEvents = (userId: string, day: string) =>
+    db
+      .select({ cardId: reviewEvents.cardId, kind: reviewEvents.kind, before: reviewEvents.before })
+      .from(reviewEvents)
+      .where(and(eq(reviewEvents.userId, userId), eq(reviewEvents.reviewDay, day), isNull(reviewEvents.undoneAt)))
+      .orderBy(asc(reviewEvents.createdAt));
   return {
-    async round(userId, now) {
-      // The database picks the rows (due cards, and the first 20 new ones); pickRound owns the final order.
+    async round(userId, now, today) {
+      // The database picks the rows; pickRound owns the final order. With `today`, a card is due for its whole review
+      // day and new cards stop at the daily limit. Without it (callers with no history): due by the clock, 20 new.
       const live = and(kept(userId), eq(decks.status, 'ready'), eq(cards.known, false));
-      const [due, fresh] = await Promise.all([
-        mine().where(and(live, gt(cards.stage, 0), lte(cards.dueAt, now))),
-        mine().where(and(live, eq(cards.stage, 0))).orderBy(asc(decks.createdAt), asc(cards.position)).limit(MAX_NEW_PER_ROUND),
+      const events = today ? await todaysEvents(userId, today.day) : [];
+      const newLeft = MAX_NEW_PER_DAY - new Set(events.filter((e) => e.before.stage === 0).map((e) => e.cardId)).size;
+      // After a first Hard the card is shown once more today, at the end of the round.
+      const perCard = new Map<string, string[]>();
+      for (const e of events) perCard.set(e.cardId, [...(perCard.get(e.cardId) ?? []), e.kind]);
+      const againIds = [...perCard].filter(([, kinds]) => kinds.length === 1 && kinds[0] === 'hard').map(([id]) => id);
+      const [due, fresh, again] = await Promise.all([
+        mine().where(and(live, gt(cards.stage, 0), today ? lt(cards.dueAt, today.end) : lte(cards.dueAt, now))),
+        newLeft > 0 ? mine().where(and(live, eq(cards.stage, 0))).orderBy(asc(decks.createdAt), asc(cards.position)).limit(newLeft) : [],
+        againIds.length ? mine().where(and(live, inArray(cards.id, againIds))) : [],
       ]);
-      return pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), now);
+      const picked = pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), today?.end ?? now, Math.max(0, newLeft));
+      const inRound = new Set(picked.map((c) => c.id));
+      return [...picked, ...again.filter((r) => !inRound.has(r.card.id)).map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position }))];
+    },
+    async today(userId, cardId, day) {
+      const events = await todaysEvents(userId, day);
+      return {
+        swipesToday: events.filter((e) => e.cardId === cardId && e.kind !== 'use_it').map((e) => e.kind as Direction),
+        newStartedToday: new Set(events.filter((e) => e.before.stage === 0).map((e) => e.cardId)).size,
+      };
+    },
+    async saveSwipe(userId, cardId, event) {
+      // The card and its history row land together or not at all.
+      await db.transaction(async (tx) => {
+        await tx.update(cards).set({ ...event.after, lastReviewedAt: new Date() }).where(eq(cards.id, cardId));
+        await tx.insert(reviewEvents).values({ userId, cardId, kind: event.kind, reviewDay: event.day, before: toState(event.before), after: toState(event.after) });
+      });
     },
     async get(userId, id) {
       const [row] = await mine().where(and(kept(userId), eq(cards.id, id)));

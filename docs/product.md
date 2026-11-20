@@ -157,7 +157,11 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 
 - A good Use it sentence moves a word up one stage. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.
 - v1 is online: review needs a connection. The widget still shows the last words it got.
-- (open): Easy on a brand-new card goes to Stage 1 or Stage 2.
+- **Easy on a brand-new card goes to Stage 2** (back in 3 days). Decided 2026-11-20.
+- **A day starts at 04:00 on the learner's clock.** A word is due for its whole day, not from the hour of the last swipe.
+- **New words:** at most 20 new words are started per day. The rest wait for the next day.
+- **Hard:** the word goes to Stage 1 and comes back **once more at the end of the same round**, then tomorrow. It stays on the lock screen until it reaches Stage 3.
+- A swipe counts only for a word that is in today's round. The server keeps a history of every swipe.
 
 ---
 
@@ -211,5 +215,5 @@ Reviews, swipes, widgets and Progress are **always unlimited**.
 4. In v1 or later: daily reminder push, export to CSV, recently deleted, report this card.
 5. Where free users can sign in.
 6. Web app payment provider.
-7. Easy on a brand-new card: Stage 1 or Stage 2.
+7. ~~Easy on a brand-new card~~ decided 2026-11-20: Stage 2.
 8. Word font: all Mona Sans, or a serif just for the word on the card.

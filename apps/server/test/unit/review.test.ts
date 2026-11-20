@@ -11,16 +11,17 @@ const now = new Date('2026-11-16T10:00:00Z');
 const days = (n: number) => new Date(now.getTime() + n * 86_400_000);
 const fresh = { stage: 0, known: false, hard: false, dueAt: null as Date | null };
 
-test('Easy: up one stage, back in 1 / 3 / 7 / 14 / 30 days, top stage stays 5, clears hard', () => {
+// Rule change 2026-11-20 (review-srs-rules): Easy on a new card gives stage 2, and a hard word stays hard until stage 3.
+test('Easy: a new card goes to stage 2, others up one stage, back in 3 / 7 / 14 / 30 days, top stage stays 5, clears hard at stage 3', () => {
   expect([0, 1, 2, 3, 4, 5].map((stage) => applySwipe({ ...fresh, stage }, 'easy', now))).toEqual([
-    { stage: 1, known: false, hard: false, dueAt: days(1), backInDays: 1 },
+    { stage: 2, known: false, hard: false, dueAt: days(3), backInDays: 3 },
     { stage: 2, known: false, hard: false, dueAt: days(3), backInDays: 3 },
     { stage: 3, known: false, hard: false, dueAt: days(7), backInDays: 7 },
     { stage: 4, known: false, hard: false, dueAt: days(14), backInDays: 14 },
     { stage: 5, known: false, hard: false, dueAt: days(30), backInDays: 30 },
     { stage: 5, known: false, hard: false, dueAt: days(30), backInDays: 30 },
   ]);
-  expect(applySwipe({ ...fresh, stage: 1, hard: true }, 'easy', now).hard).toBe(false);
+  expect(applySwipe({ ...fresh, stage: 2, hard: true }, 'easy', now).hard).toBe(false);
 });
 
 test('Hard: stage 1, tomorrow, marked hard', () => {
@@ -89,7 +90,7 @@ test('GET /v1/review lists my cards without server-only fields', async () => {
 test('swipe easy / hard / known; then the card leaves the round; hard words list', async () => {
   const easy = await alice(`/v1/cards/${A}/swipe`, 'POST', { direction: 'easy' });
   expect(easy.status).toBe(200);
-  expect(await easy.json()).toEqual({ id: A, stage: 1, known: false, hard: false, backInDays: 1 });
+  expect(await easy.json()).toEqual({ id: A, stage: 2, known: false, hard: false, backInDays: 3, again: false });
   expect(((await (await alice('/v1/review')).json()) as { cards: unknown[] }).cards).toEqual([]);
 
   expect(await (await alice(`/v1/cards/${A}/swipe`, 'POST', { direction: 'hard' })).json()).toMatchObject({ stage: 1, hard: true, backInDays: 1 });

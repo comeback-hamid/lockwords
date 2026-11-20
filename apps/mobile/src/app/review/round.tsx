@@ -8,7 +8,7 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { isIntroDone } from '@/review/intro';
-import { advance, useRound } from '@/review/round-store';
+import { advance, showAgain, useRound } from '@/review/round-store';
 import { getSpeechLanguage } from '@/review/speech-language';
 import { colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
@@ -59,6 +59,7 @@ export default function RoundScreen() {
       await new Promise((resolve) => setTimeout(resolve, STAMP_MS));
       setStamp(null);
       drag.setValue({ x: 0, y: 0 });
+      if (result.again) showAgain({ ...current, stage: result.stage });
       advance();
     } catch {
       setFailed(true);

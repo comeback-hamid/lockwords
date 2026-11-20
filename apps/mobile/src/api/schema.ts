@@ -895,6 +895,15 @@ export interface paths {
                         "application/json": components["schemas"]["NotFound"];
                     };
                 };
+                /** @description The card is not in today's round; nothing changed */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotDue"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -1480,6 +1489,11 @@ export interface components {
             known: boolean;
             hard: boolean;
             backInDays: number | null;
+            again: boolean;
+        };
+        NotDue: {
+            /** @enum {string} */
+            error: "not_due";
         };
         UseItResult: {
             good: boolean;

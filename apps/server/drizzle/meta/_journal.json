@@ -71,6 +71,13 @@
       "when": 1795122325449,
       "tag": "0009_slow_tinkerer",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795154397175,
+      "tag": "0010_uneven_triton",
+      "breakpoints": true
     }
   ]
 }

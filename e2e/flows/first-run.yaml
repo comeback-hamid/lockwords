@@ -37,22 +37,27 @@ tags:
     visible: "9 words left"
     timeout: 15000
 - assertVisible: "la propina"
-# Hard: swipe left
+# Hard: swipe left. The hard word comes back once at the end of the round, so the count stays at 9.
 - swipe:
     start: "50%, 50%"
     end: "5%, 50%"
 - extendedWaitUntil:
-    visible: "8 words left"
+    visible: "pedir"
     timeout: 15000
+- assertVisible: "9 words left"
 # I know it: tap
 - tapOn: "Know it"
 - extendedWaitUntil:
-    visible: "7 words left"
+    visible: "8 words left"
     timeout: 15000
 # Easy: swipe right
 - swipe:
     start: "50%, 50%"
     end: "95%, 50%"
+- extendedWaitUntil:
+    visible: "7 words left"
+    timeout: 15000
+- tapOn: "Easy"
 - extendedWaitUntil:
     visible: "6 words left"
     timeout: 15000
@@ -76,6 +81,8 @@ tags:
 - extendedWaitUntil:
     visible: "1 word left"
     timeout: 15000
+# The hard word again, last
+- assertVisible: "la propina"
 - tapOn: "Easy"
 # One-time screens after the first round
 - extendedWaitUntil:

@@ -28,7 +28,7 @@ jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({
 const mockApi = jest.mocked(api);
 const card = (i: number, word: string, translation: string): ReviewCard => ({ id: `c${i}`, deckId: 'd1', deckTopic: 'Ordering food', word, translation, example: `Deja un 10 % de ${word.replace('la ', '')}.`, exampleTranslation: 'Leave a 10% tip.', stage: 0 });
 const two = [card(1, 'la propina', 'the tip'), card(2, 'la cuenta', 'the bill')];
-const swiped = (over: object) => ({ id: 'c1', stage: 1, known: false, hard: false, backInDays: 1, ...over });
+const swiped = (over: object) => ({ id: 'c1', stage: 1, known: false, hard: false, backInDays: 1, again: false, ...over }); // `again` added with review-srs-rules
 const kaiSays = (text: string) => screen.getByLabelText(`Kai: ${text}`);
 
 beforeEach(() => {

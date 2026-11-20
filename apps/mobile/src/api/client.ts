@@ -38,6 +38,8 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async onRequest({ request }) {
       const token = await getToken();
       if (token) request.headers.set('Authorization', `Bearer ${token}`);
+      // The server counts review days on the learner's clock (a day starts at 04:00 there).
+      request.headers.set('X-Time-Zone', Intl.DateTimeFormat().resolvedOptions().timeZone);
       return request;
     },
   });
