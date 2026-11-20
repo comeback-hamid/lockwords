@@ -39,10 +39,10 @@ test('deck → round of 10 → easy, hard, known → round shrinks → hard word
   expect(round.map((c) => c.word)).toEqual(['la cuenta', 'la propina', 'pedir', 'el camarero', 'la carta', 'el plato', 'la bebida', 'reservar', 'el postre', 'pagar']);
   expect(round[0]).toMatchObject({ deckTopic: 'Ordering food', stage: 0 });
 
-  expect(await (await me(`/v1/cards/${round[0]!.id}/swipe`, 'POST', { direction: 'easy' })).json()).toMatchObject({ stage: 1, backInDays: 1 });
+  expect(await (await me(`/v1/cards/${round[0]!.id}/swipe`, 'POST', { direction: 'easy' })).json()).toMatchObject({ stage: 2, backInDays: 3 }); // rule change 2026-11-20: Easy on a new card gives stage 2
   expect(await (await me(`/v1/cards/${round[1]!.id}/swipe`, 'POST', { direction: 'hard' })).json()).toMatchObject({ stage: 1, hard: true });
   expect(await (await me(`/v1/cards/${round[2]!.id}/swipe`, 'POST', { direction: 'known' })).json()).toMatchObject({ known: true });
-  expect(((await (await me('/v1/review')).json()) as { cards: Card[] }).cards).toHaveLength(7);
+  expect(((await (await me('/v1/review')).json()) as { cards: Card[] }).cards).toHaveLength(8); // 7 left + the Hard card, which comes back once the same day (rule change 2026-11-20)
   expect(await (await me('/v1/hard-words')).json()).toEqual({ words: [{ word: 'la propina', translation: 'the tip' }] });
 
   // A card that is due again shows up first.

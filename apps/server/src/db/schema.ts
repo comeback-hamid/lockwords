@@ -1,4 +1,4 @@
-import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, index, integer, jsonb, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // Drizzle tables live here. Migrations are add-only: add tables and columns; drop or rename in a later deploy.
 
@@ -128,4 +128,27 @@ export const kaiNotes = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('kai_notes_user_time').on(t.userId, t.createdAt)],
+);
+
+// One row per swipe or good Use it sentence (the review history). Streak, today's numbers, the daily new-word
+// limit and undo all read it. `before` and `after` are the card's state, so an undo needs no extra rule.
+export type ReviewEventState = { stage: number; known: boolean; hard: boolean; dueAt: string | null };
+export const reviewEvents = pgTable(
+  'review_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    cardId: uuid('card_id')
+      .notNull()
+      .references(() => cards.id),
+    kind: text('kind').notNull(), // 'easy' | 'hard' | 'known' | 'use_it'
+    reviewDay: date('review_day').notNull(), // the learner's review day (starts 04:00 on their clock), "YYYY-MM-DD"
+    before: jsonb('before').$type<ReviewEventState>().notNull(),
+    after: jsonb('after').$type<ReviewEventState>().notNull(),
+    undoneAt: timestamp('undone_at', { withTimezone: true }), // set = taken back; it then counts nowhere
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('review_events_user_day').on(t.userId, t.reviewDay)],
 );

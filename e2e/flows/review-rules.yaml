@@ -1,0 +1,72 @@
+# The review rules a learner can see: Easy on a new word comes back in 3 days, and a Hard word comes back at the end of the round.
+# Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - review
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: review-srs-rules
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "10 words left"
+- assertVisible: "la cuenta"
+# Hard on the first word: it will come back at the end
+- tapOn: "Hard"
+- assertVisible: "GOES TO YOUR LOCK SCREEN"
+- extendedWaitUntil:
+    visible: "la propina"
+    timeout: 15000
+- assertVisible: "10 words left"
+# Easy on a new word: back in 3 days
+- tapOn: "Easy"
+- assertVisible: "BACK IN 3 DAYS"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "8 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "7 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "6 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "5 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "4 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "3 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "2 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+# The hard word is the last card
+- assertVisible: "la cuenta"
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+# Still hard: it stays on the lock screen until level 3
+- assertVisible: "YOUR HARD WORDS · 1"
+- assertVisible: "la cuenta"
+- stopRecording

@@ -675,6 +675,9 @@
               "integer",
               "null"
             ]
+          },
+          "again": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -682,7 +685,22 @@
           "stage",
           "known",
           "hard",
-          "backInDays"
+          "backInDays",
+          "again"
+        ]
+      },
+      "NotDue": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_due"
+            ]
+          }
+        },
+        "required": [
+          "error"
         ]
       },
       "UseItResult": {
@@ -2022,6 +2040,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The card is not in today's round; nothing changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotDue"
                 }
               }
             }
