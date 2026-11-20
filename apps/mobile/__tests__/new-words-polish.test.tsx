@@ -26,6 +26,9 @@ jest.mock('@/auth/me-store', () => ({ useMe: () => ({ id: 'user-1', isGuest: tru
 jest.mock('@/auth/boot', () => ({ api: { fetchKaiChat: jest.fn(), openKaiChat: jest.fn(), sendKaiMessage: jest.fn(), setKaiTranslation: jest.fn(), addKaiWord: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 
+// On a cold machine (CI) the first render of the screen takes longer than Jest's 5 seconds.
+jest.setTimeout(30_000);
+
 const mockApi = jest.mocked(api);
 let n = 0;
 const kai = (text: string, over: Partial<KaiMessage> = {}): KaiMessage => ({ id: `k${n++}`, from: 'kai', text, translation: `EN: ${text}`, createdAt: '2026-11-19T10:00:00.000Z', ...over });
