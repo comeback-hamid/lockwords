@@ -4,10 +4,13 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Icon } from '@/components/icon';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
+import { directionStyle } from './direction';
+
 // Figma Composer: text box + one round button (mic when empty, green send when there is text).
 // `mic={false}` is for text-only screens: no round button until there is text. `defaultValue` puts a text back in the box.
 // `canSend={false}` (Kai is still answering): the learner can keep typing, the text stays in the box, and send waits.
 // onTextChange: the screen hears typing (Kai listens while there is text).
+// The typed text is aligned by its own script (Persian to the right).
 type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string; canSend?: boolean; onTextChange?(text: string): void };
 export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '', canSend = true, onTextChange }: Props) {
   const [text, setTextState] = useState(defaultValue);
@@ -33,7 +36,7 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
           placeholderTextColor={colors.subtle}
           maxLength={maxLength}
           returnKeyType="send"
-          style={[type.callout, styles.input]}
+          style={[type.callout, styles.input, directionStyle(text)]}
           selectionColor={colors.button}
         />
         {ready ? (

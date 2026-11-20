@@ -1057,14 +1057,16 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    before?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description The newest messages, oldest first */
+                /** @description The newest 50 messages, oldest first. With `before`: the 50 before that message, and no options */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -1080,6 +1082,15 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description `before` is not a message of the caller */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KaiNotFound"];
                     };
                 };
             };
@@ -1500,6 +1511,7 @@ export interface components {
             options: string[];
             translationOn: boolean;
             nativeLanguage: string | null;
+            hasMore?: boolean;
         };
         KaiMessage: {
             id: string;
@@ -1530,6 +1542,10 @@ export interface components {
             /** @enum {string} */
             status: "proposed" | "generating" | "ready";
             current: boolean;
+        };
+        KaiNotFound: {
+            /** @enum {string} */
+            error: "not_found";
         };
         KaiTurn: {
             userMessage: components["schemas"]["KaiMessage"] | null;
@@ -1574,10 +1590,6 @@ export interface components {
             deckTitle: string;
             count: number;
             already: boolean;
-        };
-        KaiNotFound: {
-            /** @enum {string} */
-            error: "not_found";
         };
         KaiNoWord: {
             /** @enum {string} */

@@ -1,0 +1,68 @@
+# New words polish: a tapped option moves up, Persian text in the chat, and older messages load when you scroll to the top.
+# Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's words differ, the steps do not).
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-polish
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+# New words: Kai opens the chat
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# A tapped option moves up into the chat as the learner's bubble (Kai's own words differ with the real AI, so tap the first one)
+- tapOn:
+    id: "reply-option"
+    index: 0
+- extendedWaitUntil:
+    visible: "You: .*"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+# Persian text: right-aligned in the composer and in the bubble (seen in the video)
+- tapOn: "Message"
+- inputText: "سلام"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: "You: سلام"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# A long chat: 30 more turns, so the Persian message is not among the newest 50
+- repeat:
+    times: 30
+    commands:
+      - evalScript: ${output.n = (output.n || 0) + 1}
+      - tapOn: "Message"
+      - inputText: "Hola ${output.n}"
+      # No check of the bubble here: a long answer from the real AI (a word card) pushes it off the screen at once.
+      - tapOn: "Send"
+      - extendedWaitUntil:
+          notVisible: "Kai is typing"
+          timeout: 40000
+# After a restart the screen has the newest 50. Scrolling to the top loads the ones before, page by page.
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "Kai: .*"
+    timeout: 20000
+- assertNotVisible: "You: سلام"
+- scrollUntilVisible:
+    element: "You: سلام"
+    direction: UP
+    timeout: 180000
+- stopRecording

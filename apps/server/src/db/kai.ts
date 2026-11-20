@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm';
 
 import { toChatDecks } from '../kai/abilities/decks.js';
 import { nextRandomDeckTitle } from '../decks/random-words.js';
@@ -49,6 +49,14 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
   return {
     async messages(userId, limit) {
       const rows = await db.select().from(kaiMessages).where(eq(kaiMessages.userId, userId)).orderBy(desc(kaiMessages.createdAt), desc(kaiMessages.position)).limit(limit);
+      return withDecks(db, userId, rows.reverse());
+    },
+    async older(userId, before, limit) {
+      const [at] = await db.select({ createdAt: kaiMessages.createdAt, position: kaiMessages.position }).from(kaiMessages).where(and(eq(kaiMessages.userId, userId), eq(kaiMessages.id, before)));
+      if (!at) return null;
+      // Lines of one turn share a time and differ by `position`.
+      const earlier = or(lt(kaiMessages.createdAt, at.createdAt), and(eq(kaiMessages.createdAt, at.createdAt), lt(kaiMessages.position, at.position)));
+      const rows = await db.select().from(kaiMessages).where(and(eq(kaiMessages.userId, userId), earlier)).orderBy(desc(kaiMessages.createdAt), desc(kaiMessages.position)).limit(limit);
       return withDecks(db, userId, rows.reverse());
     },
     async lastOpeningAt(userId) {

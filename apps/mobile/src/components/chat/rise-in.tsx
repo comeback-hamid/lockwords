@@ -23,7 +23,7 @@ export function RiseIn({ children }: { children: ReactNode }) {
     };
   }, [t]);
   return (
-    <Animated.View style={{ opacity: t.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.4, 1, 1] }), transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [RISE_FROM, 0] }) }] }}>
+    <Animated.View testID="rise-in" style={{ opacity: t.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.4, 1, 1] }), transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [RISE_FROM, 0] }) }] }}>
       {children}
     </Animated.View>
   );

@@ -8,7 +8,7 @@ export function ReplyOptions({ options, onPick }: { options: string[]; onPick(op
   return (
     <View style={styles.group}>
       {options.map((option) => (
-        <Pressable key={option} accessibilityRole="button" accessibilityLabel={option} onPress={() => {
+        <Pressable key={option} testID="reply-option" accessibilityRole="button" accessibilityLabel={option} onPress={() => {
             Keyboard.dismiss(); // a tapped answer needs no keyboard
             onPick(option);
           }} style={({ pressed }) => [styles.pill, pressed && styles.pressed]}>

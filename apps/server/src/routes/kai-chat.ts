@@ -43,7 +43,13 @@ const NotFound = error('not_found', 'KaiNotFound');
 const NoWord = error('no_word', 'KaiNoWord');
 const AddedWordSchema = z.object({ deckId: z.string(), deckTitle: z.string(), count: z.number().int(), already: z.boolean() }).openapi('KaiAddedWord');
 const ChatSchema = z
-  .object({ messages: z.array(MessageSchema), options: z.array(z.string()), translationOn: z.boolean(), nativeLanguage: z.string().nullable() })
+  .object({
+    messages: z.array(MessageSchema),
+    options: z.array(z.string()),
+    translationOn: z.boolean(),
+    nativeLanguage: z.string().nullable(),
+    hasMore: z.boolean().optional(), // true when older messages are left; left out when there are none
+  })
   .openapi('KaiChat');
 // userMessage is a union, not `.nullable()`: on a named schema that makes a type the app cannot use.
 const TurnSchema = z
@@ -56,7 +62,18 @@ const TurnBody = z
   .refine((b) => (b.event === undefined) === (b.deckId === undefined), 'deckId comes with event')
   .openapi('KaiTurnRequest');
 
-const getChat = createRoute({ method: 'get', path: '/kai/chat', security, responses: { 200: json(ChatSchema, 'The newest messages, oldest first'), ...unauthorized } });
+// `before` is a message id: the answer is the page just before that message.
+const getChat = createRoute({
+  method: 'get',
+  path: '/kai/chat',
+  security,
+  request: { query: z.object({ before: z.string().optional() }) },
+  responses: {
+    200: json(ChatSchema, 'The newest 50 messages, oldest first. With `before`: the 50 before that message, and no options'),
+    404: json(NotFound, '`before` is not a message of the caller'),
+    ...unauthorized,
+  },
+});
 const postTurn = createRoute({
   method: 'post',
   path: '/kai/chat/turns',
@@ -114,8 +131,12 @@ export function kaiChatRoutes(deps: Deps) {
   });
   return app
     .openapi(getChat, async (c) => {
-      const chat = await readChat(all(), c.get('user').id, now());
-      return c.json({ ...chat, messages: chat.messages.map(toMessage) }, 200);
+      const { before } = c.req.valid('query');
+      // A malformed id is simply "not found".
+      const chat = before === undefined || z.uuid().safeParse(before).success ? await readChat(all(), c.get('user').id, now(), before) : null;
+      if (!chat) return c.json({ error: 'not_found' as const }, 404);
+      const { hasMore, ...rest } = chat;
+      return c.json({ ...rest, messages: chat.messages.map(toMessage), ...(hasMore ? { hasMore } : {}) }, 200);
     })
     .openapi(postTurn, async (c) => {
       const body = c.req.valid('json');

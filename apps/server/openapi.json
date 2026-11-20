@@ -833,6 +833,9 @@
               "string",
               "null"
             ]
+          },
+          "hasMore": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -965,6 +968,20 @@
           "wordCount",
           "status",
           "current"
+        ]
+      },
+      "KaiNotFound": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_found"
+            ]
+          }
+        },
+        "required": [
+          "error"
         ]
       },
       "KaiTurn": {
@@ -1139,20 +1156,6 @@
           "deckTitle",
           "count",
           "already"
-        ]
-      },
-      "KaiNotFound": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "enum": [
-              "not_found"
-            ]
-          }
-        },
-        "required": [
-          "error"
         ]
       },
       "KaiNoWord": {
@@ -2185,9 +2188,19 @@
             "bearer": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "before",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "The newest messages, oldest first",
+            "description": "The newest 50 messages, oldest first. With `before`: the 50 before that message, and no options",
             "content": {
               "application/json": {
                 "schema": {
@@ -2202,6 +2215,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`before` is not a message of the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KaiNotFound"
                 }
               }
             }
