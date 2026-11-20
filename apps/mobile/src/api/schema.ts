@@ -1306,6 +1306,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The learner's next deck ideas (empty when there is no plan) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WordPlan"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/kai/script": {
         parameters: {
             query?: never;
@@ -1926,6 +1970,15 @@ export interface components {
             grid: number[];
             language: string;
             trees: number[][];
+        };
+        WordPlan: {
+            goal: string;
+            items: {
+                topic: string;
+                words: number;
+                /** @enum {string} */
+                kind: "words" | "phrases" | "words + phrases";
+            }[];
         };
         DeckList: {
             decks: components["schemas"]["DeckSummary"][];

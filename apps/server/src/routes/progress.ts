@@ -1,8 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-import type { ProgressStore } from '../app.js';
+import type { PlanStore, ProfilesStore, ProgressStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { languageName } from '../llm/make-deck.js';
+import { goalWords, openItems, PLAN_SIZE, PlanItemSchema, PlanSchema, type DeckPlanner } from '../llm/plan-decks.js';
 import { bankNumbers, deckSummary, goalFor, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
 import { reviewDay } from '../review/day.js';
 import { UnauthorizedSchema } from './me.js';
@@ -23,8 +24,16 @@ const getProgress = createRoute({ method: 'get', path: '/progress', security, re
 const getDecks = createRoute({ method: 'get', path: '/decks', security, responses: { 200: json(z.object({ decks: z.array(DeckSummarySchema) }).openapi('DeckList'), "The learner's decks, newest first"), ...unauthorized } });
 
 const PACE_DAYS_MS = 6 * 86_400_000; // today and the 6 days before it
+const PLAN_FRESH_MS = 7 * 86_400_000; // a plan older than this is made again
 
-type Deps = { progress?: ProgressStore; reviewNow?: () => Date };
+const getPlan = createRoute({
+  method: 'get',
+  path: '/plan',
+  security,
+  responses: { 200: json(z.object({ goal: z.string(), items: z.array(PlanItemSchema) }).openapi('WordPlan'), "The learner's next deck ideas (empty when there is no plan)"), ...unauthorized },
+});
+
+type Deps = { progress?: ProgressStore; profiles?: ProfilesStore; plans?: PlanStore; deckPlanner?: DeckPlanner; reviewNow?: () => Date };
 
 // The Progress tab (Figma P1–P2): numbers for the home page and the deck list.
 export function progressRoutes(deps: Deps) {
@@ -44,6 +53,28 @@ export function progressRoutes(deps: Deps) {
       // The meadow: one tree per deck, oldest first (the store lists newest first).
       const trees = [...decks].reverse().map((d) => treeLevels(d.words));
       return c.json({ ...numbers, decks: decks.length, goal, masterBy: masterBy(reviewDay(now, zone).day, goal, started, paceFrom(startedLately)), language: language ? languageName(language) : '', trees }, 200);
+    })
+    .openapi(getPlan, async (c) => {
+      const userId = c.get('user').id;
+      const profile = await deps.profiles?.get(userId);
+      if (!profile || !deps.plans || !deps.deckPlanner) return c.json({ goal: '', items: [] }, 200);
+      const now = clock();
+      const have = (await store().decks(userId)).map((d) => d.topic);
+      const kept = await deps.plans.get(userId);
+      const left = kept ? openItems(kept.items, have) : [];
+      const fresh = kept !== null && now.getTime() - kept.createdAt.getTime() < PLAN_FRESH_MS;
+      if (left.length >= PLAN_SIZE && fresh) return c.json({ goal: goalWords(profile), items: left.slice(0, PLAN_SIZE) }, 200);
+      try {
+        // A new plan: the AI may repeat a topic or offer more than three; only the open ones are kept.
+        const made = PlanSchema.parse(await deps.deckPlanner.plan({ ...profile, have }));
+        const items = openItems(made.items, have).slice(0, PLAN_SIZE);
+        if (items.length === 0) throw new Error('no new idea');
+        await deps.plans.save(userId, items, now);
+        return c.json({ goal: goalWords(profile), items }, 200);
+      } catch {
+        // The AI failed: what is left of the old plan is still good.
+        return c.json({ goal: goalWords(profile), items: left.slice(0, PLAN_SIZE) }, 200);
+      }
     })
     .openapi(getDecks, async (c) => {
       const decks = await store().decks(c.get('user').id);

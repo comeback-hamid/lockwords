@@ -107,3 +107,19 @@ Hamid answered 10 questions with "Yes, all suggested". The rule "decide on your 
 | E8 | A tree's leaves are the deck's words that were met (reviewed at least once, or known). A deck with no met word is a bare stem. | The meadow spec says a tree "grows as you meet its words". | `progress-home` |
 | E9 | The small meadow strip in Figma (above the grid) is Kai standing on a line of ground; the big meadow is below the goal. | Figma shows Kai on the first strip and trees on the second. | `progress-home` |
 | E10 | The grid's empty squares are the dark ink color; the date reads "BY JAN 1" (month and day, English). | As Figma. | `progress-home` |
+| E11 | A tapped plan idea sends "A deck about <topic>" to Kai in the New words chat; Kai then shows the deck card with Generate. No deck is made by the tap itself. | Hamid's answer P6 ("ready to generate"), and it reuses the own-deck path. | `word-plan` |
+| E12 | The plan is kept for 7 days, and made again sooner when fewer than three ideas are left. If the AI fails, what is left is shown; with nothing left the section is hidden. | The Progress tab must never fail because of the AI. | `word-plan` |
+| E13 | Plan ideas have the same deck icon; Figma shows one icon per idea. | Same as decision E5. | `word-plan` |
+| E14 | One more real AI call (the planner, with the same key as D23). It answered in 2 seconds with Persian topics for a Persian speaker. | It had only run with the stand-in. | `word-plan` |
+
+## What was built for the Progress tab (4 PRs)
+| PR | Change | What |
+|---|---|---|
+| #39 | `progress-server` | The numbers, the deck list, card flags, restore, a round for one deck |
+| #40 | `progress-decks` | Your decks (P2) and the deck words page (P3) |
+| #41 | `progress-home` | Progress home (P1): counts, goal grid, date, meadow |
+| #42 | `word-plan` | Kai's word plan and the tap into the New words chat |
+
+Videos (on this Mac, not in git): `progress-decks.mp4`, `progress-home.mp4`, `word-plan.mp4` in `~/apps/lockwords-finish-review/e2e/videos/`.
+
+The last full simulator run found one real problem: the longer Progress page pushed the dev-only user id line off the screen, so `guest-login` failed. The line is now at the top of the Progress tab. After that all 25 flows passed (10 in one run, 15 in a second run after the test tool lost its connection to the simulator).

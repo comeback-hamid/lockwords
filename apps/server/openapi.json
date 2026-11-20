@@ -960,6 +960,49 @@
           "trees"
         ]
       },
+      "WordPlan": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "topic": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "words": {
+                  "type": "integer",
+                  "minimum": 10,
+                  "maximum": 30
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "words",
+                    "phrases",
+                    "words + phrases"
+                  ]
+                }
+              },
+              "required": [
+                "topic",
+                "words",
+                "kind"
+              ]
+            }
+          }
+        },
+        "required": [
+          "goal",
+          "items"
+        ]
+      },
       "DeckList": {
         "type": "object",
         "properties": {
@@ -2737,6 +2780,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/plan": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The learner's next deck ideas (empty when there is no plan)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WordPlan"
                 }
               }
             }

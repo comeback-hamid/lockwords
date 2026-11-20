@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { Progress } from '@/api/client';
+import type { Progress, WordPlan } from '@/api/client';
 import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { GoalGrid } from '@/components/goal-grid';
@@ -11,30 +11,47 @@ import { Icon } from '@/components/icon';
 import { LoadError, Loading } from '@/components/load-state';
 import { Meadow } from '@/components/meadow';
 import { Kai } from '@/kai/kai';
+import { askKaiLater, deckAsk } from '@/new-words/pending';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 // "2026-12-29" → "DEC 29"
 const shortDate = (day: string) => `${MONTHS[Number(day.slice(5, 7)) - 1] ?? ''} ${Number(day.slice(8, 10))}`;
 
-// Progress tab (Figma P1): the word bank, the goal grid with its date, and the meadow (one tree per deck).
+// Progress tab (Figma P1): the word bank, the goal grid with its date, the meadow (one tree per deck) and Kai's word plan.
 export default function ProgressScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const me = useMe();
   const [state, setState] = useState<{ progress: Progress | null; failed: boolean }>({ progress: null, failed: false });
   // Loads every time the tab comes into view: a round or a new deck changes the numbers.
+  const [plan, setPlan] = useState<WordPlan | null>(null);
   const load = useCallback(() => {
     api.fetchProgress().then(
       (progress) => setState({ progress, failed: false }),
       () => setState({ progress: null, failed: true }),
     );
+    // The plan loads on its own (its first call waits for the AI). No plan = no section.
+    Promise.resolve()
+      .then(() => api.fetchPlan())
+      .then(setPlan, () => setPlan(null));
   }, []);
+  // A tapped idea goes to Kai: the New words chat asks for that deck and shows its card.
+  function askFor(topic: string) {
+    askKaiLater(deckAsk(topic));
+    router.navigate('/(tabs)');
+  }
   useFocusEffect(load);
 
   const { progress, failed } = state;
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={[styles.root, { paddingTop: insets.top + space[48] }]}>
+      {__DEV__ && me ? (
+        // Dev builds only: lets the Maestro flows check that the guest user survives a restart. At the top, so it is on screen without scrolling.
+        <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
+          {me.id}
+        </Text>
+      ) : null}
       {failed ? (
         <LoadError
           message="Could not load your progress."
@@ -81,14 +98,30 @@ export default function ProgressScreen() {
           <View style={styles.meadow}>
             <Meadow trees={progress.trees} />
           </View>
+
+          {plan && plan.items.length > 0 ? (
+            <View style={styles.plan}>
+              <Text style={[type.label, styles.muted]}>{`YOUR WORD PLAN · ${plan.goal.toUpperCase()}`}</Text>
+              <View style={styles.box}>
+                {plan.items.map((item, i) => {
+                  const size = `${item.words} words · ${item.kind}`;
+                  return (
+                    <Pressable key={item.topic} accessibilityRole="button" accessibilityLabel={`${item.topic}, ${size}`} onPress={() => askFor(item.topic)} style={[styles.planRow, i < plan.items.length - 1 && styles.divider]}>
+                      <View style={styles.planIcon}>
+                        <Icon name="deck" size={24} color={colors.greenText} />
+                      </View>
+                      <View style={styles.planText}>
+                        <Text style={[type.bodyStrong, styles.ink]}>{item.topic}</Text>
+                        <Text style={[type.caption, styles.muted]}>{size}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
         </>
       )}
-      {__DEV__ && me ? (
-        // Dev builds only: lets the Maestro flows check that the guest user survives a restart.
-        <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
-          {me.id}
-        </Text>
-      ) : null}
     </ScrollView>
   );
 }
@@ -113,6 +146,12 @@ const styles = StyleSheet.create({
   byRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: space[12], marginTop: space[24] },
   rule: { flex: 1, height: 1, backgroundColor: colors.divider },
   meadow: { width: '100%', marginTop: space[16] },
+  plan: { width: '100%', gap: space[12], marginTop: space[24] },
+  box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
+  planRow: { flexDirection: 'row', alignItems: 'center', gap: space[12], padding: space[16] },
+  divider: { borderBottomWidth: 1, borderBottomColor: colors.divider },
+  planIcon: { width: 40, height: 40, borderRadius: radius.badge, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.greenBg },
+  planText: { flex: 1, gap: space[4] / 2 },
   ink: { color: colors.text },
   muted: { color: colors.muted },
   green: { color: colors.greenText },

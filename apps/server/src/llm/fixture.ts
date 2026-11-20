@@ -1,6 +1,8 @@
 import type { KaiReplier } from './kai-reply.js';
 import { wantsMeaning, type DeckMaker } from './make-deck.js';
 import type { WordAsker } from './ask-word.js';
+import { ideasFor } from '../decks/ideas.js';
+import { openItems, PLAN_SIZE, type DeckPlanner } from './plan-decks.js';
 import type { ScriptTranslator } from './translate-script.js';
 import type { UseItJudge } from './use-it.js';
 
@@ -75,6 +77,16 @@ export const fixtureUseItJudge: UseItJudge = {
       ? { good: true, lines: ['🎉 **Great sentence!**', `👍 You used **${bare}** in the right place.`], followUp: 'Can I say it another way?' }
       : { good: false, lines: [`🤔 I can’t find **${bare}** in your sentence.`, 'Try again with the word.'] };
   },
+};
+
+// The word plan: the stand-in takes the fixed first-deck ideas of the goal that the learner does not have yet.
+export const fixtureDeckPlanner: DeckPlanner = {
+  plan: async ({ goal, level, have }) => ({
+    items: openItems(
+      [...ideasFor(goal), 'Everyday basics', 'Numbers and time', 'Shopping'].map((topic, i) => ({ topic, words: [20, 30, 20, 10][i % 4]!, kind: level === 'brand_new' || level === 'beginner' ? ('words' as const) : ('words + phrases' as const) })),
+      have,
+    ).slice(0, PLAN_SIZE),
+  }),
 };
 
 // Kai's script in another language: the stand-in keeps the English lines, so tests and Maestro read the same text.
