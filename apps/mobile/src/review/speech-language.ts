@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '@/platform/key-store';
 
 // The language the speaker reads words in (a code like "es"). Saved on the phone so it survives a restart.
 const KEY = 'lockwords.learning'; // listed in SECURE_KEYS, so a fresh install clears it

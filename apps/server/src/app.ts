@@ -1,4 +1,5 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { cors } from 'hono/cors';
 
 import { requireUser, type AuthSettings } from './auth.js';
 import type { DeckJobs } from './decks/jobs.js';
@@ -76,11 +77,22 @@ export type CardsStore = {
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
   const app = new OpenAPIHono();
+  // The web app calls us from a browser, from another address than ours: answer its pre-flight calls and say it may.
+  // Phones do not need this. Allowed: the addresses in `webOrigins`, and any localhost port while developing.
+  app.use(
+    '*',
+    cors({
+      origin: (origin) => (origin && (deps?.webOrigins?.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) ? origin : null),
+      allowHeaders: ['Authorization', 'Content-Type', 'X-Time-Zone'],
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      maxAge: 86400,
+    }),
+  );
   app.route('/health', health);
   app.use('/v1/*', requireUser(deps));
   app.route('/v1', meRoutes(deps?.users));

@@ -45,6 +45,7 @@ const app = createApp({
   languageChecker: env.ANTHROPIC_API_KEY ? claudeLanguageChecker(env.ANTHROPIC_API_KEY) : fixtureLanguageChecker,
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
   wordAsker: env.ANTHROPIC_API_KEY ? claudeWordAsker(env.ANTHROPIC_API_KEY) : fixtureWordAsker,
+  webOrigins: env.WEB_ORIGINS,
   kaiScripts: createKaiScriptStore(db),
   progress: createProgressStore(db),
   plans: createPlanStore(db),

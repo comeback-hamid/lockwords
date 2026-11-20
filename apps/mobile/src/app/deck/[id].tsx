@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Alert, Animated, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Deck } from '@/api/client';
@@ -9,6 +9,7 @@ import { ButtonPrimary } from '@/components/button';
 import { Icon } from '@/components/icon';
 import { LevelChain } from '@/components/level-chain';
 import { LoadError, Loading } from '@/components/load-state';
+import { confirmAction } from '@/platform/dialog';
 import { useLoad } from '@/components/use-load';
 import { setRound } from '@/review/round-store';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
@@ -106,10 +107,7 @@ export default function DeckScreen() {
   function askRemoveDeck() {
     if (removing) return;
     setOpenId(null);
-    Alert.alert('Remove this deck?', cards.length ? `Its ${plural(cards.length)} ${cards.length === 1 ? 'leaves' : 'leave'} Review. This cannot be undone.` : 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => void removeDeck() },
-    ]);
+    confirmAction('Remove this deck?', cards.length ? `Its ${plural(cards.length)} ${cards.length === 1 ? 'leaves' : 'leave'} Review. This cannot be undone.` : 'This cannot be undone.', 'Remove', () => void removeDeck());
   }
 
   return (

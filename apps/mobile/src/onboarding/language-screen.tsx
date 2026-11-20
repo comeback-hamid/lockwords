@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Alert, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { tell } from '@/platform/dialog';
 
 import type { LanguageCheck } from '@/api/client';
 import { api } from '@/auth/boot';
@@ -66,7 +68,7 @@ export function LanguageScreen({ title, back, initial, blocked, onContinue }: Pr
     }
     setChecking(false);
     if (!answer) return finish({ code: null, name: typed });
-    if (answer.result === 'unknown' || !answer.language) return Alert.alert('Language not recognised', NOT_RECOGNISED, [{ text: 'OK' }]);
+    if (answer.result === 'unknown' || !answer.language) return tell('Language not recognised', NOT_RECOGNISED);
     if (answer.result === 'suggestion') {
       // The box sits under the text field: close the keyboard so it can be seen.
       Keyboard.dismiss();

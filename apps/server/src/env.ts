@@ -10,6 +10,11 @@ const schema = z.object({
   // Optional: without it the server makes the fixture deck (see src/llm/fixture.ts).
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   SUPABASE_JWT_ISSUER: z.string().url().default('http://127.0.0.1:54321/auth/v1'),
+  // The web app's addresses that may call this API from a browser, comma separated ("https://app.example.com"). Localhost is always allowed.
+  WEB_ORIGINS: z
+    .string()
+    .default('')
+    .transform((list) => list.split(',').map((o) => o.trim()).filter(Boolean)),
 });
 
 export type Env = z.infer<typeof schema>;

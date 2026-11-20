@@ -123,3 +123,23 @@ Hamid answered 10 questions with "Yes, all suggested". The rule "decide on your 
 Videos (on this Mac, not in git): `progress-decks.mp4`, `progress-home.mp4`, `word-plan.mp4` in `~/apps/lockwords-finish-review/e2e/videos/`.
 
 The last full simulator run found one real problem: the longer Progress page pushed the dev-only user id line off the screen, so `guest-login` failed. The line is now at the top of the Progress tab. After that all 25 flows passed (10 in one run, 15 in a second run after the test tool lost its connection to the simulator).
+
+## The web app (Hamid: "Web app", then "make the decision on your own")
+One change, `web-build`. The whole app now runs in a browser against the same server.
+
+| # | Decision | Why |
+|---|---|---|
+| W1 | One page app, no server rendering. | Every screen needs the signed-in learner. It also ends the old tab warning on the web. |
+| W2 | The session and the small flags are kept in the browser's storage (`localStorage`). | The phone's secure storage has no browser version; this is the normal way for Supabase on the web. |
+| W3 | The tab bar is a plain bar at the bottom on the web. | The phone's system tab bar showed at the top in a browser and covered Kai. |
+| W4 | Kai is a still picture per state on the web. | The live drawing (Skia) needs a 3 MB extra download in a browser and a different start. It can come later. |
+| W5 | "Remove this deck?" and the language pop-up use the browser's own dialogs. | React Native's pop-up does nothing in a browser. |
+| W6 | On a wide window the app is a phone-wide column (430 px) in the middle. | No desktop design exists. |
+| W7 | The server allows browser calls from the addresses in `WEB_ORIGINS` and from any localhost port. | A browser refuses calls to another address without this. The API uses a token, not cookies, so localhost is safe to allow. |
+| W8 | **The web app is not public.** I did not put it on an address. | The cloud server uses the real AI key and there are no free limits, so a public page is an open cost. The paywall also sells nothing. This is Hamid's decision. The two steps are in `docs/architecture.md` ("Web app"). |
+| W9 | CI now builds the web app on every pull request. | A phone-only import would break the browser without anyone seeing it. |
+| W10 | Web payments are not started. | Open decision 10 (the provider). |
+
+Checked by hand in the built-in browser against the local stack: onboarding to the first deck, a round with Hard and Undo, Use it with a question to Kai, the intro screens, closing the paywall, the done screen, the Progress tab, Your decks and a deck page.
+
+Not checked: Safari, Firefox, a phone's browser, and the speaker button in a browser.

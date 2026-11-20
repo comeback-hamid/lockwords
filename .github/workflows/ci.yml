@@ -41,6 +41,10 @@ jobs:
         run: npm run test:integration
       - name: Vocabulary engine check (docs/vocab-engine.md 1.11, about 1 minute)
         run: npm run test:engine -w @lockwords/server
+      # A phone-only import breaks the browser build; this catches it. Output is thrown away.
+      - name: Web build (the app as a browser page)
+        run: npx expo export -p web --output-dir /tmp/lockwords-web
+        working-directory: apps/mobile
       - name: OpenSpec validate
         run: npx -y @fission-ai/openspec@1.14.2 validate --all --strict --no-interactive
 
