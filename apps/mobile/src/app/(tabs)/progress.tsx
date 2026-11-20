@@ -46,6 +46,12 @@ export default function ProgressScreen() {
   const { progress, failed } = state;
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={[styles.root, { paddingTop: insets.top + space[48] }]}>
+      {__DEV__ && me ? (
+        // Dev builds only: lets the Maestro flows check that the guest user survives a restart. At the top, so it is on screen without scrolling.
+        <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
+          {me.id}
+        </Text>
+      ) : null}
       {failed ? (
         <LoadError
           message="Could not load your progress."
@@ -116,12 +122,6 @@ export default function ProgressScreen() {
           ) : null}
         </>
       )}
-      {__DEV__ && me ? (
-        // Dev builds only: lets the Maestro flows check that the guest user survives a restart.
-        <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
-          {me.id}
-        </Text>
-      ) : null}
     </ScrollView>
   );
 }

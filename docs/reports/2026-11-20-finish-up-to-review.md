@@ -121,3 +121,5 @@ Hamid answered 10 questions with "Yes, all suggested". The rule "decide on your 
 | #42 | `word-plan` | Kai's word plan and the tap into the New words chat |
 
 Videos (on this Mac, not in git): `progress-decks.mp4`, `progress-home.mp4`, `word-plan.mp4` in `~/apps/lockwords-finish-review/e2e/videos/`.
+
+The last full simulator run found one real problem: the longer Progress page pushed the dev-only user id line off the screen, so `guest-login` failed. The line is now at the top of the Progress tab. After that all 25 flows passed (10 in one run, 15 in a second run after the test tool lost its connection to the simulator).
