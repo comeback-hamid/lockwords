@@ -14,6 +14,8 @@ export type ProfileChat = components['schemas']['ProfileChat'];
 export type ReviewCard = components['schemas']['ReviewCard'];
 export type SwipeResult = components['schemas']['SwipeResult'];
 export type ReviewSummary = components['schemas']['ReviewSummary'];
+export type Progress = components['schemas']['Progress'];
+export type DeckSummary = components['schemas']['DeckSummary'];
 export type UseItResult = components['schemas']['UseItResult'];
 export type KaiReply = components['schemas']['KaiReply'];
 export type KaiStep = components['schemas']['KaiReplyRequest']['step'];
@@ -121,8 +123,19 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
       const { response } = await client.DELETE('/v1/decks/{id}', { params: { path: { id } } });
       if (!response.ok) throw new Error('request failed');
     },
-    async fetchRound(): Promise<ReviewCard[]> {
-      return unwrap(await client.GET('/v1/review')).cards;
+    // Today's round. With a deck id: only that deck's cards ("Review this deck"), same rules.
+    async fetchRound(deckId?: string): Promise<ReviewCard[]> {
+      return unwrap(await client.GET('/v1/review', deckId ? { params: { query: { deckId } } } : {})).cards;
+    },
+    async fetchProgress(): Promise<Progress> {
+      return unwrap(await client.GET('/v1/progress'));
+    },
+    async fetchDecks(): Promise<DeckSummary[]> {
+      return unwrap(await client.GET('/v1/decks')).decks;
+    },
+    // Brings back a word marked "I know it".
+    async restoreCard(id: string): Promise<void> {
+      unwrap(await client.POST('/v1/cards/{id}/restore', { params: { path: { id } } }));
     },
     async fetchSummary(): Promise<ReviewSummary> {
       return unwrap(await client.GET('/v1/review/summary'));

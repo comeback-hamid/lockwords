@@ -465,7 +465,35 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The learner's decks, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeckList"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
         put?: never;
         post: {
             parameters: {
@@ -753,7 +781,9 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    deckId?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -1088,6 +1118,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cards/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The word is back in the word list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Restored"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description No such card */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotFound"];
+                    };
+                };
+                /** @description The card is not marked "I know it" */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotKnown"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cards/{id}/ask": {
         parameters: {
             query?: never;
@@ -1162,6 +1256,50 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The numbers of the Progress tab */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Progress"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1685,6 +1823,8 @@ export interface components {
             id: string;
             position: number;
             stage: number;
+            hard?: boolean;
+            known?: boolean;
         };
         NotFound: {
             /** @enum {string} */
@@ -1758,12 +1898,46 @@ export interface components {
             movedUp: boolean;
             stage: number;
         };
+        Restored: {
+            id: string;
+            stage: number;
+            /** @enum {boolean} */
+            known: false;
+        };
+        NotKnown: {
+            /** @enum {string} */
+            error: "not_known";
+        };
         WordAnswer: {
             lines: string[];
         };
         AskFailed: {
             /** @enum {string} */
             error: "ask_failed";
+        };
+        Progress: {
+            total: number;
+            new: number;
+            learning: number;
+            mastered: number;
+            decks: number;
+            goal: number;
+            masterBy: string;
+            grid: number[];
+        };
+        DeckList: {
+            decks: components["schemas"]["DeckSummary"][];
+        };
+        DeckSummary: {
+            id: string;
+            topic: string;
+            title: string;
+            /** @enum {string} */
+            kind: "topic" | "random";
+            words: number;
+            learning: number;
+            hard: number;
+            stages: number[];
         };
         KaiScript: {
             native: {

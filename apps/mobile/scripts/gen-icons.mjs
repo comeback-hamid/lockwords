@@ -6,7 +6,7 @@ const octicons = createRequire(import.meta.url)('@primer/octicons');
 
 // our name → Octicon name. Octicons has no plane or food icon, so the nearest glyph is used. The mic is our own (OWN below).
 const ICONS = {
-  back: 'chevron-left', pencil: 'pencil', check: 'check', send: 'arrow-up', generate: 'zap', close: 'x', speaker: 'unmute', plus: 'plus',
+  back: 'chevron-left', next: 'chevron-right', pencil: 'pencil', check: 'check', send: 'arrow-up', generate: 'zap', close: 'x', speaker: 'unmute', plus: 'plus',
   travel: 'paper-airplane', work: 'briefcase', globe: 'globe', people: 'people', bulb: 'light-bulb', school: 'mortar-board',
   food: 'flame', business: 'graph', tech: 'cpu', science: 'telescope', music: 'play', movies: 'video', books: 'book',
   sports: 'trophy', health: 'heart', nature: 'sun', animals: 'squirrel', art: 'paintbrush',

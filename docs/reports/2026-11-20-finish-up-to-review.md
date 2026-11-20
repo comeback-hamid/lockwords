@@ -100,3 +100,7 @@ Hamid answered 10 questions with "Yes, all suggested". The rule "decide on your 
 | E1 | The pace is never under 5 and never over 20 new words a day. A word needs 24 days from its first Easy to Stage 5 (3 + 7 + 14). | With no history the date would be "never"; 20 is the daily limit. | `progress-server` |
 | E2 | The goal is the next hundred strictly above the words to learn (100 words → goal 200). | The goal must always be ahead. | `progress-server` |
 | E3 | A restored word that was reviewed before is due today; a restored new word waits as a new word. | It should come back at once. | `progress-server` |
+| E4 | The deck page keeps its "<level> · N WORDS" line and its Close (×) button; the new counts are a second line ("9 LEARNING · 1 HARD"). Figma P3 has one line and a back arrow. | The page is shared with the New words chat, and its old tests and flows stay valid. | `progress-decks` |
+| E5 | Every deck has the same icon. Figma shows one icon per topic. | An icon per topic needs a rule or the AI. | `progress-decks` |
+| E6 | Known words are listed only under the "Known" chip, and are not in the deck's counts. | Hamid's answer P2 (not among the words to learn). | `progress-decks` |
+| E7 | The round opened from a deck is full screen with a Close button (the first round ever still has none). | The deck page is not inside a tab. | `progress-decks` |

@@ -45,6 +45,16 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
   const [half] = useState(() => (cards.length >= 2 ? Math.ceil(cards.length / 2) : -1));
   const [streak, setStreak] = useState<number | null>(null);
   const streakAsked = useRef(false);
+  // The full-screen round has a Close button, except in the very first round (the onboarding practice, Figma O12).
+  const [canClose, setCanClose] = useState(false);
+  useEffect(() => {
+    if (inTab) return;
+    let live = true;
+    void isIntroDone().then((seen) => live && setCanClose(seen));
+    return () => {
+      live = false;
+    };
+  }, [inTab]);
   const [drag] = useState(() => new Animated.ValueXY());
 
   // Past the last card (by a swipe here or by "Next card" in Use it): leave the round.
@@ -128,6 +138,11 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
       {/* iOS swipe-back would steal the Easy swipe (right). */}
       {inTab ? null : <Stack.Screen options={{ gestureEnabled: false }} />}
       <View style={styles.top}>
+        {canClose ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={() => router.back()} style={styles.close}>
+            <Icon name="close" color={colors.muted} />
+          </Pressable>
+        ) : null}
         <View style={styles.progress}>
           <View style={[styles.fill, { width: `${(index / cards.length) * 100}%` }]} />
         </View>
@@ -243,7 +258,8 @@ function Action({ label, icon, color, onPress, iconLast = false }: { label: stri
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.canvas, paddingHorizontal: layout.sideMargin },
-  top: { height: space[32], flexDirection: 'row', alignItems: 'center' },
+  top: { height: space[32], flexDirection: 'row', alignItems: 'center', gap: space[8] },
+  close: { width: space[32], height: space[32], alignItems: 'center', justifyContent: 'center', marginLeft: -space[8] },
   leftRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   streak: { alignItems: 'center', justifyContent: 'center', gap: space[8] },
   streakLine: { textAlign: 'center', maxWidth: 240 },
