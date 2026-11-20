@@ -23,7 +23,7 @@ const idParam = z.object({ id: z.string() });
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 export const ReviewCardSchema = z
-  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean() })
+  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean(), meaning: z.string().optional() })
   .openapi('ReviewCard');
 const SwipeResultSchema = z
   .object({ id: z.string(), stage: z.number().int(), known: z.boolean(), hard: z.boolean(), backInDays: z.number().int().nullable(), again: z.boolean() })

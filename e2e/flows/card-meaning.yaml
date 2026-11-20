@@ -1,0 +1,24 @@
+# An advanced learner (top deck band) sees the meaning in Spanish on the card back, not the translation (Figma O12c).
+# Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: card-meaning-by-level
+- runFlow: ../subflows/advanced-to-goal.yaml
+- runFlow: ../subflows/goal-to-first-deck.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "la cuenta"
+- tapOn:
+    id: "review-card"
+- assertVisible: "El papel que dice cuánto debes pagar."
+- assertNotVisible: "the bill"
+# The example keeps its translation
+- assertVisible: "Can you bring us the bill, please?"
+- stopRecording

@@ -18,12 +18,15 @@ export type DeckInput = {
   wordCount?: number; // how many cards to make: the deck's own size (10 to 30). None = 10, the first deck.
 };
 
+const MEANING_MAX = 140;
 export const ProposalSchema = z.object({ title: z.string().min(1).max(120), reason: z.string().min(1).max(60) });
 export const CardSchema = z.object({
   word: z.string().min(1).max(60),
   translation: z.string().min(1).max(120),
   example: z.string().min(1).max(240),
   exampleTranslation: z.string().min(1).max(240),
+  // A short definition in the language being learned. Only for the top band (B2–C1); the card back shows it in place of the translation.
+  meaning: z.string().min(1).max(MEANING_MAX).optional(),
 });
 export const DECK_SIZE = 10; // the first deck (onboarding). A deck from the New words chat has its own size.
 export const CardsSchema = z.object({ cards: z.array(CardSchema).length(DECK_SIZE) });
@@ -38,6 +41,14 @@ export type DeckMaker = {
 
 // vocab-engine 2.3 "Checks after the answer": drop items with no word, translation or example; drop duplicates
 // (ignoring case); remove the *asterisks* around the word. Fewer than the deck's size left = a failed try. More = the first ones.
+// A meaning is kept only when it is there, short enough, and does not just repeat the word. Otherwise the card shows its translation.
+function goodMeaning(raw: string | null | undefined, word: string): string | null {
+  const meaning = raw?.replace(/\*/g, '').trim();
+  if (!meaning || meaning.length > MEANING_MAX) return null;
+  const bare = word.toLocaleLowerCase().split(/\s+/).at(-1) ?? ''; // "la propina" → "propina"
+  return bare.length >= 3 && meaning.toLocaleLowerCase().includes(bare) ? null : meaning;
+}
+
 export function checkCards(raw: RawCard[], size = DECK_SIZE): NewCard[] {
   const seen = new Set<string>();
   const out: NewCard[] = [];
@@ -47,7 +58,8 @@ export function checkCards(raw: RawCard[], size = DECK_SIZE): NewCard[] {
     const key = word.toLocaleLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ word, translation, example, exampleTranslation: (r.exampleTranslation ?? '').replace(/\*/g, '').trim() || translation });
+    const meaning = goodMeaning(r.meaning, word);
+    out.push({ word, translation, example, exampleTranslation: (r.exampleTranslation ?? '').replace(/\*/g, '').trim() || translation, ...(meaning ? { meaning } : {}) });
   }
   if (out.length < size) throw new Error(`only ${out.length} good cards`);
   return z.array(CardSchema).length(size).parse(out.slice(0, size));
@@ -67,6 +79,10 @@ export function languageName(code: string): string {
     return code;
   }
 }
+
+// Higher levels get the meaning in the language they learn (docs/product.md 2, Figma O12c): the top deck band, B2–C1.
+const MEANING_BAND = 4;
+export const wantsMeaning = (i: Pick<DeckInput, 'level' | 'knownWords'>) => bandForProfile(i.level, i.knownWords) >= MEANING_BAND;
 
 // The user prompt from vocab-engine 2.3, with only the fields our cards store today.
 export function deckPrompt(i: DeckInput): string {
@@ -90,6 +106,6 @@ For each item:
 - word: in ${language}, standard spelling, usual script. Nouns with the article learners normally see where the language has one (e.g. Spanish "la propina", German "das Trinkgeld", French "le pourboire"); verbs in dictionary form.
 - translation: the word in ${native}, 1 to 4 words.
 - example: one short sentence in ${language} (at most 12 words) at the learner's level, personal to their goal and interests, about the learner ("I", "my"). Wrap the form of the word used in the sentence in single asterisks, like *propina*.
-- example_translation: that sentence in ${native}, without asterisks.
+- example_translation: that sentence in ${native}, without asterisks.${wantsMeaning(i) ? `\n- meaning: a short definition of the word in ${language} (not a translation), in simple words, at most 14 words, without using the word itself.` : ''}
 Before you answer, check every item: Is the word real and correctly spelled? Does the example use exactly this word or phrase (not a synonym)? Is the translation right? Does it fit this learner's level and the easy / at-level / stretch mix above (replace any item a learner at this level surely knows already)? Does it fit their goal and interests? Is the example natural and does it contain the word? Fix anything wrong.`;
 }

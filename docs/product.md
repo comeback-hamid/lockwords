@@ -117,7 +117,7 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **Deck size:** the first deck in onboarding has 10 words. A deck made here has **10 to 30 words**; Kai decides the number for each deck (Hamid, 2026-11-17).
 
 **Review (Figma page "Review"):** one stack of all words due today, in one round.
-- Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**.
+- Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**. Learners in the top level band (B2 and above) get the **meaning in the language they learn**; everyone else gets the translation (decided 2026-11-20).
 - Swipes: → Easy (up one stage) · ← Hard (back to stage 1 + goes to the lock screen) · ↑ I know it (never shown again, can be restored).
 - **Use it** is a short Kai chat: write a sentence with the word → thumbs-up, then short kind feedback. **No score.** Pronunciation is never scored.
 - **Undo:** right after a swipe, "Undo" takes that one swipe back (decided 2026-11-20). Bringing back older "I know it" words comes with the Progress tab.

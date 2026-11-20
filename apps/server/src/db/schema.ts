@@ -54,6 +54,7 @@ export const cards = pgTable('cards', {
   translation: text('translation').notNull(),
   example: text('example').notNull(),
   exampleTranslation: text('example_translation').notNull(),
+  meaning: text('meaning'), // a short definition in the learned language (top band only); null = the card back shows the translation
   stage: integer('stage').notNull().default(0), // 0 = new, 1–5 (the server owns SRS)
   dueAt: timestamp('due_at', { withTimezone: true }), // null = new or known
   known: boolean('known').notNull().default(false), // swiped up: never shown again
