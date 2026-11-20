@@ -48,3 +48,28 @@ Hamid answered 14 questions with "Yes, all suggested", then said: do not ask any
 | D22 | The question screens O1–O9 stay in English. | The whole app's screen text is English today; translating the app is its own piece of work. | `onboarding-kai-language` |
 | D23 | I ran the three new AI calls once each against the real AI with the key in `~/apps/lockwords-new-words/apps/server/.env` (four calls, a few cents). All worked. | They had only run with the stand-in. | all |
 | D24 | The meaning check first dropped good meanings of multi-word phrases; it now compares the whole phrase. | Found in the real AI try. | `card-meaning-by-level`, fixed in `onboarding-kai-language` |
+| D25 | The old flow `new-words-decks.yaml` got two waits before it taps the message box. | It failed about 1 run in 3 on that step (the chat was not back yet); with the waits it passed twice in a row. | `onboarding-kai-language` |
+
+## What was built (5 PRs)
+| PR | Change | What |
+|---|---|---|
+| #34 | `review-srs-rules` | Review day from 04:00, 20 new words a day, Easy on a new word = Stage 2, Hard repeats once, lock screen until Stage 3, swipe checks, the history table |
+| #35 | `review-round-screens` | Undo, streak card, "All cards done" with numbers, "Hi <name>!", tab bar in the round, mic icon |
+| #36 | `use-it-rules` | Use it from Stage 3 (every word in the first round), once per word per day, questions to Kai |
+| #37 | `card-meaning-by-level` | Meaning in the learned language on the card back for the top level band |
+| #38 | `onboarding-kai-language` | Kai's onboarding lines and tap answers in the learner's language |
+
+## Figma check
+- **Review (A2–A9) and Use it (A6–A6c):** every frame is built. Not built, by Hamid's decision: pictures on cards (none for now). Sounds: none in v1.
+- **Onboarding O12–O14:** built (O12c with the meaning). O14 shows a drawn phone; the real widget is epic 6.
+- **Onboarding O1–O10:** compared with the app's video at overview size on 2026-11-20. No new gap found. Known and decided: "I have an account" on O1 and the "Save progress" frame wait for real sign-in; no deck picture on the deck card.
+- **O15–O16:** the screens exist; selling is epic 7. The Figma rating row and testimonials are placeholders and are not shown.
+
+## Not checked by anyone
+- A real phone (everything ran on the iOS simulator).
+- A real day change at 04:00 and a real streak over days (the database tests set the clock).
+- The streak card on the simulator (screen test only).
+- A native speaker reading Kai's translated lines.
+
+## Videos (on this Mac, not in git)
+`~/apps/lockwords-finish-review/e2e/videos/`: `review-srs-rules.mp4`, `review-round-screens.mp4`, `use-it-rules.mp4`, `card-meaning-by-level.mp4`, `onboarding-kai-language.mp4`.
