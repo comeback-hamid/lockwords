@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '@/platform/key-store';
 import { useSyncExternalStore } from 'react';
 
 const KEY = 'lockwords.onboarded'; // listed in SECURE_KEYS, so a fresh install clears it

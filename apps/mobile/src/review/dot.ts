@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '@/platform/key-store';
 import { useEffect, useSyncExternalStore } from 'react';
 
 // The red dot on the Review tab: new words are waiting (a deck was just made in the New words chat).

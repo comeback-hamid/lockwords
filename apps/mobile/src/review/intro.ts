@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '@/platform/key-store';
 
 // The one-time screens after the very first round (hard words, trial reminder, paywall).
 const KEY = 'lockwords.introDone'; // listed in SECURE_KEYS, so a fresh install clears it

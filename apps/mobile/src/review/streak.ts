@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '@/platform/key-store';
 
 import { api } from '@/auth/boot';
 

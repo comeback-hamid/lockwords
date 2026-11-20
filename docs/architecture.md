@@ -19,6 +19,14 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 - **Cost:** about $20 a month (server $5, database about $15).
 - **The app and the cloud:** the app talks to the cloud by default (`apps/mobile/src/config/backend.ts` holds the server address, the Supabase address and the publishable key, which is public). The local stack is used only when `apps/mobile/.env.local` sets the three `EXPO_PUBLIC_*` values, as `npm run dev:up` does; Maestro and day-to-day development run that way. `npm run start:cloud` in `apps/mobile` runs the dev build against the cloud.
 
+## Web app
+- **What:** the same Expo app built for a browser (`web-build`, 2026-11-20). One page app (`web.output: single` in `apps/mobile/app.json`), static files only.
+- **Run it locally:** `npm run dev:up`, then `npm run web` in `apps/mobile` (it reads `.env.local`, so it talks to the local stack).
+- **Build it:** `npx expo export -p web` in `apps/mobile` writes `dist/`. With no `EXPO_PUBLIC_*` values it talks to the cloud server. CI builds it on every pull request.
+- **Browser calls (CORS):** the server allows the addresses in `WEB_ORIGINS` (comma list, `.do/app.yaml`) and any localhost port. Headers: `Authorization`, `Content-Type`, `X-Time-Zone`.
+- **Differences from the phone:** session and small flags in `localStorage` (`src/platform/key-store.ts`); browser dialogs (`src/platform/dialog.ts`); a plain tab bar at the bottom (`(tabs)/_layout.web.tsx`); Kai as still poses (`kai-canvas.web.tsx`); no widgets; a 430 px column in a wide window.
+- **Not public yet (Hamid decides).** To put it online: (1) host `dist/` on any static host with every path sent to `index.html`; (2) add that address to `WEB_ORIGINS` in `.do/app.yaml` and deploy the server. Wait for free limits first: the cloud server uses the real AI key and a web page is open to anyone.
+
 ## Databases
 | Name | Used by |
 |---|---|

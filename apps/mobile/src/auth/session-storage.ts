@@ -1,5 +1,6 @@
 import { File, Paths } from 'expo-file-system';
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import * as SecureStore from '@/platform/key-store';
 
 // Every key we keep in the iOS Keychain / Android Keystore. Add new ones here so a fresh install clears them.
 export const SECURE_KEYS = ['lockwords.session', 'lockwords.onboarded', 'lockwords.introDone', 'lockwords.learning', 'lockwords.reviewDot', 'lockwords.streakShown'] as const;
@@ -37,6 +38,7 @@ export const sessionStorage = {
 
 // The iOS Keychain survives deleting the app. The marker file does not. No marker = fresh install = clear old secrets.
 export async function clearOnFreshInstall() {
+  if (Platform.OS === 'web') return; // a browser has no Keychain that outlives the app: nothing to clear
   const marker = new File(Paths.document, 'installed');
   if (marker.exists) return;
   for (const key of SECURE_KEYS) await removeItem(key);

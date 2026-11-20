@@ -10,9 +10,17 @@ npm start                    # dev server for an existing dev build
 npm test                     # Jest + React Native Testing Library
 npm run typecheck            # tsc --noEmit
 npm run lint                 # expo lint
+npm run web                  # the app in a browser (see "Web" below)
 npx expo-doctor              # dependency and config check
 ```
 Maestro flows run from the repo root: `npm run e2e -- --areas review`.
+
+## Web
+The same app runs in a browser (`web-build`). Rules for code that must work there:
+- Storage: import `@/platform/key-store`, never `expo-secure-store` (it has no browser version).
+- Pop-ups: `confirmAction` / `tell` from `@/platform/dialog`, never `Alert.alert` (it does nothing on the web).
+- A file `name.web.tsx` replaces `name.tsx` in the browser: `(tabs)/_layout.web.tsx` (plain bottom tab bar), `kai/kai-canvas.web.tsx` (still Kai, no Skia).
+- CI builds the web app (`npx expo export -p web`), so a phone-only import fails the pull request.
 
 ## Layers
 - `src/app/`: screens only (Expo Router). `(tabs)/`: New words · Review · Progress (v1, decided 2026-11-16). Progress = the My words page as a tab. Speak comes after v1.

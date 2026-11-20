@@ -14,8 +14,9 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 - **Done 2026-11-17:** the word test and estimate follow `docs/vocab-engine.md` (#16); live Kai in every chat header and on O2 (#18); Kai types with dots in every chat, talking back to Kai, Kai's state follows the chat (#20); the first deck matches the learner's level (#19).
 - **Done 2026-11-20 (session "finish up to review tab", PRs #34–#38):** the Review rules on the server, Undo, streak, the done screen, Use it rules and questions to Kai, meanings for high levels, Kai's onboarding lines in the learner's language. Report with every decision: `docs/reports/2026-11-20-finish-up-to-review.md`.
 - **Done 2026-11-20 (PRs #39–#42): the Progress tab** (numbers, Your decks, deck words with filters and Restore, Review this deck, the goal grid, the meadow, the word plan). All three tabs are built.
-- **Next without accounts: the widgets (epic 6)** on the simulator, or the web build (epic 8). The paywall and sign-in wait for the accounts.
-- **Launch date at risk:** the target is 2026-11-23, and four epics are not started (3 Progress, 6 Widgets, 8 Web app, 9 Launch prep). See open decision 14.
+- **Done 2026-11-20: the web build** (`web-build`): the whole app runs in a browser against the same server. It is **not public yet**: Hamid decides when (see "Web app" in `docs/architecture.md`).
+- **Next without accounts: the widgets (epic 6)** on the simulator. The paywall and sign-in wait for the accounts.
+- **Launch date at risk:** the target is 2026-11-23, and two epics are not started (6 Widgets, 9 Launch prep), the paywall sells nothing and the web app is not public. See open decision 14.
 
 ## Phase 0: Setup (days 1–4)
 
@@ -37,7 +38,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | 5 | Use it | `first-review`: Use it chat (A6–A6c), stage +1 on a good sentence; real AI check in the cloud (2026-11-17) · `use-it-rules` (2026-11-20): offered from Stage 3 (every word in the first round), a good sentence counts once per word per day, follow-up questions to Kai (`POST /v1/cards/{id}/ask`), a weak sentence keeps its options | Voice input (the mic in the text box does nothing; comes with Speak, after v1) · weekly free limit (Hamid: no limits for now) · not checked by a person on a real phone | Review | ✅ 2026-11-20 |
 | 6 | Widgets (full) | Spike passed (0.4) | `lock-widgets` (inline, rectangular, circular; hard words first) · `home-widgets` (medium, small; see + open only in v1) | Widgets | ⬜ |
 | 7 | Paywall + trial | `first-review`: the screens (hard words, trial reminder, paywall). **It sells nothing.** | `paywall` (soft: closing = free plan; RevenueCat) · `free-limits` (server) · `sign-in-after-purchase` (the login page comes right after the user subscribes; the Figma login page must be fixed first: it has no top bar and no badge) · needs RevenueCat + Apple accounts | Onboarding | 🟨 |
-| 8 | Web app | — | `web-build` (Expo web: same tabs, no widgets) · web payments (provider is open) | all | ⬜ |
+| 8 | Web app | `web-build` (2026-11-20): the app runs in a browser as one page app (onboarding, the three tabs, rounds, Use it, decks, Progress); guest session kept in the browser; bottom tab bar; Kai as still poses; browser dialogs; the server allows the web app's address (`WEB_ORIGINS`); CI builds the web app | A public address (Hamid decides; wait for free limits) · web payments (provider is open, decision 10) · live Kai on the web · a desktop layout · not checked in Safari, Firefox or a phone browser | all | 🟨 |
 | 9 | Launch prep | — | analytics events (PostHog) · account delete · one performance check · real testimonials · App Store submission | — | ⬜ |
 
 ## Next up (in order)
@@ -45,7 +46,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 |---|---|---|---|
 | 3 | Widgets: lock screen first, then home screen | 6 | Yes on the simulator. A real phone needs the Apple account. |
 | 4 | Paywall that sells, then free limits | 7 | No. Needs the RevenueCat and Apple accounts. |
-| 5 | Web app | 8 | Yes for the build. Payments wait for decision 10. |
+| 5 | Web app: public address, then payments | 8 | The build is done. The address waits for Hamid and free limits; payments wait for decision 10. |
 | 6 | Launch prep | 9 | Partly. Needs PostHog, Apple and real testimonials. |
 
 ## Merged so far

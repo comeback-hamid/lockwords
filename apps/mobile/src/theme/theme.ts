@@ -1,5 +1,7 @@
 // Design tokens. Source: Figma variables (file HSABWihDUDlsVz85aixHiT, page Foundations), read 2026-11-16.
 // Rule: screens use these values only. No raw colors or sizes in components.
+import { Platform } from 'react-native';
+
 
 export const colors = {
   canvas: '#f6f8fa',
@@ -43,7 +45,8 @@ export const layout = {
   minTapTarget: 44,
   kaiHeaderHeight: 176,
   // The iOS tab bar floats over the screen. A tab screen with a control at the bottom keeps this much room under it.
-  tabBarClearance: 92,
+  // In a browser the tab bar is a normal bar under the screen, so nothing has to be kept free.
+  tabBarClearance: Platform.OS === 'web' ? 0 : 92,
 } as const;
 
 // Figma "lift": only on cards and sheets. Everything else uses a 1px line.
