@@ -3,16 +3,17 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-20 (Hamid decided: no free limits and no deck pictures for now, see `docs/tech-debt.md`; before it PR #29 New words polish: Kai's states, right-to-left text and older messages in the New words chat; before it PR #28 Remove words and decks).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-20 (full check of this file against the code and the merged PRs, after PR #32).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
 - **Works on the simulator today:** a fresh install → onboarding → Kai chat → first deck → first review round → Use it → hard words → trial reminder → paywall → the three tabs → New words: a chat with Kai on the real AI (2026-11-17); ask Kai how to say something, get a word card, add it to "Random Words 1" and find it in Review (2026-11-19); Kai offers 3 deck ideas or takes the learner's own idea, Generate makes a deck of 10 to 30 words, the Review tab gets a red dot (2026-11-19); on the deck page, swipe a word left to delete it, or remove the whole deck (2026-11-19). The app talks to the cloud by default since 2026-11-19; development and Maestro use the local stack (`npm run dev:up`).
 - **Live in the cloud (2026-11-17):** the server at `https://lockwords-rhaic.ondigitalocean.app` with its Postgres (DigitalOcean, Frankfurt) and guest login on Supabase cloud (Frankfurt). The Anthropic key is set there, so cloud decks and Use it call the real AI.
-- **Not real yet:** the paywall (sells nothing). The AI is real in the cloud; the local stack with no key uses a stand-in.
+- **Not real yet:** the paywall (sells nothing). The AI is real in the cloud for decks, Kai's chat, the language check and the Use it check; the local stack with no key uses stand-ins.
 - **Blocked on Hamid:** accounts and keys still missing: Expo, Apple, RevenueCat, Google, PostHog. (Anthropic, Supabase and DigitalOcean are done.)
 - **Done 2026-11-17:** the word test and estimate follow `docs/vocab-engine.md` (#16); live Kai in every chat header and on O2 (#18); Kai types with dots in every chat, talking back to Kai, Kai's state follows the chat (#20); the first deck matches the learner's level (#19).
-- **Next to build without accounts:** the Progress tab (epic 3). The New words tab (epic 4) is built: chat, single words, decks.
+- **Next page: the Progress tab (epic 3).** It is the only tab that is still empty. It starts with requirement questions to Hamid, then a spec for his approval (Checkpoint 1), then code.
+- **Launch date at risk:** the target is 2026-11-23, and four epics are not started (3 Progress, 6 Widgets, 8 Web app, 9 Launch prep). See open decision 14.
 
 ## Phase 0: Setup (days 1–4)
 
@@ -20,7 +21,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 |---|---|---|---|
 | 0.1 | Repo skeleton | AGENTS.md, CLAUDE.md files, OpenSpec, docs, theme tokens from Figma, 3 empty tabs, server `/health`, e2e runner, pre-push hook. All checks green. | ✅ 2026-11-16 |
 | 0.2 | Hooks, Ponytail, CI | Claude hooks + plugins in `.claude/settings.json`. GitHub Actions for both apps. Three databases (prod, `lockwords_dev`, `lockwords_test`). | ✅ 2026-11-16 (CI green on PR #1 and #2; the prod database is made in 0.3) |
-| 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | 🟨 local half ✅ 2026-11-16 (`local-backend-and-guest-login`). Cloud half ✅ 2026-11-17 for the server, Postgres, migrations, deploy workflow and guest login on Supabase cloud (`/health` and a guest `/v1/me` answer 200 on the public URL; see "Deploy" in `docs/architecture.md`). Still open: Apple, Google and email-code login (need the Apple and Google accounts), Spaces (not needed yet), and pointing the app at the cloud. |
+| 0.3 | `infra-and-login` | DigitalOcean App Platform server + managed Postgres (FRA1) + Spaces. Supabase Auth: guest first, Apple, Google, email code; server checks the token. Dev build on the simulator. | 🟨 local half ✅ 2026-11-16 (`local-backend-and-guest-login`). Cloud half ✅ 2026-11-17 for the server, Postgres, migrations, deploy workflow and guest login on Supabase cloud (`/health` and a guest `/v1/me` answer 200 on the public URL; see "Deploy" in `docs/architecture.md`). The app talks to the cloud by default since 2026-11-19 (#31). Still open: Apple, Google and email-code login (need the Apple and Google accounts), Spaces (not needed yet). |
 | 0.4 | `widget-spike` | One word from the server on the iPhone lock screen (SwiftUI WidgetKit via config plugin). **If this fails, everything else waits.** | ✅ tested 2026-11-16, not merged (draft PR #3, `expo-widgets`; notes in `docs/spikes/widget/` on that branch). Real widgets = epic 6. |
 
 ## Phase 1: Features in order
@@ -31,11 +32,21 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | 2 | Review | `first-review`: swipe rules on the server, today's round, card round with stamps, flip, speaker · round picked by the database, speaker language kept after a restart (2026-11-17) | `review-done-streak` (A7, A9) · undo for "I know it" (no design yet) · sounds · pictures | Review | 🟨 |
 | 3 | Progress tab | The tab exists with its Figma icon (empty screen, 2026-11-17) | `progress-home` (P1: total, meadow, goal grid, word plan) · `decks-and-words` (P2–P3; swipe delete and Remove deck are built on the deck page, 2026-11-19: the deck list is still open) | My words | ⬜ |
 | 4 | New words tab | `new-words-kai-chat` (2026-11-17): the tab is one ongoing chat with Kai. Kai is an agent with memory (profile, saved notes, the last 20 messages, word facts) on the real AI. Every Kai line has a translation, with an on/off button (on for A1/A2). Kai leads to Review. Figma N1–N8 updated. · `new-words-single-words` (2026-11-19): Kai answers "How do I say…?" and "What does … mean?" with a word card (word, speaker, meaning, example); "Add to Random Words 1" saves it as a normal new card in a deck of 30 made by the server (then "Random Words 2"); a word the learner already has is not added twice; the Review tab gets a red dot. · `new-words-decks` (2026-11-19): Kai offers 3 deck ideas as cards the learner swipes (on the first visit Kai asks first), or 1 card from the learner's own idea; each deck has its own size (10 to 30 words, Kai picks it) and a title in the learning language with a translation; Generate makes it, it is in the word list at once, Kai says so, the Review tab gets a red dot; then "Let's practice" or "Make another deck". · `remove-words-and-decks` (2026-11-19): on the deck page the learner swipes a word left and taps Delete, or taps Remove deck (a pop-up asks first); removed words leave Review, the hard words and what Kai knows; removing is a mark in the database, not a delete; a Random Words deck that lost a word has room again. · `new-words-polish` (2026-11-19): Kai's header follows the chat (listening, thinking, speaking, making, celebrate, oops, waiting after 20 quiet seconds, sleeping after 2 minutes); a tapped option moves up; Persian and Arabic text is right-aligned (each text by its own script: bubbles, translations, the composer, word and deck cards); scrolling to the top loads older messages, 50 at a time. | Free limits (Hamid, 2026-11-20: none for now, decided after the whole app is built, with epic 7) · deck pictures (Hamid, 2026-11-20: none for now) · the deck page N7 (it still shows the English topic as its heading) · the chat's line queue still uses its own typing rule, not `useKaiTyping` (its tests check that rule's times; see `new-words-polish`, tasks.md) · new Kai drawings for "asking", "I don't know" and "happy" (needs a design). | New words | ✅ 2026-11-19 (the three changes) |
-| 5 | Use it | `first-review`: Use it chat (A6–A6c), stage +1 on a good sentence | The real AI check (today a stand-in only checks that the word is in the sentence; needs the Anthropic key) | Review | 🟨 |
+| 5 | Use it | `first-review`: Use it chat (A6–A6c), stage +1 on a good sentence. In the cloud the check is the real AI (`claudeUseItJudge`, since the Anthropic key was set, 2026-11-17). | Not checked by a person on a real phone. With no key (local stack) a stand-in only checks that the word is in the sentence. | Review | 🟨 |
 | 6 | Widgets (full) | Spike passed (0.4) | `lock-widgets` (inline, rectangular, circular; hard words first) · `home-widgets` (medium, small; see + open only in v1) | Widgets | ⬜ |
 | 7 | Paywall + trial | `first-review`: the screens (hard words, trial reminder, paywall). **It sells nothing.** | `paywall` (soft: closing = free plan; RevenueCat) · `free-limits` (server) · `sign-in-after-purchase` (the login page comes right after the user subscribes; the Figma login page must be fixed first: it has no top bar and no badge) · needs RevenueCat + Apple accounts | Onboarding | 🟨 |
 | 8 | Web app | — | `web-build` (Expo web: same tabs, no widgets) · web payments (provider is open) | all | ⬜ |
 | 9 | Launch prep | — | analytics events (PostHog) · account delete · one performance check · real testimonials · App Store submission | — | ⬜ |
+
+## Next up (in order)
+| Order | What | Epic | Can start now? |
+|---|---|---|---|
+| 1 | **Progress tab**: home page (total, meadow, goal grid, word plan), then the deck list | 3 | Yes. Needs Hamid's answers to the requirement questions first. |
+| 2 | Review: streak and round-done screens (A7, A9) | 2 | Yes |
+| 3 | Widgets: lock screen first, then home screen | 6 | Yes on the simulator. A real phone needs the Apple account. |
+| 4 | Paywall that sells, then free limits | 7 | No. Needs the RevenueCat and Apple accounts. |
+| 5 | Web app | 8 | Yes for the build. Payments wait for decision 10. |
+| 6 | Launch prep | 9 | Partly. Needs PostHog, Apple and real testimonials. |
 
 ## Merged so far
 | PR | Date | What |
@@ -63,6 +74,9 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #27 | 2026-11-19 | New words decks: deck ideas on Kai's answer (3, or 1 for the learner's own idea), deck cards in the chat, a deck's own size (10 to 30) and title translation, the `deck_ready` event, the Review dot |
 | #28 | 2026-11-19 | Remove words and decks: swipe a word left and Delete on the deck page, Remove deck with a pop-up (`DELETE /v1/cards/{id}`, `DELETE /v1/decks/{id}`); removing is a `removed_at` mark; Review, hard words, Random Words and Kai skip removed rows |
 | #29 | 2026-11-19 | New words polish: Kai's states on the New words chat, a tapped option moves up, right-to-left text in every chat part, older messages (`GET /v1/kai/chat?before=`) |
+| #22, #24, #30 | 2026-11-17 to 19 | Parallel work rules (`docs/parallel-work.md`) · New words specs · onboarding flow waits for Kai before Generate |
+| #31 | 2026-11-19 | The app talks to the cloud by default; the Review dot is checked when the app opens |
+| #32 | 2026-11-20 | Hamid's decisions written down: no free limits and no deck pictures for now |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
@@ -81,4 +95,5 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 10. Web app payment provider.
 11. A standing rule for when an agent may change old tests after an approved spec change.
 12. Use it on every card (today) or only from Stage 3.
-13. Where card and deck pictures come from.
+13. ~~Where card and deck pictures come from~~ decided 2026-11-20: no pictures for now; pick it up after the whole app is built.
+14. Launch date: the target is 2026-11-23, with epics 3, 6, 8 and 9 not started on 2026-11-20. Keep the date and cut scope, or move the date.
