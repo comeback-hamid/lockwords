@@ -13,6 +13,7 @@ export type Deck = components['schemas']['Deck'];
 export type ProfileChat = components['schemas']['ProfileChat'];
 export type ReviewCard = components['schemas']['ReviewCard'];
 export type SwipeResult = components['schemas']['SwipeResult'];
+export type ReviewSummary = components['schemas']['ReviewSummary'];
 export type UseItResult = components['schemas']['UseItResult'];
 export type KaiReply = components['schemas']['KaiReply'];
 export type KaiStep = components['schemas']['KaiReplyRequest']['step'];
@@ -122,6 +123,13 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     },
     async fetchRound(): Promise<ReviewCard[]> {
       return unwrap(await client.GET('/v1/review')).cards;
+    },
+    async fetchSummary(): Promise<ReviewSummary> {
+      return unwrap(await client.GET('/v1/review/summary'));
+    },
+    // Takes back the last swipe of today. Throws when there is none.
+    async undoSwipe(): Promise<ReviewCard> {
+      return unwrap(await client.POST('/v1/review/undo')).card;
     },
     async swipeCard(id: string, direction: Direction): Promise<SwipeResult> {
       return unwrap(await client.POST('/v1/cards/{id}/swipe', { params: { path: { id } }, body: { direction } }));

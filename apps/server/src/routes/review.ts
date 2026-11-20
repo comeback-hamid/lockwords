@@ -6,6 +6,7 @@ import type { UseItJudge } from '../llm/use-it.js';
 import { UseItSchema } from '../llm/use-it.js';
 import { reviewDay } from '../review/day.js';
 import { applySwipe, canSwipe, showsAgain } from '../review/srs.js';
+import { streakDays, todayNumbers } from '../review/summary.js';
 import { UnauthorizedSchema } from './me.js';
 
 const json = <T extends z.ZodType>(schema: T, description: string) => ({ description, content: { 'application/json': { schema } } });
@@ -14,6 +15,7 @@ const BadRequest = error('bad_request', 'BadRequest');
 const NotFound = error('not_found', 'NotFound');
 const CheckFailed = error('check_failed', 'CheckFailed');
 const NotDue = error('not_due', 'NotDue');
+const NothingToUndo = error('nothing_to_undo', 'NothingToUndo');
 const unauthorized = { 401: json(UnauthorizedSchema, 'No valid login token') };
 const security = [{ bearer: [] }];
 const idParam = z.object({ id: z.string() });
@@ -47,6 +49,21 @@ const postSwipe = createRoute({
     ...unauthorized,
   },
 });
+const postUndo = createRoute({
+  method: 'post',
+  path: '/review/undo',
+  security,
+  responses: { 200: json(z.object({ card: ReviewCardSchema }).openapi('Undone'), 'The card as it was before the swipe'), 409: json(NothingToUndo, 'No swipe to take back'), ...unauthorized },
+});
+const SummarySchema = z
+  .object({
+    day: z.string(), // today's review day, so the app can remember "streak card shown today"
+    name: z.string().nullable(),
+    streakDays: z.number().int(),
+    today: z.object({ words: z.number().int(), minutes: z.number().int(), easy: z.number().int(), hard: z.number().int(), known: z.number().int(), stages: z.array(z.number().int()) }),
+  })
+  .openapi('ReviewSummary');
+const getSummary = createRoute({ method: 'get', path: '/review/summary', security, responses: { 200: json(SummarySchema, 'The streak and what was done today'), ...unauthorized } });
 const postUseIt = createRoute({
   method: 'post',
   path: '/cards/{id}/use-it',
@@ -99,8 +116,20 @@ export function reviewRoutes(deps: Deps) {
       const today = await store.today(userId, id, day);
       if (!canSwipe(card, today, end)) return c.json({ error: 'not_due' as const }, 409);
       const before = { stage: card.stage, known: card.known, hard: card.hard, dueAt: card.dueAt };
-      await store.saveSwipe(userId, id, { kind: direction, day, before, after: next });
+      await store.saveSwipe(userId, id, { kind: direction, day, at: now, before, after: next });
       return c.json({ id, stage: next.stage, known: next.known, hard: next.hard, backInDays, again: showsAgain(direction, today) }, 200);
+    })
+    .openapi(postUndo, async (c) => {
+      const store = need('cards');
+      const { day } = reviewDay(clock(), c.req.header('X-Time-Zone'));
+      const card = store.undoLast ? await store.undoLast(c.get('user').id, day) : null;
+      return card ? c.json({ card: ReviewCardSchema.parse(card) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
+    })
+    .openapi(getSummary, async (c) => {
+      const store = need('cards');
+      const { day } = reviewDay(clock(), c.req.header('X-Time-Zone'));
+      const h = store.history ? await store.history(c.get('user').id, day) : { name: null, days: [], events: [] };
+      return c.json({ day, name: h.name, streakDays: streakDays(h.days, day), today: todayNumbers(h.events) }, 200);
     })
     .openapi(postUseIt, async (c) => {
       const userId = c.get('user').id;

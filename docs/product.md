@@ -120,7 +120,11 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**.
 - Swipes: → Easy (up one stage) · ← Hard (back to stage 1 + goes to the lock screen) · ↑ I know it (never shown again, can be restored).
 - **Use it** is a short Kai chat: write a sentence with the word → thumbs-up, then short kind feedback. **No score.** Pronunciation is never scored.
-- Streak card and an "All done today" screen.
+- **Undo:** right after a swipe, "Undo" takes that one swipe back (decided 2026-11-20). Bringing back older "I know it" words comes with the Progress tab.
+- **Streak:** a day counts when at least one word was swiped. The streak card shows once a day, after half of the round, from a streak of 2 days.
+- **All cards done** screen with today's numbers: words, minutes, one level square per word, and Easy / Hard / Know it counts.
+- The tab bar stays visible during a round. Only the very first round (the onboarding practice) is full screen.
+- **No sounds in v1**, only the speaker button (decided 2026-11-20).
 - When today's cards are done, new words join by themselves (up to 20, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.

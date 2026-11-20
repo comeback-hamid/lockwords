@@ -47,8 +47,9 @@ describe('Review tab', () => {
     await act(async () => answer(two));
     await waitFor(() => expect(screen.getByRole('header', { name: '2 cards to review today' })).toBeOnTheScreen());
     await fireEvent.press(screen.getByRole('button', { name: 'Let’s start' }));
+    // Changed 2026-11-20 (review-round-screens): the round opens inside the tab, so the tab bar stays (Figma A3).
+    await waitFor(() => expect(screen.getByText('2 words left')).toBeOnTheScreen());
     expect(getRound().cards).toEqual(two);
-    expect(mockRouter.push).toHaveBeenCalledWith('/review/round');
   });
 
   test('one card is singular', async () => {
@@ -57,10 +58,11 @@ describe('Review tab', () => {
     await waitFor(() => expect(screen.getByRole('header', { name: '1 card to review today' })).toBeOnTheScreen());
   });
 
-  test('nothing to review → All done for today, no start button', async () => {
+  // Changed 2026-11-20 (review-round-screens): the done screen is Figma A9, "All cards done".
+  test('nothing to review → All cards done, no start button', async () => {
     mockApi.fetchRound.mockResolvedValue([]);
     await render(<ReviewScreen />);
-    await waitFor(() => expect(screen.getByRole('header', { name: 'All done for today' })).toBeOnTheScreen());
+    await waitFor(() => expect(screen.getByRole('header', { name: 'All cards done' })).toBeOnTheScreen());
     expect(screen.queryByRole('button', { name: 'Let’s start' })).toBeNull();
   });
 
@@ -168,11 +170,7 @@ describe('Card round', () => {
     expect(screen.queryByText('the bill')).toBeNull();
   });
 
-  test('close leaves the round', async () => {
-    await render(<RoundScreen />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
-    expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)/review');
-  });
+  // Removed 2026-11-20 (review-round-screens): the round has no Close button any more (Hamid: follow Figma, the tab bar is the way out).
 });
 
 describe('Use it', () => {

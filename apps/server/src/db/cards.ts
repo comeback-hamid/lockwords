@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 
 import type { CardsStore } from '../app.js';
+import type { TodayEvent } from '../review/summary.js';
 import { MAX_NEW_PER_DAY, pickRound, type CardState, type Direction } from '../review/srs.js';
 import type { createDb } from './client.js';
 import { cards, decks, profiles, reviewEvents, type ReviewEventState } from './schema.js';
@@ -65,9 +66,47 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
     async saveSwipe(userId, cardId, event) {
       // The card and its history row land together or not at all.
       await db.transaction(async (tx) => {
-        await tx.update(cards).set({ ...event.after, lastReviewedAt: new Date() }).where(eq(cards.id, cardId));
-        await tx.insert(reviewEvents).values({ userId, cardId, kind: event.kind, reviewDay: event.day, before: toState(event.before), after: toState(event.after) });
+        await tx.update(cards).set({ ...event.after, lastReviewedAt: event.at }).where(eq(cards.id, cardId));
+        await tx.insert(reviewEvents).values({ userId, cardId, kind: event.kind, reviewDay: event.day, before: toState(event.before), after: toState(event.after), createdAt: event.at });
       });
+    },
+    async undoLast(userId, day) {
+      return db.transaction(async (tx) => {
+        // The newest row of the day, undone or not: right after an undo there is nothing more to take back.
+        const [last] = await tx
+          .select()
+          .from(reviewEvents)
+          .where(and(eq(reviewEvents.userId, userId), eq(reviewEvents.reviewDay, day)))
+          .orderBy(desc(reviewEvents.createdAt))
+          .limit(1);
+        if (!last || last.undoneAt || last.kind === 'use_it') return null;
+        const b = last.before;
+        await tx.update(cards).set({ stage: b.stage, known: b.known, hard: b.hard, dueAt: b.dueAt ? new Date(b.dueAt) : null }).where(eq(cards.id, last.cardId));
+        await tx.update(reviewEvents).set({ undoneAt: new Date() }).where(eq(reviewEvents.id, last.id));
+        const [row] = await tx
+          .select({ card: cards, deckTopic: decks.topic })
+          .from(cards)
+          .innerJoin(decks, eq(cards.deckId, decks.id))
+          .where(and(kept(userId), eq(cards.id, last.cardId)));
+        return row ? toCard(row) : null; // null: the card was removed after the swipe
+      });
+    },
+    async history(userId, day) {
+      const live = and(eq(reviewEvents.userId, userId), isNull(reviewEvents.undoneAt));
+      const [[profile], dayRows, rows] = await Promise.all([
+        db.select({ name: profiles.name }).from(profiles).where(eq(profiles.userId, userId)),
+        db.selectDistinct({ day: reviewEvents.reviewDay }).from(reviewEvents).where(live).orderBy(desc(reviewEvents.reviewDay)).limit(1000),
+        db
+          .select({ cardId: reviewEvents.cardId, kind: reviewEvents.kind, at: reviewEvents.createdAt, after: reviewEvents.after })
+          .from(reviewEvents)
+          .where(and(live, eq(reviewEvents.reviewDay, day)))
+          .orderBy(asc(reviewEvents.createdAt)),
+      ]);
+      return {
+        name: profile?.name ?? null,
+        days: dayRows.map((r) => r.day),
+        events: rows.map((r) => ({ cardId: r.cardId, kind: r.kind as TodayEvent['kind'], at: r.at, stage: r.after.stage })),
+      };
     },
     async get(userId, id) {
       const [row] = await mine().where(and(kept(userId), eq(cards.id, id)));

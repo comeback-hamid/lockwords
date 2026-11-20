@@ -13,6 +13,7 @@ import type { UseItJudge } from './llm/use-it.js';
 import type { Profile } from './onboarding/profile.js';
 import type { ReviewDay } from './review/day.js';
 import type { CardState, Direction, Today } from './review/srs.js';
+import type { TodayEvent } from './review/summary.js';
 import { deckRoutes, type Deck } from './routes/decks.js';
 import { kaiRoutes } from './routes/kai.js';
 import { kaiChatRoutes } from './routes/kai-chat.js';
@@ -45,7 +46,11 @@ export type CardsStore = {
   // What the learner did with this card today, for the "is it in today's round" check. Stores without history leave both out.
   today?(userId: string, cardId: string, day: string): Promise<Today>;
   // Saves the card and its history row together.
-  saveSwipe?(userId: string, cardId: string, event: { kind: Direction; day: string; before: CardState; after: CardState }): Promise<void>;
+  saveSwipe?(userId: string, cardId: string, event: { kind: Direction | 'use_it'; day: string; at: Date; before: CardState; after: CardState }): Promise<void>;
+  // Takes back the learner's newest swipe of that review day. null = nothing to take back (none today, or the newest was already undone).
+  undoLast?(userId: string, day: string): Promise<(ReviewCard & CardState) | null>;
+  // What the summary is made of: the learner's name, the review days that have a swipe (newest first), and that day's swipes (oldest first).
+  history?(userId: string, day: string): Promise<{ name: string | null; days: string[]; events: TodayEvent[] }>;
   get(userId: string, id: string): Promise<(ReviewCard & CardState) | null>; // null also for another user's card
   save(id: string, patch: CardState): Promise<void>;
   hardWords(userId: string): Promise<{ word: string; translation: string }[]>;
