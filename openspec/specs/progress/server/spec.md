@@ -1,7 +1,7 @@
 # progress/server Specification
 
 ## Purpose
-TBD - created by archiving change progress-server. Update Purpose after archive.
+The numbers of the Progress tab: how many words the learner has, how well they know them, their goal and the date they reach it.
 
 ## Requirements
 
