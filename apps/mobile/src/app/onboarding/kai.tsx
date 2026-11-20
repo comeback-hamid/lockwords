@@ -13,25 +13,63 @@ import { ReplyOptions } from '@/components/chat/reply-options';
 import { RiseIn } from '@/components/chat/rise-in';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
 import { markOnboardingFinished } from '@/onboarding/finished';
-import { afterNameLines, BACK, chatLanguageOptions, explainLines, kaiStateFor, LINES, openingLines, QUIET_MS, REPLIES, type Step } from '@/onboarding/kai-script';
+import { BACK_KEY, chatLanguageOptions, EXPLAIN_KEYS, isEnglish, kaiStateFor, makeScript, QUIET_MS, SCRIPT_WAIT_MS, type ScriptLine, type ScriptMaps, type Step } from '@/onboarding/kai-script';
 import { getAnswers } from '@/onboarding/store';
 import { colors, layout, space } from '@/theme/theme';
 
-type Message = { from: 'kai'; text: string } | { from: 'user'; text: string; tapped?: boolean } | { from: 'deck' };
-const kai = (...lines: string[]): Message[] => lines.map((text) => ({ from: 'kai', text }));
+type Message = { from: 'kai'; text: string; translation?: string } | { from: 'user'; text: string; tapped?: boolean } | { from: 'deck' };
+const kai = (...lines: (string | ScriptLine)[]): Message[] => lines.map((line) => ({ from: 'kai', ...(typeof line === 'string' ? { text: line } : line) }));
 const me = (text: string, tapped = false): Message => ({ from: 'user', text, tapped });
 const typedText = (m: Message) => (m.from === 'kai' ? m.text : null);
 const OOPS_MS = 1200; // the spec's `oops` hold
 
-// O10–O10f: meet Kai, pick a topic, get the first deck. The user can tap an option or type anything:
-// typed text goes to Kai's reply on the server, which says if it answers the step or gives Kai's own lines.
+// Kai's lines in another language come from the server. A failed call means English.
+const loadScript = (native: string, learning: string): Promise<ScriptMaps | null> =>
+  Promise.resolve()
+    .then(() => api.fetchKaiScript(native, learning))
+    .catch(() => null);
+// The same, but never longer than the wait: then English.
+const loadScriptInTime = (native: string, learning: string) => Promise.race([loadScript(native, learning), new Promise<null>((resolve) => setTimeout(() => resolve(null), SCRIPT_WAIT_MS))]);
+
+// O10–O10f. Kai speaks the learner's own language from the first line, so a learner who does not speak English
+// waits here (Kai and the typing dots) until the lines are loaded, 4 seconds at most.
 export default function KaiScreen() {
+  const { learning, speaks } = getAnswers();
+  const wait = !!speaks && !isEnglish(speaks);
+  const [maps, setMaps] = useState<ScriptMaps | null | undefined>(wait ? undefined : null); // undefined = still loading
+  useEffect(() => {
+    if (!wait) return;
+    let live = true;
+    void loadScriptInTime(speaks.name, learning?.name ?? '').then((m) => live && setMaps(m));
+    return () => {
+      live = false;
+    };
+  }, [wait, speaks, learning]);
+  if (maps === undefined) {
+    return (
+      <View style={styles.root}>
+        <KaiHeader pose="greeting" />
+        <View style={styles.messages}>
+          <TypingBubble />
+        </View>
+      </View>
+    );
+  }
+  return <KaiChat loaded={maps} />;
+}
+
+// Meet Kai, pick a topic, get the first deck. The user can tap an option or type anything:
+// typed text goes to Kai's reply on the server, which says if it answers the step or gives Kai's own lines.
+function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { learning, speaks } = getAnswers();
   const [step, setStep] = useState<Step>('name');
+  // Kai's lines in the chat's language. It changes once, when the chat language is picked (read in handlers only).
+  const script = useRef(makeScript(loaded, null));
+  const S = () => script.current;
   // Kai types every bubble (dots first, one after another); options wait for the last one.
-  const { messages, typing, busy, say } = useKaiTyping<Message>(typedText, () => kai(...openingLines(learning?.name ?? '')));
+  const { messages, typing, busy, say } = useKaiTyping<Message>(typedText, () => kai(makeScript(loaded, null).line('hi'), makeScript(loaded, null).line('askName', { language: learning?.name ?? '' })));
   const [options, setOptions] = useState<string[]>([]);
   const [deck, setDeck] = useState<Deck | null>(null);
   const [waiting, setWaiting] = useState(false); // waiting for the server
@@ -81,11 +119,11 @@ export default function KaiScreen() {
       const proposed = await api.proposeDeck(nextTopic);
       setDeck(proposed);
       setStep('proposed');
-      say(...kai(LINES.goodChoice), { from: 'deck' }, ...kai(LINES.tapGenerate));
+      say(...kai(S().line('goodChoice')), { from: 'deck' }, ...kai(S().line('tapGenerate')));
     } catch {
       setFailed((n) => n + 1);
-      say(...kai(LINES.proposeFailed));
-      setOptions([REPLIES.tryAgain]);
+      say(...kai(S().line('proposeFailed')));
+      setOptions([S().label('replyTryAgain')]);
     } finally {
       setWaiting(false);
     }
@@ -94,16 +132,16 @@ export default function KaiScreen() {
   async function generate() {
     if (!deck) return;
     setStep('generating');
-    say(...kai(LINES.picking));
+    say(...kai(S().line('picking')));
     try {
       setDeck(await api.generateDeck(deck.id));
       setStep('ready');
-      say(...kai(LINES.ready, LINES.practice));
-      setOptions([REPLIES.practice, REPLIES.wordsFirst]);
+      say(...kai(S().line('ready'), S().line('practice')));
+      setOptions([S().label('replyPractice'), S().label('replyWordsFirst')]);
     } catch {
       setFailed((n) => n + 1);
       setStep('proposed');
-      say(...kai(LINES.generateFailed));
+      say(...kai(S().line('generateFailed')));
     }
   }
 
@@ -112,25 +150,42 @@ export default function KaiScreen() {
     router.replace(to);
   }
 
+  // The chat language is picked: from here Kai's lines follow it. An English speaker who picks the learned language
+  // has no script yet: it is loaded now (4 seconds at most, then English).
+  async function chooseLanguage(chat: 'native' | 'target') {
+    setStep('topic');
+    setOptions([]);
+    let maps = loaded;
+    if (!maps && chat === 'target' && speaks && learning && !isEnglish(learning)) {
+      setWaiting(true);
+      maps = await loadScriptInTime(speaks.name, learning.name);
+      setWaiting(false);
+    }
+    script.current = makeScript(maps, chat);
+    say(...kai(...EXPLAIN_KEYS.map((key) => S().line(key))));
+    // A topic can be typed, so the chat goes on even if the ideas fail.
+    api.fetchDeckIdeas().then(
+      (ideas) => setOptions(ideas.map((idea) => S().label(`idea:${idea}`))),
+      () => {},
+    );
+  }
+
   // The answer to the current step, from a tap (an option label) or from Kai's reply (a name, native/target, …).
   function answer(value: string) {
     if (step === 'name') {
       name.current = value.slice(0, 40);
-      say(...kai(...afterNameLines(name.current)));
+      say(...kai(S().line('niceToMeet', { name: name.current }), S().line('whichLanguage')));
       setStep('language');
       setOptions(languageOptions.map((o) => o.label));
     } else if (step === 'language') {
       const picked = languageOptions.find((o) => o.label === value || o.value === value) ?? languageOptions[0];
-      say(...kai(...explainLines));
-      setStep('topic');
-      setOptions([]);
-      // The chat goes on even if these fail: the name is nice to have, and a topic can be typed.
+      void chooseLanguage(picked?.value ?? 'native');
+      // The chat goes on even if this fails: the name is nice to have.
       if (picked) api.saveChat({ name: name.current, chatLanguage: picked.value }).catch(() => {});
-      api.fetchDeckIdeas().then(setOptions, () => {});
     } else if (step === 'topic') {
-      void propose(value === REPLIES.tryAgain ? topic.current : value);
+      void propose(value === S().label('replyTryAgain') ? topic.current : value);
     } else if (step === 'ready' && deck) {
-      const wordsFirst = value === REPLIES.wordsFirst || value === 'wordsFirst';
+      const wordsFirst = value === S().label('replyWordsFirst') || value === 'wordsFirst';
       void finish(wordsFirst ? `/deck/${deck.id}` : '/(tabs)/review');
     }
   }
@@ -154,7 +209,7 @@ export default function KaiScreen() {
       const reply = await api.kaiReply(step, text, shown);
       if (reply.onScript) answer(reply.answer);
       else {
-        say(...kai(...reply.lines, BACK[step]));
+        say(...kai(...reply.lines, S().line(BACK_KEY[step])));
         setOptions(shown);
       }
     } catch {
@@ -184,7 +239,7 @@ export default function KaiScreen() {
               <ChatBubble from="user" text={m.text} />
             </RiseIn>
           ) : (
-            <ChatBubble key={i} from={m.from} text={m.text} />
+            <ChatBubble key={i} from={m.from} text={m.text} translation={m.from === 'kai' ? m.translation : undefined} showTranslation={m.from === 'kai' && !!m.translation} />
           ),
         )}
         {typing ? <TypingBubble /> : null}

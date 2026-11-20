@@ -12,4 +12,7 @@ const IDEAS: Record<Profile['goal'], [string, string, string, string]> = {
   other: ['Everyday basics', 'Ordering food', 'Meeting new people', 'Getting around the city'],
 };
 
+// Every idea once (Kai's script translates them).
+export const ideaTopics = (): string[] => [...new Set(Object.values(IDEAS).flat())];
+
 export const ideasFor = (goal: Profile['goal']): string[] => [...IDEAS[goal]];

@@ -138,6 +138,10 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
       return unwrap(await client.GET('/v1/hard-words')).words;
     },
     // Kai reads typed text in a Kai chat: the answer to the current step, or Kai's own short lines.
+    // Kai's onboarding lines in the learner's language and in the learned language (key → line).
+    async fetchKaiScript(native: string, learning: string): Promise<{ native: Record<string, string>; learning: Record<string, string> }> {
+      return unwrap(await client.GET('/v1/kai/script', { params: { query: { native, learning } } }));
+    },
     async kaiReply(step: KaiStep, text: string, options: string[]): Promise<KaiReply> {
       return unwrap(await client.POST('/v1/kai/reply', { body: { step, text, options } }));
     },

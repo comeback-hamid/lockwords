@@ -45,7 +45,9 @@ export type DeckMaker = {
 function goodMeaning(raw: string | null | undefined, word: string): string | null {
   const meaning = raw?.replace(/\*/g, '').trim();
   if (!meaning || meaning.length > MEANING_MAX) return null;
-  const bare = word.toLocaleLowerCase().split(/\s+/).at(-1) ?? ''; // "la propina" → "propina"
+  // The word without a short first word (an article): "la propina" → "propina", "el menú del día" → "menú del día".
+  const parts = word.toLocaleLowerCase().split(/\s+/);
+  const bare = (parts.length > 1 && parts[0]!.length <= 3 ? parts.slice(1) : parts).join(' ');
   return bare.length >= 3 && meaning.toLocaleLowerCase().includes(bare) ? null : meaning;
 }
 

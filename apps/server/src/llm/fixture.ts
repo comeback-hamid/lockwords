@@ -1,6 +1,7 @@
 import type { KaiReplier } from './kai-reply.js';
 import { wantsMeaning, type DeckMaker } from './make-deck.js';
 import type { WordAsker } from './ask-word.js';
+import type { ScriptTranslator } from './translate-script.js';
 import type { UseItJudge } from './use-it.js';
 
 // Stands in for the model in tests and in local runs with no ANTHROPIC_API_KEY. Always the same Spanish words.
@@ -75,6 +76,9 @@ export const fixtureUseItJudge: UseItJudge = {
       : { good: false, lines: [`🤔 I can’t find **${bare}** in your sentence.`, 'Try again with the word.'] };
   },
 };
+
+// Kai's script in another language: the stand-in keeps the English lines, so tests and Maestro read the same text.
+export const fixtureScriptTranslator: ScriptTranslator = { translate: async (_language, english) => ({ ...english }) };
 
 // Kai answers a question about a word: the stand-in gives one fixed, friendly answer.
 export const fixtureWordAsker: WordAsker = {

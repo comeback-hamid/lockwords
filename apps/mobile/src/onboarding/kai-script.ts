@@ -4,7 +4,8 @@ import type { KaiState } from '@/kai/states';
 import type { LanguageChoice } from './store';
 
 // Kai's lines for the onboarding chat (O10–O10f). **word** = bold.
-// shortcut: English only; the chosen chat language is saved but not used until Kai's lines come from the server.
+// The English lines below are the built-in copy. Other languages come from the server (`GET /v1/kai/script`,
+// same keys as apps/server/src/kai/script.ts) and are read through `makeScript`.
 export type Step = 'name' | 'language' | 'topic' | 'proposed' | 'generating' | 'ready';
 export type KaiPose = KaiState;
 
@@ -73,3 +74,54 @@ export const chatLanguageOptions = (speaks: LanguageChoice, learning: LanguageCh
   { label: ownName(speaks), value: 'native' },
   { label: ownName(learning), value: 'target' },
 ];
+
+// --- Kai's lines by key, in the learner's language ---
+
+// How long the chat waits for the script in another language before it starts in English.
+export const SCRIPT_WAIT_MS = 4000;
+
+const [hi, askName] = openingLines('{language}') as [string, string];
+const [niceToMeet, whichLanguage] = afterNameLines('{name}') as [string, string];
+// The same keys as the server's script (apps/server/src/kai/script.ts). A server test keeps the two in step.
+export const ENGLISH_SCRIPT: Record<string, string> = {
+  hi,
+  askName,
+  niceToMeet,
+  whichLanguage,
+  ...Object.fromEntries(explainLines.map((line, i) => [`explain${i + 1}`, line])),
+  ...LINES,
+  backName: BACK.name,
+  backTopic: BACK.topic,
+  backProposed: BACK.proposed,
+  backGenerating: BACK.generating,
+  replyPractice: REPLIES.practice,
+  replyWordsFirst: REPLIES.wordsFirst,
+  replyTryAgain: REPLIES.tryAgain,
+};
+export const EXPLAIN_KEYS = explainLines.map((_, i) => `explain${i + 1}`);
+// The line Kai says again after an off-script answer, per step.
+export const BACK_KEY: Record<Step, string> = { name: 'backName', language: 'whichLanguage', topic: 'backTopic', proposed: 'backProposed', generating: 'backGenerating', ready: 'practice' };
+
+export type ScriptMaps = { native: Record<string, string>; learning: Record<string, string> };
+export type ScriptLine = { text: string; translation?: string };
+export type Script = { line(key: string, vars?: Record<string, string>): ScriptLine; label(key: string): string };
+
+export const isEnglish = (l: LanguageChoice | null) => l?.code === 'en' || l?.name.trim().toLowerCase() === 'english';
+
+// Kai's lines for this chat. No loaded script = English. Until a chat language is picked, and after "native": the
+// learner's own language. After "target": the learned language, with the own-language line under it as a translation.
+export function makeScript(maps: ScriptMaps | null, chat: ProfileChat['chatLanguage'] | null): Script {
+  const main = !maps ? ENGLISH_SCRIPT : chat === 'target' ? maps.learning : maps.native;
+  const under = maps && chat === 'target' ? maps.native : null;
+  // A key the map does not have falls back to English; an unknown deck idea stays as the server sent it.
+  const raw = (map: Record<string, string>, key: string) => map[key] ?? ENGLISH_SCRIPT[key] ?? key.replace(/^idea:/, '');
+  const fill = (text: string, vars?: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_all, name: string) => vars?.[name] ?? '');
+  return {
+    line(key, vars) {
+      const text = fill(raw(main, key), vars);
+      const translation = under ? fill(raw(under, key), vars) : undefined;
+      return translation && translation !== text ? { text, translation } : { text };
+    },
+    label: (key) => raw(main, key),
+  };
+}

@@ -34,3 +34,8 @@ test('the stand-in deck has meanings for the top band only', async () => {
   const low = checkCards(await fixtureDeckMaker.cards(input()));
   expect(low.every((c) => c.meaning == null)).toBe(true);
 });
+
+test('a phrase keeps a meaning that shares only one of its words', () => {
+  const [card] = checkCards([{ ...raw(0, 'Comida a precio fijo que cambia cada día.'), word: 'el menú del día' }, ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => raw(i))]);
+  expect(card!.meaning).toBe('Comida a precio fijo que cambia cada día.');
+});

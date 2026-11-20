@@ -10,6 +10,7 @@ import type { DeckMaker, NewCard } from './llm/make-deck.js';
 import type { KaiReplier } from './llm/kai-reply.js';
 import type { LanguageChecker } from './llm/check-language.js';
 import type { UseItJudge } from './llm/use-it.js';
+import type { ScriptTranslator } from './llm/translate-script.js';
 import type { WordAsker } from './llm/ask-word.js';
 import type { Profile } from './onboarding/profile.js';
 import type { ReviewDay } from './review/day.js';
@@ -41,6 +42,8 @@ export type DecksStore = {
   // Marks the deck and its cards as removed. `not_found` also for another user's deck. Optional so older test fakes still fit.
   remove?(userId: string, id: string): Promise<'removed' | 'not_found' | 'generating'>;
 };
+// Kai's onboarding script in one language (key → line). null = not translated yet.
+export type KaiScriptStore = { get(language: string): Promise<Record<string, string> | null>; save(language: string, lines: Record<string, string>): Promise<void> };
 export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number; meaning?: string };
 export type CardsStore = {
   round(userId: string, now: Date, today?: ReviewDay): Promise<(ReviewCard & CardState)[]>; // today = due by review day and the daily new-word limit
@@ -61,7 +64,7 @@ export type CardsStore = {
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; randomWords?: RandomWordsStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
