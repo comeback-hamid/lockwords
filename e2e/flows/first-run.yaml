@@ -101,7 +101,7 @@ tags:
 - assertVisible: "New words"
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "All done for today"
+    visible: "All cards done"
     timeout: 15000
 # Restart: still in the app, nothing to review
 - stopApp

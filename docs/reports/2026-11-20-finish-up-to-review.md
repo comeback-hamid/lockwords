@@ -28,3 +28,9 @@ Hamid answered 14 questions with "Yes, all suggested", then said: do not ask any
 | D2 | The time zone comes from the phone on every call (`X-Time-Zone`). No zone = UTC. | The server needs the learner's clock for the 04:00 rule. | `review-srs-rules` |
 | D3 | A swipe on a word that is not in today's round answers `409` and changes nothing. | Stops double taps and wrong levels. | `review-srs-rules` |
 | D4 | After a first Hard, the second showing takes any swipe. A second Hard does not bring it back a third time. | "Once more" in Hamid's answer. | `review-srs-rules` |
+| D5 | The Undo button is small green text "Undo" on the right of the "N words left" line, only right after a swipe. | Figma has no frame for it. | `review-round-screens` |
+| D6 | The streak card shows from a streak of 2 days, not on day 1. | "1 day streak" says nothing. | `review-round-screens` |
+| D7 | When nothing is due and nothing was swiped today, the Review tab says "Nothing to review today" and "New words from Kai show up here." | Figma A9 only covers the day you did review. | `review-round-screens` |
+| D8 | Minutes on the done screen: the time between swipes is added up, and any pause over 60 seconds counts as 60. | No timer in the app; a break should not count. | `review-round-screens` |
+| D9 | The very first round (onboarding practice) is full screen with no way out but finishing, as Figma O12. Closing the app and opening it again lands on the Review tab. | Hamid: follow Figma, no Close button. | `review-round-screens` |
+| D10 | The Use it button and the chat box got a real mic icon that I drew (the icon set has none). | Figma shows a mic. | `review-round-screens` |

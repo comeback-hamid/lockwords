@@ -912,6 +912,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/review/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The card as it was before the swipe */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Undone"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description No swipe to take back */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NothingToUndo"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/review/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The streak and what was done today */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewSummary"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cards/{id}/use-it": {
         parameters: {
             query?: never;
@@ -1494,6 +1591,26 @@ export interface components {
         NotDue: {
             /** @enum {string} */
             error: "not_due";
+        };
+        Undone: {
+            card: components["schemas"]["ReviewCard"];
+        };
+        NothingToUndo: {
+            /** @enum {string} */
+            error: "nothing_to_undo";
+        };
+        ReviewSummary: {
+            day: string;
+            name: string | null;
+            streakDays: number;
+            today: {
+                words: number;
+                minutes: number;
+                easy: number;
+                hard: number;
+                known: number;
+                stages: number[];
+            };
         };
         UseItResult: {
             good: boolean;

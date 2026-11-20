@@ -7,8 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
+import { Kai } from '@/kai/kai';
 import { isIntroDone } from '@/review/intro';
-import { advance, showAgain, useRound } from '@/review/round-store';
+import { swiped, undone, useRound } from '@/review/round-store';
+import { streakToShow } from '@/review/streak';
 import { getSpeechLanguage } from '@/review/speech-language';
 import { colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
@@ -23,8 +25,10 @@ const stampFor = (direction: Direction, backInDays: number | null): Stamp =>
       ? { kind: 'hard', title: 'HARD', sub: 'GOES TO YOUR LOCK SCREEN' }
       : { kind: 'known', title: 'KNOW IT', sub: 'WON’T SHOW AGAIN' };
 
-// A review round (Figma O12 / A3–A5): one card at a time, no tab bar.
-export default function RoundScreen() {
+// A review round (Figma O12 / A3–A7): one card at a time.
+// Two homes: inside the Review tab (`inTab`: the tab bar stays, Figma A3), and as its own screen for the very
+// first round (the onboarding practice, Figma O12: no tab bar).
+export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean; onDone?: () => void }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { cards, index } = useRound();
@@ -35,19 +39,26 @@ export default function RoundScreen() {
   const [stamp, setStamp] = useState<Stamp | null>(null);
   const [failed, setFailed] = useState(false);
   const busy = useRef(false);
+  // Undo is offered right after a swipe, for that swipe only.
+  const [canUndo, setCanUndo] = useState(false);
+  // The streak card (A7) shows once, after half of the cards this round started with.
+  const [half] = useState(() => (cards.length >= 2 ? Math.ceil(cards.length / 2) : -1));
+  const [streak, setStreak] = useState<number | null>(null);
+  const streakAsked = useRef(false);
   const [drag] = useState(() => new Animated.ValueXY());
 
   // Past the last card (by a swipe here or by "Next card" in Use it): leave the round.
   const done = index >= cards.length;
   useEffect(() => {
     if (!done) return;
+    if (onDone) return onDone();
     let live = true;
     // The very first finished round shows the one-time screens (hard words → trial → paywall).
     isIntroDone().then((seen) => live && router.replace(seen || cards.length === 0 ? '/(tabs)/review' : '/intro/hard-words'));
     return () => {
       live = false;
     };
-  }, [done, cards.length, router]);
+  }, [done, cards.length, router, onDone]);
 
   async function swipe(direction: Direction, current: ReviewCard) {
     if (busy.current) return;
@@ -59,8 +70,12 @@ export default function RoundScreen() {
       await new Promise((resolve) => setTimeout(resolve, STAMP_MS));
       setStamp(null);
       drag.setValue({ x: 0, y: 0 });
-      if (result.again) showAgain({ ...current, stage: result.stage });
-      advance();
+      swiped(result.again ? { ...current, stage: result.stage } : undefined);
+      setCanUndo(true);
+      if (index + 1 === half && !streakAsked.current) {
+        streakAsked.current = true;
+        setStreak(await streakToShow());
+      }
     } catch {
       setFailed(true);
       Animated.spring(drag, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
@@ -69,10 +84,20 @@ export default function RoundScreen() {
     }
   }
 
+  async function undo() {
+    setCanUndo(false);
+    try {
+      undone(await api.undoSwipe());
+      setStreak(null);
+    } catch {
+      // Nothing to take back (or no connection): the round stays as it is.
+    }
+  }
+
   // The newest card and swipe handler for the gesture, which is created once.
-  const latest = useRef<{ card: ReviewCard | undefined; swipe: typeof swipe } | null>(null);
+  const latest = useRef<{ card: ReviewCard | undefined; swipe: typeof swipe; onStreak: boolean; dismissStreak(): void } | null>(null);
   useEffect(() => {
-    latest.current = { card, swipe };
+    latest.current = { card, swipe, onStreak: streak !== null, dismissStreak: () => (drag.setValue({ x: 0, y: 0 }), setStreak(null)) };
   });
   // eslint-disable-next-line react-hooks/refs -- `latest` is read later, inside the gesture callbacks, not during render
   const [pan] = useState(() =>
@@ -82,6 +107,7 @@ export default function RoundScreen() {
       onPanResponderRelease: (_e, g) => {
         const direction: Direction | null = g.dx > SWIPE_DISTANCE ? 'easy' : g.dx < -SWIPE_DISTANCE ? 'hard' : g.dy < -SWIPE_DISTANCE ? 'known' : null;
         const current = latest.current?.card;
+        if (latest.current?.onStreak) return latest.current.dismissStreak();
         if (direction && current) void latest.current?.swipe(direction, current);
         else Animated.spring(drag, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
       },
@@ -98,18 +124,22 @@ export default function RoundScreen() {
   const rotate = drag.x.interpolate({ inputRange: [-200, 0, 200], outputRange: ['-8deg', '0deg', '8deg'] });
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, space[16]) }]}>
-      {/* iOS swipe-back would steal the Easy swipe (right). The Close button leaves the round. */}
-      <Stack.Screen options={{ gestureEnabled: false }} />
+    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: inTab ? layout.tabBarClearance : Math.max(insets.bottom, space[16]) }]}>
+      {/* iOS swipe-back would steal the Easy swipe (right). */}
+      {inTab ? null : <Stack.Screen options={{ gestureEnabled: false }} />}
       <View style={styles.top}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={() => router.replace('/(tabs)/review')} style={styles.close}>
-          <Icon name="close" color={colors.muted} />
-        </Pressable>
         <View style={styles.progress}>
           <View style={[styles.fill, { width: `${(index / cards.length) * 100}%` }]} />
         </View>
       </View>
-      <Text style={[type.caption, styles.left]}>{`${left} ${left === 1 ? 'word' : 'words'} left`}</Text>
+      <View style={styles.leftRow}>
+        <Text style={[type.caption, styles.left]}>{`${left} ${left === 1 ? 'word' : 'words'} left`}</Text>
+        {canUndo && !stamp ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Undo" onPress={() => void undo()} hitSlop={12}>
+            <Text style={[type.captionStrong, styles.green]}>Undo</Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       <View style={styles.deck}>
         <View style={styles.chip}>
@@ -118,58 +148,73 @@ export default function RoundScreen() {
         </View>
         <View style={styles.under} />
         <Animated.View style={[styles.card, { transform: [{ translateX: drag.x }, { translateY: drag.y }, { rotate }] }]} {...pan.panHandlers}>
-          <Pressable testID="review-card" accessible={false} onPress={() => setFlippedId(flipped ? null : card.id)} style={styles.cardBody}>
-            {stamp ? (
-              <View style={styles.stampBox}>
-                <View style={[styles.stamp, stamp.kind === 'hard' && styles.stampHard, stamp.kind === 'known' && styles.stampKnown]}>
-                  <Text testID="stamp-title" style={[type.stamp, { color: stamp.kind === 'hard' ? colors.hard : stamp.kind === 'known' ? colors.white : colors.easy }]}>{stamp.title}</Text>
+          {streak !== null ? (
+            <Pressable testID="streak-card" accessible={false} onPress={() => setStreak(null)} style={[styles.cardBody, styles.streak]}>
+              <Kai state="streak" size={168} />
+              <Text style={[type.display, styles.green]}>{streak}</Text>
+              <Text style={[type.headline, styles.ink]}>day streak 🔥</Text>
+              <Text style={[type.callout, styles.muted, styles.streakLine]}>{`You came back ${streak} days in a row. Keep it going!`}</Text>
+              <Text style={[type.label, styles.muted, styles.tap]}>SWIPE TO CONTINUE</Text>
+            </Pressable>
+          ) : (
+            <Pressable testID="review-card" accessible={false} onPress={() => setFlippedId(flipped ? null : card.id)} style={styles.cardBody}>
+              {stamp ? (
+                <View style={styles.stampBox}>
+                  <View style={[styles.stamp, stamp.kind === 'hard' && styles.stampHard, stamp.kind === 'known' && styles.stampKnown]}>
+                    <Text testID="stamp-title" style={[type.stamp, { color: stamp.kind === 'hard' ? colors.hard : stamp.kind === 'known' ? colors.white : colors.easy }]}>{stamp.title}</Text>
+                  </View>
+                  <Text style={[type.label, { color: stamp.kind === 'hard' ? colors.hard : colors.greenText }]}>{stamp.sub}</Text>
                 </View>
-                <Text style={[type.label, { color: stamp.kind === 'hard' ? colors.hard : colors.greenText }]}>{stamp.sub}</Text>
-              </View>
-            ) : null}
-            {flipped ? (
-              <View style={styles.back}>
-                <View style={styles.wordRow}>
-                  <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-                  <Text style={[type.wordXL, styles.ink, styles.grow]}>{card.word}</Text>
+              ) : null}
+              {flipped ? (
+                <View style={styles.back}>
+                  <View style={styles.wordRow}>
+                    <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+                    <Text style={[type.wordXL, styles.ink, styles.grow]}>{card.word}</Text>
+                    <Speaker word={card.word} />
+                  </View>
+                  <Text style={[type.headline, styles.text2]}>{card.translation}</Text>
+                  <View style={styles.rule} />
+                  <Text accessibilityLabel={card.example} style={[type.body, styles.ink]}>
+                    {parts.map((part, i) => (
+                      <Text key={i}>
+                        {part}
+                        {i < parts.length - 1 ? <Text style={[type.bodyStrong, styles.green]}>{bare}</Text> : null}
+                      </Text>
+                    ))}
+                  </Text>
+                  <Text style={[type.callout, styles.muted]}>{card.exampleTranslation}</Text>
+                  <View style={styles.grow} />
+                  <Pressable accessibilityRole="button" accessibilityLabel="Use it" onPress={() => router.push(`/use-it/${card.id}`)} style={styles.useIt}>
+                    <Icon name="mic" color={colors.white} />
+                    <Text style={[type.button, styles.white]}>Use it</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.front}>
+                  <View style={styles.wordRow}>
+                    <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+                    <Text style={[type.wordXL, styles.ink]}>{card.word}</Text>
+                  </View>
                   <Speaker word={card.word} />
+                  <Text style={[type.label, styles.muted, styles.tap]}>TAP TO FLIP</Text>
                 </View>
-                <Text style={[type.headline, styles.text2]}>{card.translation}</Text>
-                <View style={styles.rule} />
-                <Text accessibilityLabel={card.example} style={[type.body, styles.ink]}>
-                  {parts.map((part, i) => (
-                    <Text key={i}>
-                      {part}
-                      {i < parts.length - 1 ? <Text style={[type.bodyStrong, styles.green]}>{bare}</Text> : null}
-                    </Text>
-                  ))}
-                </Text>
-                <Text style={[type.callout, styles.muted]}>{card.exampleTranslation}</Text>
-                <View style={styles.grow} />
-                <Pressable accessibilityRole="button" accessibilityLabel="Use it" onPress={() => router.push(`/use-it/${card.id}`)} style={styles.useIt}>
-                  <Icon name="mic" color={colors.white} />
-                  <Text style={[type.button, styles.white]}>Use it</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.front}>
-                <View style={styles.wordRow}>
-                  <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-                  <Text style={[type.wordXL, styles.ink]}>{card.word}</Text>
-                </View>
-                <Speaker word={card.word} />
-                <Text style={[type.label, styles.muted, styles.tap]}>TAP TO FLIP</Text>
-              </View>
-            )}
-          </Pressable>
+              )}
+            </Pressable>
+          )}
         </Animated.View>
       </View>
 
       {failed ? <Text style={[type.caption, styles.failed]}>Could not save. Try again.</Text> : null}
+      {/* The streak card has no answer: the three actions are hidden while it shows. */}
       <View style={styles.actions}>
-        <Action label="Hard" icon="left" color={colors.hard} onPress={() => void swipe('hard', card)} />
-        <Action label="Know it" icon="up" color={colors.greenText} onPress={() => void swipe('known', card)} />
-        <Action label="Easy" icon="right" color={colors.easy} onPress={() => void swipe('easy', card)} iconLast />
+        {streak !== null ? null : (
+          <>
+            <Action label="Hard" icon="left" color={colors.hard} onPress={() => void swipe('hard', card)} />
+            <Action label="Know it" icon="up" color={colors.greenText} onPress={() => void swipe('known', card)} />
+            <Action label="Easy" icon="right" color={colors.easy} onPress={() => void swipe('easy', card)} iconLast />
+          </>
+        )}
       </View>
     </View>
   );
@@ -194,8 +239,10 @@ function Action({ label, icon, color, onPress, iconLast = false }: { label: stri
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.canvas, paddingHorizontal: layout.sideMargin },
-  top: { height: layout.minTapTarget, flexDirection: 'row', alignItems: 'center', gap: space[8], marginLeft: -space[12] },
-  close: { width: layout.minTapTarget, height: layout.minTapTarget, alignItems: 'center', justifyContent: 'center' },
+  top: { height: space[32], flexDirection: 'row', alignItems: 'center' },
+  leftRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  streak: { alignItems: 'center', justifyContent: 'center', gap: space[8] },
+  streakLine: { textAlign: 'center', maxWidth: 240 },
   progress: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.divider, overflow: 'hidden' },
   fill: { height: 4, minWidth: 6, borderRadius: 2, backgroundColor: colors.button },
   left: { color: colors.muted },
@@ -223,7 +270,7 @@ const styles = StyleSheet.create({
   stampHard: { borderColor: colors.hard },
   stampKnown: { borderColor: colors.know, backgroundColor: colors.know },
   failed: { color: colors.hard, textAlign: 'center' },
-  actions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  actions: { minHeight: layout.minTapTarget, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   action: { height: layout.minTapTarget, flexDirection: 'row', alignItems: 'center', gap: space[8] },
   actionReverse: { flexDirection: 'row-reverse' },
 });

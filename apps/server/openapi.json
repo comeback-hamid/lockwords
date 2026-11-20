@@ -703,6 +703,88 @@
           "error"
         ]
       },
+      "Undone": {
+        "type": "object",
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/ReviewCard"
+          }
+        },
+        "required": [
+          "card"
+        ]
+      },
+      "NothingToUndo": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "nothing_to_undo"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "ReviewSummary": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streakDays": {
+            "type": "integer"
+          },
+          "today": {
+            "type": "object",
+            "properties": {
+              "words": {
+                "type": "integer"
+              },
+              "minutes": {
+                "type": "integer"
+              },
+              "easy": {
+                "type": "integer"
+              },
+              "hard": {
+                "type": "integer"
+              },
+              "known": {
+                "type": "integer"
+              },
+              "stages": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            },
+            "required": [
+              "words",
+              "minutes",
+              "easy",
+              "hard",
+              "known",
+              "stages"
+            ]
+          }
+        },
+        "required": [
+          "day",
+          "name",
+          "streakDays",
+          "today"
+        ]
+      },
       "UseItResult": {
         "type": "object",
         "properties": {
@@ -2050,6 +2132,78 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotDue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/review/undo": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The card as it was before the swipe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Undone"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No swipe to take back",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NothingToUndo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/review/summary": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The streak and what was done today",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }

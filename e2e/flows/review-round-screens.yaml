@@ -1,0 +1,129 @@
+# The Review screens: the first round with Undo, the done screen with numbers, then a second round inside the tab
+# (the tab bar stays). Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - review
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: review-round-screens
+- runFlow: ../subflows/finish-onboarding.yaml
+# A2 start: the count, the name from the Kai chat
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- assertVisible: "Hi Maya! It takes about 3 minutes.*"
+- tapOn: "Let’s start"
+# The first round is the onboarding practice: full screen, no tab bar, no Close button
+- assertVisible: "10 words left"
+- assertNotVisible: "Progress"
+- assertNotVisible: "Undo"
+# I know it by mistake, then Undo: the word is back
+- assertVisible: "la cuenta"
+- tapOn: "Know it"
+- extendedWaitUntil:
+    visible: "la propina"
+    timeout: 15000
+- assertVisible: "9 words left"
+- tapOn: "Undo"
+- extendedWaitUntil:
+    visible: "la cuenta"
+    timeout: 15000
+- assertVisible: "10 words left"
+- assertNotVisible: "Undo"
+# Finish the round
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "8 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "7 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "6 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "5 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "4 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "3 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "2 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+- tapOn: "Continue"
+- tapOn: "Continue"
+- tapOn: "Close"
+# A9 done screen with today's numbers
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "All cards done"
+    timeout: 15000
+- assertVisible: "You reviewed every word due today. New reviews will be ready tomorrow."
+- assertVisible: "10 words · .* minute.*"
+- assertVisible: "10 easy, 0 hard, 0 know it"
+# A new deck from Kai: 10 of the 20 new words of the day are left
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Message"
+- inputText: "Sí, quiero verlos"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Generate"
+- extendedWaitUntil:
+    visible: "Open deck"
+    timeout: 180000
+# The second round runs inside the Review tab: the tab bar stays (Figma A3)
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "10 words left"
+- assertVisible: "New words"
+- assertVisible: "Progress"
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- assertVisible: "Undo"
+# Leaving by the tab bar and coming back shows the start screen with the cards that are left
+- tapOn: "Progress"
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "9 cards to review today"
+    timeout: 20000
+- stopRecording

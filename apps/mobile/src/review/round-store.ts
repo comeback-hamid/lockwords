@@ -3,7 +3,8 @@ import { useSyncExternalStore } from 'react';
 import type { ReviewCard } from '@/api/client';
 
 // Today's round: loaded by the Review tab, walked by the round screen, read by Use it.
-let round: { cards: ReviewCard[]; index: number } = { cards: [], index: 0 };
+// `added` = the last swipe put a copy of its card at the end (a first Hard), so an undo knows to take it out.
+let round: { cards: ReviewCard[]; index: number; added?: boolean } = { cards: [], index: 0 };
 const listeners = new Set<() => void>();
 const set = (next: typeof round) => {
   round = next;
@@ -12,7 +13,16 @@ const set = (next: typeof round) => {
 
 export const getRound = () => round;
 export const setRound = (cards: ReviewCard[]) => set({ cards, index: 0 });
-export const advance = () => set({ ...round, index: round.index + 1 });
+export const advance = () => set({ ...round, index: round.index + 1, added: false });
+// After a swipe: on to the next card. `again` = the server sends this card back once more today (a first Hard).
+export const swiped = (again?: ReviewCard) => set({ cards: again ? [...round.cards, again] : round.cards, index: round.index + 1, added: !!again });
+// The server took the last swipe back: that card is current again, as the server now has it.
+export function undone(card: ReviewCard) {
+  if (round.index === 0) return;
+  const cards = round.added ? round.cards.slice(0, -1) : [...round.cards];
+  cards[round.index - 1] = card;
+  set({ cards, index: round.index - 1, added: false });
+}
 // The server sends a Hard card back once the same day: it goes to the end of the round.
 export const showAgain = (card: ReviewCard) => set({ ...round, cards: [...round.cards, card] });
 export const findCard = (id: string) => round.cards.find((c) => c.id === id) ?? null;
