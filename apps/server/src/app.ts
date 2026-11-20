@@ -47,6 +47,7 @@ export type DecksStore = {
 export type ProgressStore = {
   decks(userId: string): Promise<{ id: string; topic: string; title: string; kind: 'topic' | 'random'; words: { stage: number; known: boolean; hard: boolean }[] }[]>;
   startedSince(userId: string, day: string): Promise<number>;
+  learningLanguage(userId: string): Promise<string>; // the profile's value (a code or a name); '' with no profile
 };
 // Kai's onboarding script in one language (key → line). null = not translated yet.
 export type KaiScriptStore = { get(language: string): Promise<Record<string, string> | null>; save(language: string, lines: Record<string, string>): Promise<void> };

@@ -1924,6 +1924,8 @@ export interface components {
             goal: number;
             masterBy: string;
             grid: number[];
+            language: string;
+            trees: number[][];
         };
         DeckList: {
             decks: components["schemas"]["DeckSummary"][];

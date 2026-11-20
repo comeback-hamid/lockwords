@@ -51,7 +51,7 @@ beforeEach(async () => {
 afterAll(() => pool.end());
 
 test('no words: zeros, the goal is 100', async () => {
-  expect(await get<Progress>('/v1/progress')).toEqual({ total: 0, new: 0, learning: 0, mastered: 0, decks: 0, goal: 100, masterBy: '2027-01-03', grid: [] });
+  expect(await get<Progress>('/v1/progress')).toEqual({ total: 0, new: 0, learning: 0, mastered: 0, decks: 0, goal: 100, masterBy: '2027-01-03', grid: [], language: '', trees: [] }); // language and trees added with progress-home
   expect(await get('/v1/decks')).toEqual({ decks: [] });
 });
 
@@ -119,4 +119,17 @@ test('a round for one deck: only its cards, with the same daily limit', async ()
   expect((await get<{ cards: Card[] }>(`/v1/review?deckId=${second}`)).cards).toEqual([]); // 20 new words today already
   expect((await get<{ cards: Card[] }>('/v1/review?deckId=not-a-deck')).cards).toEqual([]);
   expect((await get<{ cards: Card[] }>(`/v1/review?deckId=${crypto.randomUUID()}`)).cards).toEqual([]);
+});
+
+test('language from the profile, and one tree per deck (oldest first) with the levels of its met words', async () => {
+  await db.execute(sql`insert into profiles (user_id, learning_language, native_language, level, goal, interests) values (${userId}, 'es', 'en', 'beginner', 'travel', '{}')`);
+  const older = await deck('older', 10, 30);
+  await deck('newer', 5, 10);
+  const [a, b, c] = await cardsOf(older);
+  await swipe(a!.id, 'easy'); // stage 2
+  await swipe(b!.id, 'known'); // counts as 5
+  await db.execute(sql`update cards set stage = 5 where id = ${c!.id}`);
+  const p = await get<Progress & { language: string; trees: number[][] }>('/v1/progress');
+  expect(p.language).toBe('Spanish');
+  expect(p.trees).toEqual([[5, 5, 2], []]);
 });
