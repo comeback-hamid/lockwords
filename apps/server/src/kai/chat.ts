@@ -1,9 +1,9 @@
-import type { DecksStore, ProfilesStore } from '../app.js';
+import type { DecksStore, PlanStore, ProfilesStore } from '../app.js';
 import { KaiAnswerSchema, type KaiAnswer, type KaiChat, type KaiContext } from '../llm/kai-chat.js';
 import { listedLanguage } from '../onboarding/languages.js';
 import type { Profile } from '../onboarding/profile.js';
 import { wordInHistory, type KaiMessageWord, type KaiWord } from './abilities/words.js';
-import { deckNote, NO_DECK_FACTS, readyEvent, type ChatDeck, type DeckEvent, type DeckFacts, type DeckIdea } from './abilities/decks.js';
+import { deckNote, NO_DECK_FACTS, plannedDeck, readyEvent, withPlanSize, type ChatDeck, type DeckEvent, type DeckFacts, type DeckIdea } from './abilities/decks.js';
 
 // One turn of the New words chat: check the limits, tell Kai what it knows, save what it said.
 
@@ -62,7 +62,7 @@ export type TurnResult =
   | { ok: true; userMessage: KaiMessage | null; messages: KaiMessage[]; options: string[]; action: 'review' | null }
   | { ok: false; error: 'no_profile' | 'too_many_messages' | 'kai_unavailable' | 'not_found' | 'deck_not_ready' };
 
-type Deps = { kai: KaiStore; profiles: ProfilesStore; kaiChat: KaiChat; decks?: DecksStore };
+type Deps = { kai: KaiStore; profiles: ProfilesStore; kaiChat: KaiChat; decks?: DecksStore; plans?: PlanStore };
 const NOTHING: TurnResult = { ok: true, userMessage: null, messages: [], options: [], action: null };
 
 // The model's answer, checked. A wrong shape is asked for once more; a thrown call is not.
@@ -94,7 +94,8 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
     return { ok: false, error: 'too_many_messages' };
   }
 
-  const [history, notes, facts] = await Promise.all([deps.kai.messages(userId, HISTORY_FOR_KAI), deps.kai.notes(userId), deps.kai.facts(userId, now)]);
+  const [history, notes, facts, plan] = await Promise.all([deps.kai.messages(userId, HISTORY_FOR_KAI), deps.kai.notes(userId), deps.kai.facts(userId, now), text !== null && deps.plans ? deps.plans.get(userId) : null]);
+  const planDeck = text !== null && plan ? plannedDeck(text, plan.items) : null;
   const ctx: KaiContext = {
     name: facts.name,
     learningLanguage: languageName(profile.learningLanguage),
@@ -111,6 +112,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
     firstVisit: opening && history.length === 0,
     userText: text,
     decks: facts.decks ?? NO_DECK_FACTS,
+    ...(planDeck ? { planDeck } : {}),
     ...(ready ? { event: { deckReady: ready } } : {}),
   };
 
@@ -123,7 +125,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
   if (!answer) return { ok: false, error: 'kai_unavailable' };
 
   // Deck ideas come only after the learner said yes (never with the first hello) and never with "your deck is ready".
-  const ideas = ctx.firstVisit || event ? undefined : answer.decks;
+  const ideas = ctx.firstVisit || event ? undefined : withPlanSize(answer.decks, ctx.planDeck);
   const saved = await deps.kai.addTurn(
     userId,
     { user: text, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), word: event ? null : answer.word, ...(ideas ? { decks: { ideas, cefr: profile.cefr ?? 'A1' } } : {}), ...(event ? { readyDeckId: event.deckId } : {}) },
