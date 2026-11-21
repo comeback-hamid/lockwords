@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { fixtureDecks, type DeckFacts, type DeckReady } from '../kai/abilities/decks.js';
+import { fixtureDecks, type DeckFacts, type DeckReady, type PlanDeck } from '../kai/abilities/decks.js';
 import { abilities, abilityAnswer, words } from '../kai/abilities/index.js';
 
 // AI task: one turn of the New words chat. Kai answers as an agent that knows and remembers the learner.
@@ -22,6 +22,7 @@ export type KaiContext = {
   firstVisit: boolean;
   userText: string | null; // null on an opening
   decks?: DeckFacts; // ability "decks": what the learner has and was offered
+  planDeck?: PlanDeck; // ability "decks": the learner asked for this idea from their word plan
   event?: { deckReady: DeckReady }; // ability "decks": something happened in the app that Kai speaks about (no learner text)
 };
 

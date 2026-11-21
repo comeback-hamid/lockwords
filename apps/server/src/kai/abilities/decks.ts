@@ -47,6 +47,16 @@ export type DeckFacts = {
 };
 export const NO_DECK_FACTS: DeckFacts = { newWordsLeft: 0, topics: [], offered: [] };
 export type DeckReady = { title: string; wordCount: number };
+// A deck idea from the learner's word plan (Progress tab) that they asked for in the chat.
+export type PlanDeck = { topic: string; words: number; kind: string };
+// A tapped plan idea arrives as "A deck about <topic>". Finds that idea in the learner's plan; none = null.
+export function plannedDeck(text: string, items: PlanDeck[]): PlanDeck | null {
+  const asked = /^a deck about\s+(.+?)[.!?]*$/i.exec(text.trim())?.[1]?.toLowerCase();
+  return (asked && items.find((i) => i.topic.trim().toLowerCase() === asked)) || null;
+}
+// The card of a plan idea has the plan's size, whatever the model picked.
+export const withPlanSize = <T extends { wordCount: number }>(ideas: T[] | undefined, plan: PlanDeck | undefined): T[] | undefined =>
+  plan && ideas?.length === 1 ? [{ ...ideas[0]!, wordCount: plan.words }] : ideas;
 export type DeckEvent = { event: 'deck_ready'; deckId: string };
 
 // A deck as a chat message shows it.
@@ -110,6 +120,12 @@ export const decksAbility = {
         `The deck "${ready.title}" (${ready.wordCount} words) that the learner asked you to make is ready now. Its words are in their word list and in Review already; there is nothing more to add.`,
         `Tell them in 1 or 2 short lines that the deck is ready and is in Review now, and ask if they want to practice now. Give exactly two options: one to practice now, one to make another deck. Do not send "decks" and leave "action" null.`,
       ];
+    const plan = c.planDeck;
+    if (plan)
+      return [
+        ...lines,
+        `The learner tapped this idea in their word plan: "${plan.topic}", ${plan.words} items, ${plan.kind}. Do not ask a question: show exactly 1 deck idea for it now, with "wordCount" ${plan.words}.`,
+      ];
     if (c.opening && c.firstVisit)
       return [...lines, `End by telling them you have 3 decks ready for them and asking if they want to see them, with two options (yes, and not now). Do not send "decks" in this answer: the cards come only after they say yes.`];
     return lines;
@@ -149,7 +165,7 @@ export function fixtureDecks(c: KaiContext): unknown {
     const topic = own[1]!.trim().replace(/[.!?]+$/, '').slice(0, MAX_TOPIC_CHARS);
     return {
       lines: [{ text: '¡Claro! 🙌 Toca **Generate** y lo hago.', translation: 'Sure! Tap Generate and I will make it.' }],
-      decks: [{ topic, title: `Palabras para: ${topic}`.slice(0, MAX_TITLE_CHARS), titleTranslation: `Words for: ${topic}`, reason: 'Tu propia idea', wordCount: 12 }],
+      decks: [{ topic, title: `Palabras para: ${topic}`.slice(0, MAX_TITLE_CHARS), titleTranslation: `Words for: ${topic}`, reason: 'Tu propia idea', wordCount: c.planDeck?.words ?? 12 }],
     };
   }
   if (wantsAnother.test(text)) return { lines: [{ text: '¡Claro! 😊 ¿Una **sugerencia**, o **tu propia idea**?', translation: 'Sure! A suggestion, or your own idea?' }], options: ['Una sugerencia', 'Mi propia idea'] };

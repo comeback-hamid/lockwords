@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-import type { DecksStore, ProfilesStore } from '../app.js';
+import type { DecksStore, PlanStore, ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import type { RandomWordsStore } from '../decks/random-words.js';
 import { kaiTurn, readChat, type KaiMessage, type KaiStore } from '../kai/chat.js';
@@ -116,7 +116,7 @@ const postAddWord = createRoute({
 
 const toMessage = (m: KaiMessage) => ({ id: m.id, from: m.from, text: m.text, translation: m.translation, createdAt: m.createdAt.toISOString(), ...(m.word ? { word: m.word } : {}), ...(m.decks?.length ? { decks: m.decks } : {}) });
 
-type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore; decks?: DecksStore };
+type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore; decks?: DecksStore; plans?: PlanStore };
 
 export function kaiChatRoutes(deps: Deps) {
   const need = <K extends keyof Deps>(key: K) => {
@@ -124,7 +124,7 @@ export function kaiChatRoutes(deps: Deps) {
     if (!dep) throw new Error(`${key} is not set`);
     return dep as NonNullable<Deps[K]>;
   };
-  const all = () => ({ kai: need('kai'), profiles: need('profiles'), kaiChat: need('kaiChat'), decks: deps.decks });
+  const all = () => ({ kai: need('kai'), profiles: need('profiles'), kaiChat: need('kaiChat'), decks: deps.decks, plans: deps.plans });
   const now = () => (deps.kaiNow ? deps.kaiNow() : new Date());
   const app = new OpenAPIHono<{ Variables: { user: AuthUser } }>({
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
