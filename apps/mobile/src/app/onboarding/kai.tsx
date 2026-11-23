@@ -139,9 +139,9 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
       // The pictures are drawn after the words. The deck is made already; the learner can chat with Kai while they wait.
       const drawn = made.picturesStatus === 'making' ? await drawPictures(made) : null;
       setStep('ready');
-      // After the wait the first card is far up the chat: the deck card shows again under Kai's line, ready to open.
+      // After the wait the first card is far up the chat: the deck card shows again, ready to open, then Kai's lines about it.
       if (drawn === null) say(...kai(S().line('ready'), S().line('practice')));
-      else say(...kai(S().line(drawn ? 'picturesReady' : 'picturesFailed')), { from: 'deck' }, ...kai(S().line('practice')));
+      else say({ from: 'deck' }, ...kai(S().line(drawn ? 'picturesReady' : 'picturesFailed'), S().line('practice')));
       setOptions([S().label('replyPractice'), S().label('replyWordsFirst')]);
     } catch {
       setFailed((n) => n + 1);

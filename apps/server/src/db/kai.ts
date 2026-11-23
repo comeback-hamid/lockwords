@@ -162,8 +162,8 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         // Kai's last line carries the turn's deck cards and the "ready" mark.
         const last = values.at(-1)!;
         last.deckIds = deckIds;
-        // "The pictures are ready": the deck card shows again under that line (Kai's first of the turn; the question comes
-        // after it), so the card to tap is next to the words that say so. The app shows a deck's card once, at its newest place.
+        // "The pictures are ready": the deck card goes with Kai's first line of the turn (the app draws it above that line and
+        // shows a deck's card once, at its newest place), so the card to tap is next to the words that say so.
         if (turn.picturesDeckId) values.find((v) => v.role === 'kai')!.deckIds = [turn.picturesDeckId];
         last.readyDeckId = turn.readyDeckId ?? null;
         last.picturesDeckId = turn.picturesDeckId ?? null;

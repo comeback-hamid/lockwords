@@ -184,10 +184,11 @@ describe('one card per deck in the New words chat', () => {
   const { newestCards } = jest.requireActual<typeof import('@/new-words/chat')>('@/new-words/chat');
   const deck = (id: string) => ({ id, title: id, titleTranslation: null, reason: 'r', cefr: 'A2', wordCount: 10, status: 'ready' as const, current: true });
   const line = (id: string, decks?: ReturnType<typeof deck>[]) => ({ id, from: 'kai' as const, text: id, translation: null, createdAt: '', ...(decks ? { decks } : {}) });
-  test('a deck shown again on a later line leaves its earlier place; other decks stay', () => {
+  test('a deck shown again on a later line leaves its earlier place and is drawn above that line; other decks stay', () => {
     const lines = [line('ideas', [deck('a'), deck('b'), deck('c')]), line('words ready'), line('pictures ready', [deck('a')]), line('question')];
     const shown = newestCards(lines);
-    expect(shown.map((l) => (l.decks ?? []).map((d) => d.id))).toEqual([['b', 'c'], [], ['a'], []]);
+    expect(shown.map((l) => (l.decks ?? []).map((d) => d.id))).toEqual([['b', 'c'], [], [], []]);
+    expect(shown.map((l) => (l.decksAbove ?? []).map((d) => d.id))).toEqual([[], [], ['a'], []]);
     expect(shown[1]).toBe(lines[1]); // untouched lines are the same objects
   });
   test('a deck on one line only stays there', () => {

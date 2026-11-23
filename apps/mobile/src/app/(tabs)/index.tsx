@@ -422,6 +422,9 @@ export default function NewWordsScreen() {
       >
         {newestCards(lines).map((l) => (
           <Fragment key={l.id}>
+            {l.decksAbove?.length ? (
+              <DeckIdeas decks={l.decksAbove} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} drawing={drawing} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
+            ) : null}
             {l.tapped ? (
               <RiseIn>
                 <ChatBubble from={l.from} text={l.text} />

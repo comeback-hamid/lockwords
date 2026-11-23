@@ -17,15 +17,21 @@ export function withLine(all: Line[], next: Line): Line[] {
 export const withDeckStatus = (all: Line[], deckId: string, status: ChatDeck['status']): Line[] =>
   all.map((l) => (l.decks?.some((d) => d.id === deckId) ? { ...l, decks: l.decks.map((d) => (d.id === deckId ? { ...d, status } : d)) } : l));
 
-// A deck's card can be on two lines: where Kai offered it, and again under "the pictures are ready". Only the newest
-// one shows, so there is one card to tap and it is near the end of the chat. Other decks of a line stay where they are.
-export function newestCards(all: Line[]): Line[] {
+// A deck's card can be on two lines: where Kai offered it, and again with "the pictures are ready". Only the newest
+// one shows, so there is one card to tap and it is near the end of the chat. A card that shows again is drawn ABOVE its
+// line (`decksAbove`), so the chat ends as it always did: the card, then Kai's lines about it. Other decks stay in place.
+export type ShownLine = Line & { decksAbove?: ChatDeck[] };
+export function newestCards(all: Line[]): ShownLine[] {
+  const first = new Map<string, string>(); // deck → the first line that shows it
+  for (const l of all) for (const d of l.decks ?? []) if (!first.has(d.id)) first.set(d.id, l.id);
   const seen = new Set<string>();
-  const out: Line[] = [];
+  const out: ShownLine[] = [];
   for (const l of [...all].reverse()) {
-    const decks = l.decks?.filter((d) => !seen.has(d.id));
+    const newest = l.decks?.filter((d) => !seen.has(d.id)) ?? [];
     for (const d of l.decks ?? []) seen.add(d.id);
-    out.push(l.decks && decks!.length !== l.decks.length ? { ...l, decks } : l);
+    const again = newest.filter((d) => first.get(d.id) !== l.id);
+    if (!l.decks || (newest.length === l.decks.length && !again.length)) out.push(l);
+    else out.push({ ...l, decks: newest.filter((d) => first.get(d.id) === l.id), ...(again.length ? { decksAbove: again } : {}) });
   }
   return out.reverse();
 }
