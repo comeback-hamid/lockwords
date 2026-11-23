@@ -34,10 +34,10 @@ tags:
 - tapOn: "la familia"
 - tapOn: "la mano"
 - assertVisible: "5 SELECTED"
-- runFlow: next-page.yaml
+- runFlow: ../subflows/next-page.yaml
 - assertVisible: "INTERMEDIATE WORDS"
 - tapOn: "el reloj"
-- runFlow: next-page.yaml
+- runFlow: ../subflows/next-page.yaml
 - extendedWaitUntil:
     visible: "YOU ALREADY KNOW"
     timeout: 15000
