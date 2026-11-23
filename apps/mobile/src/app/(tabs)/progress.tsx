@@ -138,6 +138,7 @@ export default function ProgressScreen() {
                   deck={{ cefr: deck.cefr, wordCount: deck.words, title: deck.title, reason: '', cards: deck.stages.map((stage, i) => ({ id: String(i), stage })) }}
                   state="ready"
                   flat
+                  listed
                   onGenerate={noop}
                   onOpen={() => router.push(`/deck/${deck.id}`)}
                 />

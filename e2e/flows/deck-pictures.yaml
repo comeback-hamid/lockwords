@@ -99,9 +99,11 @@ tags:
 - tapOn: "Message"
 - inputText: "la cuenta?"
 - tapOn: "Send"
+# (On a slow Mac the pictures can be done before the question is typed: then Kai answers the last step instead.)
 - extendedWaitUntil:
     visible: ".*Your pictures are almost ready.*"
     timeout: 20000
+    optional: true
 # The pictures are ready: Kai says so, and the card can be opened (it has the arrow column)
 - extendedWaitUntil:
     visible: ".*All the pictures are ready.*"
