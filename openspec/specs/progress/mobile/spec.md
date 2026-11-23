@@ -6,33 +6,18 @@ The Progress tab and the screens it opens: the learner's word bank, their decks 
 ## Requirements
 
 ### Requirement: Progress page order
-The Progress tab SHALL show, from top to bottom: the numbers; a small meadow with Kai; the goal grid with its date and goal; a big meadow; and the decks. While loading it shows a quiet loading line; on error "Could not load your progress." and "Try again". There is no link to a separate decks page and no word plan.
+The Progress tab SHALL show, from top to bottom: the numbers; a small meadow with Kai; the goal grid with its date and goal; a big meadow; and the decks as short rows. While loading it shows a quiet loading line; on error "Could not load your progress." and "Try again". There is no link to a separate decks page and no word plan.
 
 #### Scenario: Order
 - **WHEN** the page has loaded
 - **THEN** the numbers come first, then the small meadow, the grid, the big meadow and the decks
 
-### Requirement: Numbers and hard words
-The Progress tab SHALL show the total ("N words in your word bank"), "N new", "N learning", "N mastered", and a button "N hard words" ("1 hard word") that opens the hard words list. The button shows also with 0.
+### Requirement: Numbers
+The Progress tab SHALL show the total ("N words in your word bank"), "N new", "N learning" and "N mastered". It shows no hard words number and no way to a hard words page.
 
 #### Scenario: Numbers
-- **WHEN** the server says 52 words, 30 new, 18 learning, 4 mastered and 3 hard
-- **THEN** "52", "30 new", "18 learning", "4 mastered" and "3 hard words" show
-
-#### Scenario: Open the list
-- **WHEN** the user taps "3 hard words"
-- **THEN** the hard words list opens
-
-### Requirement: Hard words list
-The screen "Hard words" SHALL list every hard word from the server with its translation, under "N WORDS · ON YOUR LOCK SCREEN". States: a quiet loading line; an error with "Try again"; with none "No hard words." and "Swipe a word left in Review and it shows here.". Back goes back.
-
-#### Scenario: Three words
-- **WHEN** the server lists 3 hard words
-- **THEN** "3 WORDS · ON YOUR LOCK SCREEN" and the three words with their translations show
-
-#### Scenario: None
-- **WHEN** the server lists no hard word
-- **THEN** "No hard words." shows
+- **WHEN** the server says 52 words, 30 new, 18 learning and 4 mastered
+- **THEN** "52", "30 new", "18 learning" and "4 mastered" show, and nothing about hard words
 
 ### Requirement: Goal grid and date
 The Progress tab SHALL show a grid with one square per word of the goal: the server's levels first in the green of their level (a new word in the lightest green), then grey squares for words that have not come yet. Under it: "BY <MONTH DAY>" from the server's date, "you'll master", the goal number and "new <language> words" (or "new words" with no language).
@@ -64,13 +49,20 @@ The big meadow SHALL draw the forest at the goal: one full tree per 33 words of 
 - **THEN** the meadow says "Your meadow at the goal: 3 trees"
 
 ### Requirement: Decks at the bottom
-At the bottom the Progress tab SHALL show the title "You have N decks" ("You have 1 deck"; with none "You have no decks yet" and "Ask Kai for one in New words.") and every deck as a deck card, newest first. A card opens that deck's words. When the decks cannot be loaded: "Could not load your decks." and "Try again"; the rest of the page stays.
+At the bottom the Progress tab SHALL show the title "You have N decks" with the number in green, and every deck as a short row in one box, newest first: its name, "N words · N learning" (or "N words · all new"), a chain of level squares and an arrow. A row opens that deck's page with its list of words.
+
+#### Scenario: No decks
+- **WHEN** the learner has no deck
+- **THEN** "You have no decks yet" and "Ask Kai for one in New words." show
+
+#### Scenario: The decks cannot be loaded
+- **WHEN** the deck list fails to load
+- **THEN** "Could not load your decks." and "Try again" show, and the rest of the page stays
 
 #### Scenario: Two decks
-- **WHEN** the learner has 2 decks
-- **THEN** "You have 2 decks" and two deck cards show
+- **WHEN** the learner has a deck of 20 words with 8 learning and a deck of 4 new words
+- **THEN** "You have 2 decks", "20 words · 8 learning" and "4 words · all new" show
 
 #### Scenario: Open a deck
-- **WHEN** the user taps a deck card
+- **WHEN** the user taps a deck row
 - **THEN** that deck's page opens
-

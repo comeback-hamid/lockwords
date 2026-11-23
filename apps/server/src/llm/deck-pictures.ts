@@ -10,8 +10,8 @@ export type SheetMaker = { sheet(items: PictureItem[], grid: Grid): Promise<Buff
 
 // A landscape sheet: the widest size the image API has.
 export const SHEET = { width: 1536, height: 1024 } as const;
-// One sheet holds a whole deck (the biggest deck has 30 words). A lower number means more, smaller sheets made at the
-// same time: sharper pictures and progress in steps, for more money.
+// One sheet holds a whole deck (the biggest deck has 30 words): decided by Hamid on 2026-11-23, for the cost. A lower
+// number means more, smaller sheets made at the same time: sharper pictures and progress in steps, for more money.
 export const MAX_PER_SHEET = 30;
 const GRIDS: Grid[] = [{ cols: 4, rows: 3 }, { cols: 5, rows: 4 }, { cols: 6, rows: 5 }];
 

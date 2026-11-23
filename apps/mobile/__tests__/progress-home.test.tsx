@@ -35,7 +35,7 @@ const order = (ids: string[]) => {
 
 beforeEach(() => jest.clearAllMocks());
 
-test('loading, then the numbers: the total, new, learning, mastered and the hard words', async () => {
+test('loading, then the numbers: the total, new, learning and mastered; no hard words button (Hamid, 2026-11-23)', async () => {
   let answer!: (p: Progress) => void;
   mockApi.fetchProgress.mockReturnValue(new Promise((resolve) => (answer = resolve)));
   mockApi.fetchDecks.mockResolvedValue([]);
@@ -44,16 +44,7 @@ test('loading, then the numbers: the total, new, learning, mastered and the hard
   await act(async () => answer(progress()));
   await waitFor(() => expect(screen.getByText('52')).toBeOnTheScreen());
   for (const text of ['words in your word bank', '30 new', '18 learning', '4 mastered', 'BY DEC 29', 'you’ll master', '100', 'new Spanish words']) expect(screen.getByText(text)).toBeOnTheScreen();
-  expect(screen.getByRole('button', { name: '3 hard words' })).toBeOnTheScreen();
-});
-
-test('the hard words number opens the hard words list; one word is singular; zero still shows', async () => {
-  await show(progress({ hard: 1, total: 1 }));
-  await fireEvent.press(screen.getByRole('button', { name: '1 hard word' }));
-  expect(mockRouter.push).toHaveBeenCalledWith('/hard-words');
-  await screen.unmount();
-  await show(progress({ hard: 0 }));
-  expect(screen.getByRole('button', { name: '0 hard words' })).toBeOnTheScreen();
+  expect(screen.queryByText(/hard word/)).toBeNull();
 });
 
 test('the order from top to bottom: numbers, small meadow with Kai, squares, big meadow, decks', async () => {
@@ -91,15 +82,25 @@ test('the grid: one square per word of the goal; squares of words that have not 
   expect(screen.getByLabelText('52 of 100 words')).toBeOnTheScreen();
 });
 
-test('the decks at the bottom: a title with the number of decks and every deck as a card that opens its words', async () => {
+test('the decks at the bottom: a title with the number of decks, and every deck as a short row that opens its words', async () => {
   await show(progress());
   expect(screen.getByText('You have 2 decks')).toBeOnTheScreen();
-  expect(screen.getByText('“Order food, pay and tip”')).toBeOnTheScreen();
-  expect(screen.getByText('“Random Words 1”')).toBeOnTheScreen();
-  const cards = screen.getAllByRole('button', { name: /Open deck/ });
-  expect(cards).toHaveLength(2);
-  await fireEvent.press(cards[1]!);
+  expect(screen.getByText('20 words · 8 learning')).toBeOnTheScreen();
+  expect(screen.getByText('4 words · all new')).toBeOnTheScreen();
+  expect(screen.getAllByTestId('level-square')).toHaveLength(8);
+  // The big deck card of the chat is not used here.
+  expect(screen.queryByRole('button', { name: /Open deck/ })).toBeNull();
+  expect(screen.queryByText(/ADDED TO YOUR DECKS|JUST NOW/)).toBeNull();
+  await fireEvent.press(screen.getByRole('button', { name: 'Random Words 1, 4 words · all new' }));
   expect(mockRouter.push).toHaveBeenCalledWith('/deck/d2');
+  await fireEvent.press(screen.getByRole('button', { name: 'Ordering food, 20 words · 8 learning' }));
+  expect(mockRouter.push).toHaveBeenCalledWith('/deck/d1');
+});
+
+test('the number in the decks title is green; a deck with one word is singular', async () => {
+  await show(progress({ decks: 1 }), [deck({ words: 1, learning: 1, stages: [2] })]);
+  expect(StyleSheet.flatten(screen.getByTestId('decks-count').props.style).color).toBe(colors.greenText);
+  expect(screen.getByText('1 word · 1 learning')).toBeOnTheScreen();
 });
 
 test('one deck is singular; no decks says so and points to New words', async () => {
@@ -118,7 +119,7 @@ test('the decks cannot be loaded: a message and Try again, the rest of the page 
   await waitFor(() => expect(screen.getByText('Could not load your decks.')).toBeOnTheScreen());
   expect(screen.getByText('52')).toBeOnTheScreen();
   await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-  await waitFor(() => expect(screen.getByText('“Order food, pay and tip”')).toBeOnTheScreen());
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Ordering food, 20 words · 8 learning' })).toBeOnTheScreen());
 });
 
 test('the numbers cannot be loaded: a message, then Try again', async () => {
