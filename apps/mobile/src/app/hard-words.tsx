@@ -8,13 +8,14 @@ import { directionStyle } from '@/components/chat/direction';
 import { Icon } from '@/components/icon';
 import { LoadError, Loading } from '@/components/load-state';
 import { useLoad } from '@/components/use-load';
+import { savesDone } from '@/review/saver';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Hard words (Figma P2): every word swiped Hard that is not back at level 3 yet. Opened from the Progress tab.
 export default function HardWordsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const load = useCallback(() => api.fetchHardWords(), []);
+  const load = useCallback(() => savesDone().then(() => api.fetchHardWords()), []); // after every swipe is saved
   const { data: words, failed, retry } = useLoad(load);
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>

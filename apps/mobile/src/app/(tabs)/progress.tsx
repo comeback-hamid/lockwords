@@ -13,6 +13,7 @@ import { LoadError, Loading } from '@/components/load-state';
 import { Meadow } from '@/components/meadow';
 import { Kai } from '@/kai/kai';
 import { goalMeadow, KAI_CELLS, nowMeadow } from '@/progress/meadow';
+import { savesDone } from '@/review/saver';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -38,11 +39,14 @@ export default function ProgressScreen() {
     );
   }, []);
   // Loads every time the tab comes into view: a round or a new deck changes the numbers.
+  // Swipes are saved in the background: wait for them, so a round left half-way is already in the numbers.
   const load = useCallback(() => {
-    api.fetchProgress().then(
-      (progress) => setState({ progress, failed: false }),
-      () => setState({ progress: null, failed: true }),
-    );
+    void savesDone()
+      .then(() => api.fetchProgress())
+      .then(
+        (progress) => setState({ progress, failed: false }),
+        () => setState({ progress: null, failed: true }),
+      );
     loadDecks();
   }, [loadDecks]);
   useFocusEffect(load);
