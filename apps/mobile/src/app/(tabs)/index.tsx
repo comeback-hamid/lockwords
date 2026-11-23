@@ -7,7 +7,7 @@ import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatMessagesGrow, chatScrollProps, closeKeyboard, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { chatMessagesGrow, chatScrollProps, closeKeyboard, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { useTimedCount } from '@/components/chat/deck-card';
 import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
@@ -258,7 +258,7 @@ export default function NewWordsScreen() {
   // A new line at the bottom scrolls the chat down. Older messages joining at the top do not.
   const newest = lines.at(-1)?.id;
   useEffect(() => {
-    scroll.current?.scrollToEnd({ animated: true });
+    scrollChatToEnd(scroll, !typing && !making && options.length > 0);
   }, [newest, typing, options, failed, making]);
 
   // The learner's turn and nothing happens: Kai waits after 20 seconds and sleeps after 2 minutes.

@@ -18,3 +18,10 @@ export function useScrollToEndOnKeyboard(list: RefObject<{ scrollToEnd(options?:
   }, [list]);
 }
 export const chatMessagesGrow = { flexGrow: 1 } as const;
+
+// Every chat calls this when its messages, typing bubble or options change. With the reply options on screen the list
+// jumps to its end with no animation: on iOS a tap on a list that is still scrolling only stops the scroll, so a quick
+// tap on an option was lost (found by the full Maestro pass, 2026-11-23). With no options it glides as before.
+export function scrollChatToEnd(list: RefObject<{ scrollToEnd(options?: { animated?: boolean }): void } | null>, optionsShown: boolean) {
+  list.current?.scrollToEnd({ animated: !optionsShown });
+}
