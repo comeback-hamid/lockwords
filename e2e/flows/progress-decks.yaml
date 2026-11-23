@@ -74,10 +74,10 @@ tags:
 - scrollUntilVisible:
     element: "You have 1 deck"
     direction: DOWN
+    timeout: 60000
 - scrollUntilVisible:
     element: "Open deck.*"
     direction: DOWN
-    centerElement: true
 - tapOn: "Open deck.*"
 # P3 Deck words: counts, chips, the known word only under Known
 - extendedWaitUntil:

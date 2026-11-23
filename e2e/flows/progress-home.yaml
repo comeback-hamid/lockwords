@@ -47,6 +47,7 @@ tags:
 - scrollUntilVisible:
     element: "You have 1 deck"
     direction: DOWN
+    timeout: 60000
 - scrollUntilVisible:
     element: "Open deck.*"
     direction: DOWN
