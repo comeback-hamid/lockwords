@@ -104,7 +104,6 @@ tags:
 - extendedWaitUntil:
     visible: ".*Shall we practice them now.*"
     timeout: 20000
-- hideKeyboard
 - scrollUntilVisible:
     element: "Open deck"
     direction: UP
