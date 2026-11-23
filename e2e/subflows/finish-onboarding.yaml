@@ -2,6 +2,11 @@
 # Used with runFlow. Not run alone (scripts/e2e.sh only runs e2e/flows).
 appId: com.comebackhamid.lockwords
 ---
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- tapOn: "Start"
 # O1 I'm learning
 - assertVisible: "What do you want to learn?"
 - tapOn: "Spanish"

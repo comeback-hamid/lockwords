@@ -3,7 +3,7 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-20 (fix: word plan deck size; before it `word-plan`: Kai's word plan. The Progress tab, epic 3, is done; before it PR #41).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-23 (`welcome-kai-animations`: splash picture, O0 Hello, a bigger Kai on O2 with the word in the learned language, Kai talks and listens in Use it; one of five fix PRs after Hamid's phone test; before it the word plan deck size fix).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
@@ -15,6 +15,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 - **Done 2026-11-20 (session "finish up to review tab", PRs #34–#38):** the Review rules on the server, Undo, streak, the done screen, Use it rules and questions to Kai, meanings for high levels, Kai's onboarding lines in the learner's language. Report with every decision: `docs/reports/2026-11-20-finish-up-to-review.md`.
 - **Done 2026-11-20 (PRs #39–#42): the Progress tab** (numbers, Your decks, deck words with filters and Restore, Review this deck, the goal grid, the meadow, the word plan). All three tabs are built. Fix after it (`fix/plan-word-count`): a deck asked for from the word plan now gets the size the plan showed (it showed 30 and the card said 12).
 - **Done 2026-11-20: the web build** (`web-build`): the whole app runs in a browser against the same server. It is **not public yet**: Hamid decides when (see "Web app" in `docs/architecture.md`).
+- **In review 2026-11-23 (`welcome-kai-animations`, area A of Hamid's phone test fixes):** a real splash picture (Kai and the name; **needs a new native build**), a new first screen O0 Hello (a very big Kai waves, “I’m Kai, welcome to Lockwords”, Start), a bigger Kai on the lock screen page (O2) that keeps waving, the sample word there in the language the learner picked (it was always Spanish), and Kai talks and listens in Use it. `Kai` and `KaiHeader` take `talking` and `listening`. Not checked on a real phone yet.
 - **Next without accounts: the widgets (epic 6)** on the simulator. The paywall and sign-in wait for the accounts.
 - **Launch date at risk:** the target is 2026-11-23, and two epics are not started (6 Widgets, 9 Launch prep), the paywall sells nothing and the web app is not public. See open decision 14.
 

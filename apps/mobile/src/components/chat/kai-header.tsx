@@ -12,8 +12,9 @@ import { colors, layout, lift, space } from '@/theme/theme';
 const KAI_WIDTH = 150;
 
 // `right` is a small control at the top right, next to Kai (the translation button on New words).
+// talking / listening: Kai speaks or listens right now (see `Kai`); they show over a resting pose only.
 // progress (0 to 1) feeds Kai's `making` state while a deck is made. A new playKey plays the same state again.
-export function KaiHeader({ pose, back = true, icon = 'back', right, progress, playKey }: { pose: KaiState; back?: boolean; icon?: 'back' | 'close'; right?: ReactNode; progress?: number; playKey?: number }) {
+export function KaiHeader({ pose = 'idle', talking, listening, back = true, icon = 'back', right, progress, playKey }: { pose?: KaiState; talking?: boolean; listening?: boolean; back?: boolean; icon?: 'back' | 'close'; right?: ReactNode; progress?: number; playKey?: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -24,7 +25,7 @@ export function KaiHeader({ pose, back = true, icon = 'back', right, progress, p
         </Pressable>
       ) : null}
       {right ? <View style={[styles.right, { top: insets.top + space[8] }]}>{right}</View> : null}
-      <Kai state={pose} size={KAI_WIDTH} progress={progress} playKey={playKey} />
+      <Kai state={pose} talking={talking} listening={listening} size={KAI_WIDTH} progress={progress} playKey={playKey} />
     </View>
   );
 }
