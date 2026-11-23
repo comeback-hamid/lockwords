@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatMessagesGrow, chatScrollProps, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
@@ -44,8 +44,8 @@ export default function UseItScreen() {
   };
 
   useEffect(() => {
-    scroll.current?.scrollToEnd({ animated: true });
-  }, [messages, options, typing]);
+    scrollChatToEnd(scroll, !busy && options.length > 0);
+  }, [messages, options, typing, busy]);
 
   if (!card) return <View style={styles.root} />; // opened without a round (deep link): nothing to show
 

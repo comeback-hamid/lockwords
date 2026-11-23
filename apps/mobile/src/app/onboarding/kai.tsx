@@ -7,7 +7,7 @@ import type { Deck } from '@/api/client';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatMessagesGrow, chatScrollProps, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { DeckCard, useTimedCount } from '@/components/chat/deck-card';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
@@ -261,8 +261,8 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   }
 
   useEffect(() => {
-    scroll.current?.scrollToEnd({ animated: true });
-  }, [messages, options, typing]);
+    scrollChatToEnd(scroll, !busy && !waiting && options.length > 0);
+  }, [messages, options, typing, busy, waiting]);
 
   const lastDeck = messages.findLastIndex((m) => m.from === 'deck');
 
