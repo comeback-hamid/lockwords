@@ -94,7 +94,7 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 | ID | Screen | Figma |
 |---|---|---|
 | P1 | Progress (tab) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=183-1185) |
-| P2 | Decks | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=275-206) |
+| P2 | Hard words (the list, opened from P1; the decks list moved to the bottom of P1 on 2026-11-23) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=275-206) |
 | P3 | Deck words | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=275-443) |
 
 ## Widgets

@@ -51,7 +51,7 @@ beforeEach(async () => {
 afterAll(() => pool.end());
 
 test('no words: zeros, the goal is 100', async () => {
-  expect(await get<Progress>('/v1/progress')).toEqual({ total: 0, new: 0, learning: 0, mastered: 0, decks: 0, goal: 100, masterBy: '2027-01-03', grid: [], language: '', trees: [] }); // language and trees added with progress-home
+  expect(await get<Progress>('/v1/progress')).toEqual({ total: 0, new: 0, learning: 0, mastered: 0, decks: 0, goal: 100, masterBy: '2027-01-03', grid: [], language: '', trees: [], hard: 0, deckWords: [] }); // language and trees added with progress-home; hard and deckWords on 2026-11-23
   expect(await get('/v1/decks')).toEqual({ decks: [] });
 });
 

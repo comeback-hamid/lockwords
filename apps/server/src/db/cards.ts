@@ -6,6 +6,9 @@ import { MAX_NEW_PER_DAY, pickRound, type CardState, type Direction } from '../r
 import type { createDb } from './client.js';
 import { cards, decks, profiles, reviewEvents, type ReviewEventState } from './schema.js';
 
+// The hard words list is the whole list, so it matches the count on the Progress tab. The limit only guards the answer's size.
+const HARD_WORDS_MAX = 500;
+
 export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsStore {
   // Cards joined to their deck. Every query below also filters decks.user_id, so a user only reaches their own cards.
   const mine = () =>
@@ -135,7 +138,7 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
       const rows = await mine()
         .where(and(kept(userId), eq(cards.hard, true), eq(cards.known, false)))
         .orderBy(desc(cards.createdAt), desc(cards.position))
-        .limit(20);
+        .limit(HARD_WORDS_MAX);
       return rows.map((r) => ({ word: r.card.word, translation: r.card.translation }));
     },
     async remove(userId, id) {

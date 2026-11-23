@@ -4,7 +4,7 @@ import type { PlanStore, ProfilesStore, ProgressStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { languageName } from '../llm/make-deck.js';
 import { goalWords, openItems, PLAN_SIZE, PlanItemSchema, PlanSchema, type DeckPlanner } from '../llm/plan-decks.js';
-import { bankNumbers, deckSummary, goalFor, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
+import { bankNumbers, deckSummary, goalFor, hardCount, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
 import { reviewDay } from '../review/day.js';
 import { UnauthorizedSchema } from './me.js';
 
@@ -14,10 +14,23 @@ const security = [{ bearer: [] }];
 const stages = z.array(z.number().int());
 
 const ProgressSchema = z
-  .object({ total: z.number().int(), new: z.number().int(), learning: z.number().int(), mastered: z.number().int(), decks: z.number().int(), goal: z.number().int(), masterBy: z.string(), grid: stages, language: z.string(), trees: z.array(stages) })
+  .object({
+    total: z.number().int(),
+    new: z.number().int(),
+    learning: z.number().int(),
+    mastered: z.number().int(),
+    hard: z.number().int(), // hard words that are not marked "I know it": the length of the full hard words list
+    decks: z.number().int(),
+    goal: z.number().int(),
+    masterBy: z.string(),
+    grid: stages,
+    language: z.string(),
+    trees: z.array(stages),
+    deckWords: z.array(z.number().int()), // how many words each tree's deck has, in the order of `trees`
+  })
   .openapi('Progress');
 const DeckSummarySchema = z
-  .object({ id: z.string(), topic: z.string(), title: z.string(), kind: z.enum(['topic', 'random']), words: z.number().int(), learning: z.number().int(), hard: z.number().int(), stages })
+  .object({ id: z.string(), topic: z.string(), title: z.string(), cefr: z.string(), kind: z.enum(['topic', 'random']), words: z.number().int(), learning: z.number().int(), hard: z.number().int(), stages })
   .openapi('DeckSummary');
 
 const getProgress = createRoute({ method: 'get', path: '/progress', security, responses: { 200: json(ProgressSchema, 'The numbers of the Progress tab'), ...unauthorized } });
@@ -48,11 +61,14 @@ export function progressRoutes(deps: Deps) {
       const now = clock();
       const zone = c.req.header('X-Time-Zone');
       const [decks, startedLately, language] = await Promise.all([store().decks(userId), store().startedSince(userId, reviewDay(new Date(now.getTime() - PACE_DAYS_MS), zone).day), store().learningLanguage(userId)]);
-      const { toLearn, started, ...numbers } = bankNumbers(decks.flatMap((d) => d.words));
+      const words = decks.flatMap((d) => d.words);
+      const { toLearn, started, ...numbers } = bankNumbers(words);
       const goal = goalFor(toLearn);
       // The meadow: one tree per deck, oldest first (the store lists newest first).
-      const trees = [...decks].reverse().map((d) => treeLevels(d.words));
-      return c.json({ ...numbers, decks: decks.length, goal, masterBy: masterBy(reviewDay(now, zone).day, goal, started, paceFrom(startedLately)), language: language ? languageName(language) : '', trees }, 200);
+      const oldestFirst = [...decks].reverse();
+      const trees = oldestFirst.map((d) => treeLevels(d.words));
+      const deckWords = oldestFirst.map((d) => d.words.length);
+      return c.json({ ...numbers, hard: hardCount(words), decks: decks.length, goal, masterBy: masterBy(reviewDay(now, zone).day, goal, started, paceFrom(startedLately)), language: language ? languageName(language) : '', trees, deckWords }, 200);
     })
     .openapi(getPlan, async (c) => {
       const userId = c.get('user').id;
