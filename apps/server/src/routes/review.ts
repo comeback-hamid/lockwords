@@ -70,6 +70,10 @@ const SummarySchema = z
   })
   .openapi('ReviewSummary');
 const getSummary = createRoute({ method: 'get', path: '/review/summary', security, responses: { 200: json(SummarySchema, 'The streak and what was done today'), ...unauthorized } });
+// The Easy label on a card says "BACK IN N DAYS" while the finger still moves, before the swipe is saved.
+// The app reads the numbers here; it never works them out itself.
+const RulesSchema = z.object({ easyBackInDays: z.array(z.number().int()) }).openapi('ReviewRules'); // by the card's stage now: 0 (new) … 5
+const getRules = createRoute({ method: 'get', path: '/review/rules', security, responses: { 200: json(RulesSchema, 'Days until an Easy card comes back, by stage'), ...unauthorized } });
 const postUseIt = createRoute({
   method: 'post',
   path: '/cards/{id}/use-it',
@@ -179,6 +183,11 @@ export function reviewRoutes(deps: Deps) {
       const { day } = reviewDay(clock(), c.req.header('X-Time-Zone'));
       const h = store.history ? await store.history(c.get('user').id, day) : { name: null, days: [], events: [] };
       return c.json({ day, name: h.name, streakDays: streakDays(h.days, day), today: todayNumbers(h.events) }, 200);
+    })
+    .openapi(getRules, (c) => {
+      const now = clock();
+      const easyBackInDays = [0, 1, 2, 3, 4, 5].map((stage) => applySwipe({ stage, known: false, hard: false, dueAt: null }, 'easy', now).backInDays ?? 0);
+      return c.json({ easyBackInDays }, 200);
     })
     .openapi(postUseIt, async (c) => {
       const userId = c.get('user').id;

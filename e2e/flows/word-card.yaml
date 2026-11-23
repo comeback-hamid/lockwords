@@ -1,0 +1,152 @@
+# The word card: picture on top, flip, the three swipes with the growing label, a long phrase, and a swipe to the
+# right inside the Review tab that does not change the tab. Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - review
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: word-card-flip-swipe
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "10 words left"
+- assertVisible: "la cuenta"
+- assertVisible: "TAP TO FLIP"
+# Only the top card can be read: the next one waits under it
+- assertNotVisible: "la propina"
+# Flip to the back, and to the front again
+- tapOn:
+    id: "review-card"
+- assertVisible: "the bill"
+- assertVisible: "Can you bring us the bill, please?"
+- assertVisible: "Say the word"
+- assertNotVisible: "TAP TO FLIP"
+- tapOn:
+    id: "review-card"
+- assertVisible: "TAP TO FLIP"
+- assertNotVisible: "the bill"
+# A short drag is not a swipe: the card goes back
+- swipe:
+    start: "50%, 45%"
+    end: "62%, 45%"
+    duration: 800
+- assertVisible: "10 words left"
+- assertVisible: "la cuenta"
+# ...and the drag did not count as a tap: still the front
+- assertVisible: "TAP TO FLIP"
+# Easy: a slow swipe right, the label grows with the finger; the next card is there at once
+- swipe:
+    start: "50%, 45%"
+    end: "90%, 45%"
+    duration: 2500
+- assertVisible: "9 words left"
+- assertVisible: "la propina"
+- assertVisible: "Undo"
+# Hard: a slow swipe left. The hard word comes back at the end, so the count stays at 9
+- swipe:
+    start: "50%, 45%"
+    end: "10%, 45%"
+    duration: 2500
+- assertVisible: "pedir"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+# I know it: a slow swipe up
+- swipe:
+    start: "50%, 55%"
+    end: "50%, 25%"
+    duration: 2500
+- assertVisible: "8 words left"
+- assertVisible: "el camarero"
+# A fast flick also counts, and three in a row do not wait for each other
+- swipe:
+    start: "50%, 45%"
+    end: "85%, 45%"
+    duration: 150
+- swipe:
+    start: "50%, 45%"
+    end: "85%, 45%"
+    duration: 150
+- swipe:
+    start: "50%, 45%"
+    end: "85%, 45%"
+    duration: 150
+- extendedWaitUntil:
+    visible: "5 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- tapOn: "Easy"
+- tapOn: "Easy"
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+# The hard word is the last card
+- assertVisible: "la propina"
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+- tapOn: "Continue"
+- tapOn: "Continue"
+- tapOn: "Close"
+# A long phrase from Kai
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Message"
+- inputText: "How do I say can you bring me the bill?"
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: "Add to Random Words 1"
+    timeout: 40000
+- tapOn: "Add to Random Words 1"
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 20000
+# A tap on the card (not on a button) puts the keyboard away, so the tab bar shows again
+- tapOn: "Waiter, can you bring me the bill, please\\?"
+# The round inside the Review tab: the tab bar stays
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "1 card to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "1 word left"
+- assertVisible: "New words"
+- assertVisible: "Progress"
+# The long phrase is whole on the front and on the back, with its speaker
+- assertVisible: "¿Me puede traer la cuenta, por favor\\?"
+- assertVisible: "Say the word"
+- tapOn:
+    id: "review-card"
+- assertVisible: "¿Me puede traer la cuenta, por favor\\?"
+- assertVisible: "Can you bring me the bill, please\\?"
+- assertVisible: "Say the word"
+- tapOn:
+    id: "review-card"
+# A short drag right, then the swipe right: the card moves, the tab does not change
+- swipe:
+    start: "50%, 45%"
+    end: "62%, 45%"
+    duration: 800
+- assertVisible: "1 word left"
+- assertNotVisible: "Message"
+# It starts at the left edge of the screen, where iOS has its own "go back" swipe
+- swipe:
+    start: "2%, 45%"
+    end: "75%, 45%"
+    duration: 2000
+# Still the Review tab: the round is done, and this is not the New words chat
+- extendedWaitUntil:
+    visible: "All cards done"
+    timeout: 15000
+- assertNotVisible: "Message"
+- stopRecording

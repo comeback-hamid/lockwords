@@ -29,18 +29,24 @@ export default function ReviewScreen() {
   const [inRound, setInRound] = useState(false);
 
   // Loads every time the tab comes into view, so a finished or left round shows what is true now.
-  const load = useCallback(() => {
-    setInRound(false);
+  // `afterRound`: the round just ended here. Its (empty) screen stays until the new numbers are in, so the old
+  // start screen does not flash by.
+  const load = useCallback((afterRound = false) => {
+    if (!afterRound) setInRound(false);
     // The summary (name, streak, today's numbers) is an extra: without it the screen still works.
     const summary = Promise.resolve()
       .then(() => api.fetchSummary())
       .catch(() => null);
-    Promise.all([api.fetchRound(), summary]).then(
-      ([cards, s]) => setState({ cards, summary: s, failed: false }),
-      () => setState({ cards: null, summary: null, failed: true }),
-    );
+    Promise.all([api.fetchRound(), summary])
+      .then(
+        ([cards, s]) => setState({ cards, summary: s, failed: false }),
+        () => setState({ cards: null, summary: null, failed: true }),
+      )
+      .then(() => setInRound(false));
   }, []);
-  useFocusEffect(load);
+  const onFocus = useCallback(() => load(), [load]);
+  const onRoundDone = useCallback(() => load(true), [load]);
+  useFocusEffect(onFocus);
 
   async function start(cards: ReviewCard[]) {
     setRound(cards);
@@ -50,7 +56,7 @@ export default function ReviewScreen() {
   }
 
   const { cards, summary, failed } = state;
-  if (inRound) return <RoundScreen inTab onDone={load} />;
+  if (inRound) return <RoundScreen inTab onDone={onRoundDone} />;
 
   const n = cards?.length ?? 0;
   const today = summary?.today;

@@ -14,8 +14,19 @@ const set = (next: typeof round) => {
 export const getRound = () => round;
 export const setRound = (cards: ReviewCard[]) => set({ cards, index: 0 });
 export const advance = () => set({ ...round, index: round.index + 1, added: false });
-// After a swipe: on to the next card. `again` = the server sends this card back once more today (a first Hard).
-export const swiped = (again?: ReviewCard) => set({ cards: again ? [...round.cards, again] : round.cards, index: round.index + 1, added: !!again });
+// After a swipe: on to the next card, at once. The save runs in the background (src/review/saver.ts).
+export const swiped = () => set({ ...round, index: round.index + 1, added: false });
+// The server sends this card back once more today (a first Hard): a copy goes to the end of the round.
+// `added` is set only when the copy belongs to the last swipe, so Undo takes out the right one.
+export const cameBack = (card: ReviewCard) => set({ ...round, cards: [...round.cards, card], added: round.cards[round.index - 1]?.id === card.id });
+// A swipe could not be saved: its card is the next card again. Nothing else in the round moves.
+export function putBack(card: ReviewCard) {
+  const at = round.cards.findIndex((c, i) => i < round.index && c.id === card.id);
+  if (at < 0) return;
+  const cards = round.cards.filter((_, i) => i !== at);
+  cards.splice(round.index - 1, 0, card);
+  set({ cards, index: round.index - 1, added: false });
+}
 // The server took the last swipe back: that card is current again, as the server now has it.
 export function undone(card: ReviewCard) {
   if (round.index === 0) return;

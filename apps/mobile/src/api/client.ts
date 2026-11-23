@@ -161,6 +161,10 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async fetchSummary(): Promise<ReviewSummary> {
       return unwrap(await client.GET('/v1/review/summary'));
     },
+    // Days until an Easy card comes back, by the card's stage now (0 = new … 5). The Easy label shows it before the save.
+    async fetchReviewRules(): Promise<components['schemas']['ReviewRules']> {
+      return unwrap(await client.GET('/v1/review/rules'));
+    },
     // Takes back the last swipe of today. Throws when there is none.
     async undoSwipe(): Promise<ReviewCard> {
       return unwrap(await client.POST('/v1/review/undo')).card;

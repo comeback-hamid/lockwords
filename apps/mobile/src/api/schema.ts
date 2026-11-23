@@ -1039,6 +1039,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/review/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Days until an Easy card comes back, by stage */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewRules"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cards/{id}/use-it": {
         parameters: {
             query?: never;
@@ -1939,6 +1983,9 @@ export interface components {
                 known: number;
                 stages: number[];
             };
+        };
+        ReviewRules: {
+            easyBackInDays: number[];
         };
         UseItResult: {
             good: boolean;

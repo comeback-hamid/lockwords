@@ -34,7 +34,13 @@ export default function RootLayout() {
   }, []);
 
   if (!ready) return null;
-  const stack = <Stack screenOptions={{ headerShown: false }} />;
+  const stack = (
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* The tabs are the bottom of the app. With the iOS swipe-back on, a swipe to the right from the screen edge
+          (the Easy swipe on a review card) left the tabs for whatever screen was open before them. */}
+      <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+    </Stack>
+  );
   if (Platform.OS !== 'web') return stack;
   // In a browser the app keeps its phone shape: one column in the middle of the page (Figma frame: 393 wide).
   return (
