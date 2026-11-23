@@ -68,16 +68,17 @@ export function openaiSheetMaker(apiKey: string, fetchFn: Fetch = fetch, model =
 }
 
 // Stands in for the image model in tests and in local runs with no OPENAI_API_KEY: one plain shape per cell.
-// `delayMs` lets a local run show the wait.
+// `delayMs` lets a local run show the wait. A function is read at each call (a test run changes it: `routes/dev-pictures.ts`).
 const SHAPES = [
   (x: number, y: number, r: number) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#aceebb" stroke="#1f2328" stroke-width="6"/>`,
   (x: number, y: number, r: number) => `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}" rx="18" fill="#e6e9ec" stroke="#1f2328" stroke-width="6"/>`,
   (x: number, y: number, r: number) => `<path d="M${x} ${y - r} L${x + r} ${y + r} L${x - r} ${y + r} Z" fill="#4ac26b" stroke="#1f2328" stroke-width="6" stroke-linejoin="round"/>`,
 ];
-export function fixtureSheetMaker(delayMs = 0): SheetMaker {
+export function fixtureSheetMaker(delayMs: number | (() => number) = 0): SheetMaker {
   return {
     async sheet(items, grid) {
-      if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
+      const wait = typeof delayMs === 'function' ? delayMs() : delayMs;
+      if (wait) await new Promise((r) => setTimeout(r, wait));
       const w = SHEET.width / grid.cols, h = SHEET.height / grid.rows;
       const cells = items.map((_, i) => SHAPES[i % SHAPES.length]!((i % grid.cols) * w + w / 2, Math.floor(i / grid.cols) * h + h / 2, Math.min(w, h) / 4)).join('');
       return sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SHEET.width}" height="${SHEET.height}"><rect width="100%" height="100%" fill="#f6f8fa"/>${cells}</svg>`)).png().toBuffer();

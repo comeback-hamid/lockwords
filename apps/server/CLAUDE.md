@@ -37,4 +37,5 @@ Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` a
 - Each user reads only their own rows. Keep Speak text, never audio.
 - The server checks the Supabase token (`src/auth.ts`) on every `/v1/*` route. No other Supabase parts. Never log a token.
 - New routes use `@hono/zod-openapi` (`createRoute`) so they land in `openapi.json`. Tests sign their own tokens: `test/helpers/tokens.ts`.
+- One route is not in `openapi.json` on purpose: `POST /dev/fixture-picture-ms` (`src/routes/dev-pictures.ts`). It sets how long the stand-in picture sheet takes, for the Maestro flows in `e2e/slow-pictures.txt`. `src/index.ts` mounts it only with the stand-in sheet maker: never in production, never with `OPENAI_API_KEY`.
 - `GET /health` must stay fast: the deploy rolls back if it fails for 60 s.
