@@ -178,4 +178,23 @@ tags:
 - extendedWaitUntil:
     visible: ".* WORDS"
     timeout: 20000
+# The word cards show their pictures (the stand-in draws plain shapes): start the round and look at two cards
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "Message"
+    timeout: 20000
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: ".* cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- extendedWaitUntil:
+    visible: "la cuenta"
+    timeout: 20000
+- waitForAnimationToEnd
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "la propina"
+    timeout: 20000
+- waitForAnimationToEnd
 - stopRecording
