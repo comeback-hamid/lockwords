@@ -803,6 +803,20 @@
           "today"
         ]
       },
+      "ReviewRules": {
+        "type": "object",
+        "properties": {
+          "easyBackInDays": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "easyBackInDays"
+        ]
+      },
       "UseItResult": {
         "type": "object",
         "properties": {
@@ -2517,6 +2531,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReviewSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/review/rules": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Days until an Easy card comes back, by stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewRules"
                 }
               }
             }

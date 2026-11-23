@@ -113,6 +113,7 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 |  | Components · 02 Icons | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=69-981) |
 |  | Components · 03 Onboarding | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=69-995) |
 |  | Components · 04 Cards & practice | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=69-1000) |
+|  | Components · Flashcard · rules (picture, word size for long phrases, speaker place, swipe label, flip) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2070-4259) |
 |  | Components · 05 App · tabs & review | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=69-1008) |
 |  | Components · 06 Assistant (chat bubble, composer, Kai poses) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=206-822) |
 |  | Components · 07 Progress & paywall | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=287-183) |
