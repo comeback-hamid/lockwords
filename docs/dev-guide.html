@@ -529,6 +529,15 @@ AGENTS.md  CLAUDE.md (@AGENTS.md)</pre>
     </div>
     <div class="cycle-back" style="margin-top:14px">↺ Verifier finds bugs → builder adds a failing test per bug → fixes → re-check. <strong>Max 3 rounds</strong>, then ask a human: the spec is probably unclear.</div>
     <div class="callout">Weekly: a clean-code pass on the whole repo (Fatima, or an agent she asks). Findings go to <code>clean-code.md</code> or <code>tech-debt.md</code>.</div>
+
+    <h3 style="margin:32px 0 12px; font-size:18px">Many agents at once: stay fast</h3>
+    <p style="margin:0 0 14px">On one Mac the slow part is not the code. It is the Maestro pass before every push: all flows take about an hour, and every merge makes the other sessions test again. When several sessions work on one batch, these two rules apply (Hamid, 2026-11-23). Hamid says at the start of a batch that it runs this way.</p>
+    <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px">
+      <div class="card"><h3>1 · Area-only tests after a merge</h3><p>After a session merges <code>origin/main</code>, it runs only the flows of the areas its change touches: <code>LOCKWORDS_E2E_AREAS=review,onboarding</code> (its own new flow is among them). Never the full pass again. The PR names the areas it ran.</p></div>
+      <div class="card"><h3>2 · No local simulator run before a push</h3><p>Unit tests, typecheck and lint pass → <code>git push --no-verify</code>. GitHub CI must be green before a merge. The PR says: "Pushed without the local Maestro pass". A feature still records its own flow once, for the video.</p></div>
+    </div>
+    <div class="callout warn" style="margin-top:14px"><strong>What keeps this safe.</strong> When the whole batch is merged, <strong>one full pass of all flows runs on <code>main</code></strong>, on one simulator with nothing else running, and it records the video for Hamid. What it finds is fixed before any build goes to a phone or to TestFlight. No full pass, no build. A single session working alone keeps the normal pre-push pass.</div>
+    <div class="callout">More in <code>docs/parallel-work.md</code> ("Faster with many sessions"): how many simulators this Mac can run, and how to tell a real failure from a busy machine.</div>
   </section>
 
   <!-- 8 AI -->
