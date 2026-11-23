@@ -24,6 +24,7 @@ type Props = {
   showTranslation?: boolean; // the title in the learner's own language, under the title (New words: follows the translation button)
   inWordList?: boolean; // New words: the deck is in the word list at once, so the ready card says so
   flat?: boolean; // in a row of cards: no room kept on the right
+  listed?: boolean; // in a list of the learner's decks (Progress): no JUST NOW, and the button is named after the deck ("Open deck, <title>")
 };
 
 // A timed count: the server's job reports no progress, only generating → ready.
@@ -46,14 +47,14 @@ export function useTimedCount(active: boolean, total: number) {
 // Figma deck card in a Kai chat: proposed (Generate) → generating (progress) → drawing (pictures) → ready (tap to open).
 // A card that can be opened has the open column on its right (Figma "Deck card / Open column"): a narrow grey strip,
 // as high as the card, with a small arrow in the middle. It is the one deck card: chat, onboarding and Progress use it.
-export function DeckCard({ deck, state, onGenerate, onOpen, count, pictures, hideGenerate = false, showTranslation = false, inWordList = false, flat = false }: Props) {
+export function DeckCard({ deck, state, onGenerate, onOpen, count, pictures, hideGenerate = false, showTranslation = false, inWordList = false, flat = false, listed = false }: Props) {
   // One level square per word. An idea has no cards yet: every word is new.
   const squares = deck.cards?.length ? deck.cards : Array.from({ length: deck.wordCount }, (_, i) => ({ id: String(i), stage: 0 }));
   const body = (
     <>
       <View style={styles.row}>
         <Text style={[type.labelTag, styles.muted]}>{`${deck.cefr} · ${deck.wordCount} WORDS`}</Text>
-        {state === 'ready' ? <Text style={[type.labelTag, styles.green]}>JUST NOW</Text> : null}
+        {state === 'ready' && !listed ? <Text style={[type.labelTag, styles.green]}>JUST NOW</Text> : null}
       </View>
       <View>
         <Text style={[type.bodyStrong, styles.title, isRtl(deck.title) && styles.titleRtl, directionStyle(deck.title)]}>{`“${deck.title}”`}</Text>
@@ -98,7 +99,7 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count, pictures, hid
     </>
   );
   return state === 'ready' ? (
-    <Pressable accessibilityRole="button" accessibilityLabel="Open deck" onPress={onOpen} style={[styles.card, styles.openCard, flat && styles.flat]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={listed ? `Open deck, ${deck.title}` : 'Open deck'} onPress={onOpen} style={[styles.card, styles.openCard, flat && styles.flat]}>
       <View style={styles.openBody}>{body}</View>
       <View testID="deck-open-column" style={styles.openColumn}>
         <Icon name="next" color={colors.muted} />

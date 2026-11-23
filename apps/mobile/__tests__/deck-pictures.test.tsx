@@ -39,6 +39,14 @@ describe('deck card', () => {
     await fireEvent.press(screen.getByTestId('deck-open-column'));
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
+  test('in a list of decks (Progress): no JUST NOW, and the button says which deck it opens', async () => {
+    const view = await render(<DeckCard deck={drawn} state="ready" {...noop} />);
+    expect(screen.getByText('JUST NOW')).toBeOnTheScreen();
+    await view.rerender(<DeckCard deck={drawn} state="ready" listed flat {...noop} />);
+    expect(screen.queryByText('JUST NOW')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Open deck, Order food and pay the bill.' })).toBeOnTheScreen();
+    expect(screen.getByTestId('deck-open-column')).toBeOnTheScreen();
+  });
   test('drawing: the words are there, the pictures are counted, and the card cannot be opened yet', async () => {
     await render(<DeckCard deck={words} state="drawing" pictures={{ ready: 3, total: 10 }} {...noop} />);
     expect(screen.getByText('Drawing the pictures…')).toBeOnTheScreen();
