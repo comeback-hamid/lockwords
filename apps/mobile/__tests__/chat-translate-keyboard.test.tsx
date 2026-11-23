@@ -1,18 +1,21 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react-native';
 import { AppState, Keyboard } from 'react-native';
 
-import type { KaiChat, KaiMessage, ReviewCard } from '@/api/client';
+import type { KaiChat, KaiMessage, KaiWord, ReviewCard } from '@/api/client';
 import NewWordsScreen from '@/app/(tabs)/index';
 import KaiScreen from '@/app/onboarding/kai';
 import UseItScreen from '@/app/use-it/[id]';
 import { api } from '@/auth/boot';
 import { ChatBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { ReplyOptions } from '@/components/chat/reply-options';
+import { KaiText } from '@/components/chat/kai-text';
+import { useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { WordCard } from '@/components/chat/word-card';
 import { TextField } from '@/components/text-field';
 import { ENGLISH_SCRIPT } from '@/onboarding/kai-script';
 import { resetAnswers, setAnswers } from '@/onboarding/store';
 import { setRound } from '@/review/round-store';
+import { type } from '@/theme/theme';
 
 // One translation switch for every chat, and the keyboard rules (Hamid's phone test, 2026-11-23).
 
@@ -182,17 +185,6 @@ describe('the keyboard', () => {
     expect(dismiss).toHaveBeenCalled();
   };
 
-  // With the keyboard up the options fill most of the chat, so a drag there counts as a scroll of the chat.
-  test('a drag over the reply options closes the keyboard, and a tap still picks the option', async () => {
-    const onPick = jest.fn();
-    await render(<ReplyOptions options={['Español']} onPick={onPick} />);
-    const taken = screen.getByTestId('reply-options').props.onMoveShouldSetResponderCapture();
-    expect(dismiss).toHaveBeenCalledTimes(1);
-    expect(taken).toBe(false); // the option keeps the touch
-    await fireEvent.press(screen.getByRole('button', { name: 'Español' }));
-    expect(onPick).toHaveBeenCalledWith('Español');
-  });
-
   test('onboarding chat: a scroll of the messages closes the keyboard', async () => {
     await onboardingChat(null);
     await dragCloses();
@@ -209,5 +201,85 @@ describe('the keyboard', () => {
     await render(<UseItScreen />);
     await act(async () => {});
     await dragCloses();
+  });
+});
+
+// Hamid, 2026-11-23: **word** must be bold with no stars, everywhere Kai's or the server's text shows.
+describe('bold words (**word**), one renderer', () => {
+  const bold = (text: string) => screen.getByText(text).props.style;
+  const fonts = (style: unknown) => JSON.stringify(style);
+
+  test('KaiText: the marked word is bold and the stars are gone', async () => {
+    await render(<KaiText text="I make **decks** for **you**" style={type.body} boldStyle={type.bodyStrong} />);
+    expect(screen.getByText('I make decks for you')).toBeOnTheScreen();
+    expect(screen.queryByText(/\*/)).toBeNull();
+    expect(fonts(bold('decks'))).toContain(type.bodyStrong.fontFamily);
+    expect(fonts(bold('you'))).toContain(type.bodyStrong.fontFamily);
+  });
+
+  test('KaiText: a single pair of stars with no partner is taken out and nothing turns bold', async () => {
+    await render(<KaiText text="Tap **Generate now" style={type.body} boldStyle={type.bodyStrong} />);
+    expect(screen.getByText('Tap Generate now')).toBeOnTheScreen();
+    expect(screen.queryByText(/\*/)).toBeNull();
+  });
+
+  test('the translation under the divider: bold word, no stars', async () => {
+    await render(<ChatBubble from="kai" text="Creo **mazos** para ti" translation="برات **دسته** می‌سازم" showTranslation />);
+    expect(screen.getByText('برات دسته می‌سازم')).toBeOnTheScreen();
+    expect(screen.queryByText(/\*/)).toBeNull();
+    expect(fonts(bold('دسته'))).toContain(type.captionStrong.fontFamily);
+    expect(fonts(bold('mazos'))).toContain(type.bodyStrong.fontFamily);
+  });
+
+  test('onboarding chat in the learned language: no stars in a line or under it', async () => {
+    await onboardingChat();
+    expect(kaiSays('ES 🃏 I make decks of words just for you')).toBeOnTheScreen();
+    expect(screen.getByText('فا 🃏 I make decks of words just for you')).toBeOnTheScreen();
+    expect(screen.queryByText(/\*/)).toBeNull();
+  });
+
+  test('word card: stars in the example translation or the meaning do not show', async () => {
+    const word: KaiWord = { word: 'la propina', translation: 'the **tip**', example: 'Dejo una **propina**.', exampleTranslation: 'I leave a **tip**.', addTo: 'Random Words 1', added: false, already: false };
+    await render(<WordCard word={word} onAdd={jest.fn()} />);
+    expect(screen.queryByText(/\*/)).toBeNull();
+    expect(screen.getByText('I leave a tip.')).toBeOnTheScreen();
+    expect(screen.getByTestId('example-word')).toHaveTextContent('propina');
+  });
+});
+
+// Hamid, 2026-11-23: the reply options are the last item of the chat, not a block glued on top of the keyboard.
+describe('reply options are part of the message list', () => {
+  const inList = (name: string) => within(screen.getByTestId('chat-messages')).getByRole('button', { name });
+
+  test('onboarding chat', async () => {
+    await onboardingChat(null);
+    await send('Sara');
+    await waitFor(() => expect(inList('Español')).toBeOnTheScreen());
+    expect(inList('فارسی')).toBeOnTheScreen();
+  });
+
+  test('New words chat', async () => {
+    mockApi.fetchKaiChat.mockResolvedValue(chat({ messages: [kaiLine('¿Practicamos?', 'تمرین کنیم؟')], options: ['Vamos a practicar'] }));
+    await render(<NewWordsScreen />);
+    await waitFor(() => expect(inList('Vamos a practicar')).toBeOnTheScreen());
+  });
+
+  test('Use it chat', async () => {
+    setRound([card]);
+    await render(<UseItScreen />);
+    await waitFor(() => expect(inList('Show me an example')).toBeOnTheScreen());
+  });
+
+  test('when the keyboard opens, the chat scrolls to its end, so the options stay in view', async () => {
+    const shown: (() => void)[] = [];
+    jest.spyOn(Keyboard, 'addListener').mockImplementation(((event: string, fn: () => void) => {
+      if (event === 'keyboardDidShow') shown.push(fn);
+      return { remove: jest.fn() };
+    }) as never);
+    const scrollToEnd = jest.fn();
+    await renderHook(() => useScrollToEndOnKeyboard({ current: { scrollToEnd } }));
+    expect(shown.length).toBe(1);
+    act(() => shown[0]!());
+    expect(scrollToEnd).toHaveBeenCalledWith({ animated: true });
   });
 });

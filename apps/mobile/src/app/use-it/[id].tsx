@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatScrollProps } from '@/components/chat/keyboard';
+import { chatMessagesGrow, chatScrollProps, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
@@ -36,6 +36,7 @@ export default function UseItScreen() {
   // After a good sentence the chat turns into questions about the word: typed text is asked, not checked.
   const [goodSentence, setGoodSentence] = useState<string | null>(null);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  useScrollToEndOnKeyboard(scroll);
   const say = (...next: Message[]) => {
     edit((all) => all.filter((m) => !(m.from === 'kai' && (m.text === CHECKING || m.text === THINKING))));
     add(...next);
@@ -99,7 +100,7 @@ export default function UseItScreen() {
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <KaiHeader pose={pose} icon="close" />
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} {...chatScrollProps}>
+      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>
@@ -117,9 +118,9 @@ export default function UseItScreen() {
           ),
         )}
         {typing ? <TypingBubble /> : null}
+        <ReplyOptions options={busy ? [] : options} onPick={reply} />
       </ScrollView>
       {cheer ? <ThumbsUp key={cheer} /> : null}
-      <ReplyOptions options={busy ? [] : options} onPick={reply} />
       <View style={{ paddingBottom: Math.max(insets.bottom, space[12]) }}>
         <Composer placeholder={goodSentence !== null ? 'Ask Kai about this word…' : 'Type a message…'} onSend={reply} maxLength={300} />
       </View>

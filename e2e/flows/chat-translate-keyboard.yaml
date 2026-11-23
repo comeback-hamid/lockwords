@@ -57,6 +57,18 @@ tags:
 - extendedWaitUntil:
     visible: "Español"
     timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 20000
+# The reply options are the last item of the chat: with the keyboard up they are still in view above it,
+# and a scroll of the chat (they move with it) closes the keyboard
+- tapOn: "Message"
+- assertVisible: "Emoji"
+- assertVisible: "Español"
+- swipe:
+    start: 50%, 30%
+    end: 50%, 42%
+- assertNotVisible: "Emoji"
 - tapOn: "Español"
 - extendedWaitUntil:
     notVisible: "Kai is typing"
@@ -66,7 +78,7 @@ tags:
 - assertVisible: "Translation, off"
 - tapOn: "Translation, off"
 - assertVisible: "Translation, on"
-# A scroll of the chat closes the keyboard: down, then up (the reply options fill the chat here, and a drag there counts)
+# A scroll of the chat closes the keyboard: down, then up
 - tapOn: "Message"
 - assertVisible: "Emoji"
 - swipe:

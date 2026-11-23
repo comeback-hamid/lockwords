@@ -7,7 +7,7 @@ import type { Deck } from '@/api/client';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatScrollProps } from '@/components/chat/keyboard';
+import { chatMessagesGrow, chatScrollProps, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { DeckCard, useTimedCount } from '@/components/chat/deck-card';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
@@ -86,6 +86,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const name = useRef('');
   const topic = useRef('');
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  useScrollToEndOnKeyboard(scroll);
 
   const languageOptions = learning && speaks ? chatLanguageOptions(speaks, learning) : [];
   const made = useTimedCount(step === 'generating', deck?.wordCount ?? 10);
@@ -240,7 +241,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
         progress={step === 'generating' ? made / total : step === 'ready' ? 1 : undefined}
         right={translation.code ? <TranslationToggle code={translation.code} on={translation.on} onToggle={translation.toggle} /> : undefined}
       />
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} {...chatScrollProps}>
+      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'deck' ? (
             deck ? (
@@ -255,8 +256,8 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
           ),
         )}
         {typing ? <TypingBubble /> : null}
+        <ReplyOptions options={busy || waiting ? [] : options} onPick={pick} />
       </ScrollView>
-      <ReplyOptions options={busy || waiting ? [] : options} onPick={pick} />
       <View style={{ paddingBottom: Math.max(insets.bottom, space[12]) }}>
         <Composer placeholder={step === 'topic' ? 'Or tell me what you need…' : 'Type a message…'} onSend={(text) => void typed(text)} onTextChange={(t) => setComposerText(t.trim() !== '')} />
       </View>

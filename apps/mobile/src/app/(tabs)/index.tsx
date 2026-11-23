@@ -7,7 +7,7 @@ import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatScrollProps, closeKeyboard } from '@/components/chat/keyboard';
+import { chatMessagesGrow, chatScrollProps, closeKeyboard, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { useTimedCount } from '@/components/chat/deck-card';
 import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
@@ -48,6 +48,7 @@ export default function NewWordsScreen() {
   const translation = useTranslation(); // the same switch as the onboarding chat
   const startTranslation = translation.start;
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  useScrollToEndOnKeyboard(scroll);
   // Decks (Figma N2–N5): the deck being made now, how Kai feels about the last one, and the decks Kai was asked to speak about.
   const [making, setMaking] = useState<ChatDeck | null>(null);
   const [celebrate, setCelebrate] = useState(0); // 0 = no; a new number plays it again (a deck is ready, a word was added)
@@ -406,7 +407,7 @@ export default function NewWordsScreen() {
         ref={scroll}
         {...chatScrollProps}
         style={styles.scroll}
-        contentContainerStyle={styles.messages}
+        contentContainerStyle={[styles.messages, chatMessagesGrow]}
         // Older messages join at the top: the line the learner is reading stays where it is.
         maintainVisibleContentPosition={KEEP_PLACE}
         scrollEventThrottle={16}
@@ -434,6 +435,7 @@ export default function NewWordsScreen() {
         ))}
         {typing ? <TypingBubble /> : null}
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}
+        <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o, true)} />
         </ScrollView>
         {loadingOlder ? (
           // Over the chat, not in it: the messages do not move while the page loads.
@@ -444,7 +446,6 @@ export default function NewWordsScreen() {
           </View>
         ) : null}
       </View>
-      <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o, true)} />
       <View style={keyboard ? styles.composerTyping : styles.composer}>
         <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} onTextChange={typed} maxLength={500} mic={false} canSend={!typing && !making} />
       </View>

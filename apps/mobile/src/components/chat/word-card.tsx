@@ -8,6 +8,7 @@ import { getSpeechLanguage } from '@/review/speech-language';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 import { directionStyle, isRtl } from './direction';
+import { KaiText, plainText } from './kai-text';
 
 // Figma Word card (N6): a single word Kai gave in the chat. The meaning and the example's translation always show,
 // also when the chat's translations are off. One button adds the word to the Random Words deck the server named.
@@ -16,17 +17,19 @@ import { directionStyle, isRtl } from './direction';
 type Props = { word: KaiWord; onAdd(): Promise<'added' | 'already'> };
 type State = 'idle' | 'busy' | 'added' | 'already';
 
-// The example in parts; odd parts are the word. Kai marks the word with **; with no marks we look for the word itself.
-function exampleParts(example: string, word: string): string[] {
-  if (example.includes('**')) return example.split('**');
+// The example with the word marked by **. Kai marks it; with no marks we look for the word itself.
+function markedExample(example: string, word: string): string {
+  if (example.includes('**')) return example;
   const at = example.toLowerCase().indexOf(word.toLowerCase());
-  return at < 0 ? [example] : [example.slice(0, at), example.slice(at, at + word.length), example.slice(at + word.length)];
+  return at < 0 ? example : `${example.slice(0, at)}**${example.slice(at, at + word.length)}**${example.slice(at + word.length)}`;
 }
 
 export function WordCard({ word, onAdd }: Props) {
   const [state, setState] = useState<State>(word.added ? 'added' : word.already ? 'already' : 'idle');
   const [failed, setFailed] = useState(false);
-  const parts = exampleParts(word.example, word.word);
+  const example = markedExample(word.example, word.word);
+  // The server's other texts never show stars either.
+  const [shownWord, meaning, exampleMeaning] = [word.word, word.translation, word.exampleTranslation].map(plainText) as [string, string, string];
   const done = state === 'added' || state === 'already';
   const label = state === 'added' ? 'Added' : state === 'already' ? 'Already in your words' : `Add to ${word.addTo}`;
 
@@ -44,25 +47,15 @@ export function WordCard({ word, onAdd }: Props) {
   return (
     <View style={styles.card}>
       <View testID="word-row" style={[styles.wordRow, isRtl(word.word) && styles.wordRowRtl]}>
-        <Text style={[type.headline, styles.word, directionStyle(word.word)]}>{word.word}</Text>
+        <Text style={[type.headline, styles.word, directionStyle(shownWord)]}>{shownWord}</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => Speech.speak(word.word, { language: getSpeechLanguage() })} hitSlop={space[4]} style={styles.speaker}>
           <Icon name="speaker" color={colors.text2} />
         </Pressable>
       </View>
-      <Text style={[type.callout, styles.muted, directionStyle(word.translation)]}>{word.translation}</Text>
+      <Text style={[type.callout, styles.muted, directionStyle(meaning)]}>{meaning}</Text>
       <View testID="word-card-divider" style={styles.divider} />
-      <Text accessibilityLabel={parts.join('')} style={[type.body, styles.ink, directionStyle(word.example)]}>
-        {parts.map((part, i) =>
-          i % 2 ? (
-            <Text key={i} testID="example-word" style={[type.bodyStrong, styles.green]}>
-              {part}
-            </Text>
-          ) : (
-            part
-          ),
-        )}
-      </Text>
-      <Text style={[type.caption, styles.muted, directionStyle(word.exampleTranslation)]}>{word.exampleTranslation}</Text>
+      <KaiText accessibilityLabel={plainText(example)} text={example} style={[type.body, styles.ink, directionStyle(word.example)]} boldStyle={[type.bodyStrong, styles.green]} boldTestID="example-word" />
+      <Text style={[type.caption, styles.muted, directionStyle(exampleMeaning)]}>{exampleMeaning}</Text>
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
