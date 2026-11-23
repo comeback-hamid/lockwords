@@ -1,4 +1,5 @@
-# Smoke test: a fresh install opens on the first onboarding screen, and stays there after a restart.
+# Smoke test: a fresh install opens on O0 Hello (Kai says welcome), Start opens the first question,
+# and a restart before onboarding is finished opens Hello again.
 appId: com.comebackhamid.lockwords
 tags:
   - platform
@@ -6,9 +7,15 @@ tags:
 - launchApp:
     clearState: true
     clearKeychain: true
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- tapOn: "Start"
 - assertVisible: "What do you want to learn?"
 # The tabs are closed until onboarding is finished.
 - assertNotVisible: "New words"
 - stopApp
 - launchApp
-- assertVisible: "What do you want to learn?"
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
