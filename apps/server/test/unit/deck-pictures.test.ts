@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { createApp, type DecksStore, type PicturesStore, type ProfilesStore, type UsersStore } from '../../src/app.js';
 import { inlineDeckJobs, makeDeckCards } from '../../src/decks/jobs.js';
 import { drawDeckPictures, type PictureTodo } from '../../src/decks/pictures.js';
-import { cutSheet } from '../../src/decks/cut-sheet.js';
+import { cutLines, cutSheet } from '../../src/decks/cut-sheet.js';
 import { fixtureSheetMaker, gridFor, ILLUSTRATION_STYLE, openaiSheetMaker, SHEET, sheetPrompt, sheetSizes, type SheetMaker } from '../../src/llm/deck-pictures.js';
 import { fixtureDeckMaker } from '../../src/llm/fixture.js';
 import { deckPrompt } from '../../src/llm/make-deck.js';
@@ -41,11 +41,13 @@ test('the sheet prompt: grid, every item in order, empty cells, no text, the sty
   expect(p).toContain('The last 2 cells stay empty.');
   expect(p).toContain('No grid lines, no borders, no frames, no numbers, no letters, no words anywhere.');
   expect(p).toContain(ILLUSTRATION_STYLE);
+  expect(p).toContain('fills about two thirds of it');
+  expect(p).toContain('Colours: only near-black, white, light gray and green.');
   expect(sheetPrompt(items(30), gridFor(30))).not.toContain('stay empty');
 });
 
 test('the words prompt asks for a picture idea in English with every word', () => {
-  expect(deckPrompt({ ...profile, cefr: 'A2+', topic: 'Ordering food' })).toContain('- picture: what to draw for this word, in English, at most 12 words');
+  expect(deckPrompt({ ...profile, cefr: 'A2+', topic: 'Ordering food' })).toContain('- picture: what to draw for this word, in English, at most 12 words: one simple, concrete object');
 });
 
 // A sheet whose cell i is filled with its own gray: 10 * (i + 1).
@@ -62,10 +64,34 @@ test('cutting: one WebP picture per item, in reading order, each from its own ce
     const meta = await sharp(picture).metadata();
     expect(meta.format).toBe('webp');
     expect(meta.width).toBe(384);
-    expect(meta.height).toBe(341);
+    expect([341, 342]).toContain(meta.height); // 1024 / 3
     const { channels } = await sharp(picture).stats();
     expect(Math.abs(channels[0]!.mean - 10 * (i + 1))).toBeLessThan(3);
   }
+});
+
+test('uneven rows: the cut goes through the empty gap, so no cell shows a piece of its neighbour', async () => {
+  // 2 × 2 on a light sheet. The top pictures are tall: they end at y = 600, past the even line at 512. The bottom ones start at 660.
+  const box = (x: number, y: number, w: number, h: number) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1f2328"/>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1024"><rect width="100%" height="100%" fill="#f6f8fa"/>${box(200, 100, 360, 500)}${box(960, 100, 360, 500)}${box(200, 660, 360, 300)}${box(960, 660, 360, 300)}</svg>`;
+  const pictures = await cutSheet(await sharp(Buffer.from(svg)).png().toBuffer(), { cols: 2, rows: 2 }, 4);
+  const [top, bottom] = [await sharp(pictures[0]!).metadata(), await sharp(pictures[2]!).metadata()];
+  expect(top.height).toBe(630); // the middle of the gap (600 to 660): the whole tall picture and nothing of the one below
+  expect(top.height! + bottom.height!).toBe(1024);
+  // The bottom edge of the top cell and the top edge of the bottom cell are empty.
+  const edge = async (picture: Buffer, y: number) => (await sharp(await sharp(picture).extract({ left: 0, top: y, width: 700, height: 4 }).greyscale().png().toBuffer()).stats()).channels[0]!.min; // stats() reads its input, so cut first
+  expect(await edge(pictures[0]!, top.height! - 4)).toBeGreaterThan(200);
+  expect(await edge(pictures[2]!, 0)).toBeGreaterThan(200);
+});
+
+test('cut lines: even when the even place is empty or no empty band is near; else the middle of the nearest empty band', () => {
+  expect(cutLines(new Uint32Array(1000), 1000, 4)).toEqual([0, 250, 500, 750, 1000]);
+  const ink = new Uint32Array(1000).fill(50);
+  expect(cutLines(ink, 1000, 4)).toEqual([0, 250, 500, 750, 1000]); // pictures everywhere: nothing better
+  ink.fill(0, 100, 110); // an empty band far from any cut line: not used
+  expect(cutLines(ink, 1000, 4)).toEqual([0, 250, 500, 750, 1000]);
+  ink.fill(0, 270, 281); // an empty band near the first line: 270..280
+  expect(cutLines(ink, 1000, 4)).toEqual([0, 275, 500, 750, 1000]);
 });
 
 test('a sheet in another size than asked is still cut by its own size', async () => {

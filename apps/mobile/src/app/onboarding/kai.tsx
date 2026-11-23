@@ -134,14 +134,36 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     setStep('generating');
     say(...kai(S().line('picking')));
     try {
-      setDeck(await api.generateDeck(deck.id));
+      const made = await api.generateDeck(deck.id);
+      setDeck(made);
+      // The pictures are drawn after the words. The deck is made already; the learner can chat with Kai while they wait.
+      const drawn = made.picturesStatus === 'making' ? await drawPictures(made) : null;
       setStep('ready');
-      say(...kai(S().line('ready'), S().line('practice')));
+      say(...kai(S().line(drawn === null ? 'ready' : drawn ? 'picturesReady' : 'picturesFailed'), S().line('practice')));
       setOptions([S().label('replyPractice'), S().label('replyWordsFirst')]);
     } catch {
       setFailed((n) => n + 1);
       setStep('proposed');
       say(...kai(S().line('generateFailed')));
+    }
+  }
+
+  // Kai says it is drawing and invites the learner to use the wait; each new count is a short line. True = every card
+  // has its picture. A failed run, or a wait that breaks, is false: the deck is ready without pictures.
+  async function drawPictures(made: Deck): Promise<boolean> {
+    setStep('drawing');
+    setOptions([]);
+    say(...kai(S().line('wordsReady'), S().line('whileDrawing')));
+    const total = made.wordCount;
+    try {
+      const done = await api.waitForPictures(made.id, (ready) => {
+        setDeck((d) => (d ? { ...d, picturesReady: ready } : d));
+        if (ready > 0 && ready < total) say(...kai(S().line('picturesProgress', { ready: String(ready), total: String(total) })));
+      });
+      setDeck(done);
+      return done.picturesStatus === 'ready';
+    } catch {
+      return false;
     }
   }
 
@@ -214,7 +236,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
       }
     } catch {
       // Kai cannot answer: the typed text is the answer, as before. Nothing to answer while the deck is proposed or made.
-      if (step === 'proposed' || step === 'generating') setOptions(shown);
+      if (step === 'proposed' || step === 'generating' || step === 'drawing') setOptions(shown);
       else answer(text);
     } finally {
       setWaiting(false);
@@ -227,12 +249,12 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <KaiHeader pose={pose} progress={step === 'generating' ? made / total : step === 'ready' ? 1 : undefined} />
+      <KaiHeader pose={pose} progress={step === 'generating' ? made / total : step === 'drawing' ? (deck?.picturesReady ?? 0) / total : step === 'ready' ? 1 : undefined} />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {messages.map((m, i) =>
           m.from === 'deck' ? (
             deck ? (
-              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : deck.status} count={made} hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
+              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
             <RiseIn key={i}>

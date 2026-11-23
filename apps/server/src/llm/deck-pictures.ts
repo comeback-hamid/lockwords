@@ -36,11 +36,11 @@ export function sheetPrompt(items: PictureItem[], grid: Grid): string {
   const empty = grid.cols * grid.rows - items.length;
   return [
     `A sheet of ${items.length} separate small pictures laid out as an exact grid of ${grid.cols} columns and ${grid.rows} rows on one plain off-white (#f6f8fa) background.`,
-    'Every cell has the same size. Each picture is centered in its own cell with clear empty space around it and never crosses into another cell.',
+    'Every cell has the same size. Each picture is small and simple: it sits in the middle of its own cell and fills about two thirds of it, so there is a wide empty band between neighbours. No picture touches or crosses into another cell.',
     'No grid lines, no borders, no frames, no numbers, no letters, no words anywhere.',
     `Fill the cells left to right, top to bottom, in this order: ${items.map((item, n) => `${n + 1}. ${subject(item)}`).join(' ')}`,
     ...(empty > 0 ? [`The last ${empty} cell${empty > 1 ? 's' : ''} stay empty.`] : []),
-    `Each picture shows the meaning of its item so a language learner remembers the word. Style: ${ILLUSTRATION_STYLE}`,
+    `Each picture shows the meaning of its item so a language learner remembers the word: one object, or one or two people doing one thing. Colours: only near-black, white, light gray and green. No red, orange, yellow, blue or brown. Style: ${ILLUSTRATION_STYLE}`,
   ].join(' ');
 }
 

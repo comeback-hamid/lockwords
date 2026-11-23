@@ -114,6 +114,6 @@ For each item:
 - translation: the word in ${native}, 1 to 4 words.
 - example: one short sentence in ${language} (at most 12 words) at the learner's level, personal to their goal and interests, about the learner ("I", "my"). Wrap the form of the word used in the sentence in single asterisks, like *propina*.
 - example_translation: that sentence in ${native}, without asterisks.${wantsMeaning(i) ? `\n- meaning: a short definition of the word in ${language} (not a translation), in simple words, at most 14 words, without using the word itself.` : ''}
-- picture: what to draw for this word, in English, at most 12 words: one simple, concrete thing or a tiny scene that shows the meaning (for an abstract word, a person doing or feeling it). No text or letters in the picture.
+- picture: what to draw for this word, in English, at most 12 words: one simple, concrete object that shows the meaning, or one person doing or feeling it (for an action or an abstract word). No background, no text or letters in the picture.
 Before you answer, check every item: Is the word real and correctly spelled? Does the example use exactly this word or phrase (not a synonym)? Is the translation right? Does it fit this learner's level and the easy / at-level / stretch mix above (replace any item a learner at this level surely knows already)? Does it fit their goal and interests? Is the example natural and does it contain the word? Fix anything wrong.`;
 }

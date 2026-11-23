@@ -33,6 +33,7 @@ export type KaiTurnResult = { ok: true; turn: KaiTurn } | { ok: false; error: 't
 
 type Options = { baseUrl: string; getToken(): Promise<string | null>; fetch?: typeof fetch; deckPollMs?: number };
 
+const PICTURES_WAIT_MS = 120_000; // one picture sheet takes 20 to 30 seconds; the server gives it 90
 const DECK_WAIT_MS = 180_000; // the server gives a deck job 3 minutes
 
 // The one place the app talks to our server. Types come from the server's OpenAPI file (npm run api:gen).
@@ -53,7 +54,7 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     return result.data;
   };
   // One turn of the New words chat: the learner's text, `open` for Kai's opening, or an event Kai speaks about.
-  async function kaiTurn(body: { text: string } | { open: true } | { event: 'deck_ready'; deckId: string }): Promise<KaiTurnResult> {
+  async function kaiTurn(body: { text: string } | { open: true } | { event: 'deck_ready' | 'deck_pictures'; deckId: string }): Promise<KaiTurnResult> {
     try {
       const { data, response } = await client.POST('/v1/kai/chat/turns', { body });
       if (data) return { ok: true, turn: data };
@@ -72,6 +73,8 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     openKaiChat: () => kaiTurn({ open: true }),
     // A deck Kai offered is made: Kai says so. Answered once per deck; a second call brings no messages.
     deckReady: (deckId: string) => kaiTurn({ event: 'deck_ready', deckId }),
+    // The deck's pictures are done (or failed): Kai says so. Answered once per deck, like deckReady.
+    deckPictures: (deckId: string) => kaiTurn({ event: 'deck_pictures', deckId }),
     async setKaiTranslation(on: boolean): Promise<void> {
       unwrap(await client.PUT('/v1/kai/chat/translation', { body: { on } }));
     },
@@ -111,6 +114,19 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
       }
       if (deck.status !== 'ready') throw new Error('deck not made'); // back to proposed = the job failed
       return deck;
+    },
+    // The pictures are drawn after the words, by the same job. Reads the deck until that run ends (ready or failed) and
+    // tells `onProgress` each new count. It gives up after `waitMs`: the deck then still says "making" and works without pictures.
+    async waitForPictures(id: string, onProgress?: (ready: number) => void, waitMs = PICTURES_WAIT_MS): Promise<Deck> {
+      const until = Date.now() + waitMs;
+      let last = -1;
+      for (;;) {
+        const deck = unwrap(await client.GET('/v1/decks/{id}', { params: { path: { id } } }));
+        const ready = deck.picturesReady ?? 0;
+        if (ready !== last) onProgress?.((last = ready));
+        if (deck.picturesStatus !== 'making' || Date.now() >= until) return deck;
+        await new Promise((resolve) => setTimeout(resolve, deckPollMs));
+      }
     },
     async fetchDeck(id: string): Promise<Deck> {
       return unwrap(await client.GET('/v1/decks/{id}', { params: { path: { id } } }));
