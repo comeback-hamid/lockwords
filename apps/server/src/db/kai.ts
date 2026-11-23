@@ -119,6 +119,10 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
       const [row] = await db.select({ id: kaiMessages.id }).from(kaiMessages).where(and(eq(kaiMessages.userId, userId), eq(kaiMessages.readyDeckId, deckId))).limit(1);
       return row !== undefined;
     },
+    async saidPictures(userId, deckId) {
+      const [row] = await db.select({ id: kaiMessages.id }).from(kaiMessages).where(and(eq(kaiMessages.userId, userId), eq(kaiMessages.picturesDeckId, deckId))).limit(1);
+      return row !== undefined;
+    },
     async addTurn(userId, turn, now) {
       // The learner's message, Kai's lines and the notes land together or not at all.
       return db.transaction(async (tx) => {
@@ -138,6 +142,10 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
           const [said] = await tx.select({ id: kaiMessages.id }).from(kaiMessages).where(and(eq(kaiMessages.userId, userId), eq(kaiMessages.readyDeckId, turn.readyDeckId))).limit(1);
           if (said) return { userMessage: null, messages: [] };
         }
+        if (turn.picturesDeckId) {
+          const [said] = await tx.select({ id: kaiMessages.id }).from(kaiMessages).where(and(eq(kaiMessages.userId, userId), eq(kaiMessages.picturesDeckId, turn.picturesDeckId))).limit(1);
+          if (said) return { userMessage: null, messages: [] };
+        }
         // Deck ideas become proposed decks, in the order Kai gave them.
         const ideas = turn.decks?.ideas ?? [];
         const deckIds: string[] = [];
@@ -150,11 +158,12 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         const values = [
           ...(turn.user === null ? [] : [{ role: 'user', text: turn.user, translation: null as string | null, options: [] as string[], word: null }]),
           ...turn.kai.map((l, i) => ({ role: 'kai', text: l.text, translation: l.translation as string | null, options: i === turn.kai.length - 1 ? turn.options : [], word: i === turn.kai.length - 1 ? (turn.word ?? null) : null })),
-        ].map((v, position) => ({ ...v, userId, position, opening: turn.opening, createdAt: now, deckIds: [] as string[], readyDeckId: null as string | null }));
+        ].map((v, position) => ({ ...v, userId, position, opening: turn.opening, createdAt: now, deckIds: [] as string[], readyDeckId: null as string | null, picturesDeckId: null as string | null }));
         // Kai's last line carries the turn's deck cards and the "ready" mark.
         const last = values.at(-1)!;
         last.deckIds = deckIds;
         last.readyDeckId = turn.readyDeckId ?? null;
+        last.picturesDeckId = turn.picturesDeckId ?? null;
         const rows = await withDecks(tx, userId, (await tx.insert(kaiMessages).values(values).returning()).sort((a, b) => a.position - b.position));
         if (turn.notes.drop > 0) {
           const oldest = await tx.select({ id: kaiNotes.id }).from(kaiNotes).where(eq(kaiNotes.userId, userId)).orderBy(asc(kaiNotes.createdAt), asc(kaiNotes.id)).limit(turn.notes.drop);

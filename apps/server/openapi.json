@@ -1180,6 +1180,7 @@
               "topic",
               "proposed",
               "generating",
+              "drawing",
               "ready"
             ]
           },
@@ -1507,7 +1508,8 @@
           "event": {
             "type": "string",
             "enum": [
-              "deck_ready"
+              "deck_ready",
+              "deck_pictures"
             ]
           },
           "deckId": {

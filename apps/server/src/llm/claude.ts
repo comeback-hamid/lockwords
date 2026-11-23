@@ -169,6 +169,7 @@ const KAI_ANSWER: Record<string, string> = {
   ready: '"practice" if they want to practice now, "wordsFirst" if they want to see the words first',
   proposed: 'nothing: every message is off the script here (Kai just showed their first deck of 10 words; they tap Generate to make it)',
   generating: 'nothing: every message is off the script here (Kai is making their first 10 words right now; it takes a few seconds)',
+  drawing: 'nothing: every message is off the script here. Their first 10 words are ready and Kai is drawing a picture for each word right now (about half a minute). Kai invited them to use the wait: answer a language question helpfully, correct a sentence they wrote, practice with them, or say something about yourself',
 };
 
 export function claudeKaiReplier(apiKey: string, fetchFn: Fetch = fetch): KaiReplier {

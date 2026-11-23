@@ -6,4 +6,5 @@ CREATE TABLE "card_pictures" (
 --> statement-breakpoint
 ALTER TABLE "cards" ADD COLUMN "picture_hint" text;--> statement-breakpoint
 ALTER TABLE "cards" ADD COLUMN "picture_id" uuid;--> statement-breakpoint
-ALTER TABLE "decks" ADD COLUMN "pictures_status" text DEFAULT 'none' NOT NULL;
+ALTER TABLE "decks" ADD COLUMN "pictures_status" text DEFAULT 'none' NOT NULL;--> statement-breakpoint
+ALTER TABLE "kai_messages" ADD COLUMN "pictures_deck_id" uuid;

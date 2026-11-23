@@ -138,6 +138,7 @@ export const kaiMessages = pgTable(
     opening: boolean('opening').notNull().default(false), // part of a turn where Kai spoke first
     position: integer('position').notNull().default(0), // order inside one turn (same created_at)
     deckIds: uuid('deck_ids').array().notNull().default([]), // deck ideas shown under this line (1 or 3), in order
+    picturesDeckId: uuid('pictures_deck_id'), // set on Kai's "the pictures are ready" line, so Kai says it once per deck
     readyDeckId: uuid('ready_deck_id'), // set on Kai's "your deck is ready" line, so Kai says it once per deck
     // A word card on Kai's last line of a turn, and what adding it gave (src/decks/random-words.ts).
     word: jsonb('word').$type<{ word: string; translation: string; example: string; exampleTranslation: string; result?: { deckId: string; deckTitle: string; count: number; already: boolean } }>(),

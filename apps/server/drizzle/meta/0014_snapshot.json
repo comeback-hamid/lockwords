@@ -1,5 +1,5 @@
 {
-  "id": "ef1a6a25-1167-48b7-93cf-6c5464fe7080",
+  "id": "7490fb7d-52f5-4b1d-a720-cbad6f951447",
   "prevId": "70827238-0959-4f9b-833d-f606caa1b1da",
   "version": "7",
   "dialect": "postgresql",
@@ -390,6 +390,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'"
+        },
+        "pictures_deck_id": {
+          "name": "pictures_deck_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "ready_deck_id": {
           "name": "ready_deck_id",
