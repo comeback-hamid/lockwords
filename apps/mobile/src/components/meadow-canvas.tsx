@@ -32,6 +32,7 @@ type Mote = { x: number; speed: number; seed: number };
 type Data = { items: Item[]; fallers: Faller[]; motes: Mote[]; groundY: number; height: number; grown: number };
 
 const rgb = (hex: string) => [parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255] as const;
+const MOTE = rgb(levelColors[2]); // the specks of light
 // A fixed number from 0 to 1 for a block, so every phone shows the same shimmer.
 const hash = (n: number) => {
   const v = Math.sin(n * 127.1 + 311.7) * 43758.5453;
@@ -91,7 +92,7 @@ function LiveCanvas({ scene, width, rich, still }: MeadowCanvasProps) {
     if (start.value < 0) start.value = clock.value;
     const t = clock.value - start.value;
     return createPicture((canvas) => drawMeadow(canvas, data, t, u, still), { width, height });
-  }, [data, u, still, width, height]);
+  });
 
   return (
     <Canvas style={{ width, height }}>
@@ -172,4 +173,3 @@ function drawMeadow(canvas: SkCanvas, d: Data, ms: number, u: number, still: boo
     block(m.x + 1.1 * Math.sin(t * 0.6 + m.seed * 9), d.groundY - 0.5 - up, MOTION.moteCells, mr, mg, mb, a);
   }
 }
-const MOTE = rgb(levelColors[2]);
