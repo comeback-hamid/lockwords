@@ -22,6 +22,7 @@ const kai = (...lines: (string | ScriptLine)[]): Message[] => lines.map((line) =
 const me = (text: string, tapped = false): Message => ({ from: 'user', text, tapped });
 const typedText = (m: Message) => (m.from === 'kai' ? m.text : null);
 const OOPS_MS = 1200; // the spec's `oops` hold
+const DONE_SHOWN_MS = 500; // the picture bar at 100 % before the card becomes the ready card
 
 // Kai's lines in another language come from the server. A failed call means English.
 const loadScript = (native: string, learning: string): Promise<ScriptMaps | null> =>
@@ -79,6 +80,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const [quiet, setQuiet] = useState(false);
   const name = useRef('');
   const topic = useRef('');
+  const [drawTime, setDrawTime] = useState<{ startedAt?: number; done: boolean }>({ done: false }); // when the pictures began (times the card's bar)
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const languageOptions = learning && speaks ? chatLanguageOptions(speaks, learning) : [];
@@ -157,12 +159,16 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     setOptions([]);
     say(...kai(S().line('wordsReady'), S().line('whileDrawing')));
     const total = made.wordCount;
+    setDrawTime({ startedAt: Date.now(), done: false });
     try {
       const done = await api.waitForPictures(made.id, (ready) => {
         setDeck((d) => (d ? { ...d, picturesReady: ready } : d));
         if (ready > 0 && ready < total) say(...kai(S().line('picturesProgress', { ready: String(ready), total: String(total) })));
       });
-      setDeck(done);
+      // The bar is seen at 100 % for a moment, then the card becomes the ready card.
+      setDrawTime((t) => ({ ...t, done: true }));
+      setDeck({ ...done, picturesReady: total });
+      await new Promise((resolve) => setTimeout(resolve, DONE_SHOWN_MS));
       return done.picturesStatus === 'ready';
     } catch {
       return false;
@@ -259,7 +265,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
           m.from === 'deck' ? (
             // The card is said twice (where it was offered, and again under "the pictures are ready"): only the newest one shows.
             deck && i === lastDeck ? (
-              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
+              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total, startedAt: drawTime.startedAt, done: drawTime.done }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
             <RiseIn key={i}>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { ChatDeck } from '@/api/client';
-import { DeckCard } from '@/components/chat/deck-card';
+import { DeckCard, type PictureCount } from '@/components/chat/deck-card';
 import { colors, layout, space } from '@/theme/theme';
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
   making: string | null; // the id of the deck being made now (any row)
   locked: boolean; // Generate cannot be tapped: Kai is typing, or a deck is being made
   count?: number; // words made so far, shared with Kai's `making` state
-  drawing?: { id: string; ready: number; total: number } | null; // the deck whose pictures are being drawn now
+  drawing?: ({ id: string } & PictureCount) | null; // the deck whose pictures are being drawn now
   onGenerate(deck: ChatDeck): void;
   onOpen(deck: ChatDeck): void;
 };

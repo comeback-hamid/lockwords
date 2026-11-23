@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { createApi, type Deck } from '@/api/client';
 import KaiScreen from '@/app/onboarding/kai';
 import { api } from '@/auth/boot';
-import { DeckCard } from '@/components/chat/deck-card';
+import { DeckCard, pictureProgress, PICTURES_EXPECTED_MS } from '@/components/chat/deck-card';
 import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { ENGLISH_SCRIPT, kaiStateFor } from '@/onboarding/kai-script';
 import { resetAnswers, setAnswers } from '@/onboarding/store';
@@ -53,6 +53,40 @@ describe('deck card', () => {
     expect(screen.getByText('3 / 10 PICTURES')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: 'Open deck' })).toBeNull();
     expect(screen.queryByText('Making your deck…')).toBeNull();
+  });
+  test('picture progress: 0 → 90 % over the expected time, waits there, 100 % only when the pictures are really done', () => {
+    expect(PICTURES_EXPECTED_MS).toBe(20_000);
+    const at = (ms: number, over = {}) => pictureProgress(1000 + ms, { ready: 0, total: 10, startedAt: 1000, ...over });
+    expect(at(0)).toBe(0);
+    expect(at(10_000)).toBeCloseTo(0.45);
+    expect(at(20_000)).toBeCloseTo(0.9);
+    expect(at(60_000)).toBeCloseTo(0.9); // late: it waits at 90 %
+    expect(at(2_000, { done: true })).toBe(1); // early: straight to 100 %
+    expect(at(0, { ready: 5 })).toBe(0.5); // a real sheet that arrived moves it forward
+    expect(at(15_000, { ready: 5 })).toBeCloseTo(0.675); // never back
+    expect(at(0, { ready: 10 })).toBeLessThan(1); // not full before "done"
+    expect(pictureProgress(5000, { ready: 3, total: 10 })).toBe(0.3); // no start time: the real count only
+  });
+  test('the count follows the bar, never shows the full count before the pictures are there, and keeps its place after leaving and coming back', async () => {
+    jest.useFakeTimers();
+    try {
+      const startedAt = Date.now() - 10_000; // the drawing started 10 s ago
+      const view = await render(<DeckCard deck={words} state="drawing" pictures={{ ready: 0, total: 10, startedAt }} {...noop} />);
+      expect(screen.getByText('4 / 10 PICTURES')).toBeOnTheScreen();
+      expect(screen.getByTestId('picture-progress-fill')).toBeOnTheScreen();
+      await act(async () => void (await jest.advanceTimersByTimeAsync(10_000)));
+      expect(screen.getByText('9 / 10 PICTURES')).toBeOnTheScreen();
+      await act(async () => void (await jest.advanceTimersByTimeAsync(30_000)));
+      expect(screen.getByText('9 / 10 PICTURES')).toBeOnTheScreen(); // waits at 90 %
+      // The learner leaves the chat and comes back: a new card, the same place.
+      await view.unmount();
+      const back = await render(<DeckCard deck={words} state="drawing" pictures={{ ready: 0, total: 10, startedAt }} {...noop} />);
+      expect(screen.getByText('9 / 10 PICTURES')).toBeOnTheScreen();
+      await back.rerender(<DeckCard deck={words} state="drawing" pictures={{ ready: 10, total: 10, startedAt, done: true }} {...noop} />);
+      expect(screen.getByText('10 / 10 PICTURES')).toBeOnTheScreen();
+    } finally {
+      jest.useRealTimers();
+    }
   });
   test('a row of ideas shows the drawing card for the deck whose pictures are being made', async () => {
     const deck = { id: 'd1', title: 'Título', titleTranslation: 'Title', reason: 'r', cefr: 'A2', wordCount: 20, status: 'ready' as const, current: true };
@@ -215,11 +249,13 @@ describe('New words: the pictures of a deck Kai made', () => {
     const { result } = await renderHook(() => useDeckPictures({ quietRef, take, setBusy: jest.fn() }));
     let done!: Promise<void>;
     await act(async () => void (done = result.current.draw({ ...words, wordCount: 20 })));
-    expect(result.current.drawing).toEqual({ id: 'd1', ready: 0, total: 20 });
+    expect(result.current.drawing).toMatchObject({ id: 'd1', ready: 0, total: 20 });
     await act(async () => progress(10));
-    expect(result.current.drawing).toEqual({ id: 'd1', ready: 10, total: 20 });
+    expect(result.current.drawing).toMatchObject({ id: 'd1', ready: 10, total: 20 });
+    expect(result.current.drawing!.startedAt).toBeLessThanOrEqual(Date.now()); // the bar is timed from here
     await act(async () => finish(drawn));
-    expect(result.current.drawing).toBeNull();
+    expect(result.current.drawing).toMatchObject({ id: 'd1', ready: 20, done: true }); // 100 % for a moment
+    await waitFor(() => expect(result.current.drawing).toBeNull());
     expect(jest.mocked(mockApi as unknown as { deckPictures: jest.Mock }).deckPictures).not.toHaveBeenCalled(); // not while Kai has the turn
     quietRef.current = true;
     await act(async () => done);

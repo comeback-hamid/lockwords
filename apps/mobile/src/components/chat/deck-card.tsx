@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Deck } from '@/api/client';
 import { Icon } from '@/components/icon';
@@ -9,8 +9,22 @@ import { directionStyle, isRtl } from './direction';
 
 // What the card needs of a deck. A full deck fits, and so does a deck idea in the New words chat (no cards yet).
 export type CardDeck = Pick<Deck, 'cefr' | 'wordCount' | 'title' | 'reason'> & { titleTranslation?: string | null; cards?: Pick<Deck['cards'][number], 'id' | 'stage'>[] };
-// How far the deck's pictures are: `ready` of `total` cards have theirs.
-export type PictureCount = { ready: number; total: number };
+// How far the deck's pictures are: `ready` of `total` cards have theirs. `startedAt` (a clock time in ms) is when the
+// drawing began: the bar is timed from it. `done` = the picture run has really ended.
+export type PictureCount = { ready: number; total: number; startedAt?: number; done?: boolean };
+
+// One picture sheet arrives all at once, so the bar is timed (Hamid, 2026-11-23): it fills to 90 % over the time a sheet
+// usually takes, waits there, and goes to 100 % the moment the pictures are really done. A real sheet that arrives
+// (several sheets) moves it forward. It is worked out from `startedAt`, so a card that is drawn again keeps its place.
+export const PICTURES_EXPECTED_MS = 20_000; // real sheets took 21 to 28 s (2026-11-23)
+const TIMED_TOP = 0.9;
+const NOT_DONE_TOP = 0.97; // every real picture is in, but the run has not said "done" yet
+export function pictureProgress(now: number, p: PictureCount): number {
+  if (p.done) return 1;
+  const timed = p.startedAt === undefined ? 0 : Math.min(TIMED_TOP, (Math.max(0, now - p.startedAt) / PICTURES_EXPECTED_MS) * TIMED_TOP);
+  const real = p.total ? p.ready / p.total : 0;
+  return Math.min(NOT_DONE_TOP, Math.max(timed, real));
+}
 
 type Props = {
   deck: CardDeck;
@@ -85,7 +99,7 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count, pictures, hid
       ) : state === 'generating' ? (
         <Making total={deck.wordCount} count={count} />
       ) : state === 'drawing' ? (
-        <Progress label="Drawing the pictures…" n={pictures?.ready ?? 0} total={pictures?.total ?? deck.wordCount} unit="PICTURES" />
+        <PictureProgress pictures={pictures ?? { ready: 0, total: deck.wordCount }} />
       ) : (
         <View style={styles.readyRows}>
           <View style={styles.squares}>
@@ -115,7 +129,50 @@ function Making({ total, count }: { total: number; count?: number }) {
   return <Progress label="Making your deck…" n={count ?? own} total={total} unit="WORDS" />;
 }
 
-// A label, "n / total UNIT" and a bar: the words being made, then the pictures being drawn.
+// The pictures being drawn: the timed bar (see `pictureProgress`) and a count that follows it. The bar moves on the UI
+// thread (a native-driven scale); the count is read from the clock twice a second. The full count shows only when done.
+const COUNT_TICK_MS = 500;
+const DONE_MS = 250;
+function PictureProgress({ pictures }: { pictures: PictureCount }) {
+  const { ready, total, startedAt, done } = pictures;
+  const [now, setNow] = useState(() => Date.now());
+  const [scale] = useState(() => new Animated.Value(pictureProgress(Date.now(), pictures)));
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), COUNT_TICK_MS);
+    return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const p = { ready, total, startedAt, done };
+    if (done) {
+      const end = Animated.timing(scale, { toValue: 1, duration: DONE_MS, easing: Easing.out(Easing.quad), useNativeDriver: true });
+      end.start();
+      return () => end.stop();
+    }
+    const from = pictureProgress(Date.now(), p);
+    scale.setValue(from); // a real sheet that arrived may have moved it forward
+    if (startedAt === undefined || from >= TIMED_TOP) return;
+    // From where it is now to 90 %, at the timed pace.
+    const left = Math.max(0, startedAt + PICTURES_EXPECTED_MS - Date.now());
+    const run = Animated.timing(scale, { toValue: TIMED_TOP, duration: left, easing: Easing.linear, useNativeDriver: true });
+    run.start();
+    return () => run.stop();
+  }, [scale, ready, total, startedAt, done]);
+  const fraction = pictureProgress(now, pictures);
+  const n = done ? total : Math.min(Math.max(0, total - 1), Math.floor(fraction * total + 1e-6));
+  return (
+    <View style={styles.readyRows}>
+      <View style={styles.row}>
+        <Text style={[type.calloutMedium, styles.ink]}>Drawing the pictures…</Text>
+        <Text style={[type.labelTag, styles.muted]}>{`${n} / ${total} PICTURES`}</Text>
+      </View>
+      <View style={styles.track}>
+        <Animated.View testID="picture-progress-fill" style={[styles.fill, styles.fillTimed, { transform: [{ scaleX: scale }] }]} />
+      </View>
+    </View>
+  );
+}
+
+// A label, "n / total UNIT" and a bar: the words being made.
 function Progress({ label, n, total, unit }: { label: string; n: number; total: number; unit: string }) {
   return (
     <View style={styles.readyRows}>
@@ -153,4 +210,5 @@ const styles = StyleSheet.create({
   square: { width: 10, height: 10, borderRadius: 2 },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.divider, overflow: 'hidden' },
   fill: { height: 4, borderRadius: 2, backgroundColor: colors.button },
+  fillTimed: { width: '100%', transformOrigin: 'left' }, // full width, scaled from its left edge
 });

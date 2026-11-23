@@ -192,6 +192,12 @@ tags:
     visible: "la cuenta"
     timeout: 20000
 - waitForAnimationToEnd
+# Flip the card: the back has the picture too
+- tapOn: "la cuenta"
+- extendedWaitUntil:
+    visible: "the bill"
+    timeout: 10000
+- waitForAnimationToEnd
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "la propina"

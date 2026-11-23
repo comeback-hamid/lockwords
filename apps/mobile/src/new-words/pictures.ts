@@ -5,7 +5,8 @@ import { api } from '@/auth/boot';
 
 // A deck's pictures are drawn after its words. The deck is in Review already; its card counts the pictures, and the
 // learner chats with Kai while they wait. When the run ends, Kai says so as soon as the chat is quiet.
-export type Drawing = { id: string; ready: number; total: number };
+export type Drawing = { id: string; ready: number; total: number; startedAt: number; done?: boolean };
+const DONE_SHOWN_MS = 500; // the bar is seen at 100 % before the card becomes the ready card
 const QUIET_CHECK_MS = 300;
 const QUIET_TRIES = 200; // one minute: after that Kai says nothing (the card is simply ready)
 
@@ -20,12 +21,14 @@ export function useDeckPictures({ quietRef, take, setBusy }: Chat) {
   const draw = useCallback(
     async (deck: Deck | undefined) => {
       if (deck?.picturesStatus !== 'making') return; // no pictures coming (an older deck, or no image model)
-      setDrawing({ id: deck.id, ready: deck.picturesReady ?? 0, total: deck.wordCount });
+      setDrawing({ id: deck.id, ready: deck.picturesReady ?? 0, total: deck.wordCount, startedAt: Date.now() });
       try {
         await api.waitForPictures(deck.id, (ready) => setDrawing((d) => (d ? { ...d, ready } : d)));
       } catch {
         // The wait broke (no network): the deck is still made. Kai is asked below and may have nothing to say.
       }
+      setDrawing((d) => (d ? { ...d, ready: d.total, done: true } : d));
+      await new Promise((resolve) => setTimeout(resolve, DONE_SHOWN_MS));
       setDrawing(null);
       for (let i = 0; i < QUIET_TRIES && !quietRef.current; i++) await new Promise((resolve) => setTimeout(resolve, QUIET_CHECK_MS));
       if (!quietRef.current) return;
