@@ -161,8 +161,10 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
         ].map((v, position) => ({ ...v, userId, position, opening: turn.opening, createdAt: now, deckIds: [] as string[], readyDeckId: null as string | null, picturesDeckId: null as string | null }));
         // Kai's last line carries the turn's deck cards and the "ready" mark.
         const last = values.at(-1)!;
-        // "The pictures are ready": the deck card shows again under that line, so the card to tap is next to the words that say so.
-        last.deckIds = turn.picturesDeckId ? [turn.picturesDeckId] : deckIds;
+        last.deckIds = deckIds;
+        // "The pictures are ready": the deck card shows again under that line (Kai's first of the turn; the question comes
+        // after it), so the card to tap is next to the words that say so. The app shows a deck's card once, at its newest place.
+        if (turn.picturesDeckId) values.find((v) => v.role === 'kai')!.deckIds = [turn.picturesDeckId];
         last.readyDeckId = turn.readyDeckId ?? null;
         last.picturesDeckId = turn.picturesDeckId ?? null;
         const rows = await withDecks(tx, userId, (await tx.insert(kaiMessages).values(values).returning()).sort((a, b) => a.position - b.position));

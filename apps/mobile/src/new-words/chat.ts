@@ -17,6 +17,19 @@ export function withLine(all: Line[], next: Line): Line[] {
 export const withDeckStatus = (all: Line[], deckId: string, status: ChatDeck['status']): Line[] =>
   all.map((l) => (l.decks?.some((d) => d.id === deckId) ? { ...l, decks: l.decks.map((d) => (d.id === deckId ? { ...d, status } : d)) } : l));
 
+// A deck's card can be on two lines: where Kai offered it, and again under "the pictures are ready". Only the newest
+// one shows, so there is one card to tap and it is near the end of the chat. Other decks of a line stay where they are.
+export function newestCards(all: Line[]): Line[] {
+  const seen = new Set<string>();
+  const out: Line[] = [];
+  for (const l of [...all].reverse()) {
+    const decks = l.decks?.filter((d) => !seen.has(d.id));
+    for (const d of l.decks ?? []) seen.add(d.id);
+    out.push(l.decks && decks!.length !== l.decks.length ? { ...l, decks } : l);
+  }
+  return out.reverse();
+}
+
 // After a restart or a visit to another tab: a current deck that is still being made, or is made and Kai has not said so here yet.
 export function pendingDeck(all: Line[], told: ReadonlySet<string>): ChatDeck | null {
   for (const l of [...all].reverse()) for (const d of l.decks ?? []) if (d.current && (d.status === 'generating' || (d.status === 'ready' && !told.has(d.id)))) return d;

@@ -148,9 +148,9 @@ describe('the first deck in onboarding', () => {
     await act(async () => finish(drawn));
     await waitFor(() => expect(kaiSays('All the pictures are ready! 🖼️ Tap your deck any time to see the words.')).toBeOnTheScreen());
     expect(kaiSays('Shall we practice them now? 💪')).toBeOnTheScreen();
-    // The deck card shows again under that line (the first one is far up the chat by now); both open the deck.
-    expect(screen.getAllByRole('button', { name: 'Open deck' })).toHaveLength(2);
-    expect(screen.getAllByTestId('deck-open-column')).toHaveLength(2);
+    // The deck card moved under that line (its first place is far up the chat by now): one card, ready to open.
+    expect(screen.getAllByRole('button', { name: 'Open deck' })).toHaveLength(1);
+    expect(screen.getAllByTestId('deck-open-column')).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'OK, let’s practice!' })).toBeOnTheScreen();
   });
 
@@ -159,7 +159,7 @@ describe('the first deck in onboarding', () => {
     await toGenerate();
     await fireEvent.press(screen.getByRole('button', { name: 'Generate' }));
     await waitFor(() => expect(kaiSays('I could not draw the pictures this time, but your deck is ready! Tap it any time to see the words.')).toBeOnTheScreen());
-    expect(screen.getAllByRole('button', { name: 'Open deck' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Open deck' })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'OK, let’s practice!' })).toBeOnTheScreen();
   });
 
@@ -177,6 +177,22 @@ describe('the first deck in onboarding', () => {
     expect(kaiStateFor({ ...base, composerText: true })).toBe('listening');
     expect(kaiStateFor({ ...base, waiting: true })).toBe('thinking');
     expect(ENGLISH_SCRIPT.backDrawing).toBe('Your pictures are almost ready 🎨');
+  });
+});
+
+describe('one card per deck in the New words chat', () => {
+  const { newestCards } = jest.requireActual<typeof import('@/new-words/chat')>('@/new-words/chat');
+  const deck = (id: string) => ({ id, title: id, titleTranslation: null, reason: 'r', cefr: 'A2', wordCount: 10, status: 'ready' as const, current: true });
+  const line = (id: string, decks?: ReturnType<typeof deck>[]) => ({ id, from: 'kai' as const, text: id, translation: null, createdAt: '', ...(decks ? { decks } : {}) });
+  test('a deck shown again on a later line leaves its earlier place; other decks stay', () => {
+    const lines = [line('ideas', [deck('a'), deck('b'), deck('c')]), line('words ready'), line('pictures ready', [deck('a')]), line('question')];
+    const shown = newestCards(lines);
+    expect(shown.map((l) => (l.decks ?? []).map((d) => d.id))).toEqual([['b', 'c'], [], ['a'], []]);
+    expect(shown[1]).toBe(lines[1]); // untouched lines are the same objects
+  });
+  test('a deck on one line only stays there', () => {
+    const lines = [line('one', [deck('a')]), line('two')];
+    expect(newestCards(lines)).toEqual(lines);
   });
 });
 

@@ -83,9 +83,12 @@ test('Kai\'s "the pictures are ready" line carries the deck card again, once per
   const { id } = await newDeck();
   await jobs.start(userId, id);
   await until(id, 'ready');
-  const turn = { user: null, kai: [{ text: '¡Los dibujos están listos!', translation: 'The pictures are ready!' }], options: ['Vamos a practicar'], opening: false, notes: { add: [], drop: 0 }, picturesDeckId: id };
+  const turn = { user: null, kai: [{ text: '¡Los dibujos están listos!', translation: 'The pictures are ready!' }, { text: '¿Practicamos ahora?', translation: 'Shall we practice now?' }], options: ['Vamos a practicar'], opening: false, notes: { add: [], drop: 0 }, picturesDeckId: id };
   const saved = await kai.addTurn(userId, turn, new Date());
-  expect(saved.messages.at(-1)!.decks).toMatchObject([{ id, status: 'ready', current: true }]);
+  // The card is under the first line; the question and its options come after it.
+  expect(saved.messages[0]!.decks).toMatchObject([{ id, status: 'ready', current: true }]);
+  expect(saved.messages[1]!.decks).toBeUndefined();
+  expect(saved.messages[1]!.options).toEqual(['Vamos a practicar']);
   expect(await kai.saidPictures!(userId, id)).toBe(true);
   expect((await kai.addTurn(userId, turn, new Date())).messages).toEqual([]); // said once
 }, 60_000);

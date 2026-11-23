@@ -249,14 +249,16 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     scroll.current?.scrollToEnd({ animated: true });
   }, [messages, options, typing]);
 
+  const lastDeck = messages.findLastIndex((m) => m.from === 'deck');
+
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <KaiHeader pose={pose} progress={step === 'generating' ? made / total : step === 'drawing' ? (deck?.picturesReady ?? 0) / total : step === 'ready' ? 1 : undefined} />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {messages.map((m, i) =>
           m.from === 'deck' ? (
-            // The card can show twice: where it was offered, and again under "the pictures are ready". Both are the same deck.
-            deck ? (
+            // The card is said twice (where it was offered, and again under "the pictures are ready"): only the newest one shows.
+            deck && i === lastDeck ? (
               <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
