@@ -3,7 +3,7 @@ import type { PgBoss } from 'pg-boss';
 
 import type { createDb } from '../db/client.js';
 import { decks } from '../db/schema.js';
-import { makeDeckCards, type DeckJobDeps, type DeckJobs } from './jobs.js';
+import { makeDeck, type DeckJobDeps, type DeckJobs } from './jobs.js';
 
 const QUEUE = 'make-deck';
 type Data = { userId: string; deckId: string };
@@ -17,7 +17,8 @@ export async function createQueuedDeckJobs(boss: PgBoss, db: ReturnType<typeof c
   await boss.createQueue(QUEUE);
   await boss.work<Data>(QUEUE, { pollingIntervalSeconds: 0.5 }, async ([job]) => {
     if (!job) return;
-    const ok = await makeDeckCards(deps, job.data.userId, job.data.deckId);
+    // Words first (the deck is ready the moment they are saved), then the pictures, in the same job.
+    const ok = await makeDeck(deps, job.data.userId, job.data.deckId);
     if (!ok) await setStatus(job.data.deckId, 'generating', 'proposed');
   });
   return {
@@ -25,7 +26,7 @@ export async function createQueuedDeckJobs(boss: PgBoss, db: ReturnType<typeof c
       // Only the call that moves the deck to generating adds a job, so two taps make one job.
       const [moved] = await setStatus(deckId, 'proposed', 'generating');
       // If the server stops mid-job, pg-boss runs the job again when it is back.
-      if (moved) await boss.send(QUEUE, { userId, deckId } satisfies Data, { retryLimit: 2, expireInSeconds: 180 });
+      if (moved) await boss.send(QUEUE, { userId, deckId } satisfies Data, { retryLimit: 2, expireInSeconds: 300 });
       return 'queued';
     },
   };

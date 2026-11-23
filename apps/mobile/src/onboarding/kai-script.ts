@@ -6,10 +6,11 @@ import type { LanguageChoice } from './store';
 // Kai's lines for the onboarding chat (O10–O10f). **word** = bold.
 // The English lines below are the built-in copy. Other languages come from the server (`GET /v1/kai/script`,
 // same keys as apps/server/src/kai/script.ts) and are read through `makeScript`.
-export type Step = 'name' | 'language' | 'topic' | 'proposed' | 'generating' | 'ready';
+// drawing: the first deck's words are made and its pictures are being drawn; the learner can chat with Kai meanwhile.
+export type Step = 'name' | 'language' | 'topic' | 'proposed' | 'generating' | 'drawing' | 'ready';
 export type KaiPose = KaiState;
 
-const POSE: Record<Step, KaiPose> = { name: 'greeting', language: 'idle', topic: 'idle', proposed: 'listening', generating: 'thinking', ready: 'celebrate' };
+const POSE: Record<Step, KaiPose> = { name: 'greeting', language: 'idle', topic: 'idle', proposed: 'listening', generating: 'thinking', drawing: 'thinking', ready: 'celebrate' };
 export const poseFor = (step: Step) => POSE[step];
 
 export const openingLines = (language: string) => ['Hi! I’m Kai 👋', `I’ll help you learn **${language}** words. What’s your name?`];
@@ -29,6 +30,11 @@ export const LINES = {
   picking: 'Picking the best words for your level… ⏳',
   generateFailed: 'That did not work. Tap Generate to try again.',
   ready: 'Your deck is **ready**! 🎉 Tap it any time to see the words.',
+  wordsReady: 'Your words are **ready**! 🎉 Now I’m drawing a **picture** for each one 🎨',
+  whileDrawing: 'It takes about half a minute. Meanwhile, ask me a **question**, send a sentence to correct, or ask about me 🙂',
+  picturesProgress: '**{ready}** of **{total}** pictures are ready 🎨',
+  picturesReady: 'All the pictures are **ready**! 🖼️ Tap your deck any time to see the words.',
+  picturesFailed: 'I could not draw the pictures this time, but your deck is **ready**! Tap it any time to see the words.',
   practice: 'Shall we practice them now? 💪',
 } as const;
 // After Kai answers something off the script, it asks the step's question again.
@@ -38,6 +44,7 @@ export const BACK: Record<Step, string> = {
   topic: 'So, what do you want to learn? 🌮',
   proposed: 'Tap **Generate** when you’re ready ✨',
   generating: 'Your words are almost ready ⏳',
+  drawing: 'Your pictures are almost ready 🎨',
   ready: 'Shall we practice them now? 💪',
 };
 
@@ -58,6 +65,7 @@ export function kaiStateFor(m: ChatMoment): KaiState {
   if (m.waiting) return 'thinking';
   if (m.typing) return 'speaking';
   if (m.composerText) return 'listening';
+  if (m.step === 'drawing') return 'making'; // Kai draws, unless it is busy with the learner (the lines above)
   if (m.quiet) return 'waiting';
   if (m.step === 'ready') return 'celebrate';
   if (m.opened) return 'greeting';
@@ -94,13 +102,14 @@ export const ENGLISH_SCRIPT: Record<string, string> = {
   backTopic: BACK.topic,
   backProposed: BACK.proposed,
   backGenerating: BACK.generating,
+  backDrawing: BACK.drawing,
   replyPractice: REPLIES.practice,
   replyWordsFirst: REPLIES.wordsFirst,
   replyTryAgain: REPLIES.tryAgain,
 };
 export const EXPLAIN_KEYS = explainLines.map((_, i) => `explain${i + 1}`);
 // The line Kai says again after an off-script answer, per step.
-export const BACK_KEY: Record<Step, string> = { name: 'backName', language: 'whichLanguage', topic: 'backTopic', proposed: 'backProposed', generating: 'backGenerating', ready: 'practice' };
+export const BACK_KEY: Record<Step, string> = { name: 'backName', language: 'whichLanguage', topic: 'backTopic', proposed: 'backProposed', generating: 'backGenerating', drawing: 'backDrawing', ready: 'practice' };
 
 export type ScriptMaps = { native: Record<string, string>; learning: Record<string, string> };
 export type ScriptLine = { text: string; translation?: string };

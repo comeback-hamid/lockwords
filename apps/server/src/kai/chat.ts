@@ -17,6 +17,7 @@ export type KaiFacts = {
 export type KaiTurnToSave = { user: string | null; kai: { text: string; translation: string }[]; options: string[]; opening: boolean; notes: { add: string[]; drop: number };
   word?: KaiWord | null; // a word card on Kai's last line
   decks?: { ideas: DeckIdea[]; cefr: string }; // saved as proposed decks and linked to Kai's last line
+  picturesDeckId?: string; // this turn tells the learner that this deck's pictures are done (or failed); saved once per deck
   readyDeckId?: string; // this turn tells the learner that this deck is ready; saved once per deck (a second one saves nothing)
 };
 export type KaiStore = {
@@ -28,6 +29,7 @@ export type KaiStore = {
   facts(userId: string, now: Date): Promise<KaiFacts>;
   setTranslation(userId: string, on: boolean): Promise<boolean>; // false = no profile
   saidReady?(userId: string, deckId: string): Promise<boolean>; // Kai already told the learner this deck is ready
+  saidPictures?(userId: string, deckId: string): Promise<boolean>; // Kai already told the learner this deck's pictures are done
   // All of it or nothing. One turn at a time per user. An opening is not saved when another one was saved in the last 12 hours
   // (two requests at once): the answer then has no messages.
   addTurn(userId: string, turn: KaiTurnToSave, now: Date): Promise<{ userMessage: KaiMessage | null; messages: KaiMessage[] }>;
@@ -83,7 +85,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
   const opening = input === null;
   const event = typeof input === 'object' && input !== null ? input : null;
   const text = typeof input === 'string' ? input : null;
-  const ready = event ? await readyEvent(deps, userId, event.deckId) : null;
+  const ready = event ? await readyEvent(deps, userId, event.deckId, event.event) : null;
   if (ready === 'said') return NOTHING;
   if (typeof ready === 'string') return { ok: false, error: ready };
 
@@ -128,7 +130,7 @@ export async function kaiTurn(deps: Deps, userId: string, input: string | null |
   const ideas = ctx.firstVisit || event ? undefined : withPlanSize(answer.decks, ctx.planDeck);
   const saved = await deps.kai.addTurn(
     userId,
-    { user: text, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), word: event ? null : answer.word, ...(ideas ? { decks: { ideas, cefr: profile.cefr ?? 'A1' } } : {}), ...(event ? { readyDeckId: event.deckId } : {}) },
+    { user: text, kai: answer.lines, options: answer.options, opening, notes: nextNotes(notes, answer.remember), word: event ? null : answer.word, ...(ideas ? { decks: { ideas, cefr: profile.cefr ?? 'A1' } } : {}), ...(event ? (event.event === 'deck_pictures' ? { picturesDeckId: event.deckId } : { readyDeckId: event.deckId }) : {}) },
     now,
   );
   if ((opening || event) && saved.messages.length === 0) return NOTHING; // another request opened, or said "ready", first

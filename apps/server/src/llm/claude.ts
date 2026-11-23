@@ -48,14 +48,14 @@ const deckSchema = (withMeaning: boolean) => ({
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['word', 'translation', 'example', 'example_translation', ...(withMeaning ? ['meaning'] : [])],
-        properties: { word: { type: 'string' }, translation: { type: 'string' }, example: { type: 'string' }, example_translation: { type: 'string' }, ...(withMeaning ? { meaning: { type: 'string' } } : {}) },
+        required: ['word', 'translation', 'example', 'example_translation', 'picture', ...(withMeaning ? ['meaning'] : [])],
+        properties: { word: { type: 'string' }, translation: { type: 'string' }, example: { type: 'string' }, example_translation: { type: 'string' }, picture: { type: 'string' }, ...(withMeaning ? { meaning: { type: 'string' } } : {}) },
       },
     },
   },
 });
 const DeckAnswer = zod.object({
-  cards: zod.array(zod.object({ word: zod.string().nullish(), translation: zod.string().nullish(), example: zod.string().nullish(), example_translation: zod.string().nullish(), exampleTranslation: zod.string().nullish(), meaning: zod.string().nullish() })),
+  cards: zod.array(zod.object({ word: zod.string().nullish(), translation: zod.string().nullish(), example: zod.string().nullish(), example_translation: zod.string().nullish(), exampleTranslation: zod.string().nullish(), meaning: zod.string().nullish(), picture: zod.string().nullish() })),
 });
 
 async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
@@ -77,21 +77,28 @@ async function askDeck(apiKey: string, fetchFn: Fetch, i: DeckInput) {
   const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
   const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
   const { cards } = DeckAnswer.parse(JSON.parse(json));
-  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation, meaning: c.meaning })), i.wordCount);
+  return checkCards(cards.map((c) => ({ word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.example_translation ?? c.exampleTranslation, meaning: c.meaning, pictureHint: c.picture })), i.wordCount);
 }
 
 export function claudeDeckMaker(apiKey: string, fetchFn: Fetch = fetch): DeckMaker {
   const ask = asker(apiKey, fetchFn);
 
-  const who = (i: DeckInput) =>
-    `The learner speaks ${i.nativeLanguage} and is learning ${i.learningLanguage} at CEFR level ${i.cefr}. Their topic: "${i.topic}".`;
+  // A deck is always in the language being learned: title and reason too. The learner's own language is only the translation under it.
+  const propose = (i: DeckInput) => {
+    const language = languageName(i.learningLanguage), native = languageName(i.nativeLanguage);
+    return `The learner speaks ${native} and is learning ${language} at CEFR level ${i.cefr}. Their topic (it may be written in any language): "${i.topic}".
+Write the title of a ${DECK_SIZE}-word flashcard deck for this topic.
+- "title": one short sentence in ${language} saying what they will be able to do, in simple words for their level. Never in ${native}.
+- "titleTranslation": the same sentence in ${native}.
+- "reason": in ${language}, at most 4 words, why it fits them, like "For your trip".
+Answer with JSON only: {"title": string, "titleTranslation": string, "reason": string}`;
+  };
 
   return {
-    propose: (i) =>
-      ask(
-        `${who(i)}\nWrite the title of a ${DECK_SIZE}-word flashcard deck for this topic: one short sentence in ${i.nativeLanguage} saying what they will be able to do. Also a reason of at most 4 words, like "For your trip".\nAnswer with JSON only: {"title": string, "reason": string}`,
-        ProposalSchema,
-      ),
+    propose: async (i) => {
+      const { title, titleTranslation, reason } = await ask(propose(i), ProposalSchema);
+      return { title, reason, ...(titleTranslation ? { titleTranslation } : {}) };
+    },
     cards: (i) => askDeck(apiKey, fetchFn, i),
   };
 }
@@ -165,6 +172,7 @@ const KAI_ANSWER: Record<string, string> = {
   ready: '"practice" if they want to practice now, "wordsFirst" if they want to see the words first',
   proposed: 'nothing: every message is off the script here (Kai just showed their first deck of 10 words; they tap Generate to make it)',
   generating: 'nothing: every message is off the script here (Kai is making their first 10 words right now; it takes a few seconds)',
+  drawing: 'nothing: every message is off the script here. Their first 10 words are ready and Kai is drawing a picture for each word right now (about half a minute). Kai invited them to use the wait: answer a language question helpfully, correct a sentence they wrote, practice with them, or say something about yourself',
 };
 
 export function claudeKaiReplier(apiKey: string, fetchFn: Fetch = fetch): KaiReplier {

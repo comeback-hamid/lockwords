@@ -115,6 +115,7 @@ const fixtureReply: KaiReplier['reply'] = async ({ step, text, options, nativeLa
   {
     const t = text.trim(), low = t.toLowerCase();
     const question = t.includes('?');
+    if (step === 'drawing') return OFF('😊 Good question! Ask me **anything** while I draw.');
     if (step === 'proposed' || step === 'generating') return OFF('😊 Good question! I’ll tell you more once your **words** are ready.');
     if (step === 'name') {
       if (question || t.split(/\s+/).length > 4) return OFF('😊 So I can **greet you** by name!');

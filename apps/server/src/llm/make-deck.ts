@@ -19,7 +19,8 @@ export type DeckInput = {
 };
 
 const MEANING_MAX = 140;
-export const ProposalSchema = z.object({ title: z.string().min(1).max(120), reason: z.string().min(1).max(60) });
+// title and reason are in the language being learned; titleTranslation is the title in the learner's own language (none from older answers).
+export const ProposalSchema = z.object({ title: z.string().min(1).max(120), titleTranslation: z.string().min(1).max(240).nullish(), reason: z.string().min(1).max(60) });
 export const CardSchema = z.object({
   word: z.string().min(1).max(60),
   translation: z.string().min(1).max(120),
@@ -27,6 +28,8 @@ export const CardSchema = z.object({
   exampleTranslation: z.string().min(1).max(240),
   // A short definition in the language being learned. Only for the top band (B2–C1); the card back shows it in place of the translation.
   meaning: z.string().min(1).max(MEANING_MAX).optional(),
+  // What to draw for this word, in English (for the deck's picture sheet). Never shown to the learner.
+  pictureHint: z.string().min(1).max(160).optional(),
 });
 export const DECK_SIZE = 10; // the first deck (onboarding). A deck from the New words chat has its own size.
 export const CardsSchema = z.object({ cards: z.array(CardSchema).length(DECK_SIZE) });
@@ -61,7 +64,8 @@ export function checkCards(raw: RawCard[], size = DECK_SIZE): NewCard[] {
     if (seen.has(key)) continue;
     seen.add(key);
     const meaning = goodMeaning(r.meaning, word);
-    out.push({ word, translation, example, exampleTranslation: (r.exampleTranslation ?? '').replace(/\*/g, '').trim() || translation, ...(meaning ? { meaning } : {}) });
+    const pictureHint = r.pictureHint?.replace(/\*/g, '').trim().slice(0, 160);
+    out.push({ word, translation, example, exampleTranslation: (r.exampleTranslation ?? '').replace(/\*/g, '').trim() || translation, ...(meaning ? { meaning } : {}), ...(pictureHint ? { pictureHint } : {}) });
   }
   if (out.length < size) throw new Error(`only ${out.length} good cards`);
   return z.array(CardSchema).length(size).parse(out.slice(0, size));
@@ -102,6 +106,7 @@ Interests: ${i.interests.length ? i.interests.join(', ') : 'none given'}
 
 Deck they asked for (their words): "${i.topic}"
 
+The request above may be written in ${native} or any other language. The deck is still in ${language}: every word and every example is in ${language}, never in ${native}. Only "translation" and "example_translation" are in ${native}.
 Make a deck of exactly ${size} different words or short phrases in ${language} that fit the request, the learner's level, their goal and their interests.
 What to put in this deck for this learner's level: ${deckMix(band, i.knownWords, size)}
 For each item:
@@ -109,5 +114,6 @@ For each item:
 - translation: the word in ${native}, 1 to 4 words.
 - example: one short sentence in ${language} (at most 12 words) at the learner's level, personal to their goal and interests, about the learner ("I", "my"). Wrap the form of the word used in the sentence in single asterisks, like *propina*.
 - example_translation: that sentence in ${native}, without asterisks.${wantsMeaning(i) ? `\n- meaning: a short definition of the word in ${language} (not a translation), in simple words, at most 14 words, without using the word itself.` : ''}
+- picture: what to draw for this word, in English, at most 12 words: one simple, concrete object that shows the meaning, or one person doing or feeling it (for an action or an abstract word). No background, no text or letters in the picture.
 Before you answer, check every item: Is the word real and correctly spelled? Does the example use exactly this word or phrase (not a synonym)? Is the translation right? Does it fit this learner's level and the easy / at-level / stretch mix above (replace any item a learner at this level surely knows already)? Does it fit their goal and interests? Is the example natural and does it contain the word? Fix anything wrong.`;
 }

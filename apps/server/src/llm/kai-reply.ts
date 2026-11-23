@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // AI task: Kai reads what a learner typed in a Kai chat. Either it answers the current step (onScript),
 // or Kai gives 1–2 short lines back and the app asks the question again.
-export const KAI_STEPS = ['name', 'language', 'topic', 'proposed', 'generating', 'ready'] as const;
+export const KAI_STEPS = ['name', 'language', 'topic', 'proposed', 'generating', 'drawing', 'ready'] as const;
 export type KaiStep = (typeof KAI_STEPS)[number];
 // chat: the language Kai speaks in this chat now. "native" (also when left out) = the learner's own language; "target" = the
 // language they learn, and then every line comes with its translation into their own language.
@@ -30,6 +30,7 @@ const ANSWER: Record<KaiStep, z.ZodType<string> | null> = {
   ready: z.enum(['practice', 'wordsFirst']),
   proposed: null,
   generating: null,
+  drawing: null, // the words are made and the pictures are being drawn: the learner chats with Kai while they wait
 };
 
 // Checks a reply against the step. Throws when it does not fit (the route answers 502).

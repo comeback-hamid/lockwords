@@ -1900,6 +1900,9 @@ export interface components {
             wordCount: number;
             /** @enum {string} */
             status: "proposed" | "generating" | "ready";
+            /** @enum {string} */
+            picturesStatus?: "none" | "making" | "ready" | "failed";
+            picturesReady?: number;
             cards: components["schemas"]["Card"][];
         };
         Card: {
@@ -1908,6 +1911,7 @@ export interface components {
             example: string;
             exampleTranslation: string;
             meaning?: string;
+            imageUrl?: string | null;
             id: string;
             position: number;
             stage: number;
@@ -1940,6 +1944,7 @@ export interface components {
             stage: number;
             canUseIt: boolean;
             meaning?: string;
+            imageUrl?: string | null;
         };
         HardWords: {
             words: {
@@ -2068,7 +2073,7 @@ export interface components {
         };
         KaiReplyRequest: {
             /** @enum {string} */
-            step: "name" | "language" | "topic" | "proposed" | "generating" | "ready";
+            step: "name" | "language" | "topic" | "proposed" | "generating" | "drawing" | "ready";
             text: string;
             options?: string[];
             /** @enum {string} */
@@ -2147,7 +2152,7 @@ export interface components {
             /** @enum {boolean} */
             open?: true;
             /** @enum {string} */
-            event?: "deck_ready";
+            event?: "deck_ready" | "deck_pictures";
             deckId?: string;
         };
         KaiTranslation: {

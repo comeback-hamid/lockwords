@@ -56,6 +56,21 @@ All sessions run on the same Mac. Some things cannot be split by a worktree:
 - **A flow that fails at a new place each time is the machine, not the code.** Look at memory (`sysctl vm.swapusage`), the proxy, and other sessions' test runs before you change code. A flow that fails at the same step twice is a real failure: read its screenshot (`--test-output-dir`).
 - **The dev build:** one build of the app serves all sessions. A PR that adds a native package needs a new build; say so loudly in the PR, because every other session must rebuild.
 
+## Faster with many sessions
+
+The slow part of a batch is not the code. It is the Maestro pass before every push: all flows take about an hour on this Mac, and every merge makes the other sessions test again. When several sessions work on one batch, these two rules apply (Hamid, 2026-11-23). Hamid says at the start of a batch that it runs this way; a single session working alone keeps the normal pre-push pass.
+
+1. **Area-only tests after a merge.** After you merge `origin/main`, run only the flows of the areas your change touches: `LOCKWORDS_E2E_AREAS=review,onboarding` (your own new flow must be among them). Never the full pass again. Name the areas in the PR.
+2. **No local simulator run before a push.** When unit tests, typecheck and lint pass, push with `git push --no-verify`. GitHub CI must be green before a merge. Write in the PR: "Pushed without the local Maestro pass". You still record your own feature flow once, for Hamid's video.
+
+**What keeps this safe:** when the whole batch is merged, the session that started the batch runs **one full pass of all flows on `main`**, on one simulator with nothing else running, and records the video for Hamid. What it finds is fixed before any build goes to a phone or to TestFlight. No full pass, no build.
+
+What we learned on 2026-11-23 (five sessions, one Mac):
+- Simulators: the rule above says two. Three ran on 2026-11-23, but slowly and with swap almost full. With four, the test driver did not start in time and runs failed for no real reason. Never four.
+- Give a finished session's simulator to a session that waits. Do not boot a new one.
+- A flow that fails inside a long pass and passes alone is the busy machine. A flow that fails alone at the same step is real: read Maestro's tap log to see what it tapped and where (a text can match an element that is off screen or under the tab bar).
+- To end a pass early, end it between two flows, never in the middle of a recording.
+
 ## Before you start (checklist)
 
 - [ ] I read `AGENTS.md` and this file.

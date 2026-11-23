@@ -2,6 +2,7 @@ import { and, asc, eq, isNull, ne } from 'drizzle-orm';
 
 import type { DecksStore } from '../app.js';
 import type { createDb } from './client.js';
+import { picturePath } from './pictures.js';
 import { cards, decks } from './schema.js';
 
 export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksStore {
@@ -20,7 +21,9 @@ export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksSt
       kind: deck.kind as 'topic' | 'random',
       wordCount: deck.kind === 'random' ? rows.length : deck.wordCount, // a Random Words deck grows one word at a time; any other deck has its own size
       status: deck.status as 'proposed' | 'generating' | 'ready',
-      cards: rows.map((c) => ({ id: c.id, position: c.position, word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.exampleTranslation, stage: c.stage, ...(c.meaning ? { meaning: c.meaning } : {}), ...(c.hard && !c.known ? { hard: true } : {}), ...(c.known ? { known: true } : {}) })),
+      picturesStatus: deck.picturesStatus as 'none' | 'making' | 'ready' | 'failed',
+      picturesReady: rows.filter((c) => c.pictureId).length,
+      cards: rows.map((c) => ({ id: c.id, position: c.position, word: c.word, translation: c.translation, example: c.example, exampleTranslation: c.exampleTranslation, stage: c.stage, ...(c.pictureId ? { imageUrl: picturePath(c.pictureId) } : {}), ...(c.meaning ? { meaning: c.meaning } : {}), ...(c.hard && !c.known ? { hard: true } : {}), ...(c.known ? { known: true } : {}) })),
     };
   }
   return {
@@ -29,11 +32,11 @@ export function createDecksStore(db: ReturnType<typeof createDb>['db']): DecksSt
       const [row] = await db.insert(decks).values({ userId, ...d }).returning({ id: decks.id });
       return (await get(userId, row!.id))!;
     },
-    async saveCards(id, newCards) {
+    async saveCards(id, newCards, pictures = false) {
       // Cards and the status change land together or not at all.
       const userId = await db.transaction(async (tx) => {
         await tx.insert(cards).values(newCards.map((c, position) => ({ deckId: id, position, ...c })));
-        const [deck] = await tx.update(decks).set({ status: 'ready' }).where(eq(decks.id, id)).returning({ userId: decks.userId });
+        const [deck] = await tx.update(decks).set({ status: 'ready', ...(pictures ? { picturesStatus: 'making' } : {}) }).where(eq(decks.id, id)).returning({ userId: decks.userId });
         return deck!.userId;
       });
       return (await get(userId, id))!;
