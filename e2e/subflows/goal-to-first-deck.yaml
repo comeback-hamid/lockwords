@@ -40,5 +40,8 @@ appId: com.comebackhamid.lockwords
 - extendedWaitUntil:
     visible: ".*Shall we practice them now.*"
     timeout: 60000
-- assertVisible: "Open deck"
+# Kai says more lines now (the pictures), so the deck card may be above the screen: scroll up to it.
+- scrollUntilVisible:
+    element: "Open deck"
+    direction: UP
 - tapOn: "OK, let’s practice!"

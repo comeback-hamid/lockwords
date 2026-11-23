@@ -104,7 +104,10 @@ tags:
 - extendedWaitUntil:
     visible: ".*Shall we practice them now.*"
     timeout: 20000
-- assertVisible: "Open deck"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Open deck"
+    direction: UP
 - assertVisible:
     id: "deck-open-column"
 - assertNotVisible: "Drawing the pictures…"
