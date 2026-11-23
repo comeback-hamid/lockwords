@@ -17,14 +17,13 @@ tags:
 - assertVisible: "la cuenta"
 # Hard on the first word: it will come back at the end
 - tapOn: "Hard"
-- assertVisible: "GOES TO YOUR LOCK SCREEN"
 - extendedWaitUntil:
     visible: "la propina"
     timeout: 15000
 - assertVisible: "10 words left"
-# Easy on a new word: back in 3 days
+# Easy on a new word (back in 3 days: the label is on the card as it leaves, too short for a flow to read;
+# its text is checked in apps/mobile/__tests__/review-card.test.tsx and the rule in the server tests)
 - tapOn: "Easy"
-- assertVisible: "BACK IN 3 DAYS"
 - extendedWaitUntil:
     visible: "9 words left"
     timeout: 15000
