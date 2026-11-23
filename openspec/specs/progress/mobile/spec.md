@@ -60,24 +60,6 @@ At the bottom the Progress tab SHALL show the title "You have N decks" with the 
 - **THEN** "Could not load your decks." and "Try again" show, and the rest of the page stays
 
 #### Scenario: Two decks
-- **WHEN** the server sends two decks
-- **THEN** the meadow says "Your meadow now: 2 trees" and Kai is in it
-
-#### Scenario: No decks
-- **WHEN** the server sends no decks
-- **THEN** the meadow says "Your meadow now: 1 tree"
-
-### Requirement: The big meadow
-The big meadow SHALL draw the forest at the goal: one full tree per 33 words of the goal, three trees at least, bigger than the small meadow's trees. The trees grow in when the page opens, then move in the wind with light running over the leaves, falling leaves and small specks of light. The animation runs on the UI thread. With Reduce Motion the picture stands still.
-
-#### Scenario: Goal of 100
-- **WHEN** the goal is 100
-- **THEN** the meadow says "Your meadow at the goal: 3 trees"
-
-### Requirement: Decks at the bottom
-At the bottom the Progress tab SHALL show the title "You have N decks" with the number in green ("You have 1 deck"; with none "You have no decks yet" and "Ask Kai for one in New words.") and every deck as a short row in one box, newest first: the deck's name, "N words · N learning" (or "N words · all new" when no word is started), a chain of level squares and an arrow. A row opens that deck's page with its list of words. When the decks cannot be loaded: "Could not load your decks." and "Try again"; the rest of the page stays.
-
-#### Scenario: Two decks
 - **WHEN** the learner has a deck of 20 words with 8 learning and a deck of 4 new words
 - **THEN** "You have 2 decks", "20 words · 8 learning" and "4 words · all new" show
 
