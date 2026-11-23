@@ -8,6 +8,11 @@ tags:
     clearState: true
     clearKeychain: true
 - startRecording: onboarding-languages
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- tapOn: "Start"
 # O1: the long list scrolls down to Korean and Other
 - extendedWaitUntil:
     visible: "What do you want to learn?"
