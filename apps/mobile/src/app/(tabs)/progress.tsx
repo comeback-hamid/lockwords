@@ -6,9 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { DeckSummary, Progress } from '@/api/client';
 import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
-import { DeckCard } from '@/components/chat/deck-card';
 import { GoalGrid } from '@/components/goal-grid';
 import { Icon } from '@/components/icon';
+import { LevelChain } from '@/components/level-chain';
 import { LoadError, Loading } from '@/components/load-state';
 import { Meadow } from '@/components/meadow';
 import { Kai } from '@/kai/kai';
@@ -21,10 +21,11 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', '
 const shortDate = (day: string) => `${MONTHS[Number(day.slice(5, 7)) - 1] ?? ''} ${Number(day.slice(8, 10))}`;
 const trees = (n: number) => `${n} ${n === 1 ? 'tree' : 'trees'}`;
 const KAI_SIZE = 64;
-const noop = () => {};
+const count = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
 
 // Progress tab (Figma P1), from top to bottom: the numbers, the small meadow with Kai (the decks as they are now),
-// the goal grid with its date, the big meadow (the forest at the goal), and every deck.
+// the goal grid with its date, the big meadow (the forest at the goal), and every deck as a short row.
+// No hard words here (Hamid, 2026-11-23): they show on the one-time screen after the first round and in each deck.
 export default function ProgressScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -84,11 +85,6 @@ export default function ProgressScreen() {
               <Count color={levelColors[3]} text={`${progress.learning} learning`} />
               <Count color={levelColors[5]} text={`${progress.mastered} mastered`} />
             </View>
-            {/* The hard words: the number, and the way to their list. */}
-            <Pressable accessibilityRole="button" accessibilityLabel={`${progress.hard} hard ${progress.hard === 1 ? 'word' : 'words'}`} onPress={() => router.push('/hard-words')} style={styles.hard}>
-              <Text style={[type.bodyStrong, styles.red]}>{`${progress.hard} hard ${progress.hard === 1 ? 'word' : 'words'}`}</Text>
-              <Icon name="next" size={16} color={colors.hard} />
-            </Pressable>
           </View>
 
           {/* The decks as they are now, one tree each. Kai stands on the ground, on the right. */}
@@ -116,8 +112,19 @@ export default function ProgressScreen() {
           </View>
 
           <View style={styles.decks}>
-            <Text testID="decks-title" accessibilityRole="header" style={[type.headline, styles.ink]}>
-              {progress.decks === 0 ? 'You have no decks yet' : `You have ${progress.decks} ${progress.decks === 1 ? 'deck' : 'decks'}`}
+            {/* "You have 5 decks", the number in green like the goal (Figma P1). */}
+            <Text testID="decks-title" accessibilityRole="header" style={[type.title, styles.ink]}>
+              {progress.decks === 0 ? (
+                'You have no decks yet'
+              ) : (
+                <>
+                  {'You have '}
+                  <Text testID="decks-count" style={styles.green}>
+                    {progress.decks}
+                  </Text>
+                  {progress.decks === 1 ? ' deck' : ' decks'}
+                </>
+              )}
             </Text>
             {decks.failed ? (
               <LoadError
@@ -132,22 +139,39 @@ export default function ProgressScreen() {
             ) : decks.list.length === 0 ? (
               <Text style={[type.callout, styles.muted]}>Ask Kai for one in New words.</Text>
             ) : (
-              decks.list.map((deck) => (
-                <DeckCard
-                  key={deck.id}
-                  deck={{ cefr: deck.cefr, wordCount: deck.words, title: deck.title, reason: '', cards: deck.stages.map((stage, i) => ({ id: String(i), stage })) }}
-                  state="ready"
-                  flat
-                  listed
-                  onGenerate={noop}
-                  onOpen={() => router.push(`/deck/${deck.id}`)}
-                />
-              ))
+              <View style={styles.box}>
+                {decks.list.map((deck, i, list) => (
+                  <DeckRow key={deck.id} deck={deck} divider={i < list.length - 1} onPress={() => router.push(`/deck/${deck.id}`)} />
+                ))}
+              </View>
             )}
           </View>
         </>
       )}
     </ScrollView>
+  );
+}
+
+// One deck as a short row (Figma "Deck list row"): its name, its numbers, a chain of level squares and an arrow.
+function DeckRow({ deck, divider, onPress }: { deck: DeckSummary; divider: boolean; onPress(): void }) {
+  const numbers = `${count(deck.words, 'word')} · ${deck.learning ? `${deck.learning} learning` : 'all new'}`;
+  return (
+    // The label says everything the row shows (a screen reader, and Maestro, read the label, not the texts inside).
+    <Pressable accessibilityRole="button" accessibilityLabel={`${deck.topic}, ${numbers}`} onPress={onPress} style={[styles.row, divider && styles.divider]}>
+      <View style={styles.rowIcon}>
+        <Icon name="deck" size={24} color={colors.greenText} />
+      </View>
+      <View style={styles.rowText}>
+        <Text style={[type.bodyStrong, styles.ink]} numberOfLines={1}>
+          {deck.topic}
+        </Text>
+        <Text style={[type.caption, styles.muted]}>{numbers}</Text>
+        <View style={styles.chain}>
+          <LevelChain stages={deck.stages} />
+        </View>
+      </View>
+      <Icon name="next" size={16} color={colors.muted} />
+    </Pressable>
   );
 }
 
@@ -167,17 +191,21 @@ const styles = StyleSheet.create({
   counts: { flexDirection: 'row', gap: space[16] },
   count: { flexDirection: 'row', alignItems: 'center', gap: space[8] },
   dot: { width: 10, height: 10, borderRadius: 2 },
-  hard: { marginTop: space[8], height: layout.minTapTarget, flexDirection: 'row', alignItems: 'center', gap: space[8], paddingLeft: space[24], paddingRight: space[16], borderRadius: radius.pill, borderWidth: 1, borderColor: colors.hard, backgroundColor: colors.hardTint },
   // The meadows run from edge to edge of the screen (Figma), past the page's side margin.
   bleed: { alignSelf: 'stretch', marginHorizontal: -layout.sideMargin, marginTop: space[16], marginBottom: space[8] },
   goalMeadow: { marginTop: space[24] },
   kai: { position: 'absolute', right: 0, alignItems: 'center' },
   byRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: space[12], marginTop: space[24] },
   rule: { flex: 1, height: 1, backgroundColor: colors.divider },
-  decks: { width: '100%', gap: space[12], marginTop: space[24] },
+  decks: { width: '100%', gap: space[16], marginTop: space[32] },
+  box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[12], padding: space[16] },
+  divider: { borderBottomWidth: 1, borderBottomColor: colors.divider },
+  rowIcon: { width: 40, height: 40, borderRadius: radius.badge, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.greenBg },
+  rowText: { flex: 1, gap: space[4] },
+  chain: { alignItems: 'flex-start' },
   ink: { color: colors.text },
   muted: { color: colors.muted },
   green: { color: colors.greenText },
-  red: { color: colors.hard },
   dev: { color: colors.subtle },
 });

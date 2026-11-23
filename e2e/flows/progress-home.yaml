@@ -1,5 +1,5 @@
-# Progress home (P1), top to bottom: the numbers with the hard words, the small meadow with Kai, the goal grid, the
-# big meadow, and the decks. Then one Hard swipe: the hard words number and the hard words list show it.
+# Progress home (P1), top to bottom: the numbers, the small meadow with Kai, the goal grid, the big meadow, and the
+# decks as short rows. No hard words on this page (Hamid, 2026-11-23). After the first round the numbers move.
 # Needs the local stack: `npm run dev:up`. Dev build.
 appId: com.comebackhamid.lockwords
 tags:
@@ -13,7 +13,7 @@ tags:
 - extendedWaitUntil:
     visible: "10 cards to review today"
     timeout: 20000
-# Before any review: 10 new words, no hard word, one small tree with Kai next to it
+# Before any review: 10 new words, one small tree with Kai next to it
 - tapOn: "Progress"
 - extendedWaitUntil:
     visible: "words in your word bank"
@@ -21,7 +21,7 @@ tags:
 - assertVisible: "10 new"
 - assertVisible: "0 learning"
 - assertVisible: "0 mastered"
-- assertVisible: "0 hard words"
+- assertNotVisible: ".*hard word.*"
 - assertVisible: "Your meadow now: 1 tree"
 - assertVisible: "Kai"
 # The link to a separate decks page and the word plan are gone
@@ -49,7 +49,7 @@ tags:
     direction: DOWN
     timeout: 60000
 - scrollUntilVisible:
-    element: "Open deck.*"
+    element: "Ordering food, 10 words · all new"
     direction: DOWN
 - assertNotVisible: "YOUR WORD PLAN.*"
 # The first round: the first word Hard, the rest Easy; the hard word comes back once
@@ -106,22 +106,15 @@ tags:
 - tapOn: "Continue"
 - tapOn: "Continue"
 - tapOn: "Close"
-# After the round the numbers moved, and the hard word is counted
+# After the round the numbers moved
 - tapOn: "Progress"
 - extendedWaitUntil:
     visible: "10 learning"
     timeout: 15000
 - assertVisible: "0 new"
-- assertVisible: "1 hard word"
-# The hard words list
-- tapOn: "1 hard word"
-- extendedWaitUntil:
-    visible: "Hard words"
-    timeout: 15000
-- assertVisible: "1 WORD · ON YOUR LOCK SCREEN"
-- assertVisible: "la cuenta, the bill"
-- tapOn: "Back"
-- extendedWaitUntil:
-    visible: "words in your word bank"
-    timeout: 15000
+- assertNotVisible: ".*hard word.*"
+- scrollUntilVisible:
+    element: "Ordering food, 10 words · 10 learning"
+    direction: DOWN
+    timeout: 60000
 - stopRecording
