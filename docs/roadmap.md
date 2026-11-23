@@ -3,7 +3,7 @@
 One epic = a few OpenSpec changes. One change = one branch = one PR (about a day; more than ~10 tasks → split).
 Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev guide, section 12.
 
-**Last updated: 2026-11-23 (`fix/hard-words-progress`, open PR: hard words list and count, the new Progress page, the word plan taken off Progress; before it `word-card-flip-swipe`: the word card follows Figma, a real flip, swipes that do not wait for the server; and `welcome-kai-animations`: splash picture, O0 Hello, a bigger Kai on O2 with the word in the learned language, Kai talks and listens in Use it; one of five fix PRs after Hamid's phone test; before it the word plan deck size fix).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
+**Last updated: 2026-11-23 (`fix/deck-language-pictures`: a deck is always in the learned language, deck pictures, the deck card's arrow column. Before it `fix/hard-words-progress`, open PR: hard words list and count, the new Progress page, the word plan taken off Progress; before it `word-card-flip-swipe`: the word card follows Figma, a real flip, swipes that do not wait for the server; and `welcome-kai-animations`: splash picture, O0 Hello, a bigger Kai on O2 with the word in the learned language, Kai talks and listens in Use it; one of five fix PRs after Hamid's phone test; before it the word plan deck size fix).** Every PR that changes what is done updates this file in the same PR (rule in `AGENTS.md`). `docs/roadmap.html` is made from this file on commit; never edit it by hand.
 **v1 target launch: 2026-11-23** (App Store submission + web app). **v1 tabs: New words · Review · Progress.** No Speak in v1 (decided 2026-11-16).
 
 ## Where we are (short)
@@ -20,6 +20,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 - **In review 2026-11-23 (`welcome-kai-animations`, area A of Hamid's phone test fixes):** a real splash picture (Kai and the name; **needs a new native build**), a new first screen O0 Hello (a very big Kai waves, “I’m Kai, welcome to Lockwords”, Start), a bigger Kai on the lock screen page (O2) that keeps waving, the sample word there in the language the learner picked (it was always Spanish), and Kai talks and listens in Use it. `Kai` and `KaiHeader` take `talking` and `listening`. Not checked on a real phone yet.
 - **Next without accounts: the widgets (epic 6)** on the simulator. The paywall and sign-in wait for the accounts.
 - **Launch date at risk:** the target is 2026-11-23, and two epics are not started (6 Widgets, 9 Launch prep), the paywall sells nothing and the web app is not public. See open decision 14.
+- **Done 2026-11-23 (Hamid's phone test, area C, PR #49):** (1) a deck is always in the language being learned: the first deck's title was asked for in the learner's own language, so a Persian speaker learning English got a Persian deck; now the title is in the learned language with the translation under it, and the words prompt says so too. (2) **Deck pictures:** one image call per deck draws every word as a grid on one sheet (OpenAI image model, medium), the server cuts it into one picture per card; `imageUrl` on a card in the API. Tried for real: about 22 to 28 seconds per deck. The `OPENAI_API_KEY` secret is set in GitHub (2026-11-23), so the cloud draws pictures from the first deploy of this PR. (3) While the pictures are drawn Kai says so, invites a question, and says when they are ready; a failed run keeps the deck. (4) Every deck card that can be opened has a grey arrow column on its right (Figma "Deck card / Open column"). Not done: pictures for single words added to a Random Words deck, and for decks made before this change.
 
 ## Phase 0: Setup (days 1–4)
 
@@ -107,5 +108,5 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 10. Web app payment provider.
 11. A standing rule for when an agent may change old tests after an approved spec change.
 12. Use it on every card (today) or only from Stage 3.
-13. ~~Where card and deck pictures come from~~ decided 2026-11-20: no pictures for now; pick it up after the whole app is built.
+13. ~~Where card and deck pictures come from~~ decided 2026-11-20: no pictures for now. **Changed 2026-11-23 (Hamid):** every deck gets pictures, one image sheet per deck cut into one picture per card (`fix/deck-language-pictures`).
 14. Launch date: the target is 2026-11-23, with epics 3, 6, 8 and 9 not started on 2026-11-20. Keep the date and cut scope, or move the date.

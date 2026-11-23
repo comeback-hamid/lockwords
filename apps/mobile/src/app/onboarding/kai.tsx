@@ -22,6 +22,7 @@ const kai = (...lines: (string | ScriptLine)[]): Message[] => lines.map((line) =
 const me = (text: string, tapped = false): Message => ({ from: 'user', text, tapped });
 const typedText = (m: Message) => (m.from === 'kai' ? m.text : null);
 const OOPS_MS = 1200; // the spec's `oops` hold
+const DONE_SHOWN_MS = 500; // the picture bar at 100 % before the card becomes the ready card
 
 // Kai's lines in another language come from the server. A failed call means English.
 const loadScript = (native: string, learning: string): Promise<ScriptMaps | null> =>
@@ -79,6 +80,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const [quiet, setQuiet] = useState(false);
   const name = useRef('');
   const topic = useRef('');
+  const [drawTime, setDrawTime] = useState<{ startedAt?: number; done: boolean }>({ done: false }); // when the pictures began (times the card's bar)
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const languageOptions = learning && speaks ? chatLanguageOptions(speaks, learning) : [];
@@ -134,14 +136,42 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     setStep('generating');
     say(...kai(S().line('picking')));
     try {
-      setDeck(await api.generateDeck(deck.id));
+      const made = await api.generateDeck(deck.id);
+      setDeck(made);
+      // The pictures are drawn after the words. The deck is made already; the learner can chat with Kai while they wait.
+      const drawn = made.picturesStatus === 'making' ? await drawPictures(made) : null;
       setStep('ready');
-      say(...kai(S().line('ready'), S().line('practice')));
+      // After the wait the first card is far up the chat: the deck card shows again, ready to open, then Kai's lines about it.
+      if (drawn === null) say(...kai(S().line('ready'), S().line('practice')));
+      else say({ from: 'deck' }, ...kai(S().line(drawn ? 'picturesReady' : 'picturesFailed'), S().line('practice')));
       setOptions([S().label('replyPractice'), S().label('replyWordsFirst')]);
     } catch {
       setFailed((n) => n + 1);
       setStep('proposed');
       say(...kai(S().line('generateFailed')));
+    }
+  }
+
+  // Kai says it is drawing and invites the learner to use the wait; each new count is a short line. True = every card
+  // has its picture. A failed run, or a wait that breaks, is false: the deck is ready without pictures.
+  async function drawPictures(made: Deck): Promise<boolean> {
+    setStep('drawing');
+    setOptions([]);
+    say(...kai(S().line('wordsReady'), S().line('whileDrawing')));
+    const total = made.wordCount;
+    setDrawTime({ startedAt: Date.now(), done: false });
+    try {
+      const done = await api.waitForPictures(made.id, (ready) => {
+        setDeck((d) => (d ? { ...d, picturesReady: ready } : d));
+        if (ready > 0 && ready < total) say(...kai(S().line('picturesProgress', { ready: String(ready), total: String(total) })));
+      });
+      // The bar is seen at 100 % for a moment, then the card becomes the ready card.
+      setDrawTime((t) => ({ ...t, done: true }));
+      setDeck({ ...done, picturesReady: total });
+      await new Promise((resolve) => setTimeout(resolve, DONE_SHOWN_MS));
+      return done.picturesStatus === 'ready';
+    } catch {
+      return false;
     }
   }
 
@@ -214,7 +244,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
       }
     } catch {
       // Kai cannot answer: the typed text is the answer, as before. Nothing to answer while the deck is proposed or made.
-      if (step === 'proposed' || step === 'generating') setOptions(shown);
+      if (step === 'proposed' || step === 'generating' || step === 'drawing') setOptions(shown);
       else answer(text);
     } finally {
       setWaiting(false);
@@ -225,14 +255,17 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     scroll.current?.scrollToEnd({ animated: true });
   }, [messages, options, typing]);
 
+  const lastDeck = messages.findLastIndex((m) => m.from === 'deck');
+
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <KaiHeader pose={pose} progress={step === 'generating' ? made / total : step === 'ready' ? 1 : undefined} />
+      <KaiHeader pose={pose} progress={step === 'generating' ? made / total : step === 'drawing' ? (deck?.picturesReady ?? 0) / total : step === 'ready' ? 1 : undefined} />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {messages.map((m, i) =>
           m.from === 'deck' ? (
-            deck ? (
-              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : deck.status} count={made} hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
+            // The card is said twice (where it was offered, and again under "the pictures are ready"): only the newest one shows.
+            deck && i === lastDeck ? (
+              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total, startedAt: drawTime.startedAt, done: drawTime.done }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
             <RiseIn key={i}>

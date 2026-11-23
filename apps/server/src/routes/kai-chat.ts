@@ -55,9 +55,10 @@ const ChatSchema = z
 const TurnSchema = z
   .object({ userMessage: z.union([MessageSchema, z.null()]), messages: z.array(MessageSchema), options: z.array(z.string()), action: z.enum(['review']).nullable() })
   .openapi('KaiTurn');
-// Exactly one of: the learner's text, `open` for Kai's opening, or the event "deck_ready" with its deck.
+// Exactly one of: the learner's text, `open` for Kai's opening, or an event with its deck: "deck_ready" (the words are made)
+// or "deck_pictures" (the deck's picture run ended).
 const TurnBody = z
-  .object({ text: z.string().trim().min(1).max(500).optional(), open: z.literal(true).optional(), event: z.literal('deck_ready').optional(), deckId: z.string().min(1).max(64).optional() })
+  .object({ text: z.string().trim().min(1).max(500).optional(), open: z.literal(true).optional(), event: z.enum(['deck_ready', 'deck_pictures']).optional(), deckId: z.string().min(1).max(64).optional() })
   .refine((b) => [b.text, b.open, b.event].filter((v) => v !== undefined).length === 1, 'send one of text, open or event')
   .refine((b) => (b.event === undefined) === (b.deckId === undefined), 'deckId comes with event')
   .openapi('KaiTurnRequest');

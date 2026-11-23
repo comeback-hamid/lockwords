@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import type { CardsStore, DecksStore, ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
@@ -6,6 +7,7 @@ import { ideasFor } from '../decks/ideas.js';
 import { inlineDeckJobs, type DeckJobs } from '../decks/jobs.js';
 import { CardSchema, type DeckMaker } from '../llm/make-deck.js';
 import { UnauthorizedSchema } from './me.js';
+import { imageUrl, publicOrigin } from './pictures.js';
 
 const json = <T extends z.ZodType>(schema: T, description: string) => ({ description, content: { 'application/json': { schema } } });
 const error = <T extends string>(code: T, name: string) => z.object({ error: z.literal(code) }).openapi(name);
@@ -29,7 +31,12 @@ export const DeckSchema = z
     kind: z.enum(['topic', 'random']).optional(), // always set by the server; "random" = a Random Words deck
     wordCount: z.number().int(),
     status: z.enum(['proposed', 'generating', 'ready']),
-    cards: z.array(CardSchema.extend({ id: z.string(), position: z.number().int(), stage: z.number().int(), hard: z.boolean().optional(), known: z.boolean().optional() }).openapi('Card')),
+    // The deck's pictures, made right after its words: none (an older deck, or no image model), making, ready (every card has one),
+    // failed (the run ended and some cards have none; the deck works without them). Always set by the server.
+    picturesStatus: z.enum(['none', 'making', 'ready', 'failed']).optional(),
+    picturesReady: z.number().int().optional(), // how many cards have their picture
+    // imageUrl: the address of the card's picture (a WebP). Left out when the card has none (yet), like `meaning`.
+    cards: z.array(CardSchema.omit({ pictureHint: true }).extend({ imageUrl: z.string().nullable().optional(), id: z.string(), position: z.number().int(), stage: z.number().int(), hard: z.boolean().optional(), known: z.boolean().optional() }).openapi('Card')),
   })
   .openapi('Deck');
 export type Deck = z.infer<typeof DeckSchema>;
@@ -90,7 +97,17 @@ const POLL_MS = 300;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Every answer that returns a deck includes titleTranslation (null when the deck has none).
-const out = (deck: Deck) => ({ ...deck, titleTranslation: deck.titleTranslation ?? null });
+// So do the pictures' status and count. A card that has a picture gets imageUrl as a full address; a card with none has no imageUrl.
+const out = (deck: Deck, c: Context) => {
+  const origin = publicOrigin(c);
+  return {
+    ...deck,
+    titleTranslation: deck.titleTranslation ?? null,
+    picturesStatus: deck.picturesStatus ?? ('none' as const),
+    picturesReady: deck.picturesReady ?? 0,
+    cards: deck.cards.map(({ imageUrl: path, ...card }) => (path ? { ...card, imageUrl: imageUrl(origin, path) } : card)),
+  };
+};
 
 export function deckRoutes(deps: Deps) {
   // Stores are optional in AppDeps so tests of other routes can leave them out.
@@ -125,14 +142,14 @@ export function deckRoutes(deps: Deps) {
       if (!profile) return c.json({ error: 'no_profile' as const }, 409);
       const cefr = profile.cefr ?? 'A1';
       const proposal = await need('deckMaker').propose({ topic, learningLanguage: profile.learningLanguage, nativeLanguage: profile.nativeLanguage, cefr, level: profile.level, knownWords: profile.knownWords, goal: profile.goal, goalOther: profile.goalOther, interests: profile.interests });
-      return c.json(out(await need('decks').create(userId, { topic, cefr, ...proposal })), 201);
+      return c.json(out(await need('decks').create(userId, { topic, cefr, ...proposal }), c), 201);
     })
     .openapi(postGenerate, async (c) => {
       const userId = c.get('user').id;
       const { id } = c.req.valid('param');
       const deck = isUuid(id) ? await need('decks').get(userId, id) : null;
       if (!deck) return c.json({ error: 'not_found' as const }, 404);
-      if (deck.status === 'ready') return c.json(out(deck), 200);
+      if (deck.status === 'ready') return c.json(out(deck, c), 200);
       const failed = () => c.json({ error: 'generation_failed' as const }, 502);
       if (deck.status === 'proposed') {
         const jobs = deps.deckJobs ?? inlineDeckJobs({ profiles: need('profiles'), decks: need('decks'), deckMaker: need('deckMaker') });
@@ -144,14 +161,14 @@ export function deckRoutes(deps: Deps) {
       for (;;) {
         const now = await need('decks').get(userId, id);
         if (!now || now.status === 'proposed') return failed(); // the job failed and saved nothing
-        if (now.status === 'ready' || Date.now() >= until) return c.json(out(now), 200);
+        if (now.status === 'ready' || Date.now() >= until) return c.json(out(now, c), 200);
         await sleep(POLL_MS);
       }
     })
     .openapi(getDeck, async (c) => {
       const { id } = c.req.valid('param');
       const deck = isUuid(id) ? await need('decks').get(c.get('user').id, id) : null;
-      return deck ? c.json(out(deck), 200) : c.json({ error: 'not_found' as const }, 404);
+      return deck ? c.json(out(deck, c), 200) : c.json({ error: 'not_found' as const }, 404);
     })
     .openapi(deleteDeck, async (c) => {
       const { id } = c.req.valid('param');

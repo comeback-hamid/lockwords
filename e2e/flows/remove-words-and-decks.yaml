@@ -169,8 +169,10 @@ tags:
 - stopApp
 - launchApp
 - tapOn: "New words"
-- extendedWaitUntil:
-    visible: "You: Quiero un mazo sobre el hotel"
+# Kai says more lines after a deck is made now (the pictures), so this message can be above the screen: scroll up to it.
+- scrollUntilVisible:
+    element: "You: Quiero un mazo sobre el hotel"
+    direction: UP
     timeout: 30000
 - assertNotVisible: "Open deck"
 - assertNotVisible: "Generate"
