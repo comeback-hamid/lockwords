@@ -4,6 +4,9 @@ jest.mock('@/kai/kai-canvas', () => {
   return { KaiCanvas: (props: Record<string, unknown>) => <View testID="kai-canvas" {...props} /> };
 });
 
+// The meadow is drawn with Skia too: Jest uses the still picture made for the browser, so tests can count its blocks.
+jest.mock('@/components/meadow-canvas', () => jest.requireActual('@/components/meadow-canvas.web'));
+
 // Reanimated does not load in Jest. The fade-in wrapper becomes a plain view.
 jest.mock('@/components/fade-in', () => {
   const { View } = jest.requireActual('react-native');

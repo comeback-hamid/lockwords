@@ -221,7 +221,7 @@ When the learner's deck band is the top one (B2–C1), the deck maker SHALL ask 
 - **THEN** the card is saved without a `meaning`
 
 ### Requirement: Deck list
-`GET /v1/decks` SHALL answer `200` with `{ decks }`: the caller's ready decks that are not removed, newest first. Each has `id`, `topic`, `title`, `kind`, `words`, `learning`, `hard` and `stages` (the stage of each word, highest first; a known word counts as 5).
+`GET /v1/decks` SHALL answer `200` with `{ decks }`: the caller's ready decks that are not removed, newest first. Each has `id`, `topic`, `title`, `cefr`, `kind`, `words`, `learning`, `hard` and `stages` (the stage of each word, highest first; a known word counts as 5).
 
 #### Scenario: Two decks
 - **WHEN** a user has an older deck of 10 new words and a newer deck with 2 words at stage 2
