@@ -7,11 +7,14 @@ import type { Deck } from '@/api/client';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
+import { chatMessagesGrow, chatScrollProps, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { DeckCard, useTimedCount } from '@/components/chat/deck-card';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { RiseIn } from '@/components/chat/rise-in';
+import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
+import { useTranslation } from '@/components/chat/use-translation';
 import { markOnboardingFinished } from '@/onboarding/finished';
 import { BACK_KEY, chatLanguageOptions, EXPLAIN_KEYS, isEnglish, kaiStateFor, makeScript, QUIET_MS, SCRIPT_WAIT_MS, type ScriptLine, type ScriptMaps, type Step } from '@/onboarding/kai-script';
 import { getAnswers } from '@/onboarding/store';
@@ -68,6 +71,9 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const [step, setStep] = useState<Step>('name');
   // Kai's lines in the chat's language. It changes once, when the chat language is picked (read in handlers only).
   const script = useRef(makeScript(loaded, null));
+  const chatLanguage = useRef<'native' | 'target' | null>(null);
+  // The same translation switch as the New words chat, from Kai's first line: the app knows the learner's language here.
+  const translation = useTranslation(speaks ? (speaks.code ?? speaks.name) : null);
   const S = () => script.current;
   // Kai types every bubble (dots first, one after another); options wait for the last one.
   const { messages, typing, busy, say } = useKaiTyping<Message>(typedText, () => kai(makeScript(loaded, null).line('hi'), makeScript(loaded, null).line('askName', { language: learning?.name ?? '' })));
@@ -82,6 +88,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const topic = useRef('');
   const [drawTime, setDrawTime] = useState<{ startedAt?: number; done: boolean }>({ done: false }); // when the pictures began (times the card's bar)
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  useScrollToEndOnKeyboard(scroll);
 
   const languageOptions = learning && speaks ? chatLanguageOptions(speaks, learning) : [];
   const made = useTimedCount(step === 'generating', deck?.wordCount ?? 10);
@@ -192,6 +199,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
       setWaiting(false);
     }
     script.current = makeScript(maps, chat);
+    chatLanguage.current = chat;
     say(...kai(...EXPLAIN_KEYS.map((key) => S().line(key))));
     // A topic can be typed, so the chat goes on even if the ideas fail.
     api.fetchDeckIdeas().then(
@@ -236,10 +244,11 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     setOptions([]);
     setWaiting(true);
     try {
-      const reply = await api.kaiReply(step, text, shown);
+      // Kai answers in the chat's language. In the learned language its lines come with translations.
+      const reply = chatLanguage.current === 'target' ? await api.kaiReply(step, text, shown, 'target') : await api.kaiReply(step, text, shown);
       if (reply.onScript) answer(reply.answer);
       else {
-        say(...kai(...reply.lines, S().line(BACK_KEY[step])));
+        say(...kai(...reply.lines.map((line, i) => ({ text: line, translation: reply.translations?.[i] })), S().line(BACK_KEY[step])));
         setOptions(shown);
       }
     } catch {
@@ -259,25 +268,29 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <KaiHeader pose={pose} progress={step === 'generating' ? made / total : step === 'drawing' ? (deck?.picturesReady ?? 0) / total : step === 'ready' ? 1 : undefined} />
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
+      <KaiHeader
+        pose={pose}
+        progress={step === 'generating' ? made / total : step === 'drawing' ? (deck?.picturesReady ?? 0) / total : step === 'ready' ? 1 : undefined}
+        right={translation.code ? <TranslationToggle code={translation.code} on={translation.on} onToggle={translation.toggle} /> : undefined}
+      />
+      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'deck' ? (
             // The card is said twice (where it was offered, and again under "the pictures are ready"): only the newest one shows.
             deck && i === lastDeck ? (
-              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total, startedAt: drawTime.startedAt, done: drawTime.done }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
+              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total, startedAt: drawTime.startedAt, done: drawTime.done }} showTranslation={translation.on} hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
             <RiseIn key={i}>
               <ChatBubble from="user" text={m.text} />
             </RiseIn>
           ) : (
-            <ChatBubble key={i} from={m.from} text={m.text} translation={m.from === 'kai' ? m.translation : undefined} showTranslation={m.from === 'kai' && !!m.translation} />
+            <ChatBubble key={i} from={m.from} text={m.text} translation={m.from === 'kai' ? m.translation : undefined} showTranslation={translation.on} />
           ),
         )}
         {typing ? <TypingBubble /> : null}
+        <ReplyOptions options={busy || waiting ? [] : options} onPick={pick} />
       </ScrollView>
-      <ReplyOptions options={busy || waiting ? [] : options} onPick={pick} />
       <View style={{ paddingBottom: Math.max(insets.bottom, space[12]) }}>
         <Composer placeholder={step === 'topic' ? 'Or tell me what you need…' : 'Type a message…'} onSend={(text) => void typed(text)} onTextChange={(t) => setComposerText(t.trim() !== '')} />
       </View>

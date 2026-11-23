@@ -10,6 +10,7 @@ import { AskSchema, type WordAsker } from './ask-word.js';
 import { planPrompt, PlanSchema, type DeckPlanner } from './plan-decks.js';
 import type { ScriptTranslator } from './translate-script.js';
 import { UseItSchema, type UseItJudge } from './use-it.js';
+import { listedLanguage } from '../onboarding/languages.js';
 
 const MODEL = 'claude-sonnet-5-5';
 const TIMEOUT_MS = 30_000;
@@ -160,8 +161,10 @@ const KAI_SCHEMA = {
   required: ['onScript', 'answer', 'lines'],
   properties: { onScript: { type: 'boolean' }, answer: { type: 'string' }, lines: { type: 'array', items: { type: 'string' } } },
 };
+// With translations: the chat is in the learned language, so each line also comes in the learner's own language.
+const KAI_SCHEMA_TRANSLATED = { ...KAI_SCHEMA, required: [...KAI_SCHEMA.required, 'translations'], properties: { ...KAI_SCHEMA.properties, translations: { type: 'array', items: { type: 'string' } } } };
 const KAI_SYSTEM =
-  'You are Kai, the friendly tutor in a language-learning app (Lockwords), in an onboarding chat. Speak as yourself (I, me), never about "Kai". You read one message the learner typed and decide if it answers the current question. If it does, return onScript true and the answer. If it does not (a question, small talk, anything else), return onScript false and 1 or 2 very short lines (each under 120 characters) that answer them kindly, each with one emoji, key words in **bold**, in English. Never ask a new question and never change the subject of the chat: the app asks its own question again after your lines.';
+  'You are Kai, the friendly tutor in a language-learning app (Lockwords), in an onboarding chat. Speak as yourself (I, me), never about "Kai". You read one message the learner typed and decide if it answers the current question. If it does, return onScript true and the answer. If it does not (a question, small talk, anything else), return onScript false and 1 or 2 very short lines (each under 120 characters) that answer them kindly, each with one emoji, key words in **bold**, in the language the chat is in (named below). Never ask a new question and never change the subject of the chat: the app asks its own question again after your lines.';
 const KAI_ANSWER: Record<string, string> = {
   name: 'the name only (for "I am Maya" → "Maya"); Kai asked their name to greet them',
   language: '"native" if they want to chat in the first option, "target" for the second option',
@@ -175,9 +178,13 @@ const KAI_ANSWER: Record<string, string> = {
 export function claudeKaiReplier(apiKey: string, fetchFn: Fetch = fetch): KaiReplier {
   return {
     reply: async (i) => {
+      const translated = i.chat === 'target';
+      // The profile keeps a code ("es") for a listed language and the typed name for any other.
+      const [L, N] = [i.learningLanguage, i.nativeLanguage].map((saved) => listedLanguage(saved)?.name ?? saved);
       const prompt = `Learner: speaks ${i.nativeLanguage}, learning ${i.learningLanguage}${i.name ? `, name ${i.name}` : ''}.
 Current step: ${i.step}. An on-script answer is ${KAI_ANSWER[i.step]}.
 Options on screen: ${i.options.length ? i.options.map((o) => `"${o}"`).join(', ') : 'none'}.
+${translated ? `The chat is in ${L}: write your lines in ${L}, in simple words a beginner can read. Also give "translations": the same lines in ${N}, one for each line, in the same order, plain text without **.` : `The chat is in ${N}: write your lines in ${N}.`}
 They typed: "${i.text}"`;
       const res = await fetchFn('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -187,7 +194,7 @@ They typed: "${i.text}"`;
           max_tokens: 1000,
           system: KAI_SYSTEM,
           messages: [{ role: 'user', content: prompt }],
-          output_config: { effort: 'low', format: { type: 'json_schema', schema: KAI_SCHEMA } },
+          output_config: { effort: 'low', format: { type: 'json_schema', schema: translated ? KAI_SCHEMA_TRANSLATED : KAI_SCHEMA } },
         }),
         signal: AbortSignal.timeout(KAI_TIMEOUT_MS),
       });
@@ -195,8 +202,8 @@ They typed: "${i.text}"`;
       const body = (await res.json()) as { stop_reason?: string; content?: { type: string; text?: string }[] };
       if (body.stop_reason === 'refusal') throw new Error('model refused');
       const text = body.content?.find((c) => c.type === 'text')?.text ?? '';
-      const r = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)) as { onScript: boolean; answer: string; lines: string[] };
-      return checkReply(i.step, r.onScript ? { onScript: true, answer: r.answer } : { onScript: false, lines: r.lines });
+      const r = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)) as { onScript: boolean; answer: string; lines: string[]; translations?: string[] };
+      return checkReply(i.step, r.onScript ? { onScript: true, answer: r.answer } : { onScript: false, lines: r.lines, ...(translated ? { translations: r.translations } : {}) });
     },
   };
 }

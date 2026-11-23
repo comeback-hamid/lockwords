@@ -1472,7 +1472,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description The text answers the step (answer), or Kai answers it (lines) */
+                /** @description The text answers the step (answer), or Kai answers it (lines; with `chat: target` also one translation per line) */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -2065,6 +2065,7 @@ export interface components {
             /** @enum {boolean} */
             onScript: false;
             lines: string[];
+            translations?: string[];
         };
         KaiUnavailable: {
             /** @enum {string} */
@@ -2075,6 +2076,8 @@ export interface components {
             step: "name" | "language" | "topic" | "proposed" | "generating" | "drawing" | "ready";
             text: string;
             options?: string[];
+            /** @enum {string} */
+            chat?: "native" | "target";
         };
         KaiChat: {
             messages: components["schemas"]["KaiMessage"][];

@@ -7,17 +7,19 @@ import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
+import { chatMessagesGrow, chatScrollProps, closeKeyboard, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { useTimedCount } from '@/components/chat/deck-card';
 import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { RiseIn } from '@/components/chat/rise-in';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
+import { useTranslation } from '@/components/chat/use-translation';
 import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { hasPendingAsk, takePendingAsk } from '@/new-words/pending';
 import { useDeckPictures } from '@/new-words/pictures';
-import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, newestCards, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
+import { MAKE_FAILED, newWordsKaiState, OOPS_MS, newestCards, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
 import { showReviewDot, useReviewDot } from '@/review/dot';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
@@ -44,8 +46,10 @@ export default function NewWordsScreen() {
   const [greeting, setGreeting] = useState(false);
   const [failed, setFailed] = useState<string | null>(null); // the text of a turn that did not go through
   const [draft, setDraft] = useState({ key: 0, text: '' }); // a new key puts `text` back in the composer
-  const [translation, setTranslation] = useState({ on: true, code: '' });
+  const translation = useTranslation(); // the same switch as the onboarding chat
+  const startTranslation = translation.start;
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  useScrollToEndOnKeyboard(scroll);
   // Decks (Figma N2–N5): the deck being made now, how Kai feels about the last one, and the decks Kai was asked to speak about.
   const [making, setMaking] = useState<ChatDeck | null>(null);
   const [celebrate, setCelebrate] = useState(0); // 0 = no; a new number plays it again (a deck is ready, a word was added)
@@ -175,7 +179,7 @@ export default function NewWordsScreen() {
         setLines(chat.messages);
         setHasMore(chat.hasMore === true);
         setOptions(chat.options);
-        setTranslation({ on: chat.translationOn, code: languageCode(chat.nativeLanguage) });
+        startTranslation(chat.translationOn, chat.nativeLanguage);
         setLoad('ready');
       } catch {
         if (live) setLoad('error');
@@ -184,7 +188,7 @@ export default function NewWordsScreen() {
     return () => {
       live = false;
     };
-  }, [attempt]);
+  }, [attempt, startTranslation]);
 
   const ready = load === 'ready';
   // A deck idea tapped in the word plan (Progress tab) waits for this chat: it is sent once the tab is open and Kai is
@@ -349,10 +353,8 @@ export default function NewWordsScreen() {
   }
 
   function toggleTranslation() {
-    const on = !translation.on;
     touch();
-    setTranslation((t) => ({ ...t, on }));
-    api.setKaiTranslation(on).catch(() => setTranslation((t) => ({ ...t, on: !on }))); // not saved: switch back
+    translation.toggle();
   }
 
   const header = (
@@ -407,10 +409,9 @@ export default function NewWordsScreen() {
       <View style={styles.scroll}>
       <ScrollView
         ref={scroll}
-        testID="chat-messages"
+        {...chatScrollProps}
         style={styles.scroll}
-        contentContainerStyle={styles.messages}
-        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[styles.messages, chatMessagesGrow]}
         // Older messages join at the top: the line the learner is reading stays where it is.
         maintainVisibleContentPosition={KEEP_PLACE}
         scrollEventThrottle={16}
@@ -418,6 +419,7 @@ export default function NewWordsScreen() {
         onScrollBeginDrag={() => {
           dragged.current = true;
           touch();
+          closeKeyboard(); // any scroll of the messages closes the keyboard
         }}
       >
         {newestCards(lines).map((l) => (
@@ -440,6 +442,7 @@ export default function NewWordsScreen() {
         ))}
         {typing ? <TypingBubble /> : null}
         {failed ? <LoadError message="Kai can’t answer right now." onRetry={() => void send(failed)} /> : null}
+        <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o, true)} />
         </ScrollView>
         {loadingOlder ? (
           // Over the chat, not in it: the messages do not move while the page loads.
@@ -450,7 +453,6 @@ export default function NewWordsScreen() {
           </View>
         ) : null}
       </View>
-      <ReplyOptions options={typing || making ? [] : options} onPick={(o) => void send(o, true)} />
       <View style={keyboard ? styles.composerTyping : styles.composer}>
         <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} onTextChange={typed} maxLength={500} mic={false} canSend={!typing && !making} />
       </View>

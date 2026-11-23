@@ -1175,6 +1175,12 @@
                 },
                 "minItems": 1,
                 "maxItems": 2
+              },
+              "translations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": [
@@ -1226,6 +1232,13 @@
               "maxLength": 80
             },
             "maxItems": 6
+          },
+          "chat": {
+            "type": "string",
+            "enum": [
+              "native",
+              "target"
+            ]
           }
         },
         "required": [
@@ -2996,7 +3009,7 @@
         },
         "responses": {
           "200": {
-            "description": "The text answers the step (answer), or Kai answers it (lines)",
+            "description": "The text answers the step (answer), or Kai answers it (lines; with `chat: target` also one translation per line)",
             "content": {
               "application/json": {
                 "schema": {

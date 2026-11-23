@@ -107,8 +107,12 @@ const languageName = (code: string) => {
 
 // Kai's reply without a model: a question, or a long text that is not a name, is off the script.
 const OFF = (line: string) => ({ onScript: false as const, lines: [line] });
-export const fixtureKaiReplier: KaiReplier = {
-  reply: async ({ step, text, options, nativeLanguage, learningLanguage }) => {
+// The stand-in speaks English in every language, so a "translation" is the same line as plain text.
+const withTranslations = (r: Awaited<ReturnType<KaiReplier['reply']>>, chat?: 'native' | 'target') =>
+  !r.onScript && chat === 'target' ? { ...r, translations: r.lines.map((l) => l.replaceAll('**', '')) } : r;
+export const fixtureKaiReplier: KaiReplier = { reply: async (i) => withTranslations(await fixtureReply(i), i.chat) };
+const fixtureReply: KaiReplier['reply'] = async ({ step, text, options, nativeLanguage, learningLanguage }) => {
+  {
     const t = text.trim(), low = t.toLowerCase();
     const question = t.includes('?');
     if (step === 'drawing') return OFF('😊 Good question! Ask me **anything** while I draw.');
@@ -128,5 +132,5 @@ export const fixtureKaiReplier: KaiReplier = {
     if (/practi|now|yes|let/.test(low)) return { onScript: true, answer: 'practice' };
     if (/word|first|see|look/.test(low)) return { onScript: true, answer: 'wordsFirst' };
     return OFF('💪 Practice now, or look at the **words** first?');
-  },
+  }
 };
