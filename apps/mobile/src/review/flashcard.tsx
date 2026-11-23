@@ -11,7 +11,7 @@ import { Icon } from '@/components/icon';
 import { getSpeechLanguage } from '@/review/speech-language';
 import { useSwipe } from '@/review/use-swipe';
 import { wordSize } from '@/review/word-size';
-import { card as tokens, colors, levelColors, lift, radius, space, type } from '@/theme/theme';
+import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 // Where a card is in the stack. `top` is the one the learner reads and moves. `under` is the next card, already
 // drawn so it is there the moment the top one leaves. `leaving` is on its way off the screen.
@@ -88,7 +88,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
   return (
     <GestureDetector gesture={pan}>
       <Animated.View style={[styles.card, cardStyle]} pointerEvents={top ? 'auto' : 'none'} {...unread(!top)}>
-        <Animated.View style={[styles.fill, riseStyle]}>
+        <Animated.View style={[styles.inner, riseStyle]}>
           <Pressable testID={top ? 'review-card' : undefined} accessible={false} onPress={tap(onFlip)} style={styles.fill}>
             <Animated.View style={[styles.fill, turnStyle]}>
               <Face testID="card-front" style={frontStyle} shown={!flipped}>
@@ -208,7 +208,10 @@ const FILL = { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 } as c
 
 const styles = StyleSheet.create({
   fill: { ...FILL },
-  card: { ...FILL },
+  // The card takes the finger from the whole width of the screen, also from the margins beside it: a swipe often
+  // starts at the screen edge.
+  card: { ...FILL, left: -layout.sideMargin, right: -layout.sideMargin },
+  inner: { ...FILL, left: layout.sideMargin, right: layout.sideMargin },
   // The shadow sits on each side (a view that clips its content cannot also cast a shadow).
   face: { ...FILL, borderRadius: radius.card, backgroundColor: colors.surface, ...lift, shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
   clip: { flex: 1, borderRadius: radius.card, overflow: 'hidden' },
