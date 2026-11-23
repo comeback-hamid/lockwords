@@ -148,8 +148,9 @@ describe('the first deck in onboarding', () => {
     await act(async () => finish(drawn));
     await waitFor(() => expect(kaiSays('All the pictures are ready! 🖼️ Tap your deck any time to see the words.')).toBeOnTheScreen());
     expect(kaiSays('Shall we practice them now? 💪')).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Open deck' })).toBeOnTheScreen();
-    expect(screen.getByTestId('deck-open-column')).toBeOnTheScreen();
+    // The deck card shows again under that line (the first one is far up the chat by now); both open the deck.
+    expect(screen.getAllByRole('button', { name: 'Open deck' })).toHaveLength(2);
+    expect(screen.getAllByTestId('deck-open-column')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'OK, let’s practice!' })).toBeOnTheScreen();
   });
 
@@ -158,7 +159,7 @@ describe('the first deck in onboarding', () => {
     await toGenerate();
     await fireEvent.press(screen.getByRole('button', { name: 'Generate' }));
     await waitFor(() => expect(kaiSays('I could not draw the pictures this time, but your deck is ready! Tap it any time to see the words.')).toBeOnTheScreen());
-    expect(screen.getByRole('button', { name: 'Open deck' })).toBeOnTheScreen();
+    expect(screen.getAllByRole('button', { name: 'Open deck' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'OK, let’s practice!' })).toBeOnTheScreen();
   });
 

@@ -76,3 +76,16 @@ test('the image model is down: the deck is ready with its 10 words, no pictures,
   expect(deck.cards.every((c) => c.imageUrl == null)).toBe(true);
   sheetMaker = fixtureSheetMaker();
 }, 60_000);
+
+test('Kai\'s "the pictures are ready" line carries the deck card again, once per deck', async () => {
+  const { createKaiStore } = await import('../../src/db/kai.js');
+  const kai = createKaiStore(db);
+  const { id } = await newDeck();
+  await jobs.start(userId, id);
+  await until(id, 'ready');
+  const turn = { user: null, kai: [{ text: '¡Los dibujos están listos!', translation: 'The pictures are ready!' }], options: ['Vamos a practicar'], opening: false, notes: { add: [], drop: 0 }, picturesDeckId: id };
+  const saved = await kai.addTurn(userId, turn, new Date());
+  expect(saved.messages.at(-1)!.decks).toMatchObject([{ id, status: 'ready', current: true }]);
+  expect(await kai.saidPictures!(userId, id)).toBe(true);
+  expect((await kai.addTurn(userId, turn, new Date())).messages).toEqual([]); // said once
+}, 60_000);

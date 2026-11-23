@@ -139,7 +139,9 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
       // The pictures are drawn after the words. The deck is made already; the learner can chat with Kai while they wait.
       const drawn = made.picturesStatus === 'making' ? await drawPictures(made) : null;
       setStep('ready');
-      say(...kai(S().line(drawn === null ? 'ready' : drawn ? 'picturesReady' : 'picturesFailed'), S().line('practice')));
+      // After the wait the first card is far up the chat: the deck card shows again under Kai's line, ready to open.
+      if (drawn === null) say(...kai(S().line('ready'), S().line('practice')));
+      else say(...kai(S().line(drawn ? 'picturesReady' : 'picturesFailed')), { from: 'deck' }, ...kai(S().line('practice')));
       setOptions([S().label('replyPractice'), S().label('replyWordsFirst')]);
     } catch {
       setFailed((n) => n + 1);
@@ -253,6 +255,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
         {messages.map((m, i) =>
           m.from === 'deck' ? (
+            // The card can show twice: where it was offered, and again under "the pictures are ready". Both are the same deck.
             deck ? (
               <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null

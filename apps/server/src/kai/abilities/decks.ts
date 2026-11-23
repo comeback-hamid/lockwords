@@ -137,7 +137,7 @@ export const decksAbility = {
         : [
             '',
             `All ${ready.wordCount} pictures of the deck "${ready.title}" are ready now: every word has its own picture.`,
-            `Tell them in 1 or 2 short lines that the pictures are ready and that they can open the deck now (they tap its card), and ask if they want to practice now. ${twoOptions}`,
+            `Tell them in 1 or 2 short lines that the pictures are ready and that they can open the deck now (its card shows again under your lines: they tap it), and ask if they want to practice now. ${twoOptions}`,
           ];
     if (ready?.pictures === 'making')
       return [
