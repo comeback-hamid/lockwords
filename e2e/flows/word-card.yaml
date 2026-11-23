@@ -104,7 +104,6 @@ tags:
 - tapOn: "Message"
 - inputText: "How do I say can you bring me the bill?"
 - tapOn: "Send"
-- hideKeyboard
 - extendedWaitUntil:
     visible: "Add to Random Words 1"
     timeout: 40000
@@ -112,6 +111,8 @@ tags:
 - extendedWaitUntil:
     visible: "Added"
     timeout: 20000
+# A tap on the card (not on a button) puts the keyboard away, so the tab bar shows again
+- tapOn: "Waiter, can you bring me the bill, please\\?"
 # The round inside the Review tab: the tab bar stays
 - tapOn: "Review"
 - extendedWaitUntil:
@@ -138,9 +139,10 @@ tags:
     duration: 800
 - assertVisible: "1 word left"
 - assertNotVisible: "Message"
+# It starts at the left edge of the screen, where iOS has its own "go back" swipe
 - swipe:
-    start: "40%, 45%"
-    end: "95%, 45%"
+    start: "2%, 45%"
+    end: "75%, 45%"
     duration: 2000
 # Still the Review tab: the round is done, and this is not the New words chat
 - extendedWaitUntil:

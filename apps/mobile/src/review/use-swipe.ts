@@ -94,14 +94,10 @@ export function useSwipe({ enabled, lead, onSwipe }: { enabled: boolean; lead: S
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: x.get() }, { translateY: y.get() }, { rotate: `${(x.get() / 200) * TILT}deg` }],
   }));
-  const label = (direction: Direction) => {
-    'worklet';
-    if (gone.get()) return gone.get() === GONE[direction] ? 1 : 0;
-    return labelStrength(x.get(), y.get())[direction];
-  };
-  const easyStyle = useAnimatedStyle(() => ({ opacity: label('easy') }));
-  const hardStyle = useAnimatedStyle(() => ({ opacity: label('hard') }));
-  const knownStyle = useAnimatedStyle(() => ({ opacity: label('known') }));
+  // Each label's strength: full for the direction the card left in, else by where the finger is.
+  const easyStyle = useAnimatedStyle(() => ({ opacity: gone.get() ? (gone.get() === GONE.easy ? 1 : 0) : labelStrength(x.get(), y.get()).easy }));
+  const hardStyle = useAnimatedStyle(() => ({ opacity: gone.get() ? (gone.get() === GONE.hard ? 1 : 0) : labelStrength(x.get(), y.get()).hard }));
+  const knownStyle = useAnimatedStyle(() => ({ opacity: gone.get() ? (gone.get() === GONE.known ? 1 : 0) : labelStrength(x.get(), y.get()).known }));
 
   return { pan, cardStyle, labelStyles: { easy: easyStyle, hard: hardStyle, known: knownStyle }, flyOff, flyFromButton: (direction: Direction) => flyOff(direction, BUTTON_FLY_MS), wasDrag };
 }
