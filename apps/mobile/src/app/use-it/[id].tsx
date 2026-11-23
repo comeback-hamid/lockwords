@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
+import { chatScrollProps } from '@/components/chat/keyboard';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
@@ -98,7 +99,7 @@ export default function UseItScreen() {
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <KaiHeader pose={pose} icon="close" />
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>

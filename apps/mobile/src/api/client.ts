@@ -160,8 +160,9 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async fetchKaiScript(native: string, learning: string): Promise<{ native: Record<string, string>; learning: Record<string, string> }> {
       return unwrap(await client.GET('/v1/kai/script', { params: { query: { native, learning } } }));
     },
-    async kaiReply(step: KaiStep, text: string, options: string[]): Promise<KaiReply> {
-      return unwrap(await client.POST('/v1/kai/reply', { body: { step, text, options } }));
+    // chat: "target" when Kai speaks the learned language in this chat; Kai's lines then come with translations.
+    async kaiReply(step: KaiStep, text: string, options: string[], chat?: 'target'): Promise<KaiReply> {
+      return unwrap(await client.POST('/v1/kai/reply', { body: { step, text, options, ...(chat ? { chat } : {}) } }));
     },
     // A question about the word, after a Use it sentence. It never changes the word's level.
     async askAboutWord(id: string, question: string, sentence?: string): Promise<{ lines: string[] }> {

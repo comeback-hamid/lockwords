@@ -12,7 +12,8 @@ type Props = { from: 'kai' | 'user'; text: string; translation?: string | null; 
 export function ChatBubble({ from, text, translation, showTranslation = false }: Props) {
   const parts = text.split('**'); // odd parts are bold
   const plain = parts.join('');
-  const translated = from === 'kai' && showTranslation && translation ? translation : null;
+  // A line Kai already says in the learner's own language comes with the same text as its translation: shown once.
+  const translated = from === 'kai' && showTranslation && translation && translation.trim() !== plain.trim() ? translation : null;
   return (
     <View accessible accessibilityLabel={`${from === 'kai' ? 'Kai' : 'You'}: ${plain}`} style={[styles.bubble, from === 'kai' ? styles.kai : styles.user]}>
       <Text style={[type.body, styles.text, directionStyle(plain)]}>
