@@ -25,6 +25,9 @@ export function bankNumbers(words: Word[]) {
   };
 }
 
+// Hard words: swiped Hard and not yet back at level 3, without "I know it" words. The same rule as the hard words list.
+export const hardCount = (words: Word[]) => words.filter((w) => w.hard && !w.known).length;
+
 // The next hundred strictly above the words to learn: 52 → 100, 100 → 200.
 export const goalFor = (toLearn: number) => (Math.floor(toLearn / GOAL_STEP) + 1) * GOAL_STEP;
 

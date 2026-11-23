@@ -5,9 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/auth/boot';
 import { ButtonPrimary } from '@/components/button';
+import { LoadError } from '@/components/load-state';
 import { LockPhone } from '@/components/lock-phone';
 import { useLoad } from '@/components/use-load';
 import { Kai } from '@/kai/kai';
+import { getRound } from '@/review/round-store';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // O14: after the first round, show where hard words go.
@@ -15,9 +17,11 @@ export default function HardWordsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const load = useCallback(() => api.fetchHardWords(), []);
-  const { data } = useLoad(load);
+  const { data, failed, retry } = useLoad(load);
   const words = data ?? [];
-  const shown = words[0] ?? { word: 'la cuenta', translation: 'the bill' };
+  // The phone shows a hard word. With none (or while they load): a word of the round the learner just finished,
+  // so it is always in the language they learn.
+  const shown = words[0] ?? getRound().cards[0] ?? { word: 'la cuenta', translation: 'the bill' };
   return (
     <View style={[styles.root, { paddingTop: insets.top + space[24], paddingBottom: Math.max(insets.bottom, space[16]) }]}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -28,6 +32,7 @@ export default function HardWordsScreen() {
           <Kai size={84} />
         </View>
         <LockPhone word={shown.word} translation={shown.translation} highlight />
+        {failed ? <LoadError message="Could not load your hard words." onRetry={retry} /> : null}
         {words.length ? (
           <View style={styles.group}>
             <Text style={[type.label, styles.muted]}>{`YOUR HARD WORDS · ${words.length}`}</Text>

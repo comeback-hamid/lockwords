@@ -10,7 +10,7 @@ export function createProgressStore(db: ReturnType<typeof createDb>['db']): Prog
     // The learner's ready decks that are not removed (newest first), each with its words that are not removed.
     async decks(userId) {
       const deckRows = await db
-        .select({ id: decks.id, topic: decks.topic, title: decks.title, kind: decks.kind })
+        .select({ id: decks.id, topic: decks.topic, title: decks.title, cefr: decks.cefr, kind: decks.kind })
         .from(decks)
         .where(and(eq(decks.userId, userId), eq(decks.status, 'ready'), isNull(decks.removedAt)))
         .orderBy(desc(decks.createdAt));

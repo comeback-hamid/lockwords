@@ -16,7 +16,6 @@ export type SwipeResult = components['schemas']['SwipeResult'];
 export type ReviewSummary = components['schemas']['ReviewSummary'];
 export type Progress = components['schemas']['Progress'];
 export type DeckSummary = components['schemas']['DeckSummary'];
-export type WordPlan = components['schemas']['WordPlan'];
 export type UseItResult = components['schemas']['UseItResult'];
 export type KaiReply = components['schemas']['KaiReply'];
 export type KaiStep = components['schemas']['KaiReplyRequest']['step'];
@@ -146,10 +145,6 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     },
     async fetchProgress(): Promise<Progress> {
       return unwrap(await client.GET('/v1/progress'));
-    },
-    // Kai's plan of the next decks. The first call for a learner can take a few seconds (the AI makes it).
-    async fetchPlan(): Promise<WordPlan> {
-      return unwrap(await client.GET('/v1/plan'));
     },
     async fetchDecks(): Promise<DeckSummary[]> {
       return unwrap(await client.GET('/v1/decks')).decks;
