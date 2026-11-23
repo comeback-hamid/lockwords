@@ -15,7 +15,7 @@ Tables and endpoints. Filled in by each change; the server's OpenAPI document is
 - **How:** a merge to `main` that touches `apps/server/`, `.do/` or `package-lock.json` runs `.github/workflows/deploy.yml`. It can also be run by hand (Actions → Deploy server → Run workflow).
 - **Steps:** the workflow fills `.do/app.yaml` and calls `doctl apps update`. App Platform builds the image, runs the `migrate` job (`npm run db:migrate`, Drizzle), then swaps the server. A failed migration or a failed `/health` stops the deploy and the old server stays.
 - **Settings:** all in `.do/app.yaml`. Public values are written there. `DATABASE_URL` and the database's TLS certificate come from App Platform (`${db.DATABASE_URL}`, `${db.CA_CERT}`; `.do/with-db-ca.sh` hands the certificate to Node).
-- **Secrets:** GitHub Actions secrets `DIGITALOCEAN_ACCESS_TOKEN` and `ANTHROPIC_API_KEY`. Hamid's copy is `~/.config/lockwords/secrets.env`. Never in git.
+- **Secrets:** GitHub Actions secrets `DIGITALOCEAN_ACCESS_TOKEN` and `ANTHROPIC_API_KEY`, and `OPENAI_API_KEY` for deck pictures (optional: without it the deploy leaves it out and decks have no pictures). Hamid's copy is `~/.config/lockwords/secrets.env`. Never in git.
 - **Cost:** about $20 a month (server $5, database about $15).
 - **The app and the cloud:** the app talks to the cloud by default (`apps/mobile/src/config/backend.ts` holds the server address, the Supabase address and the publishable key, which is public). The local stack is used only when `apps/mobile/.env.local` sets the three `EXPO_PUBLIC_*` values, as `npm run dev:up` does; Maestro and day-to-day development run that way. `npm run start:cloud` in `apps/mobile` runs the dev build against the cloud.
 
@@ -85,6 +85,10 @@ Every `/v1/*` path needs `Authorization: Bearer <Supabase login token>`. The ser
 
 ## AI
 With `ANTHROPIC_API_KEY` set the server calls Claude (`src/llm/claude.ts`). Without it (local, tests, CI) it uses the fixture deck (`src/llm/fixture.ts`).
+
+### Deck pictures
+Every deck gets a picture for each word, right after its words, in the same background job. One image call draws all the words as a grid on **one sheet** (OpenAI Images API, 1536 × 1024, medium quality, the style of `docs/design/ILLUSTRATION-STYLE.md`); the server cuts the sheet into one WebP per card (`src/decks/cut-sheet.ts`: the cut lines go through the empty gaps) and keeps them in the `card_pictures` table. `GET /pictures/{id}` serves a picture with no login (the id is random) and a one-year cache. A card's `imageUrl` in the API is that address; it is left out when the card has no picture. The deck says how far the pictures are: `picturesStatus` (`none`, `making`, `ready`, `failed`) and `picturesReady`. A failed image call never loses the deck: the words are saved first, the status becomes `failed`, and the cards have no picture.
+With `OPENAI_API_KEY` set the server calls the image model. Without it: no pictures in production; a stand-in sheet of plain shapes in local runs and tests. Try it for real: `npx tsx scripts/deck-pictures-try.ts 30` in `apps/server` (2026-11-23: 22 to 28 seconds per sheet for 10 or 30 words).
 
 ### Kai, the agent in the New words chat
 One model call per turn (`src/llm/kai-chat.ts`, real call in `claude.ts`: Claude Sonnet 5.5, low effort, no thinking, two tries of 10 seconds). The answer is JSON: `{ lines: [{ text, translation }], options, remember, action }`, checked with Zod in `src/kai/chat.ts`; a wrong shape is asked for once more.
