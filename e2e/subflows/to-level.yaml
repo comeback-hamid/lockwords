@@ -1,6 +1,11 @@
 # A fresh install up to O3 Level (Spanish, speaks English).
 appId: com.comebackhamid.lockwords
 ---
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- tapOn: "Start"
 - assertVisible: "What do you want to learn?"
 - tapOn: "Spanish"
 - tapOn: "Continue"
