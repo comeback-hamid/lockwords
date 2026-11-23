@@ -42,10 +42,18 @@ export function wordPromptPart(L: string, N: string): string[] {
 }
 export const WORD_SHAPE = `"word": {"word": string, "translation": string, "example": string, "exampleTranslation": string} | null`;
 
-// The stand-in AI: a card when the text asks how to say something or what a word means. Always the same word.
+// The stand-in AI: a card when the text asks how to say something or what a word means. Always the same word,
+// except a question about "the bill", which gets a long phrase (the review card's long-phrase layout needs one to show).
+const asksForPhrase = /\bbill\b/i;
 const asksForWord = /how do i say|c[oó]mo se dice|what does .+ mean|qu[eé] significa|otra forma/i;
 export function fixtureWordAnswer(text: string) {
   if (!asksForWord.test(text)) return null;
+  if (asksForPhrase.test(text))
+    return {
+      lines: [{ text: 'Se dice **¿Me puede traer la cuenta, por favor?** 🧾', translation: 'You say “¿Me puede traer la cuenta, por favor?”' }],
+      word: { word: '¿Me puede traer la cuenta, por favor?', translation: 'Can you bring me the bill, please?', example: 'Camarero, **¿me puede traer la cuenta, por favor?**', exampleTranslation: 'Waiter, can you bring me the bill, please?' },
+      options: ['Otra forma de decirlo'],
+    };
   return {
     lines: [{ text: 'Se dice **para llevar** 🥡', translation: 'You say “para llevar”' }],
     word: { word: 'para llevar', translation: 'to go (takeaway)', example: 'Un café **para llevar**, por favor.', exampleTranslation: 'A coffee to go, please.' },

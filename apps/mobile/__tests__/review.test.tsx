@@ -104,7 +104,9 @@ describe('Card round', () => {
     expect(screen.getByText('1 word left')).toBeOnTheScreen();
   });
 
-  test('stamps: EASY back in N days, HARD goes to the lock screen, KNOW IT won’t show again', async () => {
+  // Changed 2026-11-23 (word-card-flip-swipe, Hamid's OK): the labels no longer wait for the server. They are on
+  // the card while it is dragged and the card leaves at once; their texts are checked in review-card.test.tsx.
+  test('Easy, Hard and Know it each send their swipe and move on at once, before the server answers', async () => {
     let answer!: (r: ReturnType<typeof swiped>) => void;
     const hold = () => mockApi.swipeCard.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
     setRound([...two, card(3, 'pedir', 'to order'), card(4, 'pagar', 'to pay')]);
@@ -112,26 +114,21 @@ describe('Card round', () => {
 
     hold();
     await fireEvent.press(screen.getByRole('button', { name: 'Easy' }));
+    expect(mockApi.swipeCard).toHaveBeenLastCalledWith('c1', 'easy');
+    expect(screen.getByText('la cuenta')).toBeOnTheScreen();
     await act(async () => answer(swiped({ backInDays: 3, stage: 2 })));
-    expect(screen.getByTestId('stamp-title')).toHaveTextContent('EASY');
-    expect(screen.getByText('BACK IN 3 DAYS')).toBeOnTheScreen();
-    await waitFor(() => expect(screen.getByText('la cuenta')).toBeOnTheScreen());
 
     hold();
     await fireEvent.press(screen.getByRole('button', { name: 'Hard' }));
-    expect(mockApi.swipeCard).toHaveBeenLastCalledWith('c2', 'hard');
+    await waitFor(() => expect(mockApi.swipeCard).toHaveBeenLastCalledWith('c2', 'hard'));
+    expect(screen.getByText('pedir')).toBeOnTheScreen();
     await act(async () => answer(swiped({ hard: true })));
-    expect(screen.getByTestId('stamp-title')).toHaveTextContent('HARD');
-    expect(screen.getByText('GOES TO YOUR LOCK SCREEN')).toBeOnTheScreen();
-    await waitFor(() => expect(screen.getByText('pedir')).toBeOnTheScreen());
 
     hold();
     await fireEvent.press(screen.getByRole('button', { name: 'Know it' }));
-    expect(mockApi.swipeCard).toHaveBeenLastCalledWith('c3', 'known');
+    await waitFor(() => expect(mockApi.swipeCard).toHaveBeenLastCalledWith('c3', 'known'));
+    expect(screen.getByText('pagar')).toBeOnTheScreen();
     await act(async () => answer(swiped({ known: true, backInDays: null })));
-    expect(screen.getByTestId('stamp-title')).toHaveTextContent('KNOW IT');
-    expect(screen.getByText('WON’T SHOW AGAIN')).toBeOnTheScreen();
-    await waitFor(() => expect(screen.getByText('pagar')).toBeOnTheScreen());
   });
 
   test('save fails → the card stays with a message', async () => {
