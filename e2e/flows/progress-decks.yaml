@@ -1,4 +1,4 @@
-# Progress: the total, the decks at the bottom of the page, the deck words page with filters (P3), Restore, and
+# Progress: the total, the deck rows at the bottom of the page, the deck words page with filters (P3), Restore, and
 # "Review this deck".
 # Needs the local stack: `npm run dev:up`. Dev build.
 appId: com.comebackhamid.lockwords
@@ -64,21 +64,20 @@ tags:
 - tapOn: "Continue"
 - tapOn: "Continue"
 - tapOn: "Close"
-# Progress tab: the total, the hard word, and the decks at the bottom of the page
+# Progress tab: the total, and the decks as short rows at the bottom of the page
 - tapOn: "Progress"
 - extendedWaitUntil:
     visible: "words in your word bank"
     timeout: 15000
 - assertVisible: "10"
-- assertVisible: "1 hard word"
 - scrollUntilVisible:
     element: "You have 1 deck"
     direction: DOWN
     timeout: 60000
 - scrollUntilVisible:
-    element: "Open deck.*"
+    element: "Ordering food, 10 words · 9 learning"
     direction: DOWN
-- tapOn: "Open deck.*"
+- tapOn: "Ordering food, 10 words · 9 learning"
 # P3 Deck words: counts, chips, the known word only under Known
 - extendedWaitUntil:
     visible: "A1 · 9 WORDS"
