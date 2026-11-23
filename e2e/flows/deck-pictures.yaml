@@ -1,7 +1,7 @@
 # Deck pictures and the deck card's arrow column (2026-11-23).
 # Onboarding: the first deck's words are made, then Kai draws the pictures: the card counts them, Kai invites a
 # question and answers it, then says the pictures are ready; the ready card has the arrow column and opens the deck.
-# New words: the same for a deck Kai offers. Needs the local stack and a server with FIXTURE_PICTURE_MS (about 9000),
+# New words: the same for a deck Kai offers. Needs the local stack and a server with FIXTURE_PICTURE_MS (about 30000),
 # so the wait can be seen. Works with the stand-in AI and with the real one.
 appId: com.comebackhamid.lockwords
 tags:
