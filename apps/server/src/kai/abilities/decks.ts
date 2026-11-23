@@ -46,7 +46,9 @@ export type DeckFacts = {
   offered: string[]; // ideas shown before and not made
 };
 export const NO_DECK_FACTS: DeckFacts = { newWordsLeft: 0, topics: [], offered: [] };
-export type DeckReady = { title: string; wordCount: number };
+// pictures: where the deck's pictures stand. about = 'pictures': this turn is about the pictures being done, not the words.
+export type PicturesState = 'none' | 'making' | 'ready' | 'failed';
+export type DeckReady = { title: string; wordCount: number; pictures?: PicturesState; about?: 'pictures' };
 // A deck idea from the learner's word plan (Progress tab) that they asked for in the chat.
 export type PlanDeck = { topic: string; words: number; kind: string };
 // A tapped plan idea arrives as "A deck about <topic>". Finds that idea in the learner's plan; none = null.
@@ -57,11 +59,12 @@ export function plannedDeck(text: string, items: PlanDeck[]): PlanDeck | null {
 // The card of a plan idea has the plan's size, whatever the model picked.
 export const withPlanSize = <T extends { wordCount: number }>(ideas: T[] | undefined, plan: PlanDeck | undefined): T[] | undefined =>
   plan && ideas?.length === 1 ? [{ ...ideas[0]!, wordCount: plan.words }] : ideas;
-export type DeckEvent = { event: 'deck_ready'; deckId: string };
+// deck_ready: the words are made. deck_pictures: the picture run of a ready deck ended (every picture is there, or it failed).
+export type DeckEvent = { event: 'deck_ready' | 'deck_pictures'; deckId: string };
 
 // A deck as a chat message shows it.
 export type ChatDeck = { id: string; title: string; titleTranslation: string | null; reason: string; cefr: string; wordCount: number; status: 'proposed' | 'generating' | 'ready'; current: boolean };
-type DeckRow = { id: string; title: string; titleTranslation?: string | null; reason: string; cefr: string; wordCount: number; status: string };
+type DeckRow = { id: string; title: string; titleTranslation?: string | null; reason: string; cefr: string; wordCount: number; status: string; picturesStatus?: string };
 
 // The decks of one message, in the order they were offered. `current` = this message is the newest one that has decks.
 export function toChatDecks(deckIds: readonly string[], byId: ReadonlyMap<string, DeckRow>, current: boolean): ChatDeck[] {
@@ -72,14 +75,23 @@ export function toChatDecks(deckIds: readonly string[], byId: ReadonlyMap<string
   });
 }
 
-// The "deck_ready" event: the deck must be the caller's and ready, and Kai speaks about it once.
-type ReadyDeps = { decks?: { get(userId: string, id: string): Promise<(DeckRow & { title: string }) | null> }; kai: { saidReady?(userId: string, deckId: string): Promise<boolean> } };
-export async function readyEvent(deps: ReadyDeps, userId: string, deckId: string): Promise<DeckReady | 'not_found' | 'deck_not_ready' | 'said'> {
+// The events: the deck must be the caller's and ready, and Kai speaks about each event once per deck.
+type ReadyDeps = {
+  decks?: { get(userId: string, id: string): Promise<(DeckRow & { title: string }) | null> };
+  kai: { saidReady?(userId: string, deckId: string): Promise<boolean>; saidPictures?(userId: string, deckId: string): Promise<boolean> };
+};
+export async function readyEvent(deps: ReadyDeps, userId: string, deckId: string, event: DeckEvent['event'] = 'deck_ready'): Promise<DeckReady | 'not_found' | 'deck_not_ready' | 'said'> {
   const deck = z.uuid().safeParse(deckId).success ? await deps.decks?.get(userId, deckId) : null;
   if (!deck) return 'not_found'; // also another user's deck: callers cannot tell them apart
   if (deck.status !== 'ready') return 'deck_not_ready';
+  const pictures = (deck.picturesStatus ?? 'none') as PicturesState;
+  if (event === 'deck_pictures') {
+    if (pictures !== 'ready' && pictures !== 'failed') return 'deck_not_ready'; // still drawing, or this deck gets no pictures
+    if (await deps.kai.saidPictures?.(userId, deckId)) return 'said';
+    return { title: deck.title, wordCount: deck.wordCount, pictures, about: 'pictures' };
+  }
   if (await deps.kai.saidReady?.(userId, deckId)) return 'said';
-  return { title: deck.title, wordCount: deck.wordCount };
+  return { title: deck.title, wordCount: deck.wordCount, pictures };
 }
 
 // Kai reads its own history as text. A line that showed deck cards says which, so Kai knows what the learner saw.
@@ -114,11 +126,31 @@ export const decksAbility = {
   },
   now: (c: KaiContext, lines: string[]) => {
     const ready = c.event?.deckReady;
+    const twoOptions = `Give exactly two options: one to practice now, one to make another deck. Do not send "decks" and leave "action" null.`;
+    if (ready?.about === 'pictures')
+      return ready.pictures === 'failed'
+        ? [
+            '',
+            `You could not draw the pictures of the deck "${ready.title}" this time. The deck is not lost: all ${ready.wordCount} words are in their word list and in Review, and the deck works without pictures.`,
+            `Tell them in 1 or 2 short lines, kindly and without drama, that the pictures did not work this time but the deck is ready and they can open the deck now, and ask if they want to practice. ${twoOptions}`,
+          ]
+        : [
+            '',
+            `All ${ready.wordCount} pictures of the deck "${ready.title}" are ready now: every word has its own picture.`,
+            `Tell them in 1 or 2 short lines that the pictures are ready and that they can open the deck now (its card shows again just above your lines: they tap it), and ask if they want to practice now. ${twoOptions}`,
+          ];
+    if (ready?.pictures === 'making')
+      return [
+        '',
+        `The words of the deck "${ready.title}" that the learner asked you to make are ready now: they are in their word list and in Review already. You are drawing a picture for each of its ${ready.wordCount} words right now. That takes about half a minute. The card under your lines shows how many pictures are ready, and you will tell them when all are done.`,
+        `In 2 or 3 short lines: say the words are ready, say you are drawing the pictures now and about how long it takes, and invite them to use the wait with you. They can ask you a language question, practice with you, ask you to correct a sentence they write, or hear something about you.`,
+        `Give exactly 3 short options to tap for that (for example: a question about a word, a sentence of theirs to correct, something about you). Do not send "decks" and leave "action" null.`,
+      ];
     if (ready)
       return [
         '',
         `The deck "${ready.title}" (${ready.wordCount} words) that the learner asked you to make is ready now. Its words are in their word list and in Review already; there is nothing more to add.`,
-        `Tell them in 1 or 2 short lines that the deck is ready and is in Review now, and ask if they want to practice now. Give exactly two options: one to practice now, one to make another deck. Do not send "decks" and leave "action" null.`,
+        `Tell them in 1 or 2 short lines that the deck is ready and is in Review now, and ask if they want to practice now. ${twoOptions}`,
       ];
     const plan = c.planDeck;
     if (plan)
@@ -151,13 +183,28 @@ const ownDeck = /(?:mazo|deck)\s+(?:sobre|para|de|about|for|on)\s+(.+)/i;
 
 // The deck parts of the stand-in's answers, or null when the turn is not about decks.
 export function fixtureDecks(c: KaiContext): unknown {
-  if (c.event?.deckReady)
+  const ready = c.event?.deckReady;
+  const practiceOrMore = ['Vamos a practicar', 'Hacer otro mazo'];
+  if (ready?.about === 'pictures')
+    return ready.pictures === 'failed'
+      ? { lines: [{ text: 'Esta vez no pude hacer los **dibujos** 😕 Pero tu mazo está **listo**: ábrelo cuando quieras.', translation: 'I could not draw the pictures this time. But your deck is ready: open it any time.' }, { text: '¿Practicamos ahora? 💪', translation: 'Shall we practice now?' }], options: practiceOrMore }
+      : { lines: [{ text: '¡Los **dibujos** están listos! 🖼️ Ya puedes abrir tu mazo.', translation: 'The pictures are ready! You can open your deck now.' }, { text: '¿Practicamos ahora? 💪', translation: 'Shall we practice now?' }], options: practiceOrMore };
+  if (ready?.pictures === 'making')
+    return {
+      lines: [
+        { text: '¡Tus **palabras** están listas! 🎉 Ya están en **Review**.', translation: 'Your words are ready! They are in Review now.' },
+        { text: 'Ahora hago un **dibujo** para cada una 🎨 Tarda medio minuto.', translation: 'Now I am drawing a picture for each one. It takes half a minute.' },
+        { text: 'Mientras tanto: hazme una **pregunta**, practica una frase, o pregúntame algo sobre mí 🙂', translation: 'Meanwhile: ask me a question, practice a sentence, or ask me something about me.' },
+      ],
+      options: ['Tengo una pregunta', 'Corrige mi frase', '¿Quién eres, Kai?'],
+    };
+  if (ready)
     return {
       lines: [
         { text: '¡Tu mazo está **listo**! 🎉 Ya está en **Review**.', translation: 'Your deck is ready! It is in Review now.' },
         { text: '¿Practicamos ahora? 💪', translation: 'Shall we practice now?' },
       ],
-      options: ['Vamos a practicar', 'Hacer otro mazo'],
+      options: practiceOrMore,
     };
   const text = c.userText ?? '';
   const own = ownDeck.exec(text);

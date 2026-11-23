@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { ChatDeck } from '@/api/client';
-import { DeckCard } from '@/components/chat/deck-card';
+import { DeckCard, type PictureCount } from '@/components/chat/deck-card';
 import { colors, layout, space } from '@/theme/theme';
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
   making: string | null; // the id of the deck being made now (any row)
   locked: boolean; // Generate cannot be tapped: Kai is typing, or a deck is being made
   count?: number; // words made so far, shared with Kai's `making` state
+  drawing?: ({ id: string } & PictureCount) | null; // the deck whose pictures are being drawn now
   onGenerate(deck: ChatDeck): void;
   onOpen(deck: ChatDeck): void;
 };
@@ -22,14 +23,14 @@ export const ideaStep = (screenWidth: number) => screenWidth - 2 * PEEK + GAP; /
 
 // Figma N2–N5: the deck cards under a Kai line. Three show in a row the learner swipes sideways, with page dots.
 // One shows alone. Once a deck of the row is being made or is made, only that card shows.
-export function DeckIdeas({ decks, showTranslation, making, locked, count, onGenerate, onOpen }: Props) {
+export function DeckIdeas({ decks, showTranslation, making, locked, count, drawing, onGenerate, onOpen }: Props) {
   const { width } = useWindowDimensions();
   const [page, setPage] = useState(0);
-  const stateOf = (d: ChatDeck) => (d.id === making || d.status === 'generating' ? 'generating' : d.status === 'ready' ? 'ready' : d.current ? 'proposed' : 'disabled');
-  const chosen = decks.filter((d) => stateOf(d) === 'generating' || stateOf(d) === 'ready');
+  const stateOf = (d: ChatDeck) => (d.id === making || d.status === 'generating' ? 'generating' : d.id === drawing?.id ? 'drawing' : d.status === 'ready' ? 'ready' : d.current ? 'proposed' : 'disabled');
+  const chosen = decks.filter((d) => ['generating', 'drawing', 'ready'].includes(stateOf(d)));
   const shown = chosen.length ? chosen : decks;
   const card = (d: ChatDeck, flat: boolean) => (
-    <DeckCard deck={d} state={stateOf(d)} count={count} hideGenerate={locked} showTranslation={showTranslation} inWordList flat={flat} onGenerate={() => onGenerate(d)} onOpen={() => onOpen(d)} />
+    <DeckCard deck={d} state={stateOf(d)} count={count} pictures={drawing?.id === d.id ? drawing : undefined} hideGenerate={locked} showTranslation={showTranslation} inWordList flat={flat} onGenerate={() => onGenerate(d)} onOpen={() => onOpen(d)} />
   );
   if (shown.length === 1) return card(shown[0]!, false);
 

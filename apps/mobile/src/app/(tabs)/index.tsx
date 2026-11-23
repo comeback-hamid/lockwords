@@ -16,7 +16,8 @@ import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { hasPendingAsk, takePendingAsk } from '@/new-words/pending';
-import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
+import { useDeckPictures } from '@/new-words/pictures';
+import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, newestCards, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
 import { showReviewDot, useReviewDot } from '@/review/dot';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
@@ -113,6 +114,7 @@ export default function NewWordsScreen() {
     },
     [take],
   );
+  const { drawing, draw } = useDeckPictures({ quietRef: quiet, take, setBusy });
   // Makes a deck Kai offered. The caller has taken the turn (`quiet`).
   const makeDeck = useCallback(
     async (deck: ChatDeck) => {
@@ -120,8 +122,9 @@ export default function NewWordsScreen() {
       setGreeting(false);
       setFailed(null);
       setCelebrate(0);
+      let made: Awaited<ReturnType<typeof api.generateDeck>>;
       try {
-        await api.generateDeck(deck.id); // waits for the server's job, also one that was started before
+        made = await api.generateDeck(deck.id); // waits for the server's job, also one that was started before
       } catch {
         // Nothing was made: the cards come back and Kai says so.
         setMaking(null);
@@ -131,9 +134,10 @@ export default function NewWordsScreen() {
       }
       setLines((all) => withDeckStatus(all, deck.id, 'ready'));
       setMaking(null);
+      void draw(made); // the pictures come after the words: the card counts them, and Kai says when they are done
       if (!(await sayReady(deck.id, true))) quiet.current = true;
     },
-    [sayReady, fail],
+    [sayReady, fail, draw],
   );
   function generate(deck: ChatDeck) {
     if (!quiet.current) return; // Kai is answering, or another deck is being made
@@ -416,8 +420,11 @@ export default function NewWordsScreen() {
           touch();
         }}
       >
-        {lines.map((l) => (
+        {newestCards(lines).map((l) => (
           <Fragment key={l.id}>
+            {l.decksAbove?.length ? (
+              <DeckIdeas decks={l.decksAbove} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} drawing={drawing} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
+            ) : null}
             {l.tapped ? (
               <RiseIn>
                 <ChatBubble from={l.from} text={l.text} />
@@ -427,7 +434,7 @@ export default function NewWordsScreen() {
             )}
             {l.word ? <WordCard word={l.word} onAdd={() => addWord(l.id)} /> : null}
             {l.decks?.length ? (
-              <DeckIdeas decks={l.decks} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
+              <DeckIdeas decks={l.decks} showTranslation={translation.on} making={making?.id ?? null} locked={typing || making !== null} count={madeWords} drawing={drawing} onGenerate={generate} onOpen={(d) => router.push(`/deck/${d.id}`)} />
             ) : null}
           </Fragment>
         ))}

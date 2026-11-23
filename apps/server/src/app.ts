@@ -19,6 +19,7 @@ import type { ReviewDay } from './review/day.js';
 import type { CardState, Direction, Today } from './review/srs.js';
 import type { TodayEvent } from './review/summary.js';
 import { deckRoutes, type Deck } from './routes/decks.js';
+import { pictureRoutes } from './routes/pictures.js';
 import { kaiRoutes } from './routes/kai.js';
 import { kaiChatRoutes } from './routes/kai-chat.js';
 import { languageRoutes } from './routes/languages.js';
@@ -39,9 +40,9 @@ export type ProfilesStore = {
   setChat(userId: string, name: string, chatLanguage: 'native' | 'target'): Promise<boolean>; // false = no profile yet
 };
 export type DecksStore = {
-  create(userId: string, deck: Pick<Deck, 'topic' | 'title' | 'reason' | 'cefr'>): Promise<Deck>; // a deck of 10 with no title translation (onboarding)
+  create(userId: string, deck: Pick<Deck, 'topic' | 'title' | 'reason' | 'cefr'> & { titleTranslation?: string | null }): Promise<Deck>; // a deck of 10 (onboarding)
   get(userId: string, id: string): Promise<Deck | null>; // null also for another user's deck
-  saveCards(id: string, cards: NewCard[]): Promise<Deck>; // also sets the deck to ready
+  saveCards(id: string, cards: NewCard[], pictures?: boolean): Promise<Deck>; // also sets the deck to ready; pictures = they are being made now
   // Marks the deck and its cards as removed. `not_found` also for another user's deck. Optional so older test fakes still fit.
   remove?(userId: string, id: string): Promise<'removed' | 'not_found' | 'generating'>;
 };
@@ -55,7 +56,14 @@ export type ProgressStore = {
 };
 // Kai's onboarding script in one language (key → line). null = not translated yet.
 export type KaiScriptStore = { get(language: string): Promise<Record<string, string> | null>; save(language: string, lines: Record<string, string>): Promise<void> };
-export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number; meaning?: string };
+// Card pictures (decks/pictures.ts). A picture is a small WebP kept in our database and served at /pictures/<id>.
+export type PicturesStore = {
+  todo(deckId: string): Promise<{ cardId: string; word: string; translation: string; pictureHint?: string | null }[]>; // cards with no picture yet, in order
+  save(deckId: string, pictures: { cardId: string; data: Buffer }[]): Promise<void>;
+  finish(deckId: string, status: 'ready' | 'failed'): Promise<void>; // ready = every card has its picture
+  read(id: string): Promise<Buffer | null>;
+};
+export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number; meaning?: string; imageUrl?: string | null }; // imageUrl: the stored path, the route makes it a full address
 export type CardsStore = {
   round(userId: string, now: Date, today?: ReviewDay, deckId?: string): Promise<(ReviewCard & CardState)[]>; // today = due by review day and the daily new-word limit
   // What the learner did with this card today, for the "is it in today's round" check. Stores without history leave both out.
@@ -77,7 +85,7 @@ export type CardsStore = {
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore; pictures?: PicturesStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -94,6 +102,7 @@ export function createApp(deps?: AppDeps) {
     }),
   );
   app.route('/health', health);
+  app.route('/pictures', pictureRoutes(deps?.pictures));
   app.use('/v1/*', requireUser(deps));
   app.route('/v1', meRoutes(deps?.users));
   app.route('/v1', onboardingRoutes(deps?.users, deps?.profiles));

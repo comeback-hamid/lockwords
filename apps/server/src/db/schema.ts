@@ -1,4 +1,6 @@
-import { boolean, date, index, integer, jsonb, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, customType, date, index, integer, jsonb, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+
+const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 
 // Drizzle tables live here. Migrations are add-only: add tables and columns; drop or rename in a later deploy.
 
@@ -41,6 +43,7 @@ export const decks = pgTable('decks', {
   wordCount: integer('word_count').notNull().default(10), // how many cards the deck gets: 10 in onboarding, 10 to 30 from the chat
   kind: text('kind').notNull().default('topic'), // 'topic' | 'random' ("Random Words N": single words from the chat)
   removedAt: timestamp('removed_at', { withTimezone: true }), // set = the learner removed the deck. A mark, not a delete: chat messages point at decks.
+  picturesStatus: text('pictures_status').notNull().default('none'), // 'none' | 'making' | 'ready' | 'failed' (decks/pictures.ts)
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -61,6 +64,16 @@ export const cards = pgTable('cards', {
   hard: boolean('hard').notNull().default(false), // swiped left: goes to the lock screen
   lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }), // last swipe or Use it; Kai tells the learner how much they practiced
   removedAt: timestamp('removed_at', { withTimezone: true }), // set = removed by the learner (the card alone, or with its deck). Every reader skips it.
+  pictureHint: text('picture_hint'), // what to draw for this word, in English, from the word maker. Never shown.
+  pictureId: uuid('picture_id'), // the card's picture in card_pictures; null = none (yet)
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Card pictures: small WebP files cut from a deck's picture sheet, served at /pictures/<id>.
+// shortcut: kept in Postgres (about 10 to 25 KB each); move to object storage with a CDN when there are many decks.
+export const cardPictures = pgTable('card_pictures', {
+  id: uuid('id').primaryKey().defaultRandom(), // random, so the address cannot be guessed
+  data: bytea('data').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -125,6 +138,7 @@ export const kaiMessages = pgTable(
     opening: boolean('opening').notNull().default(false), // part of a turn where Kai spoke first
     position: integer('position').notNull().default(0), // order inside one turn (same created_at)
     deckIds: uuid('deck_ids').array().notNull().default([]), // deck ideas shown under this line (1 or 3), in order
+    picturesDeckId: uuid('pictures_deck_id'), // set on Kai's "the pictures are ready" line, so Kai says it once per deck
     readyDeckId: uuid('ready_deck_id'), // set on Kai's "your deck is ready" line, so Kai says it once per deck
     // A word card on Kai's last line of a turn, and what adding it gave (src/decks/random-words.ts).
     word: jsonb('word').$type<{ word: string; translation: string; example: string; exampleTranslation: string; result?: { deckId: string; deckTitle: string; count: number; already: boolean } }>(),
