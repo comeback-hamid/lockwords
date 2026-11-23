@@ -1,0 +1,3 @@
+# Flows that need slow stand-in pictures: they check the "drawing the pictures" wait.
+# `npm run e2e` runs them after all the others, with the local server's stand-in wait set to 30 seconds.
+deck-pictures.yaml

@@ -21,6 +21,7 @@ import { fixtureLanguageChecker } from './llm/check-language.js';
 import { claudeDeckMaker, claudeDeckPlanner, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeScriptTranslator, claudeUseItJudge, claudeWordAsker } from './llm/claude.js';
 import { fixtureDeckMaker, fixtureDeckPlanner, fixtureKaiReplier, fixtureScriptTranslator, fixtureUseItJudge, fixtureWordAsker } from './llm/fixture.js';
 import { fixtureSheetMaker, openaiSheetMaker } from './llm/deck-pictures.js';
+import { devPictureRoutes, pictureDelay } from './routes/dev-pictures.js';
 import { fixtureKaiChat } from './llm/kai-chat.js';
 import { claudeWordPackMaker, fixtureWordPackMaker } from './llm/word-pack.js';
 
@@ -32,7 +33,10 @@ const decks = createDecksStore(db);
 const deckMaker = env.ANTHROPIC_API_KEY ? claudeDeckMaker(env.ANTHROPIC_API_KEY) : fixtureDeckMaker;
 // Deck pictures: the real image model with a key; without one a stand-in sheet (never in production: no pictures there).
 const pictures = createPicturesStore(db);
-const sheetMaker = env.OPENAI_API_KEY ? openaiSheetMaker(env.OPENAI_API_KEY, fetch, env.OPENAI_IMAGE_MODEL) : env.NODE_ENV === 'production' ? undefined : fixtureSheetMaker(env.FIXTURE_PICTURE_MS);
+// The stand-in's wait can be changed while the server runs (`POST /dev/fixture-picture-ms`, test runs only; see below).
+const standInPictures = !env.OPENAI_API_KEY && env.NODE_ENV !== 'production';
+const fixtureDelay = pictureDelay(env.FIXTURE_PICTURE_MS);
+const sheetMaker = env.OPENAI_API_KEY ? openaiSheetMaker(env.OPENAI_API_KEY, fetch, env.OPENAI_IMAGE_MODEL) : standInPictures ? fixtureSheetMaker(fixtureDelay.get) : undefined;
 // Background jobs live in our own Postgres (pg-boss makes its tables on first start).
 const boss = new PgBoss(env.DATABASE_URL);
 boss.on('error', (e) => console.error('pg-boss', e.message));
@@ -65,6 +69,8 @@ const app = createApp({
   wordPackMaker: env.ANTHROPIC_API_KEY ? claudeWordPackMaker(env.ANTHROPIC_API_KEY) : fixtureWordPackMaker,
   kaiReplier: env.ANTHROPIC_API_KEY ? claudeKaiReplier(env.ANTHROPIC_API_KEY) : fixtureKaiReplier,
 });
+// Local test runs only: never in production, never with a real image key.
+if (standInPictures) app.route('/', devPictureRoutes(fixtureDelay));
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`server on http://localhost:${info.port}`);
 });

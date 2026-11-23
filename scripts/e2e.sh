@@ -29,12 +29,35 @@ if [[ -n "${LOCKWORDS_METRO:-}" ]]; then
     's/^- launchApp:?\n/- launchApp:\n    arguments:\n      RCT_jsLocation: "$ENV{LOCKWORDS_METRO}"\n/mg' {} +
 fi
 # Every flow except the ones parked in e2e/quarantine.txt.
+# Flows in e2e/slow-pictures.txt check the "drawing the pictures" wait, so they need slow stand-in pictures. Every other
+# flow wants the pictures at once. They run last, in a second pass, with the local server's wait set for them only.
 flows=()
+slow=()
 for f in "$src"/flows/*.yaml; do
-  grep -qxF "$(basename "$f")" e2e/quarantine.txt 2>/dev/null && { echo "skipping $(basename "$f") (e2e/quarantine.txt)"; continue; }
+  name=$(basename "$f")
+  grep -qxF "$name" e2e/quarantine.txt 2>/dev/null && { echo "skipping $name (e2e/quarantine.txt)"; continue; }
+  if grep -qxF "$name" e2e/slow-pictures.txt 2>/dev/null; then
+    # With --areas, keep a slow flow only if one of its tags is asked for (Maestro fails a pass with no flow).
+    if [[ -z "$areas" ]] || grep -A4 '^tags:' "$f" | grep -qE "^ *- *($(printf '%s' "$areas" | tr ',' '|')) *$"; then slow+=("$f"); fi
+    continue
+  fi
   flows+=("$f")
 done
 maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test "${flows[@]}" ${areas:+--include-tags="$areas"} --test-output-dir "$run" || status=$?
+if [[ ${#slow[@]} -gt 0 ]]; then
+  # The server's address: LOCKWORDS_API, or the one the app uses (apps/mobile/.env.local), or the default local port.
+  api=${LOCKWORDS_API:-$(sed -n 's/^EXPO_PUBLIC_API_URL=//p' apps/mobile/.env.local 2>/dev/null | head -1)}
+  api=${api:-http://localhost:8787}
+  wait_ms() { curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "{\"ms\":$1}" "$api/dev/fixture-picture-ms" >/dev/null; }
+  if wait_ms "${LOCKWORDS_SLOW_PICTURE_MS:-30000}"; then
+    maestro ${MAESTRO_DEVICE:+--device "$MAESTRO_DEVICE"} test "${slow[@]}" --test-output-dir "$run/slow" || status=$?
+    wait_ms 0 || echo "could not put the stand-in picture wait back to 0 on $api" >&2
+  else
+    echo "The server at $api has no stand-in picture wait to set (it runs with a real image key, or it is not the local stack)." >&2
+    echo "Not run: ${slow[*]##*/}" >&2
+    status=1
+  fi
+fi
 mkdir -p e2e/videos
 find "$run" -name '*.mp4' -exec cp {} e2e/videos/ \;
 rm -rf "$run"
