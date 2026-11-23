@@ -9,6 +9,11 @@ const schema = z.object({
   SUPABASE_URL: z.string().url().default('http://127.0.0.1:54321'),
   // Optional: without it the server makes the fixture deck (see src/llm/fixture.ts).
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  // Optional: the image model for deck pictures (OpenAI Images API). Without it: no pictures in production, a stand-in sheet elsewhere.
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_IMAGE_MODEL: z.string().min(1).optional(),
+  // Local runs only: how long the stand-in sheet takes, so the wait can be seen (milliseconds).
+  FIXTURE_PICTURE_MS: z.coerce.number().default(0),
   SUPABASE_JWT_ISSUER: z.string().url().default('http://127.0.0.1:54321/auth/v1'),
   // The web app's addresses that may call this API from a browser, comma separated ("https://app.example.com"). Localhost is always allowed.
   WEB_ORIGINS: z

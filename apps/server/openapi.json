@@ -473,6 +473,18 @@
               "ready"
             ]
           },
+          "picturesStatus": {
+            "type": "string",
+            "enum": [
+              "none",
+              "making",
+              "ready",
+              "failed"
+            ]
+          },
+          "picturesReady": {
+            "type": "integer"
+          },
           "cards": {
             "type": "array",
             "items": {
@@ -518,6 +530,12 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 140
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "id": {
             "type": "string"
@@ -633,6 +651,12 @@
           },
           "meaning": {
             "type": "string"
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [

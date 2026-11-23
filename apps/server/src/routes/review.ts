@@ -1,4 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import type { Context } from 'hono';
+import { imageUrl, publicOrigin } from './pictures.js';
 
 import type { CardsStore, ReviewCard } from '../app.js';
 import type { AuthUser } from '../auth.js';
@@ -23,7 +25,7 @@ const idParam = z.object({ id: z.string() });
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 export const ReviewCardSchema = z
-  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean(), meaning: z.string().optional() })
+  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean(), meaning: z.string().optional(), imageUrl: z.string().nullable().optional() }) // imageUrl: the card's picture (a WebP address); left out when the card has none
   .openapi('ReviewCard');
 const SwipeResultSchema = z
   .object({ id: z.string(), stage: z.number().int(), known: z.boolean(), hard: z.boolean(), backInDays: z.number().int().nullable(), again: z.boolean() })
@@ -129,7 +131,11 @@ export function reviewRoutes(deps: Deps) {
     const store = need('cards');
     return store.reviewedBefore ? !(await store.reviewedBefore(userId, day)) : false;
   };
-  const forApp = (card: ReviewCard, firstDay: boolean) => ReviewCardSchema.parse({ ...card, canUseIt: canUseIt(card.stage, firstDay) });
+  const forApp = (card: ReviewCard, firstDay: boolean, c: Context) => {
+    // imageUrl is sent only for a card that has a picture (like `meaning`).
+    const { imageUrl: path, ...rest } = card;
+    return ReviewCardSchema.parse({ ...rest, canUseIt: canUseIt(card.stage, firstDay), ...(path ? { imageUrl: imageUrl(publicOrigin(c), path) } : {}) });
+  };
   return app
     .openapi(getReview, async (c) => {
       const now = clock();
@@ -138,7 +144,7 @@ export function reviewRoutes(deps: Deps) {
       if (deckId !== undefined && !isUuid(deckId)) return c.json({ cards: [] }, 200); // not a deck id: no such deck, an empty round
       const [round, firstDay] = await Promise.all([need('cards').round(c.get('user').id, now, today, deckId), isFirstDay(c.get('user').id, today.day)]);
       // Only what the app needs: due dates and flags stay on the server.
-      return c.json({ cards: round.map((r) => forApp(r, firstDay)) }, 200);
+      return c.json({ cards: round.map((r) => forApp(r, firstDay, c)) }, 200);
     })
     .openapi(getHardWords, async (c) => c.json({ words: await need('cards').hardWords(c.get('user').id) }, 200))
     .openapi(postSwipe, async (c) => {
@@ -166,7 +172,7 @@ export function reviewRoutes(deps: Deps) {
       const store = need('cards');
       const { day } = reviewDay(clock(), c.req.header('X-Time-Zone'));
       const card = store.undoLast ? await store.undoLast(c.get('user').id, day) : null;
-      return card ? c.json({ card: forApp(card, await isFirstDay(c.get('user').id, day)) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
+      return card ? c.json({ card: forApp(card, await isFirstDay(c.get('user').id, day), c) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
     })
     .openapi(getSummary, async (c) => {
       const store = need('cards');

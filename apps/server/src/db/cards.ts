@@ -4,6 +4,7 @@ import type { CardsStore } from '../app.js';
 import type { TodayEvent } from '../review/summary.js';
 import { MAX_NEW_PER_DAY, pickRound, type CardState, type Direction } from '../review/srs.js';
 import type { createDb } from './client.js';
+import { picturePath } from './pictures.js';
 import { cards, decks, profiles, reviewEvents, type ReviewEventState } from './schema.js';
 
 export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsStore {
@@ -25,6 +26,7 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
     exampleTranslation: r.card.exampleTranslation,
     ...(r.card.meaning ? { meaning: r.card.meaning } : {}),
     stage: r.card.stage,
+    ...(r.card.pictureId ? { imageUrl: picturePath(r.card.pictureId) } : {}),
     known: r.card.known,
     hard: r.card.hard,
     dueAt: r.card.dueAt,
