@@ -1,0 +1,77 @@
+# App start and Kai's animations (welcome-kai-animations, 2026-11-23): O0 Hello with a very big waving Kai, the lock
+# screen page (O2) with a big Kai and the sample word in the language the learner picked (English, for a Persian
+# speaker), then Use it: Kai talks while its lines are typed and listens while the learner types.
+# Needs the local stack (server + Supabase login). Dev build only. The splash picture needs a new native build.
+appId: com.comebackhamid.lockwords
+tags:
+  - onboarding
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: welcome-kai-animations
+# O0 Hello: Kai waves, again every few seconds, and when tapped
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- assertVisible: "Kai"
+- assertNotVisible: "Back"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn: "Kai"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Start"
+# O1: learn English. O1c: speaks Persian
+- assertVisible: "What do you want to learn?"
+- tapOn: "English"
+- tapOn: "Continue"
+- assertVisible: "What language do you speak?"
+- scrollUntilVisible:
+    element: "Persian"
+    direction: DOWN
+- tapOn: "Persian"
+- tapOn: "Continue"
+# O2: the word on the lock screen is English (the learned language), its meaning Persian. Never Spanish.
+- assertVisible: "Learn a word every time you unlock."
+- assertVisible: "the bill"
+- assertVisible: "صورت‌حساب"
+- assertNotVisible: "la cuenta"
+- assertVisible: "Kai"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn: "Kai"
+- waitForAnimationToEnd:
+    timeout: 3000
+# Use it: a fresh install again, onboarding (Spanish), the first card
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards to review today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- tapOn:
+    id: "review-card"
+- tapOn: "Use it"
+# Kai talks while its lines are typed
+- extendedWaitUntil:
+    visible: ".*Write one sentence with la cuenta.*"
+    timeout: 15000
+# Kai listens while the learner types
+- tapOn: "Message"
+- inputText: "Quiero la cuenta, por favor."
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible: ".*Great sentence.*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Next card"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- stopRecording

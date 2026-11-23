@@ -32,6 +32,7 @@ export default function UseItScreen() {
   );
   const [options, setOptions] = useState<string[]>([REPLY.example, REPLY.skip]);
   const [pose, setPose] = useState<KaiPose>('idle');
+  const [composerText, setComposerText] = useState(false); // the learner is typing: Kai listens
   const [cheer, setCheer] = useState(0); // counts good sentences; each one plays the thumbs-up
   // After a good sentence the chat turns into questions about the word: typed text is asked, not checked.
   const [goodSentence, setGoodSentence] = useState<string | null>(null);
@@ -99,8 +100,13 @@ export default function UseItScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+<<<<<<< HEAD
       <KaiHeader pose={pose} icon="close" />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
+=======
+      <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" />
+      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
+>>>>>>> origin/main
         {messages.map((m, i) =>
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>
@@ -122,7 +128,7 @@ export default function UseItScreen() {
       </ScrollView>
       {cheer ? <ThumbsUp key={cheer} /> : null}
       <View style={{ paddingBottom: Math.max(insets.bottom, space[12]) }}>
-        <Composer placeholder={goodSentence !== null ? 'Ask Kai about this word…' : 'Type a message…'} onSend={reply} maxLength={300} />
+        <Composer placeholder={goodSentence !== null ? 'Ask Kai about this word…' : 'Type a message…'} onSend={reply} maxLength={300} onTextChange={(t) => setComposerText(t.trim() !== '')} />
       </View>
     </KeyboardAvoidingView>
   );

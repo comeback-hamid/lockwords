@@ -19,7 +19,7 @@ test('Brand new skips the word test', () => {
 });
 
 test('start rule: onboarding until finished, then tabs', () => {
-  expect(startRoute(false)).toBe('/onboarding/learning');
+  expect(startRoute(false)).toBe('/onboarding/hello'); // O0 Hello comes before the first question (2026-11-23)
   expect(startRoute(true)).toBe('/(tabs)');
 });
 

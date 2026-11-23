@@ -12,6 +12,11 @@ tags:
     clearState: true
     clearKeychain: true
 - startRecording: chat-translate-keyboard
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- tapOn: "Start"
 - assertVisible: "What do you want to learn?"
 - tapOn: "Spanish"
 - tapOn: "Continue"
