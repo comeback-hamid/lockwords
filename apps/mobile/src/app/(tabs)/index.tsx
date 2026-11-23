@@ -19,7 +19,7 @@ import { WordCard } from '@/components/chat/word-card';
 import { LoadError } from '@/components/load-state';
 import { hasPendingAsk, takePendingAsk } from '@/new-words/pending';
 import { useDeckPictures } from '@/new-words/pictures';
-import { languageCode, MAKE_FAILED, newWordsKaiState, OOPS_MS, newestCards, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
+import { MAKE_FAILED, newWordsKaiState, OOPS_MS, newestCards, pendingDeck, QUIET_MS, REVIEW_DELAY_MS, SLEEP_MS, TOO_MANY, TOP_PX, typingMs, withDeckStatus, withLine, withOlder, type Line } from '@/new-words/chat';
 import { showReviewDot, useReviewDot } from '@/review/dot';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 

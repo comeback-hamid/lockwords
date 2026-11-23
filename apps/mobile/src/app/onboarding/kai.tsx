@@ -278,7 +278,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
           m.from === 'deck' ? (
             // The card is said twice (where it was offered, and again under "the pictures are ready"): only the newest one shows.
             deck && i === lastDeck ? (
-              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total, startedAt: drawTime.startedAt, done: drawTime.done }} showTranslation hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
+              <DeckCard key={i} deck={deck} state={step === 'generating' ? 'generating' : step === 'drawing' ? 'drawing' : deck.status} count={made} pictures={{ ready: deck.picturesReady ?? 0, total, startedAt: drawTime.startedAt, done: drawTime.done }} showTranslation={translation.on} hideGenerate={busy} onGenerate={() => void generate()} onOpen={() => void finish(`/deck/${deck.id}`)} />
             ) : null
           ) : m.from === 'user' && m.tapped ? (
             <RiseIn key={i}>
