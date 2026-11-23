@@ -49,6 +49,23 @@ export const layout = {
   tabBarClearance: Platform.OS === 'web' ? 0 : 92,
 } as const;
 
+// The word card (Figma: Flashcard, Flashcard · back, Flashcard · rules).
+export const card = {
+  pictureHeight: 177, // the same on the front and the back, so the flip does not jump
+  wordMaxWidth: 219, // the word's text; the level square sits left of it
+  wordLines: 3,
+  wordSizes: [44, 36, 30, 24], // the first that fits; line height = size + wordLineGap
+  wordLineGap: 8,
+  levelSquare: 18,
+  speakerFront: 40,
+  speakerBack: 36,
+  speakerInset: 10, // back: from the right edge
+  peek: 12, // how far each card behind shows
+  swipeDistance: 90, // the label is full here, and a release past it sends the card off
+  flipMs: 350,
+  flyMs: 220,
+} as const;
+
 // Figma "lift": only on cards and sheets. Everything else uses a 1px line.
 export const lift = {
   shadowColor: '#1f2328',

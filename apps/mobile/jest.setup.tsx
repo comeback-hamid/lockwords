@@ -7,3 +7,9 @@ jest.mock('@/kai/kai-canvas', () => {
 // Kai's typing (dots for about a second per bubble) is off in screen tests, so they read Kai's lines at once.
 // __tests__/kai-typing.test.tsx turns it on to test the typing itself.
 require('@/components/chat/use-kai-typing').setTypingForTests(false);
+
+// The word card moves with Reanimated and Gesture Handler. In Jest both run as plain JavaScript (no UI thread):
+// worklets are called like functions, and an animation jumps to its end value.
+jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
+require('react-native-gesture-handler/jestSetup');
+require('react-native-reanimated').setUpTests();
