@@ -104,9 +104,17 @@ tags:
 - extendedWaitUntil:
     visible: ".*Shall we practice them now.*"
     timeout: 20000
-- scrollUntilVisible:
-    element: "Open deck"
-    direction: UP
+- repeat:
+    times: 6
+    while:
+      notVisible: "Open deck"
+    commands:
+      - swipe:
+          start: "50%, 26%"
+          end: "50%, 45%"
+          duration: 400
+      - waitForAnimationToEnd
+- assertVisible: "Open deck"
 - assertVisible:
     id: "deck-open-column"
 - assertNotVisible: "Drawing the pictures…"
