@@ -11,7 +11,8 @@ const STEP: Record<Screen, number> = { learning: 1, speaks: 1, level: 2, 'word-t
 // Word test pages A, B, C take steps 3–5. The rare EXPERT page (D) keeps step 5, so later steps do not move.
 export const stepFor = (screen: Screen, page = 0) => STEP[screen] + (screen === 'word-test' ? Math.min(page, 2) : 0);
 
-export const startRoute = (finished: boolean) => (finished ? '/(tabs)' : '/onboarding/learning');
+// A learner who has not finished onboarding starts on O0 Hello (Kai says welcome), then O1.
+export const startRoute = (finished: boolean) => (finished ? '/(tabs)' : '/onboarding/hello');
 
 // "Brand new" has no words to test.
 export const afterLevel = (level: Profile['level']) => (level === 'brand_new' ? '/onboarding/goal' : '/onboarding/word-test?page=A');

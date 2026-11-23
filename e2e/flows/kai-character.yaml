@@ -1,4 +1,4 @@
-# Live Kai (kai-character): O2 waves, tapping Kai waves again, then the chat header Kai moves with each step.
+# Live Kai (kai-character): O0 Hello (a very big Kai waves), O2 waves (a big Kai, the word in the learned language), tapping Kai waves again, then the chat header Kai moves with each step.
 # Needs the local stack (server + Supabase login). Dev build only.
 appId: com.comebackhamid.lockwords
 tags:
@@ -8,6 +8,17 @@ tags:
     clearState: true
     clearKeychain: true
 - startRecording: kai-character
+# O0 Hello: a very big Kai waves, again every few seconds, and when tapped
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- assertVisible: "Kai"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn: "Kai"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "Start"
 - assertVisible: "What do you want to learn?"
 - tapOn: "Spanish"
 - tapOn: "Continue"
@@ -17,6 +28,9 @@ tags:
 # O2: Kai waves when the screen opens, rests, and waves again when tapped
 - assertVisible: "Learn a word every time you unlock."
 - assertVisible: "Kai"
+# The sample word is in the learned language (Spanish), the meaning in the spoken one (English)
+- assertVisible: "la cuenta"
+- assertVisible: "the bill"
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn: "Kai"

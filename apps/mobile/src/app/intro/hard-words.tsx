@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,6 +7,7 @@ import { api } from '@/auth/boot';
 import { ButtonPrimary } from '@/components/button';
 import { LockPhone } from '@/components/lock-phone';
 import { useLoad } from '@/components/use-load';
+import { Kai } from '@/kai/kai';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // O14: after the first round, show where hard words go.
@@ -25,7 +25,7 @@ export default function HardWordsScreen() {
           <Text accessibilityRole="header" style={[type.title, styles.ink, styles.title]}>
             Hard words go to your lock screen
           </Text>
-          <Image source={require('../../../assets/kai/kai-idle.svg')} style={styles.kai} contentFit="contain" accessibilityLabel="Kai" />
+          <Kai size={84} />
         </View>
         <LockPhone word={shown.word} translation={shown.translation} highlight />
         {words.length ? (
@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
   content: { gap: space[24], paddingBottom: space[24] },
   head: { flexDirection: 'row', alignItems: 'center', gap: space[12] },
   title: { flex: 1 },
-  kai: { width: 72, height: 52 },
   ink: { color: colors.text },
   muted: { color: colors.muted },
   group: { gap: space[8] },
