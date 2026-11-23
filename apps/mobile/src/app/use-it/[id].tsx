@@ -100,13 +100,8 @@ export default function UseItScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-<<<<<<< HEAD
-      <KaiHeader pose={pose} icon="close" />
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
-=======
       <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" />
-      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
->>>>>>> origin/main
+      <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>
