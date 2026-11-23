@@ -1964,12 +1964,14 @@ export interface components {
             new: number;
             learning: number;
             mastered: number;
+            hard: number;
             decks: number;
             goal: number;
             masterBy: string;
             grid: number[];
             language: string;
             trees: number[][];
+            deckWords: number[];
         };
         WordPlan: {
             goal: string;
@@ -1987,6 +1989,7 @@ export interface components {
             id: string;
             topic: string;
             title: string;
+            cefr: string;
             /** @enum {string} */
             kind: "topic" | "random";
             words: number;

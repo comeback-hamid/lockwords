@@ -49,7 +49,7 @@ export type DecksStore = {
 export type PlanStore = { get(userId: string): Promise<{ items: PlanItem[]; createdAt: Date } | null>; save(userId: string, items: PlanItem[], now: Date): Promise<void> };
 // The rows the Progress tab is counted from.
 export type ProgressStore = {
-  decks(userId: string): Promise<{ id: string; topic: string; title: string; kind: 'topic' | 'random'; words: { stage: number; known: boolean; hard: boolean }[] }[]>;
+  decks(userId: string): Promise<{ id: string; topic: string; title: string; cefr: string; kind: 'topic' | 'random'; words: { stage: number; known: boolean; hard: boolean }[] }[]>;
   startedSince(userId: string, day: string): Promise<number>;
   learningLanguage(userId: string): Promise<string>; // the profile's value (a code or a name); '' with no profile
 };

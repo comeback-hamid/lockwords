@@ -1,17 +1,33 @@
-import { useMemo } from 'react';
-import Svg, { Rect } from 'react-native-svg';
+import { useState, type ReactNode } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { meadowBlocks, SPEC } from '@/progress/meadow';
+import type { Scene } from '@/progress/meadow';
 
-// The pixel meadow (Figma P1): draws the blocks that src/progress/meadow.ts lays out. `trees` = the levels of each
-// deck's met words, oldest deck first.
-export function Meadow({ trees }: { trees: number[][] }) {
-  const { width, height, blocks } = useMemo(() => meadowBlocks(trees), [trees]);
+import { MeadowCanvas } from './meadow-canvas';
+import { useReduceMotion } from './use-reduce-motion';
+
+type Props = {
+  scene: Scene; // from src/progress/meadow.ts
+  label: string; // what a screen reader says
+  testID?: string;
+  rich?: boolean; // the big meadow: more falling leaves, and specks of light
+  children?: ReactNode; // drawn over the picture (Kai, in the small meadow)
+};
+
+// A pixel meadow (Figma P1). It fills the width it gets; the trees grow in when the screen opens, then move in the wind.
+export function Meadow({ scene, label, testID, rich = false, children }: Props) {
+  const [width, setWidth] = useState(0);
+  const still = useReduceMotion();
   return (
-    <Svg width="100%" style={{ aspectRatio: width / height }} viewBox={`0 0 ${width} ${height}`} accessibilityRole="image" accessibilityLabel={`Your meadow: ${trees.length} ${trees.length === 1 ? 'tree' : 'trees'}`}>
-      {blocks.map((b, i) => (
-        <Rect key={i} testID={`meadow-${b.kind}`} x={b.x} y={b.y} width={b.size} height={b.size} rx={SPEC.cell.radius * b.size} fill={b.color} opacity={b.opacity} />
-      ))}
-    </Svg>
+    <View testID={testID} style={[styles.root, { aspectRatio: scene.width / scene.height }]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      <View accessible accessibilityRole="image" accessibilityLabel={label} style={StyleSheet.absoluteFill}>
+        <MeadowCanvas scene={scene} width={width} rich={rich} still={still} />
+      </View>
+      {children}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { alignSelf: 'stretch' },
+});

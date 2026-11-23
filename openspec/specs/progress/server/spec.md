@@ -50,6 +50,17 @@ The numbers of the Progress tab: how many words the learner has, how well they k
 - **WHEN** the profile says the learner learns `es`
 - **THEN** `language` is "Spanish"
 
+### Requirement: Hard words number and deck sizes
+`GET /v1/progress` SHALL also answer `hard`: how many of the caller's words are hard and not known (the length of the full `GET /v1/hard-words` list), and `deckWords`: the number of words of each deck, in the order of `trees`.
+
+#### Scenario: Three Hard swipes
+- **WHEN** the learner swipes three words Hard
+- **THEN** `hard` is 3 and the hard words list has the same three words
+
+#### Scenario: A hard word reaches level 3
+- **WHEN** a hard word reaches stage 3
+- **THEN** it is not counted in `hard` any more
+
 ### Requirement: Word plan
 `GET /v1/plan` SHALL answer `200` with `{ goal, items }`. `goal` is the learner's goal in words. `items` are up to three next deck ideas with `topic`, `words` (10 to 30) and `kind` (`words`, `phrases` or `words + phrases`), never a topic the learner already has a deck for. The AI task makes the plan and it is kept; a new one is made when fewer than three ideas are left or it is older than 7 days. With no profile, or when the AI fails and nothing is kept, `items` is empty.
 

@@ -85,7 +85,7 @@ A swipe on another user's card or an unknown id SHALL answer `404`. A bad direct
 - **THEN** the answer is `409` and the card is unchanged
 
 ### Requirement: Hard words list
-`GET /v1/hard-words` SHALL answer `200` with `{ words }`: the caller's hard cards that are not known, newest first, 20 at most, each with `word` and `translation`.
+`GET /v1/hard-words` SHALL answer `200` with `{ words }`: the caller's hard cards that are not known, newest first, each with `word` and `translation`. It is the whole list (changed 2026-11-23: no cut at 20), so its length is the `hard` number of `GET /v1/progress`.
 
 #### Scenario: After a hard swipe
 - **WHEN** the user swiped "la propina" Hard

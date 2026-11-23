@@ -919,6 +919,9 @@
           "mastered": {
             "type": "integer"
           },
+          "hard": {
+            "type": "integer"
+          },
           "decks": {
             "type": "integer"
           },
@@ -945,6 +948,12 @@
                 "type": "integer"
               }
             }
+          },
+          "deckWords": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
           }
         },
         "required": [
@@ -952,12 +961,14 @@
           "new",
           "learning",
           "mastered",
+          "hard",
           "decks",
           "goal",
           "masterBy",
           "grid",
           "language",
-          "trees"
+          "trees",
+          "deckWords"
         ]
       },
       "WordPlan": {
@@ -1029,6 +1040,9 @@
           "title": {
             "type": "string"
           },
+          "cefr": {
+            "type": "string"
+          },
           "kind": {
             "type": "string",
             "enum": [
@@ -1056,6 +1070,7 @@
           "id",
           "topic",
           "title",
+          "cefr",
           "kind",
           "words",
           "learning",
