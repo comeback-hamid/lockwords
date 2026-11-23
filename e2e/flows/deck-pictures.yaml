@@ -46,10 +46,6 @@ tags:
     visible: "150"
     timeout: 5000
 - tapOn: "Continue"
-# O8 Goal → O10f: goal, interests, the Kai chat and the first deck. Lands on the Review tab.
-# Used with runFlow.
-appId: com.comebackhamid.lockwords
----
 # O8 Goal
 - assertVisible: "Why are you learning?"
 - tapOn: "Travel"
