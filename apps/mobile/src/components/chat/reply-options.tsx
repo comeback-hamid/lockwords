@@ -6,7 +6,15 @@ import { colors, layout, radius, space, type } from '@/theme/theme';
 export function ReplyOptions({ options, onPick }: { options: string[]; onPick(option: string): void }) {
   if (options.length === 0) return null;
   return (
-    <View style={styles.group}>
+    // With the keyboard up the options fill most of the chat. A drag over them is a scroll of the chat: it closes the
+    // keyboard, and the option under the finger keeps the touch.
+    <View
+      testID="reply-options"
+      style={styles.group}
+      onMoveShouldSetResponderCapture={() => {
+        Keyboard.dismiss();
+        return false;
+      }}>
       {options.map((option) => (
         <Pressable key={option} testID="reply-option" accessibilityRole="button" accessibilityLabel={option} onPress={() => {
             Keyboard.dismiss(); // a tapped answer needs no keyboard

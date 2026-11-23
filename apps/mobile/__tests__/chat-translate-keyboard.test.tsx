@@ -8,6 +8,7 @@ import UseItScreen from '@/app/use-it/[id]';
 import { api } from '@/auth/boot';
 import { ChatBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
+import { ReplyOptions } from '@/components/chat/reply-options';
 import { TextField } from '@/components/text-field';
 import { ENGLISH_SCRIPT } from '@/onboarding/kai-script';
 import { resetAnswers, setAnswers } from '@/onboarding/store';
@@ -180,6 +181,17 @@ describe('the keyboard', () => {
     await fireEvent(messages, 'scrollBeginDrag');
     expect(dismiss).toHaveBeenCalled();
   };
+
+  // With the keyboard up the options fill most of the chat, so a drag there counts as a scroll of the chat.
+  test('a drag over the reply options closes the keyboard, and a tap still picks the option', async () => {
+    const onPick = jest.fn();
+    await render(<ReplyOptions options={['Español']} onPick={onPick} />);
+    const taken = screen.getByTestId('reply-options').props.onMoveShouldSetResponderCapture();
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    expect(taken).toBe(false); // the option keeps the touch
+    await fireEvent.press(screen.getByRole('button', { name: 'Español' }));
+    expect(onPick).toHaveBeenCalledWith('Español');
+  });
 
   test('onboarding chat: a scroll of the messages closes the keyboard', async () => {
     await onboardingChat(null);

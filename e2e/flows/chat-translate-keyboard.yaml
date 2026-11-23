@@ -2,7 +2,7 @@
 # A Persian speaker who learns Spanish: the switch is there from Kai's first line in onboarding, and it is the same
 # switch in the New words chat. Return closes the keyboard; a scroll of the messages (up or down) closes it too.
 # Works with the stand-in AI and with the real one: nothing here reads Kai's own words after the chat language is picked.
-# "space" is the space bar of the iOS keyboard: on screen = the keyboard is open.
+# "Emoji" is a key of the iOS keyboard: on screen = the keyboard is open.
 # Needs the local stack: `npm run dev:up`. Dev build.
 appId: com.comebackhamid.lockwords
 tags:
@@ -28,11 +28,13 @@ tags:
 - scrollUntilVisible:
     element: "Other"
 - tapOn: "Other"
-- tapOn: "Your reason"
+# The box takes the keyboard by itself; wait until it is up
+- extendedWaitUntil:
+    visible: "Emoji"
+    timeout: 10000
 - inputText: "For fun"
-- assertVisible: "space"
 - pressKey: Enter
-- assertNotVisible: "space"
+- assertNotVisible: "Emoji"
 - tapOn: "Continue"
 - assertVisible: "What are you into?"
 - tapOn: "Food"
@@ -47,9 +49,9 @@ tags:
 # Return sends the name and closes the keyboard
 - tapOn: "Message"
 - inputText: "Sara"
-- assertVisible: "space"
+- assertVisible: "Emoji"
 - pressKey: Enter
-- assertNotVisible: "space"
+- assertNotVisible: "Emoji"
 - assertVisible: "You: Sara"
 # O10b: chat in the learned language, so Kai's lines get a translation under them
 - extendedWaitUntil:
@@ -64,19 +66,19 @@ tags:
 - assertVisible: "Translation, off"
 - tapOn: "Translation, off"
 - assertVisible: "Translation, on"
-# A scroll of the messages closes the keyboard: down, then up
+# A scroll of the chat closes the keyboard: down, then up (the reply options fill the chat here, and a drag there counts)
 - tapOn: "Message"
-- assertVisible: "space"
+- assertVisible: "Emoji"
 - swipe:
     start: 50%, 35%
     end: 50%, 50%
-- assertNotVisible: "space"
+- assertNotVisible: "Emoji"
 - tapOn: "Message"
-- assertVisible: "space"
+- assertVisible: "Emoji"
 - swipe:
     start: 50%, 50%
     end: 50%, 35%
-- assertNotVisible: "space"
+- assertNotVisible: "Emoji"
 # A typed topic, the first deck, and on to the app
 - tapOn: "Message"
 - inputText: "comida"
@@ -95,10 +97,12 @@ tags:
     notVisible: "Kai is typing"
     timeout: 20000
 - assertVisible: "Translation, on"
-- tapOn: "Open deck"
+- tapOn: "Message"
+- inputText: "yes, practice now"
+- pressKey: Enter
 - extendedWaitUntil:
     visible: "New words"
-    timeout: 20000
+    timeout: 40000
 # New words: the same switch, still on
 - tapOn: "New words"
 - extendedWaitUntil:
@@ -114,18 +118,18 @@ tags:
 # Return sends the message and closes the keyboard
 - tapOn: "Message"
 - inputText: "Hola Kai"
-- assertVisible: "space"
+- assertVisible: "Emoji"
 - pressKey: Enter
-- assertNotVisible: "space"
+- assertNotVisible: "Emoji"
 - assertVisible: "You: Hola Kai"
 - extendedWaitUntil:
     notVisible: "Kai is typing"
     timeout: 40000
 # A scroll of the messages closes the keyboard here too
 - tapOn: "Message"
-- assertVisible: "space"
+- assertVisible: "Emoji"
 - swipe:
     start: 50%, 35%
     end: 50%, 50%
-- assertNotVisible: "space"
+- assertNotVisible: "Emoji"
 - stopRecording
