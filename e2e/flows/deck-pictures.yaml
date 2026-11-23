@@ -11,6 +11,11 @@ tags:
     clearState: true
     clearKeychain: true
 - startRecording: deck-pictures
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "Start"
+    timeout: 30000
+- tapOn: "Start"
 # O1 I'm learning
 - assertVisible: "What do you want to learn?"
 - tapOn: "Spanish"
