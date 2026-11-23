@@ -153,9 +153,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 60000
 - waitForAnimationToEnd
-- assertVisible:
-    id: "deck-open-column"
-# The arrow column opens the deck
+# The arrow column opens the deck (pull the chat down until the card shows, then tap the column)
 - repeat:
     times: 4
     while:
