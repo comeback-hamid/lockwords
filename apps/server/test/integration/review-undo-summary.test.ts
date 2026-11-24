@@ -77,11 +77,11 @@ test('an undone swipe brings the card back and counts nowhere', async () => {
   expect((await summary()).today.words).toBe(20);
 });
 
-test('undo after a first Hard takes the card out of "again"', async () => {
+test('undo after a Hard brings the card back as new', async () => {
   await userWith(2);
   const [a, b] = await round();
   await swipe(a!.id, 'hard');
-  expect((await round()).map((c) => c.id)).toEqual([b!.id, a!.id]);
+  expect((await round()).map((c) => c.id)).toEqual([b!.id]); // a Hard word does not come back the same day
   await call('/v1/review/undo', 'POST');
   expect((await round()).map((c) => c.id)).toEqual([a!.id, b!.id]);
   expect(await (await call('/v1/hard-words')).json()).toEqual({ words: [] });
@@ -102,9 +102,7 @@ test('summary: name, streak over review days, today’s numbers', async () => {
   await swipe(cards[3]!.id, 'hard');
   tick(10);
   await swipe(cards[4]!.id, 'known');
-  tick(1200); // a long break
-  await swipe(cards[3]!.id, 'easy');
-  expect(await summary()).toEqual({ day: '2026-11-20', name: 'Maya', streakDays: 3, today: { words: 3, minutes: 2, easy: 2, hard: 0, known: 1, stages: [2, 2, 0] } });
+  expect(await summary()).toEqual({ day: '2026-11-20', name: 'Maya', streakDays: 3, today: { words: 3, minutes: 1, easy: 1, hard: 1, known: 1, stages: [2, 1, 0] } });
 });
 
 test('summary without a profile has no name', async () => {

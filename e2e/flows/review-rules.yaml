@@ -15,18 +15,14 @@ tags:
 - tapOn: "Let’s start"
 - assertVisible: "10 words left"
 - assertVisible: "la cuenta"
-# Hard on the first word: it will come back at the end
+# Hard on the first word: it is done for today (it does not come back in the same round)
 - tapOn: "Hard"
 - extendedWaitUntil:
     visible: "la propina"
     timeout: 15000
-- assertVisible: "10 words left"
+- assertVisible: "9 words left"
 # Easy on a new word (back in 3 days: the label is on the card as it leaves, too short for a flow to read;
 # its text is checked in apps/mobile/__tests__/review-card.test.tsx and the rule in the server tests)
-- tapOn: "Easy"
-- extendedWaitUntil:
-    visible: "9 words left"
-    timeout: 15000
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "8 words left"
@@ -59,8 +55,6 @@ tags:
 - extendedWaitUntil:
     visible: "1 word left"
     timeout: 15000
-# The hard word is the last card
-- assertVisible: "la cuenta"
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "Hard words go to your lock screen"

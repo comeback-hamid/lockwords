@@ -22,10 +22,6 @@ tags:
     timeout: 15000
 - tapOn: "Know it"
 - extendedWaitUntil:
-    visible: "9 words left"
-    timeout: 15000
-- tapOn: "Easy"
-- extendedWaitUntil:
     visible: "8 words left"
     timeout: 15000
 - tapOn: "Easy"
@@ -56,7 +52,6 @@ tags:
 - extendedWaitUntil:
     visible: "1 word left"
     timeout: 15000
-- assertVisible: "la cuenta"
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "Hard words go to your lock screen"

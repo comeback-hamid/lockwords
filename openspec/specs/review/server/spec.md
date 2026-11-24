@@ -40,19 +40,19 @@ The server rules for reviewing cards: which cards are in today's round and what 
 - **THEN** `stage` stays 5 and `backInDays` is 30
 
 ### Requirement: Hard swipe
-A swipe with `"direction": "hard"` SHALL set the card to stage 1, due in 1 day, and mark it hard. The first Hard swipe of a card on a review day answers `again: true`: the card is shown once more in the same round and accepts one more swipe that day. A second Hard that day answers `again: false`.
+A swipe with `"direction": "hard"` SHALL set the card to stage 1, due in 1 day, and mark it hard. A card is swiped once per review day: a Hard card does not come back in the same round (Hamid, 2026-11-24; from 2026-11-20 it came back once). `again` is always `false`; the field stays for older app builds.
 
 #### Scenario: Hard
 - **WHEN** a due stage 4 card is swiped Hard
-- **THEN** `stage` is 1, `hard` is true, `backInDays` is 1 and `again` is true
+- **THEN** `stage` is 1, `hard` is true, `backInDays` is 1 and `again` is false
 
-#### Scenario: Second showing, Easy
-- **WHEN** that card is swiped Easy later the same day
+#### Scenario: The next day, Easy
+- **WHEN** that card is swiped Easy the next day
 - **THEN** `stage` is 2, `backInDays` is 3 and `hard` is still true
 
-#### Scenario: Second showing, Hard
-- **WHEN** that card is swiped Hard again the same day
-- **THEN** `stage` is 1, `again` is false, and a third swipe that day answers `409`
+#### Scenario: A second swipe the same day
+- **WHEN** that card is swiped again the same day
+- **THEN** the answer is `409`
 
 ### Requirement: I know it swipe
 A swipe with `"direction": "known"` SHALL mark the card known. A known card is never in a round again and is not hard. The hard mark of any other card stays until the card reaches stage 3 or higher.

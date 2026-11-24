@@ -8,7 +8,7 @@ import { AskSchema, type WordAsker } from '../llm/ask-word.js';
 import type { UseItJudge } from '../llm/use-it.js';
 import { UseItSchema } from '../llm/use-it.js';
 import { reviewDay } from '../review/day.js';
-import { applySwipe, canSwipe, canUseIt, showsAgain } from '../review/srs.js';
+import { applySwipe, canSwipe, canUseIt } from '../review/srs.js';
 import { streakDays, todayNumbers } from '../review/summary.js';
 import { UnauthorizedSchema } from './me.js';
 
@@ -170,7 +170,7 @@ export function reviewRoutes(deps: Deps) {
       if (!canSwipe(card, today, end)) return c.json({ error: 'not_due' as const }, 409);
       const before = { stage: card.stage, known: card.known, hard: card.hard, dueAt: card.dueAt };
       await store.saveSwipe(userId, id, { kind: direction, day, at: now, before, after: next });
-      return c.json({ id, stage: next.stage, known: next.known, hard: next.hard, backInDays, again: showsAgain(direction, today) }, 200);
+      return c.json({ id, stage: next.stage, known: next.known, hard: next.hard, backInDays, again: false }, 200); // `again` stays in the answer for older app builds: a card never comes back the same day now
     })
     .openapi(postUndo, async (c) => {
       const store = need('cards');

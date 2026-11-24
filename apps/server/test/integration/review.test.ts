@@ -42,14 +42,14 @@ test('deck → round of 10 → easy, hard, known → round shrinks → hard word
   expect(await (await me(`/v1/cards/${round[0]!.id}/swipe`, 'POST', { direction: 'easy' })).json()).toMatchObject({ stage: 2, backInDays: 3 }); // rule change 2026-11-20: Easy on a new card gives stage 2
   expect(await (await me(`/v1/cards/${round[1]!.id}/swipe`, 'POST', { direction: 'hard' })).json()).toMatchObject({ stage: 1, hard: true });
   expect(await (await me(`/v1/cards/${round[2]!.id}/swipe`, 'POST', { direction: 'known' })).json()).toMatchObject({ known: true });
-  expect(((await (await me('/v1/review')).json()) as { cards: Card[] }).cards).toHaveLength(8); // 7 left + the Hard card, which comes back once the same day (rule change 2026-11-20)
+  expect(((await (await me('/v1/review')).json()) as { cards: Card[] }).cards).toHaveLength(7); // the Hard card does not come back the same day (rule change 2026-11-24)
   expect(await (await me('/v1/hard-words')).json()).toEqual({ words: [{ word: 'la propina', translation: 'the tip' }] });
 
   // A card that is due again shows up first.
   await db.execute(sql`update cards set due_at = now() - interval '1 hour' where id = ${round[1]!.id}`);
   expect(((await (await me('/v1/review')).json()) as { cards: Card[] }).cards[0]!.word).toBe('la propina');
 
-  expect(await (await me(`/v1/cards/${round[1]!.id}/use-it`, 'POST', { sentence: 'Dejé propina al mesero.' })).json()).toMatchObject({ good: true, movedUp: true, stage: 2 });
+  expect(await (await me(`/v1/cards/${round[3]!.id}/use-it`, 'POST', { sentence: 'El camarero es muy amable.' })).json()).toMatchObject({ good: true, movedUp: true, stage: 2 }); // a card not swiped today: a swiped one is done for the day
 
   const stranger = await call(crypto.randomUUID());
   expect(((await (await stranger('/v1/review')).json()) as { cards: Card[] }).cards).toEqual([]);

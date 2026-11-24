@@ -18,11 +18,10 @@ export function applySwipe(card: CardState, direction: Direction, now: Date): Ca
 // What the learner already did today (swipes that were not undone), as the server needs it to judge one more swipe.
 export type Today = { swipesToday: Direction[]; newStartedToday: number; usedItToday?: boolean }; // usedItToday: a good sentence already moved this card today
 
-// Is this card in today's round? Due cards, every new card (no daily limit: Hamid, 2026-11-24), and one more showing
-// after a first Hard.
+// Is this card in today's round? Due cards and every new card (no daily limit: Hamid, 2026-11-24). A card is swiped
+// once a day: a Hard word does not come back in the same round (Hamid, 2026-11-24; it did once, from 2026-11-20).
 export function canSwipe(card: CardState, today: Today, dayEnd: Date): boolean {
   if (card.known) return false;
-  if (today.swipesToday.length === 1 && today.swipesToday[0] === 'hard') return true; // the second showing
   if (today.swipesToday.length > 0) return false; // already swiped today (also stops a double send)
   if (card.stage === 0) return true;
   return card.dueAt !== null && card.dueAt < dayEnd;
@@ -32,9 +31,6 @@ export function canSwipe(card: CardState, today: Today, dayEnd: Date): boolean {
 // every card offers it.
 const USE_IT_FROM_STAGE = 3;
 export const canUseIt = (stage: number, firstDay: boolean) => firstDay || stage >= USE_IT_FROM_STAGE;
-
-// The first Hard of the day brings the card back once at the end of the same round.
-export const showsAgain = (direction: Direction, today: Today) => direction === 'hard' && today.swipesToday.length === 0;
 
 type Pickable = CardState & { deckCreatedAt: Date; position: number };
 

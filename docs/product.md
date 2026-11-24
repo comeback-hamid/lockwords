@@ -167,7 +167,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - **Easy on a brand-new card goes to Stage 2** (back in 3 days). Decided 2026-11-20.
 - **A day starts at 04:00 on the learner's clock.** A word is due for its whole day, not from the hour of the last swipe.
 - **New words:** no daily limit (changed 2026-11-24, Hamid; it was 20 a day). Every word of a new deck is in Review at once.
-- **Hard:** the word goes to Stage 1 and comes back **once more at the end of the same round**, then tomorrow. It stays on the lock screen until it reaches Stage 3.
+- **Hard:** the word goes to Stage 1 and comes back **tomorrow**, not in the same round (changed 2026-11-24, Hamid; from 2026-11-20 it came back once at the end of the round). It stays on the lock screen until it reaches Stage 3.
 - A swipe counts only for a word that is in today's round. The server keeps a history of every swipe.
 
 ---
