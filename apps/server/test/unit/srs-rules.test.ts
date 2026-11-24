@@ -30,9 +30,8 @@ test('a card can be swiped only when it is in today’s round', () => {
   expect(canSwipe(card({ stage: 2, dueAt: days(-1), known: true }), none, dayEnd)).toBe(false); // known
 });
 
-test('after Hard a card gets one more swipe the same day, and no third', () => {
+test('a card is swiped once a day: a Hard word does not come back the same day (Hamid, 2026-11-24)', () => {
   const afterHard = card({ stage: 1, hard: true, dueAt: days(1) });
-  expect(canSwipe(afterHard, { ...none, swipesToday: ['hard'] }, dayEnd)).toBe(true);
-  expect(canSwipe(afterHard, { ...none, swipesToday: ['hard', 'hard'] }, dayEnd)).toBe(false);
+  expect(canSwipe(afterHard, { ...none, swipesToday: ['hard'] }, dayEnd)).toBe(false);
   expect(canSwipe(card({ stage: 2, dueAt: days(3) }), { ...none, swipesToday: ['easy'] }, dayEnd)).toBe(false); // a double send
 });

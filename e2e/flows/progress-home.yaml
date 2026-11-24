@@ -52,7 +52,7 @@ tags:
     element: "Ordering food, 10 words · all new"
     direction: DOWN
 - assertNotVisible: "YOUR WORD PLAN.*"
-# The first round: the first word Hard, the rest Easy; the hard word comes back once
+# The first round: the first word Hard, the rest Easy
 - tapOn: "Review"
 - tapOn: "Let’s start"
 - assertVisible: "10 words left"
@@ -60,10 +60,6 @@ tags:
 - tapOn: "Hard"
 - extendedWaitUntil:
     visible: "la propina"
-    timeout: 15000
-- tapOn: "Easy"
-- extendedWaitUntil:
-    visible: "9 words left"
     timeout: 15000
 - tapOn: "Easy"
 - extendedWaitUntil:
@@ -97,7 +93,6 @@ tags:
 - extendedWaitUntil:
     visible: "1 word left"
     timeout: 15000
-- assertVisible: "la cuenta"
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "Hard words go to your lock screen"

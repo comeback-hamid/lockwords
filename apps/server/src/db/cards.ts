@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, isNull, lt, lte, sql } from 'drizzle-orm';
 
 import type { CardsStore } from '../app.js';
 import type { TodayEvent } from '../review/summary.js';
@@ -48,19 +48,11 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
       // day. Without it (callers with no history): due by the clock. Every new card is in the round (no daily limit).
       // deckId = "Review this deck": the same round, only that deck's cards.
       const live = and(kept(userId), eq(decks.status, 'ready'), eq(cards.known, false), deckId ? eq(cards.deckId, deckId) : undefined);
-      const events = today ? await todaysEvents(userId, today.day) : [];
-      // After a first Hard the card is shown once more today, at the end of the round.
-      const perCard = new Map<string, string[]>();
-      for (const e of events) perCard.set(e.cardId, [...(perCard.get(e.cardId) ?? []), e.kind]);
-      const againIds = [...perCard].filter(([, kinds]) => kinds.length === 1 && kinds[0] === 'hard').map(([id]) => id);
-      const [due, fresh, again] = await Promise.all([
+      const [due, fresh] = await Promise.all([
         mine().where(and(live, gt(cards.stage, 0), today ? lt(cards.dueAt, today.end) : lte(cards.dueAt, now))),
         mine().where(and(live, eq(cards.stage, 0))).orderBy(asc(decks.createdAt), asc(cards.position)),
-        againIds.length ? mine().where(and(live, inArray(cards.id, againIds))) : [],
       ]);
-      const picked = pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), today?.end ?? now);
-      const inRound = new Set(picked.map((c) => c.id));
-      return [...picked, ...again.filter((r) => !inRound.has(r.card.id)).map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position }))];
+      return pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), today?.end ?? now);
     },
     async today(userId, cardId, day) {
       const events = await todaysEvents(userId, day);

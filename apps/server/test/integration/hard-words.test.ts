@@ -60,10 +60,12 @@ test('swipe Hard on several cards: the list has them, and Progress and the deck 
   expect((await get<{ decks: { hard: number }[] }>('/v1/decks')).decks[0]!.hard).toBe(3);
 });
 
-test('the second showing the same day: Hard or Easy keeps the word hard, "I know it" takes it out', async () => {
+test('the next day: Hard or Easy keeps the word hard, "I know it" takes it out', async () => {
   await userWith(4);
   for (const c of await round()) await swipe(c.id, c.word === 'w3' ? 'easy' : 'hard');
-  const again = await round(); // the three Hard cards come back once
+  expect(await round()).toEqual([]); // a Hard word does not come back the same day
+  now = new Date('2026-11-24T10:00:00Z');
+  const again = await round(); // the three Hard cards are due
   expect(again.map((c) => c.word).sort()).toEqual(['w0', 'w1', 'w2']);
   const by = (word: string) => again.find((c) => c.word === word)!.id;
   await swipe(by('w0'), 'hard');
@@ -77,7 +79,8 @@ test('a hard word leaves the list when it reaches level 3', async () => {
   await userWith(1);
   const [card] = await round();
   await swipe(card!.id, 'hard'); // level 1
-  await swipe(card!.id, 'easy'); // the second showing: level 2, still hard
+  now = new Date('2026-11-24T10:00:00Z'); // due the next day
+  await swipe(card!.id, 'easy'); // level 2, still hard
   expect(await hardCount()).toBe(1);
   now = new Date('2026-11-27T10:00:00Z'); // due again
   await swipe(card!.id, 'easy'); // level 3

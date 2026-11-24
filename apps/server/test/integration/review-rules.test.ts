@@ -63,25 +63,26 @@ test('a card is due for its whole review day, and the day starts at 04:00', asyn
   expect(await (await swipe(card!.id, 'easy')).json()).toMatchObject({ stage: 2, backInDays: 3 });
 });
 
-test('Hard comes back once the same day; a third swipe is refused', async () => {
+test('Hard does not come back the same day; a second swipe is refused (Hamid, 2026-11-24)', async () => {
   await userWith(2);
   const [a, b] = await round();
-  expect(await (await swipe(a!.id, 'hard')).json()).toMatchObject({ stage: 1, hard: true, backInDays: 1, again: true });
-  expect((await round()).map((c) => c.id)).toEqual([b!.id, a!.id]); // at the end of the round
-  expect(await (await swipe(a!.id, 'hard')).json()).toMatchObject({ stage: 1, again: false });
-  const third = await swipe(a!.id, 'easy');
-  expect(third.status).toBe(409);
-  expect(await third.json()).toEqual({ error: 'not_due' });
+  expect(await (await swipe(a!.id, 'hard')).json()).toMatchObject({ stage: 1, hard: true, backInDays: 1, again: false });
   expect((await round()).map((c) => c.id)).toEqual([b!.id]);
+  const second = await swipe(a!.id, 'easy');
+  expect(second.status).toBe(409);
+  expect(await second.json()).toEqual({ error: 'not_due' });
+  now = new Date('2026-11-21T10:00:00Z');
+  expect((await round()).map((c) => c.id)).toEqual([a!.id, b!.id]); // due the next day, before the new word
 });
 
-test('after Hard, Easy the same day gives stage 2 and the word stays hard until stage 3', async () => {
+test('after Hard, Easy the next day gives stage 2 and the word stays hard until stage 3', async () => {
   await userWith(1);
   const [a] = await round();
   await swipe(a!.id, 'hard');
+  now = new Date('2026-11-21T10:00:00Z');
   expect(await (await swipe(a!.id, 'easy')).json()).toMatchObject({ stage: 2, hard: true, backInDays: 3, again: false });
   expect(await (await call('/v1/hard-words')).json()).toEqual({ words: [{ word: 'w0', translation: 't' }] });
-  now = new Date('2026-11-23T10:00:00Z');
+  now = new Date('2026-11-24T10:00:00Z');
   expect(await (await swipe(a!.id, 'easy')).json()).toMatchObject({ stage: 3, hard: false });
   expect(await (await call('/v1/hard-words')).json()).toEqual({ words: [] });
 });
