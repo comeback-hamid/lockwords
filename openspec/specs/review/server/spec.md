@@ -6,7 +6,7 @@ The server rules for reviewing cards: which cards are in today's round and what 
 ## Requirements
 
 ### Requirement: Today's round
-`GET /v1/review` SHALL answer `200` with `{ cards }`: the caller's due cards (stage 1–5, not known) oldest due first, then new cards (stage 0, not known) oldest deck first. At most 20 new cards are started per review day: the round offers 20 minus the new cards already swiped today. Each card has `id`, `deckId`, `deckTopic`, `word`, `translation`, `example`, `exampleTranslation`, `stage`. Only cards of the caller's ready decks are listed.
+`GET /v1/review` SHALL answer `200` with `{ cards }`: the caller's due cards (stage 1–5, not known) oldest due first, then new cards (stage 0, not known) oldest deck first. There is no daily limit of new cards (Hamid, 2026-11-24): every new card of a ready deck is in the round. Each card has `id`, `deckId`, `deckTopic`, `word`, `translation`, `example`, `exampleTranslation`, `stage`. Only cards of the caller's ready decks are listed.
 
 #### Scenario: New deck
 - **WHEN** a user with one ready deck of 10 new cards calls it
@@ -18,7 +18,7 @@ The server rules for reviewing cards: which cards are in today's round and what 
 
 #### Scenario: More than 20 new cards
 - **WHEN** the user has 30 new cards
-- **THEN** 20 come back
+- **THEN** all 30 come back
 
 #### Scenario: Daily limit reached
 - **WHEN** the user has 30 new cards and swiped 20 of them today
@@ -182,12 +182,12 @@ Each card in `GET /v1/review` SHALL have `canUseIt`: true when the card's stage 
 - **THEN** `canUseIt` is true for every card
 
 ### Requirement: A round for one deck
-`GET /v1/review?deckId=<id>` SHALL answer today's round with only the cards of that deck. The review day and the daily limit of new words are the same as for the full round. A deck that is not the caller's gives an empty round.
+`GET /v1/review?deckId=<id>` SHALL answer today's round with only the cards of that deck. The review day is the same as for the full round. A deck that is not the caller's gives an empty round.
 
 #### Scenario: One deck
 - **WHEN** a user with two decks of 10 new words asks for the round of the second deck
 - **THEN** the 10 cards of the second deck come back
 
-#### Scenario: Limit reached
+#### Scenario: Many new words today
 - **WHEN** the user already started 20 new words today
-- **THEN** the deck's round has no new card
+- **THEN** the deck's round still has every new card of that deck

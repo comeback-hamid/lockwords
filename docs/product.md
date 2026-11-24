@@ -126,7 +126,7 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **All cards done** screen with today's numbers: words, minutes, one level square per word, and Easy / Hard / Know it counts.
 - The tab bar stays visible during a round. Only the very first round (the onboarding practice) is full screen.
 - **No sounds in v1**, only the speaker button (decided 2026-11-20).
-- When today's cards are done, new words join by themselves (up to 20, oldest deck first).
+- When today's cards are done, new words join by themselves (all of them, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
 - Total words, a coded pixel meadow (1 tree per deck, grows with memory), and a goal grid with "by <date> you'll master N".
@@ -166,7 +166,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - v1 is online: review needs a connection. The widget still shows the last words it got.
 - **Easy on a brand-new card goes to Stage 2** (back in 3 days). Decided 2026-11-20.
 - **A day starts at 04:00 on the learner's clock.** A word is due for its whole day, not from the hour of the last swipe.
-- **New words:** at most 20 new words are started per day. The rest wait for the next day.
+- **New words:** no daily limit (changed 2026-11-24, Hamid; it was 20 a day). Every word of a new deck is in Review at once.
 - **Hard:** the word goes to Stage 1 and comes back **once more at the end of the same round**, then tomorrow. It stays on the lock screen until it reaches Stage 3.
 - A swipe counts only for a word that is in today's round. The server keeps a history of every swipe.
 

@@ -66,14 +66,15 @@ test('nothing swiped today: undo is refused', async () => {
   expect((await call('/v1/review/undo', 'POST')).status).toBe(409);
 });
 
-test('an undone swipe frees the daily limit and counts nowhere', async () => {
+test('an undone swipe brings the card back and counts nowhere', async () => {
   await userWith(21);
   const first = await round();
-  for (const c of first) await swipe(c.id, 'easy'); // 20 new words: the limit
+  expect(first).toHaveLength(21); // no daily limit of new words
+  for (const c of first) await swipe(c.id, 'easy');
   expect(await round()).toEqual([]);
   await call('/v1/review/undo', 'POST');
-  expect(await round()).toHaveLength(1); // one place is free again
-  expect((await summary()).today.words).toBe(19);
+  expect(await round()).toHaveLength(1); // the undone card is back
+  expect((await summary()).today.words).toBe(20);
 });
 
 test('undo after a first Hard takes the card out of "again"', async () => {

@@ -23,16 +23,16 @@ beforeAll(async () => {
 });
 afterAll(() => pool.end());
 
-test('the round holds the first 20 new words (oldest deck first), with due words in front; known, later and unmade words stay out', async () => {
+test('the round holds every new word (oldest deck first, no daily limit), with due words in front; known, later and unmade words stay out', async () => {
   const first = await cards.round(userId, new Date());
-  expect(first.map((c) => c.word)).toEqual([...Array.from({ length: 10 }, (_, p) => `d0-w${p}`), ...Array.from({ length: 10 }, (_, p) => `d1-w${p}`)]);
+  expect(first.map((c) => c.word)).toEqual([...Array.from({ length: 10 }, (_, p) => `d0-w${p}`), ...Array.from({ length: 10 }, (_, p) => `d1-w${p}`), ...Array.from({ length: 10 }, (_, p) => `d2-w${p}`)]);
 
   await db.execute(sql`update cards set stage = 2, due_at = now() - interval '1 hour' where word = 'd2-w9' and deck_id in (select id from decks where user_id = ${userId})`);
   await db.execute(sql`update cards set stage = 1, due_at = now() + interval '1 day' where word = 'd0-w0' and deck_id in (select id from decks where user_id = ${userId})`);
   await db.execute(sql`update cards set known = true where word = 'd0-w1' and deck_id in (select id from decks where user_id = ${userId})`);
   const second = (await cards.round(userId, new Date())).map((c) => c.word);
-  expect(second).toHaveLength(21);
+  expect(second).toHaveLength(28);
   expect(second.slice(0, 2)).toEqual(['d2-w9', 'd0-w2']);
-  expect(second.at(-1)).toBe('d2-w1'); // 8 left in deck 0, 10 in deck 1, then 2 from deck 2
+  expect(second.at(-1)).toBe('d2-w8'); // the due word, then 8 left in deck 0, 10 in deck 1, 9 in deck 2
   expect(second.join()).not.toMatch(/d0-w0|d0-w1,|d3-/);
 });

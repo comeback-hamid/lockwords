@@ -110,13 +110,14 @@ test('restore: a known word is back in the round; a word that is not known is re
   call = owner;
 });
 
-test('a round for one deck: only its cards, with the same daily limit', async () => {
+test('a round for one deck: only its cards', async () => {
   await deck('first', 15, 30);
   const second = await deck('second', 10, 10);
   expect((await get<{ cards: Card[] }>(`/v1/review?deckId=${second}`)).cards.map((c) => c.word)).toEqual(Array.from({ length: 10 }, (_, i) => `second-${i}`));
-  const all = (await get<{ cards: Card[] }>('/v1/review')).cards; // 20 new: 15 of the first deck + 5 of the second
+  const all = (await get<{ cards: Card[] }>('/v1/review')).cards; // every new word: 15 of the first deck + 10 of the second
+  expect(all).toHaveLength(25);
   for (const c of all) await swipe(c.id, 'easy');
-  expect((await get<{ cards: Card[] }>(`/v1/review?deckId=${second}`)).cards).toEqual([]); // 20 new words today already
+  expect((await get<{ cards: Card[] }>(`/v1/review?deckId=${second}`)).cards).toEqual([]); // all swiped today
   expect((await get<{ cards: Card[] }>('/v1/review?deckId=not-a-deck')).cards).toEqual([]);
   expect((await get<{ cards: Card[] }>(`/v1/review?deckId=${crypto.randomUUID()}`)).cards).toEqual([]);
 });

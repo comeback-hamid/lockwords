@@ -84,7 +84,7 @@ tags:
 - assertVisible: "You reviewed every word due today. New reviews will be ready tomorrow."
 - assertVisible: "10 words · .* minute.*"
 - assertVisible: "10 easy, 0 hard, 0 know it"
-# A new deck from Kai: 10 of the 20 new words of the day are left
+# A new deck from Kai: all of its 12 words are in Review at once (no daily limit of new words)
 - tapOn: "New words"
 - extendedWaitUntil:
     visible: ".*Kai.*"
@@ -109,21 +109,21 @@ tags:
 # The second round runs inside the Review tab: the tab bar stays (Figma A3)
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "12 cards to review today"
     timeout: 20000
 - tapOn: "Let’s start"
-- assertVisible: "10 words left"
+- assertVisible: "12 words left"
 - assertVisible: "New words"
 - assertVisible: "Progress"
 - tapOn: "Easy"
 - extendedWaitUntil:
-    visible: "9 words left"
+    visible: "11 words left"
     timeout: 15000
 - assertVisible: "Undo"
 # Leaving by the tab bar and coming back shows the start screen with the cards that are left
 - tapOn: "Progress"
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "9 cards to review today"
+    visible: "11 cards to review today"
     timeout: 20000
 - stopRecording

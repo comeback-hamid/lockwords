@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 
-import { applySwipe, canSwipe, MAX_NEW_PER_DAY } from '../../src/review/srs.js';
+import { applySwipe, canSwipe } from '../../src/review/srs.js';
 
 const now = new Date('2026-11-20T10:00:00Z');
 const dayEnd = new Date('2026-11-21T04:00:00Z');
@@ -23,8 +23,8 @@ test('a hard word stays hard until it reaches stage 3; known clears it', () => {
 });
 
 test('a card can be swiped only when it is in today’s round', () => {
-  expect(canSwipe(card(), none, dayEnd)).toBe(true); // new, under the daily limit
-  expect(canSwipe(card(), { ...none, newStartedToday: MAX_NEW_PER_DAY }, dayEnd)).toBe(false); // limit reached
+  expect(canSwipe(card(), none, dayEnd)).toBe(true); // new
+  expect(canSwipe(card(), { ...none, newStartedToday: 500 }, dayEnd)).toBe(true); // no daily limit of new words (Hamid, 2026-11-24)
   expect(canSwipe(card({ stage: 2, dueAt: new Date('2026-11-21T03:00:00Z') }), none, dayEnd)).toBe(true); // due before the day ends
   expect(canSwipe(card({ stage: 2, dueAt: days(5) }), none, dayEnd)).toBe(false); // not due
   expect(canSwipe(card({ stage: 2, dueAt: days(-1), known: true }), none, dayEnd)).toBe(false); // known

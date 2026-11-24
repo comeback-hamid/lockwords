@@ -3,7 +3,6 @@ import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or, sql } from '
 import { toChatDecks } from '../kai/abilities/decks.js';
 import { nextRandomDeckTitle } from '../decks/random-words.js';
 import { OPENING_GAP_MS, type KaiMessage, type KaiStore } from '../kai/chat.js';
-import { MAX_NEW_PER_ROUND } from '../review/srs.js';
 import type { createDb } from './client.js';
 import { cards, decks, kaiMessages, kaiNotes, profiles } from './schema.js';
 
@@ -109,7 +108,7 @@ export function createKaiStore(db: ReturnType<typeof createDb>['db']): KaiStore 
           .limit(status === 'made' ? 30 : 15);
       const [made, offered] = await Promise.all([topics('made'), topics('offered')]);
       const deckFacts = { newWordsLeft: fresh?.n ?? 0, topics: made.map((d) => d.topic), offered: offered.map((d) => d.topic) };
-      return { name: p?.name ?? null, translationOn: p?.on ?? null, decks: deckFacts, words: { total: total?.n ?? 0, reviewedLastDay: reviewed?.n ?? 0, dueNow: (due?.n ?? 0) + Math.min(fresh?.n ?? 0, MAX_NEW_PER_ROUND), sample } }; // what Review shows today: due cards plus the new ones of a round
+      return { name: p?.name ?? null, translationOn: p?.on ?? null, decks: deckFacts, words: { total: total?.n ?? 0, reviewedLastDay: reviewed?.n ?? 0, dueNow: (due?.n ?? 0) + (fresh?.n ?? 0), sample } }; // what Review shows today: due cards plus the new ones of a round
     },
     async setTranslation(userId, on) {
       const rows = await db.update(profiles).set({ kaiTranslationOn: on }).where(eq(profiles.userId, userId)).returning({ id: profiles.userId });

@@ -43,10 +43,10 @@ tags:
     notVisible: "Kai is typing"
     timeout: 60000
 - waitForAnimationToEnd
-# Review now has both decks: a round shows at most 20 new cards of the 22
+# Review now has both decks: every new card, 22 (no daily limit of new words)
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "20 cards to review today"
+    visible: "22 cards to review today"
     timeout: 20000
 - tapOn: "New words"
 # Open the deck page (the card's middle can sit under Kai's header: pull the chat down a little and tap)

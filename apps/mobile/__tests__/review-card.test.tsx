@@ -37,11 +37,11 @@ beforeEach(() => {
 });
 
 describe('layout', () => {
-  test('front and back both start with the picture area, the same height', async () => {
+  test('front and back both start with the picture area: half of the front, a bit less of the back', async () => {
     setRound([card(1, 'la propina', { imageUrl: 'https://example.test/propina.png' })]);
     await render(<RoundScreen />);
-    const pictures = [within(front()).getByTestId('card-picture'), within(back()).getByTestId('card-picture', hidden)];
-    for (const picture of pictures) expect(StyleSheet.flatten(picture.props.style).height).toBe(cardTokens.pictureHeight);
+    expect(StyleSheet.flatten(within(front()).getByTestId('card-picture').props.style).height).toBe('50%');
+    expect(StyleSheet.flatten(within(back()).getByTestId('card-picture', hidden).props.style).height).toBe('42%');
     expect(JSON.stringify(within(front()).getByTestId('card-image', hidden).props.source)).toContain('https://example.test/propina.png');
     expect(within(back()).getByTestId('card-image', hidden)).toBeTruthy();
     expect(screen.queryByTestId('card-picture-placeholder', hidden)).toBeNull();
@@ -63,6 +63,17 @@ describe('layout', () => {
       expect(StyleSheet.flatten(word.props.style).textAlign).toBe('center');
       expect(fontSize(word)).toBe(44);
     }
+  });
+
+  test('one word is never cut: it stays on one line and shrinks; a short phrase takes one line with a smaller font', async () => {
+    setRound([card(1, 'bottleneck'), card(2, 'to brush up on')]);
+    await render(<RoundScreen />);
+    const word = within(front()).getByText('bottleneck');
+    expect(word.props.numberOfLines).toBe(1);
+    expect(word.props.adjustsFontSizeToFit).toBe(true);
+    const phrase = screen.getAllByText('to brush up on', hidden)[0]!;
+    expect(phrase.props.numberOfLines).toBe(1);
+    expect(fontSize(phrase)).toBe(30);
   });
 
   test('a long phrase gets a smaller font, on both sides, and keeps its speaker', async () => {

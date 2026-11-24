@@ -32,7 +32,7 @@ test('I know it: known, not hard, no due date', () => {
   expect(applySwipe({ ...fresh, stage: 2, hard: true, dueAt: days(1) }, 'known', now)).toEqual({ stage: 2, known: true, hard: false, dueAt: null, backInDays: null });
 });
 
-test('round: due cards first (oldest due first), then new cards in order, 20 new at most; known and not-yet-due cards are left out', () => {
+test('round: due cards first (oldest due first), then every new card in order (no daily limit); known and not-yet-due cards are left out', () => {
   const card = (id: string, over: Partial<typeof fresh> & { deckCreatedAt?: Date; position?: number }) => ({ id, ...fresh, deckCreatedAt: now, position: 0, ...over });
   const cards = [
     card('new-b', { deckCreatedAt: days(-1), position: 1 }),
@@ -46,7 +46,7 @@ test('round: due cards first (oldest due first), then new cards in order, 20 new
   ];
   const ids = pickRound(cards, now).map((c) => c.id);
   expect(ids.slice(0, 5)).toEqual(['due-early', 'due-late', 'new-old-deck', 'new-a', 'new-b']);
-  expect(ids).toHaveLength(2 + 20);
+  expect(ids).toHaveLength(2 + 3 + 30);
   expect(ids).not.toContain('later');
   expect(ids).not.toContain('known');
 });
