@@ -36,7 +36,7 @@ const loadScript = (native: string, learning: string): Promise<ScriptMaps | null
 const loadScriptInTime = (native: string, learning: string) => Promise.race([loadScript(native, learning), new Promise<null>((resolve) => setTimeout(() => resolve(null), SCRIPT_WAIT_MS))]);
 
 // O10–O10f. Kai speaks the learner's own language from the first line, so a learner who does not speak English
-// waits here (Kai and the typing dots) until the lines are loaded, 4 seconds at most.
+// waits here (Kai and the typing dots) until the lines are loaded, 8 seconds at most.
 export default function KaiScreen() {
   const { learning, speaks } = getAnswers();
   const wait = !!speaks && !isEnglish(speaks);
@@ -193,7 +193,9 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
     setStep('topic');
     setOptions([]);
     let maps = loaded;
-    if (!maps && chat === 'target' && speaks && learning && !isEnglish(learning)) {
+    // No lines yet (the first load was too slow or failed): try once more now. Without them Kai's lines would be
+    // English with no translation under them, whatever the translation switch says.
+    if (!maps && speaks && learning && (!isEnglish(speaks) || (chat === 'target' && !isEnglish(learning)))) {
       setWaiting(true);
       maps = await loadScriptInTime(speaks.name, learning.name);
       setWaiting(false);

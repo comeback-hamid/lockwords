@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import * as Speech from 'expo-speech';
 import { memo, useEffect, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -8,7 +7,7 @@ import { scheduleOnUI } from 'react-native-worklets';
 
 import type { Direction, ReviewCard } from '@/api/client';
 import { Icon } from '@/components/icon';
-import { getSpeechLanguage } from '@/review/speech-language';
+import { sayWord } from '@/review/speak';
 import { useSwipe } from '@/review/use-swipe';
 import { wordFit } from '@/review/word-size';
 import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
@@ -93,7 +92,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
   const imageUrl = (card as ReviewCard & { imageUrl?: string | null }).imageUrl ?? null; // the picture field of the card API
   const bare = card.word.replace(/^\S+\s+/, ''); // the word without its article, to color it in the example
   const parts = card.example.split(bare);
-  const say = tap(() => Speech.speak(card.word, { language: getSpeechLanguage() }));
+  const say = tap(() => sayWord(card.word));
 
   return (
     <GestureDetector gesture={pan}>
@@ -207,10 +206,11 @@ function Word({ card }: { card: ReviewCard }) {
 function Stamp({ testID, style, title, note, color, filled = false }: { testID: string; style: StyleProp<AnimatedStyle<ViewStyle>>; title: string; note: string | null; color: string; filled?: boolean }) {
   return (
     <Animated.View testID={testID} style={[styles.stampBox, style]}>
+      {/* The note sits inside the frame, on the frame's own background, so it reads on any picture (Hamid, 2026-11-24). */}
       <View style={[styles.stamp, { borderColor: color }, filled && { backgroundColor: color }]}>
         <Text style={[type.stamp, { color: filled ? colors.white : color }]}>{title}</Text>
+        {note ? <Text style={[type.label, { color: filled ? colors.white : color === colors.easy ? colors.greenText : color }]}>{note}</Text> : null}
       </View>
-      {note ? <Text style={[type.label, { color: color === colors.easy ? colors.greenText : color }]}>{note}</Text> : null}
     </Animated.View>
   );
 }
@@ -251,5 +251,5 @@ const styles = StyleSheet.create({
   useIt: { alignSelf: 'center', height: 44, flexDirection: 'row', alignItems: 'center', gap: space[8], paddingHorizontal: space[24], borderRadius: radius.pill, backgroundColor: colors.button },
   stamps: { ...FILL },
   stampBox: { position: 'absolute', top: tokens.stampTop, left: 0, right: 0, alignItems: 'center', gap: space[8], transform: [{ rotate: '-6deg' }] },
-  stamp: { paddingHorizontal: space[16], paddingVertical: space[4], borderRadius: radius.badge, borderWidth: 3, backgroundColor: colors.surface },
+  stamp: { alignItems: 'center', gap: space[4], paddingHorizontal: space[24] - space[4], paddingVertical: space[12], borderRadius: radius.badge, borderWidth: 3, backgroundColor: colors.surface },
 });

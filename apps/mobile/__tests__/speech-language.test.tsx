@@ -31,16 +31,16 @@ test('the speaker uses the learning language, also after a restart', async () =>
   expect(SECURE_KEYS).toContain('lockwords.learning'); // so a fresh install clears it
   expect(SecureStore.setItemAsync).toHaveBeenCalledWith('lockwords.learning', 'es');
   await say();
-  expect(Speech.speak).toHaveBeenLastCalledWith('la propina', { language: 'es' });
+  expect(Speech.speak).toHaveBeenLastCalledWith('la propina', { language: 'es', useApplicationAudioSession: false });
   // "Restart": the app reads the saved value at start.
   mockStore.set('lockwords.learning', 'fr');
   await loadSpeechLanguage();
   await fireEvent.press(screen.getByRole('button', { name: 'Say the word' }));
-  expect(Speech.speak).toHaveBeenLastCalledWith('la propina', { language: 'fr' });
+  expect(Speech.speak).toHaveBeenLastCalledWith('la propina', { language: 'fr', useApplicationAudioSession: false });
 });
 
 test('a typed-in language (no code) falls back to the phone voice', async () => {
   await saveSpeechLanguage(null);
   await say();
-  expect(Speech.speak).toHaveBeenLastCalledWith('la propina', { language: undefined });
+  expect(Speech.speak).toHaveBeenLastCalledWith('la propina', { language: undefined, useApplicationAudioSession: false });
 });

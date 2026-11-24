@@ -84,12 +84,16 @@ export default function UseItScreen() {
     setOptions([REPLY.next]);
   }
 
+  // Leaving (Next card or the X): after a good sentence this word is done for today, so the round moves on.
+  // Before one, the word is still the round's current card.
+  function close() {
+    if (goodSentence !== null) advance();
+    router.back();
+  }
+
   function reply(text: string) {
     if (text === REPLY.skip) return router.back();
-    if (text === REPLY.next) {
-      advance(); // this word is done for today
-      return router.back();
-    }
+    if (text === REPLY.next) return close();
     if (text === REPLY.example) {
       say({ from: 'user', text }, { from: 'kai', text: card!.example }, { from: 'kai', text: card!.exampleTranslation });
       return setOptions([REPLY.skip]);
@@ -100,7 +104,7 @@ export default function UseItScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" />
+      <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" onBack={close} />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'word' ? (

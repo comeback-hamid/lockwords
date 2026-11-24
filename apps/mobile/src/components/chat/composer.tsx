@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type ComponentRef } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
@@ -20,6 +20,7 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
     setTextState(t);
     onTextChange?.(t);
   };
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
   const ready = text.trim() !== '';
   const send = () => {
     if (!ready || !canSend) return;
@@ -30,11 +31,13 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
     <View style={styles.bar}>
       <View style={[styles.box, ready && styles.boxActive]}>
         <TextInput
+          ref={input}
           accessibilityLabel="Message"
           value={text}
           onChangeText={setText}
           onSubmitEditing={() => {
             send();
+            input.current?.blur(); // the box itself lets go, also when another view took the keyboard call
             closeKeyboard();
           }}
           submitBehavior="blurAndSubmit"

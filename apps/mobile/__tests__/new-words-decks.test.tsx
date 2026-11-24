@@ -29,14 +29,14 @@ jest.mock('expo-router', () => ({
     useEffect(() => effect(), [effect]);
   },
 }));
-// Native tabs do not draw in Jest: each trigger becomes its label, and a badge becomes a marked view.
+// Native tabs do not draw in Jest: each trigger becomes its label, and the icon with the red dot (the one drawn in
+// its own colors) becomes a marked view.
 jest.mock('expo-router/native-tabs', () => {
   const { Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
   const pass = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
   const Trigger = Object.assign(({ name, children }: { name: string; children?: React.ReactNode }) => <View testID={`tab-${name}`}>{children}</View>, {
     Label: ({ children }: { children?: React.ReactNode }) => <Text>{children}</Text>,
-    Icon: () => null,
-    Badge: ({ hidden }: { hidden?: boolean }) => (hidden ? null : <View testID="tab-badge" accessibilityLabel="New words to review" />),
+    Icon: ({ renderingMode }: { renderingMode?: string }) => (renderingMode === 'original' ? <View testID="tab-badge" accessibilityLabel="New words to review" /> : null),
   });
   return { NativeTabs: Object.assign(pass, { Trigger }) };
 });

@@ -86,7 +86,7 @@ export const chatLanguageOptions = (speaks: LanguageChoice, learning: LanguageCh
 // --- Kai's lines by key, in the learner's language ---
 
 // How long the chat waits for the script in another language before it starts in English.
-export const SCRIPT_WAIT_MS = 4000;
+export const SCRIPT_WAIT_MS = 8000; // the first translation of a language can take this long on the server
 
 const [hi, askName] = openingLines('{language}') as [string, string];
 const [niceToMeet, whichLanguage] = afterNameLines('{name}') as [string, string];

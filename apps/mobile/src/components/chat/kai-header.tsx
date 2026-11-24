@@ -14,13 +14,13 @@ const KAI_WIDTH = 150;
 // `right` is a small control at the top right, next to Kai (the translation button on New words).
 // talking / listening: Kai speaks or listens right now (see `Kai`); they show over a resting pose only.
 // progress (0 to 1) feeds Kai's `making` state while a deck is made. A new playKey plays the same state again.
-export function KaiHeader({ pose = 'idle', talking, listening, back = true, icon = 'back', right, progress, playKey }: { pose?: KaiState; talking?: boolean; listening?: boolean; back?: boolean; icon?: 'back' | 'close'; right?: ReactNode; progress?: number; playKey?: number }) {
+export function KaiHeader({ pose = 'idle', talking, listening, back = true, icon = 'back', onBack, right, progress, playKey }: { pose?: KaiState; talking?: boolean; listening?: boolean; back?: boolean; icon?: 'back' | 'close'; onBack?: () => void; right?: ReactNode; progress?: number; playKey?: number }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.header, { paddingTop: insets.top, height: layout.kaiHeaderHeight - 54 + insets.top }]}>
       {back ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={icon === 'close' ? 'Close' : 'Back'} onPress={() => router.back()} style={[styles.back, { top: insets.top }]}>
+        <Pressable accessibilityRole="button" accessibilityLabel={icon === 'close' ? 'Close' : 'Back'} onPress={() => (onBack ? onBack() : router.back())} style={[styles.back, { top: insets.top }]}>
           <Icon name={icon} size={24} color={colors.text} />
         </Pressable>
       ) : null}
