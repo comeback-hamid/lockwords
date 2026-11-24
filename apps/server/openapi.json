@@ -942,6 +942,56 @@
           "error"
         ]
       },
+      "Transcript": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "TranscribeFailed": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "transcribe_failed"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "TranscribeRequest": {
+        "type": "object",
+        "properties": {
+          "audio": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1500000
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "m4a",
+              "mp4",
+              "webm",
+              "wav",
+              "3gp",
+              "ogg"
+            ]
+          }
+        },
+        "required": [
+          "audio",
+          "format"
+        ]
+      },
       "Progress": {
         "type": "object",
         "properties": {
@@ -2858,6 +2908,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AskFailed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transcribe": {
+      "post": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscribeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "What the learner said, as text. Empty when nothing was heard.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transcript"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The AI call failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscribeFailed"
                 }
               }
             }

@@ -1,3 +1,4 @@
+import { fixtureTranscriber, openaiTranscriber } from './llm/transcribe.js';
 import { serve } from '@hono/node-server';
 import { createRemoteJWKSet } from 'jose';
 import { PgBoss } from 'pg-boss';
@@ -55,6 +56,7 @@ const app = createApp({
   languageChecker: env.ANTHROPIC_API_KEY ? claudeLanguageChecker(env.ANTHROPIC_API_KEY) : fixtureLanguageChecker,
   useItJudge: env.ANTHROPIC_API_KEY ? claudeUseItJudge(env.ANTHROPIC_API_KEY) : fixtureUseItJudge,
   wordAsker: env.ANTHROPIC_API_KEY ? claudeWordAsker(env.ANTHROPIC_API_KEY) : fixtureWordAsker,
+  transcriber: env.OPENAI_API_KEY ? openaiTranscriber(env.OPENAI_API_KEY) : fixtureTranscriber,
   webOrigins: env.WEB_ORIGINS,
   kaiScripts: createKaiScriptStore(db),
   progress: createProgressStore(db),

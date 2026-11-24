@@ -22,3 +22,12 @@ require('@/components/chat/use-kai-typing').setTypingForTests(false);
 jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
 require('react-native-gesture-handler/jestSetup');
 require('react-native-reanimated').setUpTests();
+
+// The mic in the chat box records with expo-audio, a native part that does not load in Jest. The permission is
+// granted and the recorder is a plain object; a test that needs more mocks `@/components/chat/voice-recorder`.
+jest.mock('expo-audio', () => ({
+  RecordingPresets: { LOW_QUALITY: {}, HIGH_QUALITY: {} },
+  requestRecordingPermissionsAsync: jest.fn(async () => ({ granted: true })),
+  setAudioModeAsync: jest.fn(async () => {}),
+  useAudioRecorder: () => ({ prepareToRecordAsync: jest.fn(async () => {}), record: jest.fn(), stop: jest.fn(async () => {}), uri: 'file:///voice.m4a', getStatus: () => ({ isRecording: true, durationMillis: 0, metering: -20 }) }),
+}));
