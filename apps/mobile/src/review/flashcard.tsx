@@ -10,7 +10,7 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { Icon } from '@/components/icon';
 import { getSpeechLanguage } from '@/review/speech-language';
 import { useSwipe } from '@/review/use-swipe';
-import { wordSize } from '@/review/word-size';
+import { wordFit } from '@/review/word-size';
 import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 // Where a card is in the stack. `top` is the one the learner reads and moves. `under` is the next card, already
@@ -23,7 +23,8 @@ const unread = (hide: boolean) => (hide ? UNREAD : null);
 
 const UNDER_SCALE = 0.96;
 const WORD_ROW_TOP = space[4];
-const SPEAKER_BACK_TOP = tokens.pictureHeight + space[24] - space[4] + WORD_ROW_TOP + (type.wordXL.lineHeight - tokens.speakerBack) / 2;
+const BACK_BODY_TOP = space[24] - space[4];
+const PERSPECTIVE = 1200;
 
 type Props = {
   card: ReviewCard;
@@ -76,9 +77,18 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
   useEffect(() => {
     turn.set(withTiming(flipped ? 1 : 0, { duration: tokens.flipMs, easing: Easing.inOut(Easing.cubic) }));
   }, [flipped, turn]);
-  const turnStyle = useAnimatedStyle(() => ({ transform: [{ perspective: 1200 }, { rotateY: `${interpolate(turn.get(), [0, 1], [0, 180])}deg` }] }));
-  const frontStyle = useAnimatedStyle(() => ({ opacity: turn.get() < 0.5 ? 1 : 0 }));
-  const backStyle = useAnimatedStyle(() => ({ opacity: turn.get() < 0.5 ? 0 : 1 }));
+  // Each side turns by itself: the front to its edge in the first half, the back from its edge in the second.
+  // A side that rests has no 3D transform at all: iOS draws a layer inside a 3D turn as a soft picture, so the back
+  // (which used to rest at 180° + 180°) was blurry (found on Hamid's iPhone, 2026-11-24).
+  const frontStyle = useAnimatedStyle(() => {
+    const t = turn.get();
+    return { opacity: t < 0.5 ? 1 : 0, transform: t <= 0 ? [{ rotateY: '0deg' }] : [{ perspective: PERSPECTIVE }, { rotateY: `${interpolate(t, [0, 0.5], [0, 90], 'clamp')}deg` }] };
+  });
+  const backStyle = useAnimatedStyle(() => {
+    const t = turn.get();
+    return { opacity: t < 0.5 ? 0 : 1, transform: t >= 1 ? [{ rotateY: '0deg' }] : [{ perspective: PERSPECTIVE }, { rotateY: `${interpolate(t, [0.5, 1], [-90, 0], 'clamp')}deg` }] };
+  });
+  const fit = wordFit(card.word);
 
   const imageUrl = (card as ReviewCard & { imageUrl?: string | null }).imageUrl ?? null; // the picture field of the card API
   const bare = card.word.replace(/^\S+\s+/, ''); // the word without its article, to color it in the example
@@ -90,9 +100,9 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
       <Animated.View style={[styles.card, cardStyle]} pointerEvents={top ? 'auto' : 'none'} {...unread(!top)}>
         <Animated.View style={[styles.inner, riseStyle]}>
           <Pressable testID={top ? 'review-card' : undefined} accessible={false} onPress={tap(onFlip)} style={styles.fill}>
-            <Animated.View style={[styles.fill, turnStyle]}>
+            <View style={styles.fill}>
               <Face testID="card-front" style={frontStyle} shown={!flipped}>
-                <Picture url={imageUrl} />
+                <Picture url={imageUrl} share={tokens.pictureFront} />
                 <View style={styles.frontBody}>
                   <View style={styles.frontWord}>
                     <Word card={card} />
@@ -105,8 +115,8 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
                 </View>
               </Face>
 
-              <Face testID="card-back" style={[backStyle, styles.turned]} shown={flipped}>
-                <Picture url={imageUrl} />
+              <Face testID="card-back" style={backStyle} shown={flipped}>
+                <Picture url={imageUrl} share={tokens.pictureBack} />
                 <View style={styles.backBody}>
                   <View style={styles.head}>
                     <Word card={card} />
@@ -133,13 +143,13 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
                       <Text style={[type.button, styles.white]}>Use it</Text>
                     </Pressable>
                   ) : null}
+                  {/* A fixed place beside the first line, outside the word row: a long word can never push it off the card. */}
+                  <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={say} style={[styles.speaker, styles.speakerBack, { top: BACK_BODY_TOP + WORD_ROW_TOP + (fit.size + tokens.wordLineGap - tokens.speakerBack) / 2 }]}>
+                    <Icon name="speaker" color={colors.text2} />
+                  </Pressable>
                 </View>
-                {/* A fixed place, outside the word row: a long word can never push it off the card. */}
-                <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={say} style={[styles.speaker, styles.speakerBack]}>
-                  <Icon name="speaker" color={colors.text2} />
-                </Pressable>
               </Face>
-            </Animated.View>
+            </View>
           </Pressable>
 
           {/* The swipe labels (Figma: Stamp). They are a picture of the drag: opacity follows the finger. */}
@@ -166,9 +176,9 @@ function Face({ testID, style, shown, children }: { testID: string; style: Style
 }
 
 // The top of the card, on both sides: the word's picture, or a quiet placeholder while there is none.
-function Picture({ url }: { url: string | null }) {
+function Picture({ url, share }: { url: string | null; share: `${number}%` }) {
   return (
-    <View testID="card-picture" style={styles.picture}>
+    <View testID="card-picture" style={[styles.picture, { height: share }]}>
       {url ? (
         <Image testID="card-image" source={{ uri: url }} contentFit="cover" transition={150} style={styles.fill} accessibilityElementsHidden />
       ) : (
@@ -180,13 +190,14 @@ function Picture({ url }: { url: string | null }) {
   );
 }
 
-// The word with its level square, centered. A long word or phrase gets a smaller size (src/review/word-size.ts).
+// The word with its level square, centered. The square sits on the first line. A long word or phrase gets a
+// smaller size before it gets a second line, and one word is never cut (src/review/word-size.ts).
 function Word({ card }: { card: ReviewCard }) {
-  const size = wordSize(card.word);
+  const { size, lines } = wordFit(card.word);
   return (
     <View style={styles.wordRow}>
-      <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-      <Text numberOfLines={tokens.wordLines} adjustsFontSizeToFit minimumFontScale={0.7} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
+      <View style={[styles.square, { marginTop: (size + tokens.wordLineGap - tokens.levelSquare) / 2, backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+      <Text numberOfLines={lines} adjustsFontSizeToFit minimumFontScale={lines === 1 ? 0.5 : 0.7} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
         {card.word}
       </Text>
     </View>
@@ -215,21 +226,20 @@ const styles = StyleSheet.create({
   // The shadow sits on each side (a view that clips its content cannot also cast a shadow).
   face: { ...FILL, borderRadius: radius.card, backgroundColor: colors.surface, ...lift, shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
   clip: { flex: 1, borderRadius: radius.card, overflow: 'hidden' },
-  turned: { transform: [{ rotateY: '180deg' }] },
-  picture: { height: tokens.pictureHeight, backgroundColor: colors.canvas, borderBottomWidth: 1, borderBottomColor: colors.divider },
+  picture: { backgroundColor: colors.canvas, borderBottomWidth: 1, borderBottomColor: colors.divider },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   frontBody: { flex: 1, alignItems: 'center', paddingHorizontal: space[24] - space[4], paddingBottom: space[24] },
   frontWord: { flex: 3, justifyContent: 'flex-end', paddingTop: space[16] },
   frontRest: { flex: 2 },
-  backBody: { flex: 1, gap: space[16], paddingHorizontal: space[24] - space[4], paddingTop: space[24] - space[4], paddingBottom: space[24] },
+  backBody: { flex: 1, gap: space[16], paddingHorizontal: space[24] - space[4], paddingTop: BACK_BODY_TOP, paddingBottom: space[24] },
   head: { alignItems: 'center', gap: space[4] },
   example: { gap: space[8] - 2 },
-  wordRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[12], paddingTop: WORD_ROW_TOP },
+  wordRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: space[12], paddingTop: WORD_ROW_TOP },
   word: { color: colors.text, textAlign: 'center', maxWidth: tokens.wordMaxWidth },
   square: { width: tokens.levelSquare, height: tokens.levelSquare, borderRadius: 3, borderWidth: 1, borderColor: colors.divider },
   speaker: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.chip },
   speakerFront: { width: tokens.speakerFront, height: tokens.speakerFront, marginTop: space[24] - space[4] },
-  speakerBack: { position: 'absolute', right: tokens.speakerInset, top: SPEAKER_BACK_TOP, width: tokens.speakerBack, height: tokens.speakerBack },
+  speakerBack: { position: 'absolute', right: tokens.speakerInset, width: tokens.speakerBack, height: tokens.speakerBack },
   grow: { flex: 1 },
   center: { textAlign: 'center' },
   ink: { color: colors.text },
@@ -240,6 +250,6 @@ const styles = StyleSheet.create({
   rule: { height: 1, backgroundColor: colors.divider },
   useIt: { alignSelf: 'center', height: 44, flexDirection: 'row', alignItems: 'center', gap: space[8], paddingHorizontal: space[24], borderRadius: radius.pill, backgroundColor: colors.button },
   stamps: { ...FILL },
-  stampBox: { position: 'absolute', top: tokens.pictureHeight - space[48] - space[24], left: 0, right: 0, alignItems: 'center', gap: space[8], transform: [{ rotate: '-6deg' }] },
+  stampBox: { position: 'absolute', top: tokens.stampTop, left: 0, right: 0, alignItems: 'center', gap: space[8], transform: [{ rotate: '-6deg' }] },
   stamp: { paddingHorizontal: space[16], paddingVertical: space[4], borderRadius: radius.badge, borderWidth: 3, backgroundColor: colors.surface },
 });

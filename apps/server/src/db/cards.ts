@@ -2,7 +2,7 @@ import { and, asc, desc, eq, gt, inArray, isNull, lt, lte, sql } from 'drizzle-o
 
 import type { CardsStore } from '../app.js';
 import type { TodayEvent } from '../review/summary.js';
-import { MAX_NEW_PER_DAY, pickRound, type CardState, type Direction } from '../review/srs.js';
+import { pickRound, type CardState, type Direction } from '../review/srs.js';
 import type { createDb } from './client.js';
 import { picturePath } from './pictures.js';
 import { cards, decks, profiles, reviewEvents, type ReviewEventState } from './schema.js';
@@ -45,21 +45,20 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
   return {
     async round(userId, now, today, deckId) {
       // The database picks the rows; pickRound owns the final order. With `today`, a card is due for its whole review
-      // day and new cards stop at the daily limit. Without it (callers with no history): due by the clock, 20 new.
+      // day. Without it (callers with no history): due by the clock. Every new card is in the round (no daily limit).
       // deckId = "Review this deck": the same round, only that deck's cards.
       const live = and(kept(userId), eq(decks.status, 'ready'), eq(cards.known, false), deckId ? eq(cards.deckId, deckId) : undefined);
       const events = today ? await todaysEvents(userId, today.day) : [];
-      const newLeft = MAX_NEW_PER_DAY - new Set(events.filter((e) => e.before.stage === 0).map((e) => e.cardId)).size;
       // After a first Hard the card is shown once more today, at the end of the round.
       const perCard = new Map<string, string[]>();
       for (const e of events) perCard.set(e.cardId, [...(perCard.get(e.cardId) ?? []), e.kind]);
       const againIds = [...perCard].filter(([, kinds]) => kinds.length === 1 && kinds[0] === 'hard').map(([id]) => id);
       const [due, fresh, again] = await Promise.all([
         mine().where(and(live, gt(cards.stage, 0), today ? lt(cards.dueAt, today.end) : lte(cards.dueAt, now))),
-        newLeft > 0 ? mine().where(and(live, eq(cards.stage, 0))).orderBy(asc(decks.createdAt), asc(cards.position)).limit(newLeft) : [],
+        mine().where(and(live, eq(cards.stage, 0))).orderBy(asc(decks.createdAt), asc(cards.position)),
         againIds.length ? mine().where(and(live, inArray(cards.id, againIds))) : [],
       ]);
-      const picked = pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), today?.end ?? now, Math.max(0, newLeft));
+      const picked = pickRound([...due, ...fresh].map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position })), today?.end ?? now);
       const inRound = new Set(picked.map((c) => c.id));
       return [...picked, ...again.filter((r) => !inRound.has(r.card.id)).map((r) => ({ ...toCard(r), deckCreatedAt: r.deckCreatedAt, position: r.card.position }))];
     },

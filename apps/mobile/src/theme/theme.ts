@@ -51,8 +51,11 @@ export const layout = {
 
 // The word card (Figma: Flashcard, Flashcard · back, Flashcard · rules).
 export const card = {
-  pictureHeight: 177, // the same on the front and the back, so the flip does not jump
-  wordMaxWidth: 219, // the word's text; the level square sits left of it
+  // The picture's share of the card (Hamid, 2026-11-24): half on the front, a bit less on the back to leave room for the text.
+  pictureFront: '50%',
+  pictureBack: '42%',
+  stampTop: 105, // the swipe label, from the top of the card
+  wordMaxWidth: 219, // the word's text; the level square sits left of it, on the first line
   wordLines: 3,
   wordSizes: [44, 36, 30, 24], // the first that fits; line height = size + wordLineGap
   wordLineGap: 8,

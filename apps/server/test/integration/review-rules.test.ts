@@ -42,16 +42,12 @@ beforeEach(() => {
 });
 afterAll(() => pool.end());
 
-test('20 new words a day: the 21st waits for the next review day', async () => {
+test('no daily limit of new words: every new word is in the round at once (Hamid, 2026-11-24)', async () => {
   await userWith(30);
   const first = await round();
-  expect(first).toHaveLength(20);
+  expect(first.map((c) => c.word)).toEqual(Array.from({ length: 30 }, (_, i) => `w${i}`));
   for (const c of first) expect((await swipe(c.id, 'easy')).status).toBe(200);
-  expect(await round()).toEqual([]); // limit reached: no new card today
-  const waiting = (await db.execute(sql`select c.id from cards c join decks d on d.id = c.deck_id where d.user_id = ${userId} and c.stage = 0 limit 1`)).rows[0]!.id as string;
-  expect((await swipe(waiting, 'easy')).status).toBe(409);
-  now = new Date('2026-11-21T08:00:00Z');
-  expect((await round()).map((c) => c.word)).toEqual(Array.from({ length: 10 }, (_, i) => `w${20 + i}`));
+  expect(await round()).toEqual([]); // all swiped today
 });
 
 test('a card is due for its whole review day, and the day starts at 04:00', async () => {
