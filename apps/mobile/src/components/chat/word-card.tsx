@@ -1,10 +1,9 @@
-import * as Speech from 'expo-speech';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { KaiWord } from '@/api/client';
 import { Icon } from '@/components/icon';
-import { getSpeechLanguage } from '@/review/speech-language';
+import { sayWord } from '@/review/speak';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 import { directionStyle, isRtl } from './direction';
@@ -48,7 +47,7 @@ export function WordCard({ word, onAdd }: Props) {
     <View style={styles.card}>
       <View testID="word-row" style={[styles.wordRow, isRtl(word.word) && styles.wordRowRtl]}>
         <Text style={[type.headline, styles.word, directionStyle(shownWord)]}>{shownWord}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => Speech.speak(word.word, { language: getSpeechLanguage() })} hitSlop={space[4]} style={styles.speaker}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => sayWord(word.word)} hitSlop={space[4]} style={styles.speaker}>
           <Icon name="speaker" color={colors.text2} />
         </Pressable>
       </View>

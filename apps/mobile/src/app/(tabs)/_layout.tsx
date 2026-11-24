@@ -27,9 +27,14 @@ export default function TabsLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="review">
         <NativeTabs.Trigger.Label>Review</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/review.png')} renderingMode="template" />
-        {/* A badge with no text: iOS draws a red dot. (With text in it the `hidden` prop is not read, so it is left out when off.) */}
-        {dot && !onReview ? <NativeTabs.Trigger.Badge /> : null}
+        {/* The red dot is part of the icon picture (assets/tabs/review-dot*.png, a small dot on the muted icon):
+            the system badge is bigger and its size cannot be changed (Hamid, 2026-11-24). It shows only while the
+            tab is not selected, so the picture keeps its own colors. */}
+        {dot && !onReview ? (
+          <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/review-dot.png')} renderingMode="original" />
+        ) : (
+          <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/review.png')} renderingMode="template" />
+        )}
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>

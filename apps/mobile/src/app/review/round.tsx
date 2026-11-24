@@ -11,7 +11,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
-import { cameBack, getRound, putBack, swiped, undone, useRound } from '@/review/round-store';
+import { cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
 import { loadReviewRules, useEasyDays } from '@/review/rules';
 import { saveSwipe, savesDone } from '@/review/saver';
 import { streakToShow } from '@/review/streak';
@@ -193,7 +193,10 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
             lead={lead}
             onFlip={() => setFlippedId((id) => (id === s.card.id ? null : s.card.id))}
             onSwipe={(direction) => commit(direction, false)}
-            onUseIt={() => router.push(`/use-it/${s.card.id}`)}
+            onUseIt={() => {
+              if (inTab) leftForUseIt();
+              router.push(`/use-it/${s.card.id}`);
+            }}
           />
         ))}
         {onStreak ? <StreakCard days={streak} onDone={() => setStreak(null)} /> : null}

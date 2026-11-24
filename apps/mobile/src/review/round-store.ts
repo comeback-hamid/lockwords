@@ -40,3 +40,13 @@ export const findCard = (id: string) => round.cards.find((c) => c.id === id) ?? 
 export function useRound() {
   return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), getRound, getRound);
 }
+
+// The round opened Use it over the Review tab. When the tab comes back into view it keeps the round where it was
+// (it does not load a new one). Read once.
+let awayForUseIt = false;
+export const leftForUseIt = () => void (awayForUseIt = true);
+export function backFromUseIt() {
+  const was = awayForUseIt;
+  awayForUseIt = false;
+  return was;
+}

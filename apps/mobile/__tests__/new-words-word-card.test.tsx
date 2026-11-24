@@ -38,8 +38,7 @@ jest.mock('expo-router/native-tabs', () => {
   const part = (testID: string) => (props: Record<string, unknown>) => <View testID={testID} {...props} />;
   const Trigger = Object.assign(part('tab'), {
     Label: ({ children }: { children: string }) => <Text>{children}</Text>,
-    Icon: () => null,
-    Badge: () => <Text testID="tab-badge" />,
+    Icon: ({ renderingMode }: { renderingMode?: string }) => (renderingMode === 'original' ? <Text testID="tab-badge" /> : null), // the icon with the red dot
   });
   return { NativeTabs: Object.assign(part('tabs'), { Trigger }) };
 });
@@ -114,7 +113,7 @@ describe('Word card', () => {
     await saveSpeechLanguage('es');
     await render(<WordCard word={word()} onAdd={jest.fn()} />);
     await fireEvent.press(screen.getByRole('button', { name: 'Say the word' }));
-    expect(Speech.speak).toHaveBeenLastCalledWith('para llevar', { language: 'es' });
+    expect(Speech.speak).toHaveBeenLastCalledWith('para llevar', { language: 'es', useApplicationAudioSession: false });
   });
 
   test('Add: busy while it runs, then "Added" with a check and no more taps', async () => {

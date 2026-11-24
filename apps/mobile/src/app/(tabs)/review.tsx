@@ -11,7 +11,7 @@ import { LevelChain } from "@/components/level-chain";
 import { LoadError, Loading } from "@/components/load-state";
 import { Kai } from "@/kai/kai";
 import { isIntroDone } from "@/review/intro";
-import { setRound } from "@/review/round-store";
+import { backFromUseIt, setRound } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
 
 const KAI_SIZE = 168;
@@ -44,7 +44,11 @@ export default function ReviewScreen() {
       )
       .then(() => setInRound(false));
   }, []);
-  const onFocus = useCallback(() => load(), [load]);
+  // Back from Use it (it opens over the tab): the round goes on where it was. Any other return loads again.
+  const onFocus = useCallback(() => {
+    if (backFromUseIt()) return;
+    load();
+  }, [load]);
   const onRoundDone = useCallback(() => load(true), [load]);
   useFocusEffect(onFocus);
 
