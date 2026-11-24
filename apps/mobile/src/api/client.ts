@@ -183,6 +183,10 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
     async askAboutWord(id: string, question: string, sentence?: string): Promise<{ lines: string[] }> {
       return unwrap(await client.POST('/v1/cards/{id}/ask', { params: { path: { id } }, body: { question, sentence } }));
     },
+    // The mic in the chat box: a short recording (base64) comes back as text. The server keeps nothing.
+    async transcribe(audio: string, format: 'm4a' | 'mp4' | 'webm' | 'wav' | '3gp' | 'ogg'): Promise<string> {
+      return unwrap(await client.POST('/v1/transcribe', { body: { audio, format } })).text;
+    },
     async useIt(id: string, sentence: string): Promise<UseItResult> {
       return unwrap(await client.POST('/v1/cards/{id}/use-it', { params: { path: { id } }, body: { sentence } }));
     },

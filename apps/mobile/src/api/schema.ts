@@ -1306,6 +1306,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/transcribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TranscribeRequest"];
+                };
+            };
+            responses: {
+                /** @description What the learner said, as text. Empty when nothing was heard. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Transcript"];
+                    };
+                };
+                /** @description The request is not valid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+                /** @description The AI call failed */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TranscribeFailed"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/progress": {
         parameters: {
             query?: never;
@@ -2010,6 +2076,18 @@ export interface components {
         AskFailed: {
             /** @enum {string} */
             error: "ask_failed";
+        };
+        Transcript: {
+            text: string;
+        };
+        TranscribeFailed: {
+            /** @enum {string} */
+            error: "transcribe_failed";
+        };
+        TranscribeRequest: {
+            audio: string;
+            /** @enum {string} */
+            format: "m4a" | "mp4" | "webm" | "wav" | "3gp" | "ogg";
         };
         Progress: {
             total: number;

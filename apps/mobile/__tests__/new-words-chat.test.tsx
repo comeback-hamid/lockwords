@@ -133,7 +133,7 @@ describe('New words screen', () => {
     expect(screen.queryByLabelText('Kai is typing')).toBeNull();
     expect(screen.getByRole('button', { name: 'Vamos a practicar' })).toBeOnTheScreen();
     expect(screen.getByText('Tap an option, or type your own')).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Voice message' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Voice message' })).toBeOnTheScreen(); // the mic is in every chat (Hamid, 2026-11-24)
   });
 
   test('coming back: the old messages and options show at once, and Kai adds nothing', async () => {

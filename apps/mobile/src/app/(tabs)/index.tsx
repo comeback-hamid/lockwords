@@ -454,7 +454,7 @@ export default function NewWordsScreen() {
         ) : null}
       </View>
       <View style={keyboard ? styles.composerTyping : styles.composer}>
-        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} onTextChange={typed} maxLength={500} mic={false} canSend={!typing && !making} />
+        <Composer key={draft.key} defaultValue={draft.text} placeholder="Type a message…" onSend={(t) => void send(t)} onTextChange={typed} maxLength={500} canSend={!typing && !making} />
       </View>
     </KeyboardAvoidingView>
   );

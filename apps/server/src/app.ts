@@ -27,6 +27,8 @@ import { meRoutes } from './routes/me.js';
 import { onboardingRoutes } from './routes/onboarding.js';
 import { progressRoutes } from './routes/progress.js';
 import { reviewRoutes } from './routes/review.js';
+import { transcribeRoutes } from './routes/transcribe.js';
+import type { Transcriber } from './llm/transcribe.js';
 import { wordTestRoutes } from './routes/word-test.js';
 import type { WordPackMaker } from './llm/word-pack.js';
 import type { WordTestStore } from './onboarding/word-test-store.js';
@@ -85,7 +87,7 @@ export type CardsStore = {
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore; pictures?: PicturesStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; transcriber?: Transcriber; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore; pictures?: PicturesStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -110,6 +112,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/v1', languageRoutes(deps?.languageChecker));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));
+  app.route('/v1', transcribeRoutes(deps?.transcriber));
   app.route('/v1', progressRoutes(deps ?? {}));
   app.route('/v1', kaiRoutes(deps ?? {}));
   app.route('/v1', kaiChatRoutes(deps ?? {}));

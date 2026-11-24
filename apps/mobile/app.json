@@ -36,7 +36,14 @@
           "imageWidth": 240
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Lockwords uses the microphone when you tap the mic to speak your message. It turns your voice into text.",
+          "enableBackgroundPlayback": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
