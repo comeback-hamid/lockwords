@@ -11,8 +11,9 @@ import { LevelChain } from "@/components/level-chain";
 import { LoadError, Loading } from "@/components/load-state";
 import { Kai } from "@/kai/kai";
 import { isIntroDone } from "@/review/intro";
-import { addToRound, backFromUseIt, getRound, setRound } from "@/review/round-store";
+import { addToRound, backFromUseIt, getRound, putFirst, setRound } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
+import { tapped, useTapped } from "@/widgets/tapped";
 
 const KAI_SIZE = 168;
 const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
@@ -51,7 +52,38 @@ export default function ReviewScreen() {
   useEffect(() => {
     roundOpen.current = inRound;
   }, [inRound]);
+  // A tap on the widget (Hamid, 2026-11-25): the round opens at once, with the tapped word as the first card.
+  // With a round already open, the word is put on top of it.
+  const opening = useRef(false);
+  const openOn = useCallback((first: string) => {
+    const { cards: inStore, index } = getRound();
+    const open = roundOpen.current && index < inStore.length;
+    opening.current = true;
+    Promise.resolve()
+      .then(() => api.fetchRound(undefined, first))
+      .finally(() => (opening.current = false))
+      .then(
+        (cards) => {
+          if (open) {
+            if (cards[0]?.id === first) putFirst(cards[0]);
+            return;
+          }
+          setRound(cards);
+          setState((s) => ({ ...s, cards, failed: false }));
+          setInRound(cards.length > 0);
+        },
+        () => {
+          if (!open) setState({ cards: null, summary: null, failed: true });
+        },
+      );
+  }, []);
+  const tappedId = useTapped();
+  useEffect(() => {
+    const first = tapped.take();
+    if (first) openOn(first);
+  }, [tappedId, openOn]);
   const onFocus = useCallback(() => {
+    if (opening.current) return; // the tapped word loads the round itself
     const fromUseIt = backFromUseIt();
     const { cards: inStore, index } = getRound();
     if (roundOpen.current && index < inStore.length) {

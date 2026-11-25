@@ -12,6 +12,7 @@ export type Profile = components['schemas']['Profile'];
 export type Deck = components['schemas']['Deck'];
 export type ProfileChat = components['schemas']['ProfileChat'];
 export type ReviewCard = components['schemas']['ReviewCard'];
+export type WidgetPlan = components['schemas']['WidgetPlan'];
 export type SwipeResult = components['schemas']['SwipeResult'];
 export type ReviewSummary = components['schemas']['ReviewSummary'];
 export type Progress = components['schemas']['Progress'];
@@ -140,8 +141,14 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
       if (!response.ok) throw new Error('request failed');
     },
     // Today's round. With a deck id: only that deck's cards ("Review this deck"), same rules.
-    async fetchRound(deckId?: string): Promise<ReviewCard[]> {
-      return unwrap(await client.GET('/v1/review', deckId ? { params: { query: { deckId } } } : {})).cards;
+    // `first`: the word tapped on the widget. It comes first; `lookOnly` on it = not due today, so it cannot be swiped.
+    async fetchRound(deckId?: string, first?: string): Promise<ReviewCard[]> {
+      const query = { ...(deckId ? { deckId } : {}), ...(first ? { first } : {}) };
+      return unwrap(await client.GET('/v1/review', deckId || first ? { params: { query } } : {})).cards;
+    },
+    // The hard words for the widget, one per 30-minute slot. The server decides the words, the order and the looks.
+    async fetchWidgetPlan(): Promise<WidgetPlan> {
+      return unwrap(await client.GET('/v1/widget/plan'));
     },
     async fetchProgress(): Promise<Progress> {
       return unwrap(await client.GET('/v1/progress'));

@@ -11,7 +11,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
-import { cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
+import { advance, cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
 import { loadReviewRules, useEasyDays } from '@/review/rules';
 import { saveSwipe, savesDone } from '@/review/saver';
 import { streakToShow } from '@/review/streak';
@@ -192,6 +192,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
             easyDays={easyDays?.[s.card.stage] ?? null}
             lead={lead}
             onFlip={() => setFlippedId((id) => (id === s.card.id ? null : s.card.id))}
+            canSwipe={!s.card.lookOnly}
             onSwipe={(direction) => commit(direction, false)}
             onUseIt={() => {
               if (inTab) leftForUseIt();
@@ -205,7 +206,20 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
       {failed ? <Text style={[type.caption, styles.failed]}>Could not save. Try again.</Text> : null}
       {/* The streak card has no answer: the three actions are hidden while it shows. */}
       <View style={styles.actions}>
-        {onStreak || !card ? null : (
+        {onStreak || !card ? null : card.lookOnly ? (
+          // The word tapped on the widget is not due today: it can be looked at (flip, speaker, Use it), not swiped.
+          <Action
+            label="Next"
+            icon="right"
+            color={colors.greenText}
+            iconLast
+            onPress={() => {
+              setCanUndo(false);
+              setFlippedId(null);
+              advance();
+            }}
+          />
+        ) : (
           <>
             <Action label="Hard" icon="left" color={colors.hard} onPress={() => commit('hard', true)} />
             <Action label="Know it" icon="up" color={colors.greenText} onPress={() => commit('known', true)} />

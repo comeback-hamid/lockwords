@@ -31,3 +31,9 @@ jest.mock('expo-audio', () => ({
   setAudioModeAsync: jest.fn(async () => {}),
   useAudioRecorder: () => ({ prepareToRecordAsync: jest.fn(async () => {}), record: jest.fn(), stop: jest.fn(async () => {}), uri: 'file:///voice.m4a', getStatus: () => ({ isRecording: true, durationMillis: 0, metering: -20 }) }),
 }));
+
+// The widget package is native (WidgetKit). Tests get a stand-in: a widget whose timeline calls do nothing.
+jest.mock('expo-widgets', () => ({
+  createWidget: () => ({ updateTimeline: jest.fn(), updateSnapshot: jest.fn(), reload: jest.fn() }),
+  widgetsDirectory: 'file:///widgets/',
+}));

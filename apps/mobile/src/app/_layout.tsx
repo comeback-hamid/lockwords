@@ -1,4 +1,5 @@
 import { useFonts } from 'expo-font';
+import * as Linking from 'expo-linking';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -10,6 +11,8 @@ import { loadOnboardingFinished, useOnboardingFinished } from '@/onboarding/fini
 import { loadSpeechLanguage } from '@/review/speech-language';
 import { fonts } from '@/theme/fonts';
 import { colors } from '@/theme/theme';
+import { startWidgetSync } from '@/widgets/sync';
+import { firstFromUrl, tapped } from '@/widgets/tapped';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,7 +33,21 @@ export default function RootLayout() {
       .catch(() => {})
       .then(loadOnboardingFinished)
       .then(loadSpeechLanguage)
-      .then(bootSession); // silent guest sign-in; the screens never wait for it
+      .then(bootSession) // silent guest sign-in; the screens never wait for it
+      .then(() => (stopWidgetSync = startWidgetSync())); // the widget gets its hard words when the app opens or comes back
+    let stopWidgetSync = () => {};
+    return () => stopWidgetSync();
+  }, []);
+
+  // A tap on the widget opens `lockwords://review?first=<id>`: the router shows the Review tab, and the tab reads the id.
+  useEffect(() => {
+    const note = (url: string | null) => {
+      const first = firstFromUrl(url);
+      if (first) tapped.set(first);
+    };
+    void Linking.getInitialURL().then(note, () => {});
+    const sub = Linking.addEventListener('url', (e) => note(e.url));
+    return () => sub.remove();
   }, []);
 
   if (!ready) return null;

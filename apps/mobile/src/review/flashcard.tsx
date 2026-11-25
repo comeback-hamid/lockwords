@@ -35,15 +35,16 @@ type Props = {
   sentOff?: Direction | null;
   lead: SharedValue<number>;
   onFlip(): void;
+  canSwipe?: boolean; // false = a look card (the word tapped on the widget, not due today)
   onSwipe(direction: Direction): void;
   onUseIt(): void;
 };
 
 // The word card (Figma: Flashcard, Flashcard · back, Flashcard · rules). Picture on top, the word under it,
 // the same on both sides. A tap flips it; a drag moves it, with the label of that direction growing on it.
-export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays, sentOff = null, lead, onFlip, onSwipe, onUseIt }: Props) {
+export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays, sentOff = null, lead, canSwipe = true, onFlip, onSwipe, onUseIt }: Props) {
   const top = role === 'top';
-  const { pan, cardStyle, labelStyles, flyFromButton, wasDrag } = useSwipe({ enabled: top, lead, onSwipe });
+  const { pan, cardStyle, labelStyles, flyFromButton, wasDrag } = useSwipe({ enabled: top && canSwipe, lead, onSwipe });
   // A tap, unless the finger dragged the card on its way.
   const tap = (action: () => void) => () => {
     if (!wasDrag()) action();

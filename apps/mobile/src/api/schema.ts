@@ -783,6 +783,7 @@ export interface paths {
             parameters: {
                 query?: {
                     deckId?: string;
+                    first?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1460,6 +1461,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/widget/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The hard words for the widget, one per 30-minute slot, for the next 48 hours */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WidgetPlan"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/kai/script": {
         parameters: {
             query?: never;
@@ -2055,6 +2100,7 @@ export interface components {
             canUseIt: boolean;
             meaning?: string;
             imageUrl?: string | null;
+            lookOnly?: boolean;
         };
         HardWords: {
             words: {
@@ -2181,6 +2227,17 @@ export interface components {
             learning: number;
             hard: number;
             stages: number[];
+        };
+        WidgetPlan: {
+            slots: components["schemas"]["WidgetSlot"][];
+            endsAt: string | null;
+        };
+        WidgetSlot: {
+            at: string;
+            cardId: string;
+            word: string;
+            translation: string;
+            look: number;
         };
         KaiScript: {
             native: {

@@ -43,6 +43,14 @@ export function addToRound(cards: ReviewCard[]) {
   const fresh = cards.filter((c) => !have.has(c.id));
   if (fresh.length) set({ ...round, cards: [...round.cards, ...fresh] });
 }
+// The word tapped on the widget while a round is open: it is the current card now. If it was still to come in this
+// round, it moves up; a card already swiped today comes as the server sent it (a look card).
+export function putFirst(card: ReviewCard) {
+  const ahead = round.cards.findIndex((c, i) => i >= round.index && c.id === card.id);
+  const cards = ahead >= 0 ? round.cards.filter((_, i) => i !== ahead) : [...round.cards];
+  cards.splice(round.index, 0, ahead >= 0 ? round.cards[ahead]! : card);
+  set({ ...round, cards, added: false });
+}
 export const findCard = (id: string) => round.cards.find((c) => c.id === id) ?? null;
 export function useRound() {
   return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), getRound, getRound);

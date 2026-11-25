@@ -43,6 +43,25 @@
           "microphonePermission": "Lockwords uses the microphone when you tap the mic to speak your message. It turns your voice into text.",
           "enableBackgroundPlayback": false
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "Lockwords",
+              "displayName": "Lockwords",
+              "description": "Your hard words, one at a time.",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ],
+                "initialLayout": "./src/widgets/lockwords-widget.tsx"
+              }
+            }
+          ]
+        }
       ]
     ],
     "experiments": {
