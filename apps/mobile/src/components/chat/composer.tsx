@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 
 import { Icon } from '@/components/icon';
 import { micRefused } from '@/platform/dialog';
 import { sendOnEnter } from '@/platform/enter-key';
+import { useGrowingTextBox } from '@/platform/grow-text-box';
 import { fontFor } from '@/theme/script-font';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
@@ -15,6 +16,9 @@ import { VoiceRecorder } from './voice-recorder';
 
 // How tall the text grows before it scrolls inside the box (Hamid, 2026-11-24).
 const MAX_LINES = 6;
+const LINE = type.callout.lineHeight;
+const INPUT_MIN = 36;
+const INPUT_MAX = MAX_LINES * LINE + space[12];
 
 // Figma Composer: text box + one round button (mic when empty, green send when there is text).
 // The mic (every chat): tap it and speak; the box becomes the recorder (X, the wave, Stop). Stop writes what was said
@@ -35,6 +39,8 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
     setTextState(t);
     onTextChange?.(t);
   };
+  // A browser's text box does not grow by itself: its height follows the text here (nothing on the phone).
+  useGrowingTextBox(input, voice === 'off' ? text : '', INPUT_MIN, INPUT_MAX);
   const ready = text.trim() !== '';
   const send = () => {
     if (!ready || !canSend) return;
@@ -118,13 +124,12 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
   );
 }
 
-const LINE = type.callout.lineHeight;
 const styles = StyleSheet.create({
   bar: { paddingHorizontal: layout.sideMargin, paddingTop: space[12], borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: colors.canvas },
   // The round button stays at the bottom while the box grows.
   box: { minHeight: 52, flexDirection: 'row', alignItems: 'flex-end', gap: space[8], paddingLeft: space[12], paddingRight: space[8], paddingVertical: space[8] - 1, borderRadius: radius.control, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   boxActive: { borderWidth: 2, borderColor: colors.button, paddingVertical: space[8] - 2, paddingLeft: space[12] - 1, paddingRight: space[8] - 1 },
-  input: { flex: 1, minHeight: 36, maxHeight: MAX_LINES * LINE + space[12], paddingTop: space[8] - 1, paddingBottom: space[8] - 1, color: colors.text },
+  input: { flex: 1, minHeight: INPUT_MIN, maxHeight: INPUT_MAX, paddingTop: space[8] - 1, paddingBottom: space[8] - 1, color: colors.text },
   round: { width: 36, height: 36, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.chip },
   send: { backgroundColor: colors.button },
   waiting: { opacity: 0.4 },

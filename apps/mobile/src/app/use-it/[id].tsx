@@ -16,6 +16,7 @@ import { LangText } from '@/components/lang-text';
 import { LINES, type KaiPose } from '@/onboarding/kai-script';
 import { advance, findCard } from '@/review/round-store';
 import { colors, layout, levelColor, levelColors, radius, space, type } from '@/theme/theme';
+import { NoRound } from '@/platform/no-round';
 
 type Message = { from: 'kai'; text: string; translation?: string; status?: boolean } | { from: 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
 // Kai types every line (dots first); the word card and the "Checking" status show at once.
@@ -51,7 +52,7 @@ export default function UseItScreen() {
       live = false;
     };
   }, []);
-  if (!card) return <View style={styles.root} />; // opened without a round (deep link): nothing to show
+  if (!card) return <NoRound />; // opened without a round (a deep link; a reload in the browser): see NoRound
   if (!script) {
     return (
       <View style={styles.root}>

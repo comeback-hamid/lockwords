@@ -24,3 +24,11 @@ test('a path that climbs out of the folder answers the page, not the file', asyn
   assert.equal(await fileFor(root, '/../../etc/hosts'), join(root, 'index.html'));
   assert.equal(await fileFor(root, '/%2e%2e/%2e%2e/etc/hosts'), join(root, 'index.html'));
 });
+
+test('the script also starts when it is called through a linked folder (macOS /tmp is a link)', async () => {
+  const { isMain } = await import('./serve-web.mjs');
+  const real = new URL('./serve-web.mjs', import.meta.url).pathname;
+  assert.equal(isMain(real, new URL('./serve-web.mjs', import.meta.url).href), true);
+  assert.equal(isMain('/somewhere/else.mjs', new URL('./serve-web.mjs', import.meta.url).href), false);
+  assert.equal(isMain(undefined, new URL('./serve-web.mjs', import.meta.url).href), false);
+});

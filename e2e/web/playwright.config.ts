@@ -24,6 +24,9 @@ export default defineConfig({
     { name: 'wide-chromium', testMatch: 'wide.spec.ts', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
     { name: 'wide-firefox', testMatch: 'wide.spec.ts', use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 } } },
     { name: 'wide-webkit', testMatch: 'wide.spec.ts', use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 } } },
+    // What only a browser can do: reloads, odd addresses, a lost connection. Phone-size and wide, two engines.
+    { name: 'edges-chromium', testMatch: 'edges.spec.ts', use: { ...devices['Desktop Chrome'], ...phone } },
+    { name: 'edges-webkit', testMatch: 'edges.spec.ts', use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 } } },
     // A phone's browser with a touch screen (Chrome on a Pixel): finger swipes and the text box.
     { name: 'touch-chromium', testMatch: 'touch.spec.ts', use: { ...devices['Pixel 7'] } },
   ],
