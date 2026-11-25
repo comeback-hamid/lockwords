@@ -3,6 +3,7 @@ import { useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
+import { micRefused } from '@/platform/dialog';
 import { sendOnEnter } from '@/platform/enter-key';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
@@ -46,7 +47,7 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
     try {
       const { granted } = await requestRecordingPermissionsAsync();
       if (granted) setVoice('recording');
-      else setNote('Allow the microphone for Lockwords in Settings to speak.');
+      else setNote(micRefused());
     } catch {
       setNote('The microphone does not work here.');
     }
