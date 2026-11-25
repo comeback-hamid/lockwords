@@ -21,6 +21,7 @@ The same app runs in a browser (`web-build`). Rules for code that must work ther
 - Pop-ups: `confirmAction` / `tell` from `@/platform/dialog`, never `Alert.alert` (it does nothing on the web).
 - A file `name.web.tsx` replaces `name.tsx` in the browser: `(tabs)/_layout.web.tsx` (our own bottom tab bar), `kai/kai-canvas.web.tsx` (still Kai, no Skia).
 - CI builds the web app (`npx expo export -p web`), so a phone-only import fails the pull request.
+- Browser tests: `npm run e2e:web` from the repo root (Playwright: Chromium, Firefox, WebKit; see `e2e/README.md`, "Web"). Run it when you change a shared screen or anything in `src/platform/`. It is not in CI.
 - A real keyboard: `sendOnEnter` (`@/platform/enter-key`) on a multi-line text box makes Enter send and Shift+Enter a new line; `useRoundKeys` (`@/platform/round-keys`) gives the review card its keys (Space flips, arrows answer, Backspace undoes; it listens only while the round's card is on screen). Both do nothing on the phone.
 - The web tab bar is our own (`@/platform/web-tab-bar`), passed to `Tabs` as `tabBar`. `installPageStyle` (`@/platform/page-style`) adds the few page-wide CSS rules a browser needs.
 - Browsers differ: Firefox drags a picture by itself (off, `installPageStyle`); Safari records mp4 and the others webm or ogg (`audioFormat(uri, blob.type)`); the mic note for a browser is `micRefused()` (`@/platform/dialog`).
