@@ -73,8 +73,8 @@ All from AD `/widgetkit/keeping-a-widget-up-to-date`.
 ## 6. Memory, pictures, fonts
 
 - **Memory:** Apple's docs give no number. Crash logs on Apple's developer forums show 30 MB for a widget. So: small pictures only.
-- **Pictures:** `expo-widgets` shows system symbols, or a PNG / JPEG file the app wrote into the shared folder. No SVG files. Big pictures fail ("image being too large", from the forums, no number in the docs). The app must shrink a picture before it saves it.
-- **Kai** is made of about 20 small rectangles, so the widget can draw Kai itself from rectangles. No picture file needed, and it stays sharp.
+- **Pictures:** `expo-widgets` shows system symbols, or a picture file the app wrote into the shared folder: PNG, JPEG, and also WebP (seen working on the iOS 26.5 simulator, 2026-11-25: our card pictures are WebP, 512×410, and show as they are). No SVG files. Big pictures fail ("image being too large", from the forums, no number in the docs). The app must shrink a picture before it saves it.
+- **Kai** is a small PNG file per pose (one color for the lock screen, full color for the home screen), made from Kai's SVG poses by `npm run widget:kai`.
 - **Fonts:** the system font always works. Apple says to use a custom font "sparingly", 11 points at least. Mona Sans needs the font files inside the widget and a small config plugin of our own; `expo-widgets` has no setting for it. **Not tested.** If it fails, the widget uses the system font.
 
 ## 7. How data gets to the widget

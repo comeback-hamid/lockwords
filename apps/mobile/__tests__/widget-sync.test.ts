@@ -1,10 +1,12 @@
 import { api } from '@/auth/boot';
 import { syncWidget } from '@/widgets/sync';
-import { poseOf, toTimeline, type WidgetProps } from '@/widgets/timeline';
+import { markWord, poseOf, toTimeline, type WidgetProps } from '@/widgets/timeline';
 
 const mockUpdateTimeline = jest.fn();
 jest.mock('@/widgets/lockwords-widget', () => ({ __esModule: true, default: { updateTimeline: (...a: unknown[]) => mockUpdateTimeline(...a) } }));
 jest.mock('@/widgets/kai-files', () => ({ kaiFiles: jest.fn(async () => ({ greeting: 'file:///w/kai-greeting.png', idle: 'file:///w/kai-idle.png', thinking: 'file:///w/kai-thinking.png', speaking: 'file:///w/kai-speaking.png', celebrate: 'file:///w/kai-celebrate.png' })) }));
+const mockSavePictures = jest.fn(async (_slots: unknown): Promise<Record<string, string>> => ({}));
+jest.mock('@/widgets/pictures', () => ({ savePictures: (slots: unknown) => mockSavePictures(slots) }));
 jest.mock('@/auth/boot', () => ({ api: { fetchWidgetPlan: jest.fn() } }));
 jest.mock('@/auth/me-store', () => ({ getMe: jest.fn(() => ({ id: 'u1' })) }));
 
@@ -91,4 +93,43 @@ test('Kai’s pictures cannot be copied: the words still reach the widget, with 
   await syncWidget(now);
   const entries = mockUpdateTimeline.mock.calls[0]![0] as { props: WidgetProps }[];
   expect(entries[0]!.props).toMatchObject({ word: 'w1', kai: '' });
+});
+
+// home-widgets: the home screen widgets also show the example, the word's picture and Kai in color.
+test('an entry carries the example with the word marked, the saved picture and Kai in color', () => {
+  const slots = [{ at: '2026-11-25T09:00:00.000Z', cardId: 'c1', word: 'la cuenta', translation: 'the bill', look: 3, example: '¿Nos trae la cuenta, por favor?', imageUrl: 'https://x.test/pictures/p1' }];
+  const color = { greeting: 'G', idle: 'I', thinking: 'T', speaking: 'S', celebrate: 'C' };
+  const [entry, last] = toTimeline({ slots, endsAt: '2026-11-25T09:30:00.000Z' }, now, kai, { color, pictures: { c1: 'file:///w/pic-p1.webp' } });
+  expect(entry!.props).toMatchObject({ example: '¿Nos trae la **cuenta**, por favor?', picture: 'file:///w/pic-p1.webp', kaiColor: 'T' });
+  expect(last!.props).toMatchObject({ kind: 'stale', kaiColor: 'G' });
+});
+
+test('a long word keeps Kai in color: only the small lock screen widget drops Kai', () => {
+  const slots = [{ at: '2026-11-25T09:00:00.000Z', cardId: 'c1', word: 'estar de acuerdo', translation: 'to agree', look: 2, example: 'No estoy de acuerdo contigo.' }];
+  const color = { greeting: 'G', idle: 'I', thinking: 'T', speaking: 'S', celebrate: 'C' };
+  const props = toTimeline({ slots, endsAt: '2026-11-25T09:30:00.000Z' }, now, kai, { color })[0]!.props;
+  expect(props).toMatchObject({ kai: '', kaiColor: 'I', example: 'No estoy **de acuerdo** contigo.' });
+  expect(props.picture).toBeUndefined();
+});
+
+test('marks in the example cannot break the bold word', () => {
+  expect(markWord('2 * 3 = *seis*', 'seis')).toBe('2  3 = **seis**');
+  expect(markWord('Nothing to mark here.', 'la cuenta')).toBe('Nothing to mark here.');
+  expect(markWord('Mira [aquí](x) ~~no~~ \\ seis', 'seis')).toBe('Mira aquí(x) no  **seis**');
+});
+
+test('syncWidget saves the pictures of the plan and hands their files to the widget', async () => {
+  mockApi.fetchWidgetPlan.mockResolvedValue({ slots: [{ ...slot('2026-11-25T09:00:00.000Z', 1, 3), example: 'An example with w1.', imageUrl: 'https://x.test/pictures/p1' }], endsAt: '2026-11-25T09:30:00.000Z' });
+  mockSavePictures.mockResolvedValue({ c1: 'file:///w/pic-p1.webp' });
+  await syncWidget(now);
+  const entries = mockUpdateTimeline.mock.calls[0]![0] as { props: WidgetProps }[];
+  expect(entries[0]!.props).toMatchObject({ picture: 'file:///w/pic-p1.webp', example: 'An example with **w1**.' });
+  expect(mockSavePictures).toHaveBeenCalledWith([expect.objectContaining({ cardId: 'c1', imageUrl: 'https://x.test/pictures/p1' })]);
+});
+
+test('the pictures cannot be saved: the words still reach the widget', async () => {
+  mockApi.fetchWidgetPlan.mockResolvedValue(plan);
+  mockSavePictures.mockRejectedValue(new Error('no room'));
+  await syncWidget(now);
+  expect((mockUpdateTimeline.mock.calls[0]![0] as { props: WidgetProps }[])[0]!.props).toMatchObject({ word: 'w1' });
 });
