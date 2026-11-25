@@ -1,5 +1,5 @@
 import { goalMeadow, KAI_CELLS, nowMeadow, type Scene } from '@/progress/meadow';
-import { colors, levelColors } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const leaves = (m: Scene) => m.blocks.filter((b) => b.kind === 'leaf');
 const stems = (m: Scene) => m.blocks.filter((b) => b.kind === 'trunk');
@@ -25,7 +25,7 @@ describe('the small meadow (now)', () => {
   test('one leaf per word of the deck: met words in the green of their level, words not met yet in the lightest green', () => {
     const m = nowMeadow([[5, 2]], [10]);
     expect(leaves(m)).toHaveLength(10);
-    expect(leaves(m).map((b) => b.color).slice(0, 3)).toEqual([levelColors[5], levelColors[2], levelColors[1]]);
+    expect(leaves(m).map((b) => b.color).slice(0, 3)).toEqual([levelColors[5], levelColors[2], levelNew]); // a new word has its own lightest green since 2026-11-25
     expect(stems(m).every((b) => b.color === colors.subtle || b.color === colors.lineStrong)).toBe(true);
   });
 

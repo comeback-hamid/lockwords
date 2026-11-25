@@ -16,7 +16,7 @@ import { Kai } from '@/kai/kai';
 import { aboutDate, ahead, ghostTrees, levelCard, wordsText } from '@/progress/future';
 import { futureMeadow, KAI_CELLS, nowMeadow } from '@/progress/meadow';
 import { savesDone } from '@/review/saver';
-import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, layout, levelColors, levelNew, radius, space, type } from '@/theme/theme';
 
 const trees = (n: number) => `${n} ${n === 1 ? 'tree' : 'trees'}`;
 // The meadow's box keeps one shape while the bar is dragged, so nothing on the page jumps. Height / width.
@@ -96,10 +96,11 @@ export default function ProgressScreen() {
             <Text style={[type.body, styles.muted]}>{!stop && progress.total === 1 ? 'word in your word bank' : 'words in your word bank'}</Text>
             {/* The counts are today's: hidden during a peek, but they keep their place. */}
             <View style={[styles.counts, stop && styles.hidden]}>
-              <Count color={levelColors[1]} text={`${progress.new} new`} />
-              <Count color={levelColors[3]} text={`${progress.learning} learning`} />
-              <Count color={levelColors[5]} text={`${progress.mastered} mastered`} />
+              <Count levels={[0]} text={`${progress.new} new`} />
+              <Count levels={[1, 2, 3, 4]} text={`${progress.learning} learning`} />
+              <Count levels={[5]} text={`${progress.mastered} mastered`} />
             </View>
+            <Text style={[type.caption, styles.muted, stop && styles.hidden]}>You review each word at least 5 times, with spaced repetition.</Text>
           </View>
 
           {/* One meadow in a box of one shape. Today: the decks as they are, one tree each (grey trees are still to
@@ -189,11 +190,19 @@ function DeckRow({ deck, divider, onPress }: { deck: DeckSummary; divider: boole
   );
 }
 
-function Count({ color, text }: { color: string; text: string }) {
+// One group of the legend (Hamid, 2026-11-25): a square per level with its number inside (0 = new, 1 to 4 = learning,
+// a tick = mastered), in that level's own green, then the count. The dark squares have white marks.
+function Count({ levels, text }: { levels: number[]; text: string }) {
   return (
-    <View style={styles.count}>
-      <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={[type.callout, styles.muted]}>{text}</Text>
+    <View style={styles.count} accessible accessibilityLabel={text}>
+      <View style={styles.squares}>
+        {levels.map((level) => (
+          <View key={level} testID={`legend-${level}`} style={[styles.dot, { backgroundColor: level === 0 ? levelNew : levelColors[level] }]}>
+            <Text style={[styles.mark, level >= 3 && styles.markLight]}>{level === 5 ? '✓' : level}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={[type.caption, styles.muted]}>{text}</Text>
     </View>
   );
 }
@@ -202,9 +211,12 @@ const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.canvas },
   root: { flexGrow: 1, alignItems: 'center', paddingHorizontal: layout.sideMargin, paddingBottom: layout.tabBarClearance + space[24], gap: space[8] },
   numbers: { alignItems: 'center', gap: space[8] },
-  counts: { flexDirection: 'row', gap: space[16] },
-  count: { flexDirection: 'row', alignItems: 'center', gap: space[8] },
-  dot: { width: 10, height: 10, borderRadius: 2 },
+  counts: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: space[12], rowGap: space[8] },
+  count: { flexDirection: 'row', alignItems: 'center', gap: space[4] + 2 },
+  squares: { flexDirection: 'row', gap: 2 },
+  dot: { width: 16, height: 16, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
+  mark: { fontFamily: type.caption.fontFamily, fontSize: 10, lineHeight: 12, color: colors.greenText },
+  markLight: { color: colors.white },
   // The meadows run from edge to edge of the screen (Figma), past the page's side margin.
   bleed: { alignSelf: 'stretch', marginHorizontal: -layout.sideMargin, marginTop: space[16], marginBottom: space[8] },
   meadowBox: { justifyContent: 'flex-end' },

@@ -1,4 +1,4 @@
-import { colors, levelColors } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 // The pixel meadows of the Progress tab (Figma P1). Two pictures, one layout:
 //   nowMeadow  = the small one at the top: one tree per deck, one leaf per word, Kai stands on its right.
@@ -28,7 +28,7 @@ const NOW = { cells: 44, slot: 9, margin: 4, reserve: KAI_CELLS } as const;
 const GOAL = { cells: 36, slot: 11, margin: 3, reserve: 0 } as const;
 const GOAL_WORDS_PER_TREE = 33; // a goal of 100 words = 3 trees
 const GOAL_MIN_TREES = 3;
-const NEW_LEAF = levelColors[1]; // a word that is in the deck but not met yet: the lightest green, as in the goal grid
+const NEW_LEAF = levelNew; // a word that is in the deck but not met yet: the lightest green, as in the goal grid
 
 type TreeKind = keyof typeof SPEC.trees;
 type Layout = { cells: number; slot: number; margin: number; reserve: number };

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { colors, levelColors } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const PER_ROW = 20;
 const GAP = 2;
@@ -20,7 +20,7 @@ export function GoalGrid({ goal, levels }: { goal: number; levels: number[] }) {
         <View
           key={i}
           testID={level === null ? 'grid-empty' : 'grid-level'}
-          style={{ width: size, height: size, borderRadius: 2, backgroundColor: level === null ? colors.divider : (levelColors[Math.max(1, level)] ?? levelColors[1]) }}
+          style={{ width: size, height: size, borderRadius: 2, backgroundColor: level === null ? colors.divider : level < 1 ? levelNew : (levelColors[level] ?? levelColors[1]) }}
         />
       ))}
     </View>

@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import type { DeckSummary, Progress } from '@/api/client';
 import ProgressScreen from '@/app/(tabs)/progress';
 import { api } from '@/auth/boot';
-import { colors } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const mockRouter = { push: jest.fn(), navigate: jest.fn() };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useFocusEffect: (fn: () => void) => jest.requireActual('react').useEffect(fn, [fn]) }));
@@ -140,6 +140,16 @@ test('gone from the page: the "Decks" link at the top and the word plan', async 
   expect(screen.queryByRole('button', { name: /^\d+ Decks?$/ })).toBeNull();
   expect(screen.queryByText(/YOUR WORD PLAN/)).toBeNull();
   expect('fetchPlan' in api).toBe(false);
+});
+
+test('the legend: a numbered square per level in its own green (0 new, 1 to 4 learning, a tick for mastered) and one line about the reviews', async () => {
+  await show(progress());
+  const color = (level: number) => StyleSheet.flatten(screen.getByTestId(`legend-${level}`).props.style).backgroundColor;
+  expect(color(0)).toBe(levelNew);
+  expect([1, 2, 3, 4, 5].map(color)).toEqual([1, 2, 3, 4, 5].map((l) => levelColors[l]));
+  expect(new Set([0, 1, 2, 3, 4, 5].map(color)).size).toBe(6); // six different greens
+  for (const mark of ['0', '1', '2', '3', '4', '✓']) expect(screen.getByText(mark)).toBeOnTheScreen();
+  expect(screen.getByText('You review each word at least 5 times, with spaced repetition.')).toBeOnTheScreen();
 });
 
 // The future bar (Hamid, 2026-11-25): the bar is filled up to today; moving it forward shows a stop, and back is today.
