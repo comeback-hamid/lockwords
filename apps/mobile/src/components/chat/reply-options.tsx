@@ -1,5 +1,6 @@
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { LangText } from '@/components/lang-text';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 // Figma Reply option pills: stacked on the right. They are the last item of the chat's message list (render them
@@ -14,7 +15,7 @@ export function ReplyOptions({ options, onPick }: { options: string[]; onPick(op
             Keyboard.dismiss(); // a tapped answer needs no keyboard
             onPick(option);
           }} style={({ pressed }) => [styles.pill, pressed && styles.pressed]}>
-          <Text style={[type.calloutMedium, styles.label]}>{option}</Text>
+          <LangText style={[type.calloutMedium, styles.label]}>{option}</LangText>
         </Pressable>
       ))}
       <Text style={[type.caption, styles.hint]}>Tap an option, or type your own</Text>

@@ -3,6 +3,7 @@ import { useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
+import { fontFor } from '@/theme/script-font';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 import { directionStyle } from './direction';
@@ -94,7 +95,7 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
               placeholderTextColor={colors.subtle}
               maxLength={maxLength}
               returnKeyType="send"
-              style={[type.callout, styles.input, directionStyle(text)]}
+              style={[type.callout, styles.input, directionStyle(text), fontFor(text, type.callout)]}
               selectionColor={colors.button}
             />
             {ready ? (

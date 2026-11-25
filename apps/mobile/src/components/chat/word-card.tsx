@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { KaiWord } from '@/api/client';
+import { LangText } from '@/components/lang-text';
 import { Icon } from '@/components/icon';
 import { sayWord, warmUpSpeech } from '@/review/speak';
 import { colors, layout, radius, space, type } from '@/theme/theme';
@@ -48,15 +49,15 @@ export function WordCard({ word, onAdd }: Props) {
   return (
     <View style={styles.card}>
       <View testID="word-row" style={[styles.wordRow, isRtl(word.word) && styles.wordRowRtl]}>
-        <Text style={[type.headline, styles.word, directionStyle(shownWord)]}>{shownWord}</Text>
+        <LangText style={[type.headline, styles.word, directionStyle(shownWord)]}>{shownWord}</LangText>
         <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => sayWord(word.word)} hitSlop={space[4]} style={({ pressed }) => [styles.speaker, pressed && styles.speakerPressed]}>
           <Icon name="speaker" color={colors.text2} />
         </Pressable>
       </View>
-      <Text style={[type.callout, styles.muted, directionStyle(meaning)]}>{meaning}</Text>
+      <LangText style={[type.callout, styles.muted, directionStyle(meaning)]}>{meaning}</LangText>
       <View testID="word-card-divider" style={styles.divider} />
       <KaiText accessibilityLabel={plainText(example)} text={example} style={[type.body, styles.ink, directionStyle(word.example)]} boldStyle={[type.bodyStrong, styles.green]} boldTestID="example-word" />
-      <Text style={[type.caption, styles.muted, directionStyle(exampleMeaning)]}>{exampleMeaning}</Text>
+      <LangText style={[type.caption, styles.muted, directionStyle(exampleMeaning)]}>{exampleMeaning}</LangText>
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
