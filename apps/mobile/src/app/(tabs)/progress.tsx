@@ -11,20 +11,28 @@ import { Icon } from '@/components/icon';
 import { LevelChain } from '@/components/level-chain';
 import { LoadError, Loading } from '@/components/load-state';
 import { Meadow } from '@/components/meadow';
+import { TimeTab } from '@/components/time-tab';
 import { Kai } from '@/kai/kai';
-import { goalMeadow, KAI_CELLS, nowMeadow } from '@/progress/meadow';
+import { futureMeadow, KAI_CELLS, nowMeadow } from '@/progress/meadow';
 import { savesDone } from '@/review/saver';
-import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, layout, levelColors, levelNew, radius, space, type } from '@/theme/theme';
 
-const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-// "2026-12-29" → "DEC 29"
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// "2027-02-23" → "Feb 23"
 const shortDate = (day: string) => `${MONTHS[Number(day.slice(5, 7)) - 1] ?? ''} ${Number(day.slice(8, 10))}`;
+const todayDate = () => {
+  const d = new Date();
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+};
 const trees = (n: number) => `${n} ${n === 1 ? 'tree' : 'trees'}`;
 const KAI_SIZE = 64;
 const count = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
 
-// Progress tab (Figma P1), from top to bottom: the numbers, the small meadow with Kai (the decks as they are now),
-// the goal grid with its date, the big meadow (the forest at the goal), and every deck as a short row.
+// Progress tab (Figma P1 · Today / In 3 months), from top to bottom: the time switch, the numbers with the legend,
+// one meadow with Kai, the words map, and every deck as a short row. The switch shows the same page as it will be in
+// 3 months at the learner's pace (the server's guess): more words, a bigger forest, a greener words map. The decks
+// stay today's: nobody knows the future ones. One meadow since 2026-11-25 (Hamid): the two meadows of before showed
+// the same thing twice. Coming back to the tab always opens on Today.
 // No hard words here (Hamid, 2026-11-23): they show on the one-time screen after the first round and in each deck.
 export default function ProgressScreen() {
   const router = useRouter();
@@ -33,6 +41,7 @@ export default function ProgressScreen() {
   const [state, setState] = useState<{ progress: Progress | null; failed: boolean }>({ progress: null, failed: false });
   const [decks, setDecks] = useState<{ list: DeckSummary[] | null; failed: boolean }>({ list: null, failed: false });
   const [cheer, setCheer] = useState(0); // a tap on Kai: he celebrates once
+  const [future, setFuture] = useState(false); // the time switch: false = Today
   const loadDecks = useCallback(() => {
     api.fetchDecks().then(
       (list) => setDecks({ list, failed: false }),
@@ -42,6 +51,7 @@ export default function ProgressScreen() {
   // Loads every time the tab comes into view: a round or a new deck changes the numbers.
   // Swipes are saved in the background: wait for them, so a round left half-way is already in the numbers.
   const load = useCallback(() => {
+    setFuture(false);
     void savesDone()
       .then(() => api.fetchProgress())
       .then(
@@ -54,7 +64,10 @@ export default function ProgressScreen() {
 
   const { progress, failed } = state;
   const now = useMemo(() => (progress ? nowMeadow(progress.trees, progress.deckWords) : null), [progress]);
-  const goal = useMemo(() => (progress ? goalMeadow(progress.goal) : null), [progress]);
+  const then = useMemo(() => (progress ? futureMeadow(progress.future.total) : null), [progress]);
+  // What the page shows: today's numbers, or the server's guess for 3 months from now.
+  const shown = progress ? (future ? progress.future : progress) : null;
+  const scene = future ? then : now;
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={[styles.root, { paddingTop: insets.top + space[48] }]}>
       {__DEV__ && me ? (
@@ -71,45 +84,44 @@ export default function ProgressScreen() {
             load();
           }}
         />
-      ) : !progress || !now || !goal ? (
+      ) : !progress || !now || !then || !shown || !scene ? (
         <Loading label="Loading your progress…" />
       ) : (
         <>
+          <TimeTab future={future} today={todayDate()} by={`by ${shortDate(progress.future.by)}`} onChange={setFuture} />
           <View testID="progress-numbers" style={styles.numbers}>
-            <Text accessibilityRole="header" style={[type.display, styles.ink]}>
-              {progress.total}
+            {/* The future is a guess: it says so, and its number is green. */}
+            <Text style={[type.label, styles.green, !future && styles.hidden]}>ABOUT, AT YOUR PACE</Text>
+            <Text accessibilityRole="header" style={[type.display, future ? styles.green : styles.ink]}>
+              {shown.total}
             </Text>
-            <Text style={[type.body, styles.muted]}>{progress.total === 1 ? 'word in your word bank' : 'words in your word bank'}</Text>
+            <Text style={[type.body, styles.muted]}>{shown.total === 1 ? 'word in your word bank' : 'words in your word bank'}</Text>
             <View style={styles.counts}>
-              <Count color={levelColors[1]} text={`${progress.new} new`} />
-              <Count color={levelColors[3]} text={`${progress.learning} learning`} />
-              <Count color={levelColors[5]} text={`${progress.mastered} mastered`} />
+              <Count levels={[0]} text={`${shown.new} new`} />
+              <Count levels={[1, 2, 3, 4]} text={`${shown.learning} learning`} />
+              <Count levels={[5]} text={`${shown.mastered} mastered`} />
             </View>
           </View>
 
-          {/* The decks as they are now, one tree each. Kai stands on the ground, on the right. */}
+          {/* One meadow. Today: the decks as they are, one tree each. In 3 months: the forest of that many words.
+              Kai stands on the ground, on the right, in both. */}
           <View style={styles.bleed}>
-            <Meadow testID="meadow-now" scene={now} label={`Your meadow now: ${trees(now.trees)}`}>
-              <View style={[styles.kai, { width: `${(KAI_CELLS / now.width) * 100}%`, bottom: `${(1.6 / now.height) * 100}%` }]}>
+            <Meadow
+              key={future ? 'then' : 'now'}
+              testID={future ? 'meadow-future' : 'meadow-now'}
+              scene={scene}
+              label={future ? `Your meadow in 3 months: ${trees(then.trees)}` : `Your meadow now: ${trees(now.trees)}`}
+              rich={future}
+            >
+              <View style={[styles.kai, { width: `${(KAI_CELLS / scene.width) * 100}%`, bottom: `${(1.6 / scene.height) * 100}%` }]}>
                 <Kai state={cheer ? 'celebrate' : 'idle'} playKey={cheer} size={KAI_SIZE} onPress={() => setCheer((n) => n + 1)} />
               </View>
             </Meadow>
           </View>
 
-          <GoalGrid goal={progress.goal} levels={progress.grid} />
-          <View style={styles.byRow}>
-            <View style={styles.rule} />
-            <Text style={[type.label, styles.muted]}>{`BY ${shortDate(progress.masterBy)}`}</Text>
-            <View style={styles.rule} />
-          </View>
-          <Text style={[type.body, styles.muted]}>you’ll master</Text>
-          <Text style={[type.display, styles.green]}>{progress.goal}</Text>
-          <Text style={[type.body, styles.muted]}>{progress.language ? `new ${progress.language} words` : 'new words'}</Text>
-
-          {/* The forest at the goal: big trees. */}
-          <View style={[styles.bleed, styles.goalMeadow]}>
-            <Meadow testID="meadow-goal" scene={goal} label={`Your meadow at the goal: ${trees(goal.trees)}`} rich />
-          </View>
+          {/* The words map: one square per word. Today it runs to the goal (empty squares are still to come);
+              in 3 months every square is a word. */}
+          <GoalGrid goal={future ? shown.total : progress.goal} levels={shown.grid} />
 
           <View style={styles.decks}>
             {/* "You have 5 decks", the number in green like the goal (Figma P1). */}
@@ -145,6 +157,9 @@ export default function ProgressScreen() {
                 ))}
               </View>
             )}
+            {future && progress.future.moreDecks > 0 ? (
+              <Text style={[type.callout, styles.muted, styles.more]}>{`and about ${progress.future.moreDecks} more ${progress.future.moreDecks === 1 ? 'deck' : 'decks'} by then`}</Text>
+            ) : null}
           </View>
         </>
       )}
@@ -175,11 +190,19 @@ function DeckRow({ deck, divider, onPress }: { deck: DeckSummary; divider: boole
   );
 }
 
-function Count({ color, text }: { color: string; text: string }) {
+// One group of the legend (Figma: Legend): a square per level in that level's own green (new is the lightest, the
+// four learning levels run light to dark, mastered is the darkest with a tick), then the count. No numbers inside.
+function Count({ levels, text }: { levels: number[]; text: string }) {
   return (
-    <View style={styles.count}>
-      <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={[type.callout, styles.muted]}>{text}</Text>
+    <View style={styles.count} accessible accessibilityLabel={text}>
+      <View style={styles.squares}>
+        {levels.map((level) => (
+          <View key={level} testID={`legend-${level}`} style={[styles.dot, level === 5 && styles.dotTick, { backgroundColor: level === 0 ? levelNew : levelColors[level] }]}>
+            {level === 5 ? <Text style={styles.tick}>✓</Text> : null}
+          </View>
+        ))}
+      </View>
+      <Text style={[type.caption, styles.muted]}>{text}</Text>
     </View>
   );
 }
@@ -187,16 +210,18 @@ function Count({ color, text }: { color: string; text: string }) {
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.canvas },
   root: { flexGrow: 1, alignItems: 'center', paddingHorizontal: layout.sideMargin, paddingBottom: layout.tabBarClearance + space[24], gap: space[8] },
+  more: { textAlign: 'center' },
   numbers: { alignItems: 'center', gap: space[8] },
-  counts: { flexDirection: 'row', gap: space[16] },
-  count: { flexDirection: 'row', alignItems: 'center', gap: space[8] },
+  counts: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: space[12], rowGap: space[8] },
+  count: { flexDirection: 'row', alignItems: 'center', gap: space[4] + 2 },
+  squares: { flexDirection: 'row', gap: 2 },
   dot: { width: 10, height: 10, borderRadius: 2 },
+  dotTick: { width: 14, height: 14, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
+  tick: { fontFamily: type.bodyStrong.fontFamily, fontSize: 9, lineHeight: 12, color: colors.white },
+  hidden: { opacity: 0 },
   // The meadows run from edge to edge of the screen (Figma), past the page's side margin.
   bleed: { alignSelf: 'stretch', marginHorizontal: -layout.sideMargin, marginTop: space[16], marginBottom: space[8] },
-  goalMeadow: { marginTop: space[24] },
   kai: { position: 'absolute', right: 0, alignItems: 'center' },
-  byRow: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: space[12], marginTop: space[24] },
-  rule: { flex: 1, height: 1, backgroundColor: colors.divider },
   decks: { width: '100%', gap: space[16], marginTop: space[32] },
   box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[12], padding: space[16] },

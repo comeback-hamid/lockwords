@@ -29,20 +29,17 @@ tags:
 - scrollUntilVisible:
     element: "10 of 100 words"
     direction: DOWN
+# The time switch (2026-11-25): In 3 months shows the same page as it will be, then back to Today
 - scrollUntilVisible:
-    element: "you’ll master"
-    direction: DOWN
-- assertVisible: "BY .*"
-- scrollUntilVisible:
-    element: "new Spanish words"
-    direction: DOWN
-# The big meadow: three big trees that move in the wind
-- scrollUntilVisible:
-    element: "Your meadow at the goal: 3 trees"
-    direction: DOWN
-    centerElement: true
+    element: "In 3 months"
+    direction: UP
+- tapOn: "In 3 months.*"
+- assertVisible: "ABOUT, AT YOUR PACE"
+- assertVisible: "Your meadow in 3 months: .* trees"
 - waitForAnimationToEnd:
     timeout: 6000
+- tapOn: "Today.*"
+- assertVisible: "Your meadow now: 1 tree"
 # The decks live at the bottom of the page
 - scrollUntilVisible:
     element: "You have 1 deck"
