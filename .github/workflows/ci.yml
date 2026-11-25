@@ -48,6 +48,34 @@ jobs:
       - name: OpenSpec validate
         run: npx -y @fission-ai/openspec@1.14.2 validate --all --strict --no-interactive
 
+  # The Android app must build. A debug build for one chip type (the emulator's) keeps it short.
+  # android/ is generated (CNG), so the job makes it first. The APK is kept for 7 days to try on a phone or emulator.
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - name: Make the Android project (expo prebuild)
+        run: npx expo prebuild -p android --no-install
+        working-directory: apps/mobile
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Android debug build
+        run: ./gradlew app:assembleDebug -x lint -x test -PreactNativeArchitectures=x86_64
+        working-directory: apps/mobile/android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lockwords-android-debug
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
   security:
     runs-on: ubuntu-latest
     steps:

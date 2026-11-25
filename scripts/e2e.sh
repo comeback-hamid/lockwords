@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# Run Maestro flows. Usage: npm run e2e [-- --areas review,my-words]
+# Run Maestro flows. Usage: npm run e2e [-- --areas review,my-words] [-- --platform android]
+# The platform is iOS unless `--platform android` or LOCKWORDS_PLATFORM=android says Android (see e2e/README.md, "Android").
 set -euo pipefail
 cd "$(dirname "$0")/.."
 areas=""
+platform=${LOCKWORDS_PLATFORM:-ios}
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --areas) areas="$2"; shift 2 ;;
+    --platform) platform="$2"; shift 2 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -14,17 +17,39 @@ done
 PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -v '/flutter/' | paste -sd: -)
 export PATH
 command -v maestro >/dev/null || { echo "maestro is not installed: brew install mobile-dev-inc/tap/maestro" >&2; exit 1; }
-xcrun simctl list devices booted | grep -q Booted || { echo "No booted iOS simulator. Run: cd apps/mobile && npm run ios" >&2; exit 1; }
+case "$platform" in
+  ios) xcrun simctl list devices booted | grep -q Booted || { echo "No booted iOS simulator. Run: cd apps/mobile && npm run ios" >&2; exit 1; } ;;
+  android)
+    adb=${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb
+    # With an iOS simulator booted too, Maestro must be told which device: take the first Android one.
+    MAESTRO_DEVICE=${MAESTRO_DEVICE:-$("$adb" devices | awk 'NR>1 && $2=="device" {print $1; exit}')}
+    [[ -n "$MAESTRO_DEVICE" ]] || { echo "No running Android emulator or phone. Run: cd apps/mobile && npm run android" >&2; exit 1; }
+    ;;
+  *) echo "unknown platform: $platform (ios or android)" >&2; exit 2 ;;
+esac
 # Maestro saves recordings under a dated run folder. We copy them to e2e/videos/<name>.mp4 afterwards.
 run=$(mktemp -d)
 status=0
 # LOCKWORDS_METRO=localhost:<port>: the app loads its code from that Metro, not 8081 (one Metro per parallel session).
 # The flows are copied and every launchApp gets the RCT_jsLocation launch argument; the files in e2e/ do not change.
 # It matches `- launchApp` at the start of a line with no `arguments:` of its own, as every flow writes it today.
-src=e2e
-if [[ -n "${LOCKWORDS_METRO:-}" ]]; then
-  src="$run/e2e"
-  mkdir -p "$src" && cp -R e2e/flows e2e/subflows "$src"/
+# A flow or subflow that must differ on Android has a twin next to it: `name.android.yaml`. It is never run on iOS.
+# On Android the flows are copied and each twin takes the place of `name.yaml`, so a `runFlow: name.yaml` finds it too.
+# A flow with only an Android file (no `name.yaml`) runs on Android only.
+src="$run/e2e"
+mkdir -p "$src" && cp -R e2e/flows e2e/subflows "$src"/
+for twin in "$src"/flows/*.android.yaml "$src"/subflows/*.android.yaml; do
+  [[ -e "$twin" ]] || continue
+  if [[ "$platform" == android ]]; then mv "$twin" "${twin%.android.yaml}.yaml"; else rm "$twin"; fi
+done
+# Android: the Metro port is part of the debug build (`npx expo run:android --port <port>`), so nothing to rewrite.
+# Android: after a data wipe the debug build gets all its code from Metro again, and that takes 10 to 25 seconds on the
+# emulator while Maestro watches the screen (measured 2026-11-25). So the wait for the first screen is 60 seconds there.
+if [[ "$platform" == android ]]; then
+  find "$src/flows" "$src/subflows" -name '*.yaml' -exec perl -0pi -e \
+    's/(visible: "I\.m Kai, welcome to Lockwords"\n\s+timeout: )15000/${1}60000/g' {} +
+fi
+if [[ -n "${LOCKWORDS_METRO:-}" && "$platform" == ios ]]; then
   find "$src/flows" "$src/subflows" -name '*.yaml' -exec perl -0pi -e \
     's/^- launchApp:?\n/- launchApp:\n    arguments:\n      RCT_jsLocation: "$ENV{LOCKWORDS_METRO}"\n/mg' {} +
 fi
@@ -36,6 +61,7 @@ slow=()
 for f in "$src"/flows/*.yaml; do
   name=$(basename "$f")
   grep -qxF "$name" e2e/quarantine.txt 2>/dev/null && { echo "skipping $name (e2e/quarantine.txt)"; continue; }
+  [[ "$platform" == android ]] && grep -qxF "$name" e2e/quarantine.android.txt 2>/dev/null && { echo "skipping $name on Android (e2e/quarantine.android.txt)"; continue; }
   if grep -qxF "$name" e2e/slow-pictures.txt 2>/dev/null; then
     # With --areas, keep a slow flow only if one of its tags is asked for (Maestro fails a pass with no flow).
     if [[ -z "$areas" ]] || grep -A4 '^tags:' "$f" | grep -qE "^ *- *($(printf '%s' "$areas" | tr ',' '|')) *$"; then slow+=("$f"); fi
@@ -58,7 +84,10 @@ if [[ ${#slow[@]} -gt 0 ]]; then
     status=1
   fi
 fi
-mkdir -p e2e/videos
-find "$run" -name '*.mp4' -exec cp {} e2e/videos/ \;
+# iOS videos: e2e/videos/. Android videos: e2e/videos/android/ (the same names, so they must not land on each other).
+videos=e2e/videos
+[[ "$platform" == android ]] && videos=e2e/videos/android
+mkdir -p "$videos"
+find "$run" -name '*.mp4' -exec cp {} "$videos"/ \;
 rm -rf "$run"
 exit $status
