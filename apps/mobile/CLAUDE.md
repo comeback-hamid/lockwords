@@ -71,8 +71,9 @@ The same app runs in a browser (`web-build`). Rules for code that must work ther
 ## Rules
 - Expo changes every SDK. Read https://docs.expo.dev/versions/v58.0.0/ and https://docs.expo.dev/llms.txt before touching an Expo API.
 - `ios/` and `android/` are generated (CNG). Never create or edit them. Native setup goes in `app.json` and config plugins.
-- Widgets are native SwiftUI WidgetKit, added through a config plugin.
-- A native package needs a new dev build (`npm run ios`).
+- Widgets are native SwiftUI WidgetKit, added through the `expo-widgets` config plugin in `app.json` (a change there needs a new native build).
+- The widget (`src/widgets/`, hard words only): `lockwords-widget.tsx` is the layout. It runs in the widget's own small runtime: no hooks, no network, nothing from outside the function; it only draws its `props`. `sync.ts` loads `api.fetchWidgetPlan()` and hands it over with `updateTimeline` (app start, back to the front); `timeline.ts` turns the server's plan into entries (pure, tested); `kai-files.ts` copies Kai's one-color poses (`assets/widget/`, made by `npm run widget:kai`) into the folder the widget can read. The server decides words, order and looks; never sort or count here. A tap opens `lockwords://review?first=<id>`: `tapped.ts` keeps the id, the Review tab takes it and starts the round on that word (`api.fetchRound(undefined, first)`); a card with `lookOnly` has Next and no swipes. Jest gets a stand-in for `expo-widgets` (`jest.setup.tsx`). Limits: `docs/widget-limits.md`.
+- A native package needs a new dev build (`npm run ios`). On this Mac start it with `LANG=en_US.UTF-8` in front, or `pod install` stops with "Unicode Normalization not appropriate for ASCII-8BIT" (found 2026-11-25). With the simulator locked, the command builds and installs but cannot open the app: unlock it first.
 - Reanimated and Gesture Handler work in Jest (`jest.setup.tsx` + the jest `resolver` in `package.json`): animations jump to their end value. Change a shared value with `.set()` / `.get()`, not `.value` (the lint rule for the React Compiler).
 - RN Testing Library v14: `render` is async. Write `await render(...)`.
 - Every screen test covers its states: loading, empty, error, locked.

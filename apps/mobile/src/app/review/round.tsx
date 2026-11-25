@@ -14,7 +14,7 @@ import { KeyHints } from '@/platform/key-hints';
 import { ROUND_TEST_ID, useRoundKeys } from '@/platform/round-keys';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
-import { cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
+import { advance, cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
 import { loadReviewRules, useEasyDays } from '@/review/rules';
 import { saveSwipe, savesDone } from '@/review/saver';
 import { streakToShow } from '@/review/streak';
@@ -103,7 +103,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
     (direction: Direction, byButton: boolean) => {
       const round = getRound();
       const current = round.cards[round.index];
-      if (!current) return;
+      if (!current || current.lookOnly) return; // a look card is never swiped
       const key = `${era}:${round.index}:${current.id}`;
       setLeaving((list) => [...list, { key, card: current, flipped: flippedId === current.id, sentOff: byButton ? direction : null }]);
       timers.current.push(setTimeout(() => setLeaving((list) => list.filter((l) => l.key !== key)), LEAVE_MS));
@@ -203,6 +203,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
             easyDays={easyDays?.[s.card.stage] ?? null}
             lead={lead}
             onFlip={() => setFlippedId((id) => (id === s.card.id ? null : s.card.id))}
+            canSwipe={!s.card.lookOnly}
             onSwipe={(direction) => commit(direction, false)}
             onUseIt={() => {
               if (inTab) leftForUseIt();
@@ -215,8 +216,21 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
 
       {failed ? <Text style={[type.caption, styles.failed]}>Could not save. Try again.</Text> : null}
       {/* The streak card has no answer: the three actions are hidden while it shows. */}
-      <View style={styles.actions}>
-        {onStreak || !card ? null : (
+      <View style={[styles.actions, card?.lookOnly && styles.actionsNext]}>
+        {onStreak || !card ? null : card.lookOnly ? (
+          // The word tapped on the widget is not due today: it can be looked at (flip, speaker, Use it), not swiped.
+          <Action
+            label="Next"
+            icon="right"
+            color={colors.greenText}
+            iconLast
+            onPress={() => {
+              setCanUndo(false);
+              setFlippedId(null);
+              advance();
+            }}
+          />
+        ) : (
           <>
             <Action label="Hard" icon="left" color={colors.hard} onPress={() => commit('hard', true)} />
             <Action label="Know it" icon="up" color={colors.greenText} onPress={() => commit('known', true)} />
@@ -283,6 +297,7 @@ const styles = StyleSheet.create({
   green: { color: colors.greenText },
   failed: { color: colors.hard, textAlign: 'center' },
   actions: { minHeight: layout.minTapTarget, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  actionsNext: { justifyContent: 'flex-end' },
   action: { height: layout.minTapTarget, flexDirection: 'row', alignItems: 'center', gap: space[8] },
   actionReverse: { flexDirection: 'row-reverse' },
 });

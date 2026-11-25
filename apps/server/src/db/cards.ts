@@ -134,6 +134,14 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
         .limit(HARD_WORDS_MAX);
       return rows.map((r) => ({ word: r.card.word, translation: r.card.translation }));
     },
+    async widgetWords(userId) {
+      // The same hard words as the list above, with what the widget plan needs. Only words of a finished deck.
+      const rows = await mine()
+        .where(and(kept(userId), eq(decks.status, 'ready'), eq(cards.hard, true), eq(cards.known, false)))
+        .orderBy(asc(cards.createdAt), asc(cards.position))
+        .limit(HARD_WORDS_MAX);
+      return rows.map((r) => ({ id: r.card.id, word: r.card.word, translation: r.card.translation, createdAt: r.card.createdAt }));
+    },
     async remove(userId, id) {
       return db.transaction(async (tx) => {
         const [found] = await tx
