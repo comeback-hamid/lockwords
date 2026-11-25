@@ -4,7 +4,7 @@ import type { PlanStore, ProfilesStore, ProgressStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { languageName } from '../llm/make-deck.js';
 import { goalWords, openItems, PLAN_SIZE, PlanItemSchema, PlanSchema, type DeckPlanner } from '../llm/plan-decks.js';
-import { bankNumbers, deckSummary, futureStops, goalFor, hardCount, levelFor, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
+import { bankNumbers, deckSummary, goalFor, hardCount, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
 import { reviewDay } from '../review/day.js';
 import { UnauthorizedSchema } from './me.js';
 
@@ -27,10 +27,6 @@ const ProgressSchema = z
     language: z.string(),
     trees: z.array(stages),
     deckWords: z.array(z.number().int()), // how many words each tree's deck has, in the order of `trees`
-    // The future bar: the vocabulary and level now (left out with no word test), and each stop of the bar.
-    vocabulary: z.number().int().optional(),
-    level: z.string().optional(),
-    stops: z.array(z.object({ words: z.number().int(), by: z.string(), vocabulary: z.number().int().optional(), level: z.string().optional() })),
   })
   .openapi('Progress');
 const DeckSummarySchema = z
@@ -64,7 +60,7 @@ export function progressRoutes(deps: Deps) {
       const userId = c.get('user').id;
       const now = clock();
       const zone = c.req.header('X-Time-Zone');
-      const [decks, startedLately, language, profile] = await Promise.all([store().decks(userId), store().startedSince(userId, reviewDay(new Date(now.getTime() - PACE_DAYS_MS), zone).day), store().learningLanguage(userId), deps.profiles?.get(userId)]);
+      const [decks, startedLately, language] = await Promise.all([store().decks(userId), store().startedSince(userId, reviewDay(new Date(now.getTime() - PACE_DAYS_MS), zone).day), store().learningLanguage(userId)]);
       const words = decks.flatMap((d) => d.words);
       const { toLearn, started, ...numbers } = bankNumbers(words);
       const goal = goalFor(toLearn);
@@ -72,15 +68,7 @@ export function progressRoutes(deps: Deps) {
       const oldestFirst = [...decks].reverse();
       const trees = oldestFirst.map((d) => treeLevels(d.words));
       const deckWords = oldestFirst.map((d) => d.words.length);
-      const today = reviewDay(now, zone).day;
-      const pace = paceFrom(startedLately);
-      const knownAtStart = profile?.knownWords ?? null;
-      // The vocabulary now: what the word test found plus the words mastered here.
-      const vocabulary = knownAtStart === null ? null : knownAtStart + numbers.mastered;
-      return c.json(
-        { ...numbers, hard: hardCount(words), decks: decks.length, goal, masterBy: masterBy(today, goal, started, pace), language: language ? languageName(language) : '', trees, deckWords, ...(vocabulary === null ? {} : { vocabulary, level: levelFor(vocabulary) }), stops: futureStops(today, started, pace, knownAtStart) },
-        200,
-      );
+      return c.json({ ...numbers, hard: hardCount(words), decks: decks.length, goal, masterBy: masterBy(reviewDay(now, zone).day, goal, started, paceFrom(startedLately)), language: language ? languageName(language) : '', trees, deckWords }, 200);
     })
     .openapi(getPlan, async (c) => {
       const userId = c.get('user').id;

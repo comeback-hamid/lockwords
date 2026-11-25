@@ -6,9 +6,7 @@ import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
 import { SPEC, type Scene } from '@/progress/meadow';
 import { levelColors } from '@/theme/theme';
 
-// `quick`: the trees grow in fast (a peek at the future while the bar is dragged). `replay`: a new value grows the
-// picture in again.
-export type MeadowCanvasProps = { scene: Scene; width: number; rich: boolean; still: boolean; quick?: boolean; replay?: string | number };
+export type MeadowCanvasProps = { scene: Scene; width: number; rich: boolean; still: boolean };
 
 // A screen left behind keeps its views. The meadow stops drawing a moment after its screen leaves the front, and
 // grows again when the screen comes back (the same rule as Kai's canvas).
@@ -42,8 +40,7 @@ const hash = (n: number) => {
 };
 
 // Everything the drawing needs, as plain numbers (made once per picture, on the JS thread).
-const QUICK = 0.12; // how much of the normal waiting a quick grow keeps
-function drawData(scene: Scene, rich: boolean, quick = false): Data {
+function drawData(scene: Scene, rich: boolean): Data {
   const treeX = new Map<number, number>();
   for (const b of scene.blocks) if (b.tree >= 0 && b.kind === 'trunk' && !treeX.has(b.tree)) treeX.set(b.tree, b.x);
   const firstTree = Math.min(...scene.blocks.filter((b) => b.tree >= 0).map((b) => b.tree), 0);
@@ -51,7 +48,7 @@ function drawData(scene: Scene, rich: boolean, quick = false): Data {
   const items = scene.blocks.map((b, i): Item => {
     const [r, g, bl] = rgb(b.color);
     const inTree = b.tree >= 0;
-    const delay = inTree ? ((b.tree - firstTree) * MOTION.growTreeMs + b.order * MOTION.growStepMs) * (quick ? QUICK : 1) : 0;
+    const delay = inTree ? (b.tree - firstTree) * MOTION.growTreeMs + b.order * MOTION.growStepMs : 0;
     grown = Math.max(grown, delay + MOTION.growMs);
     return {
       x: b.x, y: b.y, s: b.size, r, g, b: bl, a: b.opacity, k: KIND[b.kind],
@@ -81,13 +78,13 @@ export function MeadowCanvas(props: MeadowCanvasProps) {
     return () => clearTimeout(t);
   }, [focused]);
   if (props.width <= 0 || (!live && !focused)) return null;
-  return <LiveCanvas key={props.replay} {...props} />;
+  return <LiveCanvas {...props} />;
 }
 
-function LiveCanvas({ scene, width, rich, still, quick }: MeadowCanvasProps) {
+function LiveCanvas({ scene, width, rich, still }: MeadowCanvasProps) {
   const u = width / scene.width; // points per cell
   const height = Math.round(scene.height * u);
-  const data = useMemo(() => drawData(scene, rich, quick), [scene, rich, quick]);
+  const data = useMemo(() => drawData(scene, rich), [scene, rich]);
   const clock = useClock();
   const start = useSharedValue(-1);
 

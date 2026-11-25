@@ -1,10 +1,10 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import type { DeckSummary, Progress } from '@/api/client';
 import ProgressScreen from '@/app/(tabs)/progress';
 import { api } from '@/auth/boot';
-import { colors, levelColors, levelNew } from '@/theme/theme';
+import { colors } from '@/theme/theme';
 
 const mockRouter = { push: jest.fn(), navigate: jest.fn() };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useFocusEffect: (fn: () => void) => jest.requireActual('react').useEffect(fn, [fn]) }));
@@ -17,8 +17,6 @@ const progress = (over: Partial<Progress> = {}): Progress => ({
   grid: [...Array.from({ length: 4 }, () => 5), ...Array.from({ length: 18 }, () => 2), ...Array.from({ length: 30 }, () => 0)],
   trees: [[5, 5, 5, 5, 2, 2, 2, 2, 2, 2, 2, 2], []],
   deckWords: [20, 10],
-  vocabulary: 2004, level: 'A2',
-  stops: [{ words: 100, by: '2026-12-29', vocabulary: 2100, level: 'A2' }, { words: 200, by: '2027-01-20', vocabulary: 2200, level: 'A2' }, { words: 500, by: '2027-03-24', vocabulary: 2500, level: 'B1' }, { words: 1000, by: '2027-07-02', vocabulary: 3000, level: 'B1' }],
   ...over,
 });
 const deck = (over: Partial<DeckSummary> = {}): DeckSummary => ({ id: 'd1', topic: 'Ordering food', title: 'Order food, pay and tip', cefr: 'A2', kind: 'topic', words: 20, learning: 8, hard: 2, stages: [5, 2, 2, 0], ...over });
@@ -45,14 +43,13 @@ test('loading, then the numbers: the total, new, learning and mastered; no hard 
   expect(screen.getByText('Loading your progress…')).toBeOnTheScreen();
   await act(async () => answer(progress()));
   await waitFor(() => expect(screen.getByText('52')).toBeOnTheScreen());
-  for (const text of ['TODAY', 'words in your word bank', '30 new', '18 learning', '4 mastered', 'A2 · ABOUT 2,000 WORDS', 'Drag the bar to see your future']) expect(screen.getByText(text)).toBeOnTheScreen();
+  for (const text of ['words in your word bank', '30 new', '18 learning', '4 mastered', 'BY DEC 29', 'you’ll master', '100', 'new Spanish words']) expect(screen.getByText(text)).toBeOnTheScreen();
   expect(screen.queryByText(/hard word/)).toBeNull();
 });
 
-test('the order from top to bottom: numbers, one meadow with Kai, the future bar, the level card, squares, decks', async () => {
+test('the order from top to bottom: numbers, small meadow with Kai, squares, big meadow, decks', async () => {
   await show(progress());
-  expect(screen.queryByTestId('meadow-goal')).toBeNull(); // one meadow since 2026-11-25
-  const at = order(['progress-numbers', 'meadow-now', 'future-bar', 'level-card', 'goal-grid', 'decks-title']);
+  const at = order(['progress-numbers', 'meadow-now', 'goal-grid', 'meadow-goal', 'decks-title']);
   expect(at.every((i) => i >= 0)).toBe(true);
   expect([...at].sort((a, b) => a - b)).toEqual(at);
 });
@@ -68,13 +65,12 @@ test('the small meadow: one tree per deck with a leaf per word, and a small live
 test('no decks yet: the small meadow still has one tree', async () => {
   await show(progress({ total: 0, new: 0, learning: 0, mastered: 0, hard: 0, decks: 0, grid: [], trees: [], deckWords: [], language: '' }), []);
   expect(screen.getByLabelText('Your meadow now: 1 tree')).toBeOnTheScreen();
-  expect(screen.getByText('Drag the bar to see your future')).toBeOnTheScreen();
+  expect(screen.getByText('new words')).toBeOnTheScreen();
 });
 
-test('the forest of a stop: one tree per 30 words (the big goal meadow is gone since 2026-11-25)', async () => {
+test('the big meadow has at least three trees', async () => {
   await show(progress());
-  await fireEvent(screen.getByTestId('future-bar'), 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
-  expect(screen.getByLabelText('Your meadow with 100 words: 3 trees')).toBeOnTheScreen();
+  expect(screen.getByLabelText('Your meadow at the goal: 3 trees')).toBeOnTheScreen();
 });
 
 test('the grid: one square per word of the goal; squares of words that have not come yet are grey, not black', async () => {
@@ -142,45 +138,7 @@ test('gone from the page: the "Decks" link at the top and the word plan', async 
   expect('fetchPlan' in api).toBe(false);
 });
 
-test('the legend: a numbered square per level in its own green (0 new, 1 to 4 learning, a tick for mastered) and one line about the reviews', async () => {
-  await show(progress());
-  const color = (level: number) => StyleSheet.flatten(screen.getByTestId(`legend-${level}`).props.style).backgroundColor;
-  expect(color(0)).toBe(levelNew);
-  expect([1, 2, 3, 4, 5].map(color)).toEqual([1, 2, 3, 4, 5].map((l) => levelColors[l]));
-  expect(new Set([0, 1, 2, 3, 4, 5].map(color)).size).toBe(6); // six different greens
-  for (const [level, mark] of [[0, '0'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '✓']] as const) expect(within(screen.getByTestId(`legend-${level}`)).getByText(mark)).toBeOnTheScreen();
-  expect(screen.getByText('You review each word at least 5 times, with spaced repetition.')).toBeOnTheScreen();
-});
-
-// The future bar (Hamid, 2026-11-25): the bar is filled up to today; moving it forward shows a stop, and back is today.
-const move = (name: 'increment' | 'decrement') => fireEvent(screen.getByTestId('future-bar'), 'accessibilityAction', { nativeEvent: { actionName: name } });
-
-test('the future bar: a peek shows the stop’s words, day, level and forest; back shows today again', async () => {
-  jest.useFakeTimers({ now: new Date('2026-11-25T10:00:00Z') });
-  await show(progress());
-  expect(screen.queryByTestId('future-peek')).toBeNull();
-  await move('increment');
-  expect(screen.getByText('ABOUT DEC 29, AT YOUR PACE')).toBeOnTheScreen();
-  expect(screen.getByText('A2 · ABOUT 2,100 WORDS')).toBeOnTheScreen();
-  expect(screen.getByTestId('meadow-future')).toBeOnTheScreen();
-  expect(screen.queryByTestId('meadow-now')).toBeNull();
-  expect(screen.getByTestId('future-peek')).toBeOnTheScreen();
-  expect(screen.getByText('Let go to come back to today')).toBeOnTheScreen();
-  await move('increment');
-  await move('increment');
-  expect(screen.getByText('ABOUT MAR 2027, AT YOUR PACE')).toBeOnTheScreen(); // another year: only the month
-  expect(screen.getByText('B1 · ABOUT 2,500 WORDS')).toBeOnTheScreen();
-  expect(screen.getByText('You can follow most everyday talk and explain your opinion.')).toBeOnTheScreen();
-  await move('decrement');
-  await move('decrement');
-  await move('decrement');
-  expect(screen.getByText('TODAY')).toBeOnTheScreen();
-  expect(screen.getByTestId('meadow-now')).toBeOnTheScreen();
-  jest.useRealTimers();
-});
-
-test('the future bar with no word test: no level, only the words; past every stop it says so', async () => {
-  await show(progress({ vocabulary: undefined, level: undefined, stops: [{ words: 100, by: '2026-12-29' }, { words: 200, by: '2027-01-20' }, { words: 500, by: '2027-03-24' }, { words: 1000, by: '2027-07-02' }] }));
-  expect(screen.getByText('52 WORDS')).toBeOnTheScreen();
-  expect(screen.getByText('Every word you learn makes the next one easier.')).toBeOnTheScreen();
+test('the date in another month', async () => {
+  await show(progress({ masterBy: '2027-01-03' }));
+  expect(screen.getByText('BY JAN 3')).toBeOnTheScreen();
 });

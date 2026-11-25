@@ -56,21 +56,3 @@ export const treeLevels = (words: Word[]) =>
     .filter((w) => w.known || w.stage > 0)
     .map((w) => (w.known ? MASTERED_STAGE : w.stage))
     .sort(highestFirst);
-
-// The future bar of the Progress tab (Hamid, 2026-11-25): the learner drags the bar to these word counts and sees
-// the day they get there and the level their vocabulary has by then.
-export const FUTURE_STOPS = [100, 200, 500, 1000] as const;
-
-// The level for a vocabulary size, from docs/vocab-engine.md 1.5 (`cefrOf`). Never C2: that needs the word test's
-// own measure, and a promise we cannot check would be a lie.
-export const levelFor = (vocabulary: number) => (vocabulary < 1500 ? 'A1' : vocabulary < 2500 ? 'A2' : vocabulary < 3250 ? 'B1' : vocabulary < 3750 ? 'B2' : 'C1');
-
-// One stop: the day its words are mastered at the learner's pace, and the vocabulary and level then.
-// `knownAtStart` = the word test's estimate; null (no test) leaves vocabulary and level out.
-export function futureStops(today: string, started: number, pace: number, knownAtStart: number | null) {
-  return FUTURE_STOPS.map((words) => ({
-    words,
-    by: masterBy(today, words, started, pace),
-    ...(knownAtStart === null ? {} : { vocabulary: knownAtStart + words, level: levelFor(knownAtStart + words) }),
-  }));
-}

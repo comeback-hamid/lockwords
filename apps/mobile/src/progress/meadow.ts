@@ -1,4 +1,4 @@
-import { colors, levelColors, levelNew } from '@/theme/theme';
+import { colors, levelColors } from '@/theme/theme';
 
 // The pixel meadows of the Progress tab (Figma P1). Two pictures, one layout:
 //   nowMeadow  = the small one at the top: one tree per deck, one leaf per word, Kai stands on its right.
@@ -28,7 +28,7 @@ const NOW = { cells: 44, slot: 9, margin: 4, reserve: KAI_CELLS } as const;
 const GOAL = { cells: 36, slot: 11, margin: 3, reserve: 0 } as const;
 const GOAL_WORDS_PER_TREE = 33; // a goal of 100 words = 3 trees
 const GOAL_MIN_TREES = 3;
-const NEW_LEAF = levelNew; // a word that is in the deck but not met yet: the lightest green, as in the goal grid
+const NEW_LEAF = levelColors[1]; // a word that is in the deck but not met yet: the lightest green, as in the goal grid
 
 type TreeKind = keyof typeof SPEC.trees;
 type Layout = { cells: number; slot: number; margin: number; reserve: number };
@@ -66,9 +66,7 @@ function canopyCells(kind: TreeKind) {
   return cells.sort((a, b) => a.row * 1.35 + Math.abs(a.x) * 0.9 - (b.row * 1.35 + Math.abs(b.x) * 0.9));
 }
 
-// A level under zero is a ghost: a word of a tree that is still to grow, drawn in grey.
-export const GHOST = -1;
-const leafColor = (level: number) => (level < 0 ? colors.line : level > 0 ? (levelColors[level] ?? NEW_LEAF) : NEW_LEAF);
+const leafColor = (level: number) => (level > 0 ? (levelColors[level] ?? NEW_LEAF) : NEW_LEAF);
 
 // One tree standing on the ground at column cx. `levels` = one level per word of the deck (0 = not met yet).
 function treeCells(cx: number, kind: TreeKind, allLevels: number[]): Cell[] {
@@ -87,7 +85,7 @@ function treeCells(cx: number, kind: TreeKind, allLevels: number[]): Cell[] {
   const mid = t.rows[0] % 2 === 1 ? cx + 0.5 : cx; // keep every block on the whole-cell grid
   const trunkH = Math.max(1, Math.min(t.trunkMax, Math.ceil(n / 8)));
   for (let h = 0; h < trunkH; h++) {
-    for (let w = 0; w < t.trunkW; w++) out.push({ kind: 'trunk', x: mid - t.trunkW / 2 + w, y: -1 - h, color: levels[0]! < 0 ? colors.line : t.lightTrunk && h % 2 === 1 ? colors.lineStrong : colors.subtle, order: h });
+    for (let w = 0; w < t.trunkW; w++) out.push({ kind: 'trunk', x: mid - t.trunkW / 2 + w, y: -1 - h, color: t.lightTrunk && h % 2 === 1 ? colors.lineStrong : colors.subtle, order: h });
   }
   const cells = canopyCells(kind);
   for (let i = 0; i < n; i++) out.push({ kind: 'leaf', x: mid + cells[i]!.x - 0.5, y: -1 - trunkH - cells[i]!.row, color: leafColor(levels[i]!), order: trunkH + i });
@@ -159,11 +157,9 @@ function layOut(trees: number[][], layout: Layout): Scene {
 // The small meadow: the decks as they are now. `met` = the levels of each deck's met words (oldest deck first),
 // `deckWords` = how many words each of those decks has. A word not met yet is a leaf in the lightest green.
 // There is always one tree: with no deck it is a bare stem.
-// `ghosts`: grey trees after the real ones, for the words still to come before the next stop of the future bar.
-export function nowMeadow(met: number[][], deckWords: number[], ghosts = 0): Scene {
+export function nowMeadow(met: number[][], deckWords: number[]): Scene {
   const trees = met.map((levels, i) => [...levels, ...Array.from({ length: Math.max(0, (deckWords[i] ?? levels.length) - levels.length) }, () => 0)]);
-  const ghostTrees = Array.from({ length: ghosts }, () => Array.from({ length: SPEC.wordsPerDeck }, () => GHOST));
-  return layOut(trees.length || ghosts ? [...trees, ...ghostTrees] : [[]], NOW);
+  return layOut(trees.length ? trees : [[]], NOW);
 }
 
 // The big meadow: the forest at the goal. One full tree per 33 words of the goal, three at least, in the strong
@@ -178,25 +174,4 @@ export function goalMeadow(goal: number): Scene {
     });
   });
   return layOut(trees, GOAL);
-}
-
-// The meadow of the future bar: the forest the learner has with `words` words, one full tree per 30 words, in the
-// strong greens. A bigger forest is drawn with smaller blocks (the view moves back), so the picture never gets
-// taller than `maxRatio` (height / width) and the page does not jump while the bar is dragged.
-const FUTURE_CELLS = [36, 44, 54, 66, 80, 96, 116] as const;
-export function futureMeadow(words: number, maxRatio: number): Scene {
-  const n = Math.max(1, Math.round(words / SPEC.wordsPerDeck));
-  const trees = Array.from({ length: n }, (_, i) => {
-    const random = rng(11 + i * 97);
-    return Array.from({ length: SPEC.wordsPerDeck }, () => {
-      const v = random();
-      return v < 0.4 ? 5 : v < 0.75 ? 4 : 3;
-    });
-  });
-  let scene = layOut(trees, { cells: FUTURE_CELLS[0], slot: 9, margin: 3, reserve: 0 });
-  for (const cells of FUTURE_CELLS) {
-    scene = layOut(trees, { cells, slot: 9, margin: 3, reserve: 0 });
-    if (scene.height / scene.width <= maxRatio) break;
-  }
-  return scene;
 }
