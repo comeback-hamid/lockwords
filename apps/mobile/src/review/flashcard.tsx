@@ -9,7 +9,7 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { Icon } from '@/components/icon';
 import { sayWord } from '@/review/speak';
 import { useSwipe } from '@/review/use-swipe';
-import { wordFit } from '@/review/word-size';
+import { wordLayout } from '@/review/word-size';
 import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 // Where a card is in the stack. `top` is the one the learner reads and moves. `under` is the next card, already
@@ -87,7 +87,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
     const t = turn.get();
     return { opacity: t < 0.5 ? 0 : 1, transform: t >= 1 ? [{ rotateY: '0deg' }] : [{ perspective: PERSPECTIVE }, { rotateY: `${interpolate(t, [0.5, 1], [-90, 0], 'clamp')}deg` }] };
   });
-  const fit = wordFit(card.word);
+  const fit = wordLayout(card.word);
 
   const imageUrl = (card as ReviewCard & { imageUrl?: string | null }).imageUrl ?? null; // the picture field of the card API
   const bare = card.word.replace(/^\S+\s+/, ''); // the word without its article, to color it in the example
@@ -115,7 +115,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
               </Face>
 
               <Face testID="card-back" style={backStyle} shown={flipped}>
-                <Picture url={imageUrl} share={tokens.pictureBack} />
+                <Picture url={imageUrl} share={tokens.pictureBack} gives />
                 <View style={styles.backBody}>
                   <View style={styles.head}>
                     <Word card={card} />
@@ -175,9 +175,11 @@ function Face({ testID, style, shown, children }: { testID: string; style: Style
 }
 
 // The top of the card, on both sides: the word's picture, or a quiet placeholder while there is none.
-function Picture({ url, share }: { url: string | null; share: `${number}%` }) {
+// `gives` (the back): when the text under it needs more room than is left, the picture gets shorter, so the Use it
+// button is never pushed off the card (a small phone, a long meaning and example).
+function Picture({ url, share, gives = false }: { url: string | null; share: `${number}%`; gives?: boolean }) {
   return (
-    <View testID="card-picture" style={[styles.picture, { height: share }]}>
+    <View testID="card-picture" style={[styles.picture, { height: share }, gives && styles.pictureGives]}>
       {url ? (
         <Image testID="card-image" source={{ uri: url }} contentFit="cover" transition={150} style={styles.fill} accessibilityElementsHidden />
       ) : (
@@ -189,15 +191,15 @@ function Picture({ url, share }: { url: string | null; share: `${number}%` }) {
   );
 }
 
-// The word with its level square, centered. The square sits on the first line. A long word or phrase gets a
-// smaller size before it gets a second line, and one word is never cut (src/review/word-size.ts).
+// The word with its level square, centered. The square sits on the first line. One or two lines, never three;
+// a word is never cut: the font gets smaller instead (src/review/word-size.ts).
 function Word({ card }: { card: ReviewCard }) {
-  const { size, lines } = wordFit(card.word);
+  const { size, lines } = wordLayout(card.word);
   return (
     <View style={styles.wordRow}>
       <View style={[styles.square, { marginTop: (size + tokens.wordLineGap - tokens.levelSquare) / 2, backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-      <Text numberOfLines={lines} adjustsFontSizeToFit minimumFontScale={lines === 1 ? 0.5 : 0.7} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
-        {card.word}
+      <Text accessibilityLabel={card.word} numberOfLines={lines.length} adjustsFontSizeToFit minimumFontScale={0.5} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
+        {lines.join('\n')}
       </Text>
     </View>
   );
@@ -231,7 +233,9 @@ const styles = StyleSheet.create({
   frontBody: { flex: 1, alignItems: 'center', paddingHorizontal: space[24] - space[4], paddingBottom: space[24] },
   frontWord: { flex: 3, justifyContent: 'flex-end', paddingTop: space[16] },
   frontRest: { flex: 2 },
-  backBody: { flex: 1, gap: space[16], paddingHorizontal: space[24] - space[4], paddingTop: BACK_BODY_TOP, paddingBottom: space[24] },
+  pictureGives: { flexShrink: 1, minHeight: '20%' },
+  // As tall as its text needs, and it takes the room that is left: the picture gives way, the text does not.
+  backBody: { flexGrow: 1, flexShrink: 0, gap: space[16], paddingHorizontal: space[24] - space[4], paddingTop: BACK_BODY_TOP, paddingBottom: space[24] },
   head: { alignItems: 'center', gap: space[4] },
   example: { gap: space[8] - 2 },
   wordRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: space[12], paddingTop: WORD_ROW_TOP },

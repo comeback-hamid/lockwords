@@ -37,6 +37,7 @@ More than ~10 tasks in a change → split it.
 - `npx expo install <pkg>` in `apps/mobile`, never `npm install <pkg>` there.
 - Colors, type and sizes come from `apps/mobile/src/theme/theme.ts`. No raw values in screens.
 - Plain English in docs and specs. Short sentences.
+- **Figma and `docs/product.md` are the single source of truth** (Hamid, 2026-11-25). When Hamid changes a rule, the same PR changes `docs/product.md` (and the spec). When he changes a look, the same work changes the Figma file. Decide yourself which it is, and say in the PR what you changed. A pure bug fix (the code did not match them) needs no change there.
 - Keep `docs/roadmap.md` true, in every session: the PR that finishes, starts or drops work also updates its status rows, "Where we are", "Merged so far" and the "Last updated" line. Read it at the start of a session; if it is behind `git log`, fix it first.
 - Fix what you can now. `docs/tech-debt.md` is only for work blocked on Hamid (an account, a key, a design, a decision), and says which.
 - A skipped part is written in `tasks.md` as "Not done: <what>, <why>". No silent gaps.

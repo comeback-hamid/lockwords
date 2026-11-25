@@ -12,7 +12,7 @@ tags:
 # O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 90000
 # New words: ask Kai for our own deck (12 words) and make it
 - tapOn: "New words"
@@ -46,7 +46,7 @@ tags:
 # Review now has both decks: every new card, 22 (no daily limit of new words)
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "22 cards to review today"
+    visible: "22 cards due today"
     timeout: 20000
 - tapOn: "New words"
 # Open the deck page (the card's middle can sit under Kai's header: pull the chat down a little and tap)
@@ -129,7 +129,7 @@ tags:
 - tapOn: "Close"
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "19 cards to review today"
+    visible: "19 cards due today"
     timeout: 20000
 # Open the deck again: the three words stayed away. Remove deck asks first; Cancel keeps it.
 - tapOn: "New words"
@@ -163,7 +163,7 @@ tags:
 - assertVisible: "Message"
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 # After a restart the chat loads without the removed deck's card; the messages are still there
 - stopApp

@@ -12,7 +12,7 @@ tags:
 # O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 # N1 First visit: Kai says hello and asks if we want to see 3 decks. No cards yet.
 - tapOn: "New words"
@@ -110,9 +110,9 @@ tags:
 - tapOn: "Send"
 - hideKeyboard
 - extendedWaitUntil:
-    visible: ".* cards to review today"
+    visible: ".* cards due today"
     timeout: 60000
-- assertNotVisible: "10 cards to review today"
+- assertNotVisible: "10 cards due today"
 # N5 My own deck: say what we need. Kai may ask one short question first, then shows one card.
 - tapOn: "New words"
 # The chat needs a moment to come back: wait for the message box before tapping it (this step failed about 1 run in 3).

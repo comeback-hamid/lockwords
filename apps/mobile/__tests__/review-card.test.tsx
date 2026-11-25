@@ -61,7 +61,7 @@ describe('layout', () => {
     const words = [within(front()).getByText('la propina'), within(back()).getByText('la propina', hidden)];
     for (const word of words) {
       expect(StyleSheet.flatten(word.props.style).textAlign).toBe('center');
-      expect(fontSize(word)).toBe(44);
+      expect(fontSize(word)).toBe(39);
     }
   });
 
@@ -73,18 +73,20 @@ describe('layout', () => {
     expect(word.props.adjustsFontSizeToFit).toBe(true);
     const phrase = screen.getAllByText('to brush up on', hidden)[0]!;
     expect(phrase.props.numberOfLines).toBe(1);
-    expect(fontSize(phrase)).toBe(30);
+    expect(fontSize(phrase)).toBe(27);
   });
 
   test('a long phrase gets a smaller font, on both sides, and keeps its speaker', async () => {
     const phrase = '¿Me puede traer la cuenta, por favor?';
     setRound([card(1, phrase)]);
     await render(<RoundScreen />);
-    const words = [within(front()).getByText(phrase), within(back()).getByText(phrase, hidden)];
+    const lines = '¿Me puede traer la\ncuenta, por favor?'; // two lines, cut between words; never three
+    const words = [within(front()).getByText(lines), within(back()).getByText(lines, hidden)];
     for (const word of words) {
-      expect(fontSize(word)).toBe(24);
+      expect(fontSize(word)).toBe(21);
       expect(StyleSheet.flatten(word.props.style).maxWidth).toBe(cardTokens.wordMaxWidth);
-      expect(word.props.numberOfLines).toBe(3);
+      expect(word.props.numberOfLines).toBe(2);
+      expect(word.props.accessibilityLabel).toBe(phrase);
     }
     expect(within(front()).getByRole('button', { name: 'Say the word' })).toBeOnTheScreen();
   });

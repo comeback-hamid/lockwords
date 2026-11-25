@@ -59,7 +59,7 @@ export const card = {
   pictureBack: '42%',
   stampTop: 105, // the swipe label, from the top of the card
   wordMaxWidth: 219, // the word's text; the level square sits left of it, on the first line
-  wordLines: 3,
+  wordLines: 2, // never more
   wordSizes: [44, 36, 30, 24], // the first that fits; line height = size + wordLineGap
   wordLineGap: 8,
   levelSquare: 18,

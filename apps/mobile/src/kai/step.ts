@@ -75,6 +75,7 @@ const C = {
   body: hex2rgb(PAL.body), hi: hex2rgb(PAL.hi), shade: hex2rgb(PAL.shade), leaf: hex2rgb(PAL.leaf), leafHi: hex2rgb(PAL.leafHi),
   eye: hex2rgb(PAL.eye), accent: hex2rgb(PAL.accent), dimTo: hex2rgb(PAL.dimTo), shadow: hex2rgb(PAL.shadow),
   squares: PAL.squares.map(hex2rgb),
+  line: hex2rgb(PAL.line), surface: hex2rgb(PAL.surface), chip: hex2rgb(PAL.chip), muted: hex2rgb(PAL.muted),
 };
 
 function mix(a: RGB, b: RGB, t: number): RGB {
@@ -174,8 +175,9 @@ function sampleKeys(K: NonNullable<StateSpec['keys']>, u: number, base: Pose): P
   return pose;
 }
 
-/* The effects this port draws. Positions come from the page's markup(), timing from its @keyframes. */
-function effect(name: string, t: number, lvl: number, alpha: number, fx: KaiRect[], text: KaiText[]) {
+/* The effects this port draws. Positions come from the page's markup(), timing from its @keyframes.
+   cp is where the state's cycle is, 0 to 1: a synced effect (spec.syncedEffects) follows it, not the clock. */
+function effect(name: string, t: number, cp: number, lvl: number, alpha: number, fx: KaiRect[], text: KaiText[]) {
   'worklet';
   if (alpha <= 0) return;
   const px = (cls: string, x: number, dx: number, durS: number, peak: number, move: number, group: number) => {
@@ -228,9 +230,35 @@ function effect(name: string, t: number, lvl: number, alpha: number, fx: KaiRect
       const sc = kf([[0, 0.3], [0.5, 1], [1, 0.3]], p, 'ease-in-out');
       fx.push({ x: spots[i][0] + (1 - sc) / 2, y: spots[i][1] + (1 - sc) / 2, w: sc, h: sc, color: C.accent, a: op * alpha, r: 0 });
     }
+  } else if (name === 'cards') {
+    // The card behind stays. The top card follows @keyframes cardgo: off to the right, a new one, off to the left, a new one.
+    fx.push({ x: 16.9, y: -3, w: 3.4, h: 4.7, color: C.line, a: alpha, r: 0.5 });
+    fx.push({ x: 17.2, y: -2.7, w: 2.8, h: 4.1, color: C.chip, a: alpha, r: 0.3 });
+    const dx = kf([[0, 0], [0.35, 0], [0.39, 1.4], [0.45, 3.4], [0.46, 0.6], [0.52, 0], [0.84, 0], [0.88, -1.4], [0.93, -3.4], [0.94, 0.6], [1, 0]], cp, 'linear');
+    const dy = kf([[0, 0], [0.35, 0], [0.39, -0.5], [0.45, -0.9], [0.46, -0.6], [0.52, 0], [0.84, 0], [0.88, -0.7], [0.93, -1.3], [0.94, -0.6], [1, 0]], cp, 'linear');
+    const op = kf([[0, 1], [0.39, 1], [0.45, 0], [0.46, 0], [0.52, 1], [0.88, 1], [0.93, 0], [0.94, 0], [1, 1]], cp, 'linear') * alpha;
+    fx.push({ x: 16.3 + dx, y: -2.4 + dy, w: 3.4, h: 4.7, color: C.line, a: op, r: 0.5 });
+    fx.push({ x: 16.6 + dx, y: -2.1 + dy, w: 2.8, h: 4.1, color: C.surface, a: op, r: 0.3 });
+    fx.push({ x: 16.9 + dx, y: -1.8 + dy, w: 2.2, h: 1.3, color: C.squares[0], a: op, r: 0 });
+    fx.push({ x: 17.1 + dx, y: 0.1 + dy, w: 1.8, h: 0.5, color: C.eye, a: op, r: 0 });
+    fx.push({ x: 17.1 + dx, y: 1 + dy, w: 1.1, h: 0.4, color: C.muted, a: op, r: 0 });
+    // Two sparkle pixels when a card goes right (@keyframes cardsp).
+    const so = kf([[0, 0], [0.38, 0], [0.43, 1], [0.52, 0], [1, 0]], cp, 'linear') * alpha;
+    const sc = 0.7 * kf([[0, 0], [0.38, 0], [0.43, 1.2], [0.52, 0.4], [1, 0.4]], cp, 'linear');
+    for (const [sx, sy] of [[21.4, -4.2], [21.9, 0.6]]) fx.push({ x: sx + (0.7 - sc) / 2, y: sy + (0.7 - sc) / 2, w: sc, h: sc, color: C.accent, a: so, r: 0 });
   }
 }
-const FX = ['in', 'out', 'dots', 'squares', 'stack', 'bang', 'q', 'sparkle'];
+const FX = ['in', 'out', 'dots', 'squares', 'stack', 'bang', 'q', 'sparkle', 'cards'];
+// With Reduce Motion these still show, at the start of their cycle: the state's picture needs them.
+const STILL_FX = ['cards'];
+
+/** The effect rectangles of a state's still pose (the browser's still Kai draws them over its picture). */
+export function stillEffects(state: string): KaiRect[] {
+  const fx: KaiRect[] = [];
+  const name = STATES[knownState(state)].fx;
+  if (name && STILL_FX.includes(name)) effect(name, 0, 0, 0, 1, fx, []);
+  return fx;
+}
 
 export function stepCharacter(m: KaiMemory, input: KaiInput, t: number): KaiFrame {
   'worklet';
@@ -379,12 +407,13 @@ export function stepCharacter(m: KaiMemory, input: KaiInput, t: number): KaiFram
 
   /* effects: each fades in and out over 0.3 s, as the page's CSS transition */
   const fx: KaiRect[] = [], text: KaiText[] = [];
+  const cp = cyc ? (lt % cyc) / cyc : 0;
   for (const name of FX) {
-    const goal = !still && S.fx === name ? 1 : 0;
+    const goal = S.fx === name && (!still || STILL_FX.includes(name)) ? 1 : 0;
     const a = m.fxA[name] ?? 0;
     const next = a + Math.sign(goal - a) * Math.min(Math.abs(goal - a), dt / FX_FADE_MS);
     m.fxA[name] = next;
-    effect(name, t, lvl, next, fx, text);
+    effect(name, t, cp, lvl, next, fx, text);
   }
 
   return {

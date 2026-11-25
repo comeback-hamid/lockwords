@@ -36,6 +36,13 @@ export function undone(card: ReviewCard) {
 }
 // The server sends a Hard card back once the same day: it goes to the end of the round.
 export const showAgain = (card: ReviewCard) => set({ ...round, cards: [...round.cards, card] });
+// Words made while a round is open (a new deck, a word from Kai) join at the end of it. Cards already in the round,
+// swiped or not, are left as they are.
+export function addToRound(cards: ReviewCard[]) {
+  const have = new Set(round.cards.map((c) => c.id));
+  const fresh = cards.filter((c) => !have.has(c.id));
+  if (fresh.length) set({ ...round, cards: [...round.cards, ...fresh] });
+}
 export const findCard = (id: string) => round.cards.find((c) => c.id === id) ?? null;
 export function useRound() {
   return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), getRound, getRound);

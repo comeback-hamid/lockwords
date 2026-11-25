@@ -33,7 +33,7 @@ Local databases: `npm run db:setup` from the repo root creates `lockwords_dev` a
 - A deck is always in the language being learned: title, reason, words and examples. The learner's own language is only the translation (`titleTranslation`, `translation`, `exampleTranslation`). Tests: `test/unit/deck-language.test.ts`.
 - Removing a word or a deck sets `removed_at` (cards, decks); nothing is deleted. Every query that reads cards or decks filters `removed_at is null`. A removed row answers `404`. Random Words numbers count removed decks too, so a title is never used twice.
 - Kai's own answer in the onboarding chat (`POST /v1/kai/reply`, `src/llm/kai-reply.ts`): written in the chat's language (`chat: 'target'` = the learned language, left out = the learner's own). With `target` the answer has `translations`, one per line.
-- Voice to text: `POST /v1/transcribe` (`src/routes/transcribe.ts`, `src/llm/transcribe.ts`): base64 audio in, text out, OpenAI `gpt-4o-transcribe` with `OPENAI_API_KEY`, a fixed sentence without the key. The sound is never saved.
+- Voice to text: `POST /v1/transcribe` (`src/routes/transcribe.ts`, `src/llm/transcribe.ts`): base64 audio in, text out, OpenAI `gpt-transcribe` with `OPENAI_API_KEY` (the learner's two languages go in as `languages[]`; `transcribeFor` tries once more in their own language when the model heard a third one), a fixed sentence without the key. The sound is never saved.
 - Tests never call a real model. One fixture replaces Langfuse and the model.
 - Each user reads only their own rows. Keep Speak text, never audio.
 - The server checks the Supabase token (`src/auth.ts`) on every `/v1/*` route. No other Supabase parts. Never log a token.

@@ -1,5 +1,5 @@
 import { flyTarget, labelStrength, SWIPE_DISTANCE, swipeDirection } from '@/review/swipe';
-import { wordSize } from '@/review/word-size';
+import { wordLayout } from '@/review/word-size';
 
 // The swipe rules are plain functions, so the gesture (which runs on the UI thread) can be checked here.
 describe('swipe label strength', () => {
@@ -50,22 +50,23 @@ describe('what a release does', () => {
   });
 });
 
-describe('word size (Figma: Flashcard · rules)', () => {
-  test('a short word is 44, also a short phrase that fits on two lines', () => {
-    expect(wordSize('la propina')).toBe(44);
-    expect(wordSize('pagar')).toBe(44);
-    expect(wordSize('tener ganas de')).toBe(44); // "tener" / "ganas de"
+describe('word on the card (Hamid, 2026-11-25): one or two lines, never three; a word is never cut; a smaller font instead', () => {
+  test('one word is always one line, and the font follows its length', () => {
+    expect(wordLayout('pagar')).toEqual({ size: 44, lines: ['pagar'] });
+    expect(wordLayout('bottleneck')).toEqual({ size: 39, lines: ['bottleneck'] });
+    expect(wordLayout('restaurante')).toEqual({ size: 35, lines: ['restaurante'] });
+    expect(wordLayout('desafortunado')).toEqual({ size: 30, lines: ['desafortunado'] });
+    expect(wordLayout('x'.repeat(200))).toEqual({ size: 14, lines: ['x'.repeat(200)] }); // never under 14; the text shrinks itself after that
   });
 
-  test('longer words and phrases step down: 36, 30, 24', () => {
-    expect(wordSize('restaurante')).toBe(36); // one word of 11 letters
-    expect(wordSize('desafortunado')).toBe(30); // one word of 13 letters
-    expect(wordSize('echar de menos a alguien')).toBe(30); // "echar de menos" / "a alguien"
-    expect(wordSize('estar de acuerdo con alguien')).toBe(24);
-    expect(wordSize('¿Me puede traer la cuenta, por favor?')).toBe(24);
+  test('a short phrase takes one line with a smaller font', () => {
+    expect(wordLayout('la propina')).toEqual({ size: 39, lines: ['la propina'] });
+    expect(wordLayout('to brush up on')).toEqual({ size: 27, lines: ['to brush up on'] });
   });
 
-  test('never under 24', () => {
-    expect(wordSize('x'.repeat(200))).toBe(24);
+  test('a longer phrase takes two lines, cut between words where the lines are most even', () => {
+    expect(wordLayout('to give a presentation')).toEqual({ size: 32, lines: ['to give a', 'presentation'] });
+    expect(wordLayout('¿Me puede traer la cuenta, por favor?')).toEqual({ size: 21, lines: ['¿Me puede traer la', 'cuenta, por favor?'] });
+    for (const phrase of ['echar de menos a alguien', 'estar de acuerdo con alguien', 'a b c d e f g h i j k l m n o p q r s t']) expect(wordLayout(phrase).lines.length).toBeLessThanOrEqual(2);
   });
 });

@@ -27,10 +27,9 @@ export function canSwipe(card: CardState, today: Today, dayEnd: Date): boolean {
   return card.dueAt !== null && card.dueAt < dayEnd;
 }
 
-// Use it (docs/product.md 7.5) starts at stage 3. On the learner's very first review day (the onboarding practice)
-// every card offers it.
-const USE_IT_FROM_STAGE = 3;
-export const canUseIt = (stage: number, firstDay: boolean) => firstDay || stage >= USE_IT_FROM_STAGE;
+// Use it is offered on every card, always (Hamid, 2026-11-25; from 2026-11-20 it started at stage 3).
+// The field stays in the API so the rule can change on the server without a new app build.
+export const canUseIt = () => true;
 
 type Pickable = CardState & { deckCreatedAt: Date; position: number };
 
