@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import type { DeckSummary, Progress } from '@/api/client';
@@ -148,7 +148,7 @@ test('the legend: a numbered square per level in its own green (0 new, 1 to 4 le
   expect(color(0)).toBe(levelNew);
   expect([1, 2, 3, 4, 5].map(color)).toEqual([1, 2, 3, 4, 5].map((l) => levelColors[l]));
   expect(new Set([0, 1, 2, 3, 4, 5].map(color)).size).toBe(6); // six different greens
-  for (const mark of ['0', '1', '2', '3', '4', '✓']) expect(screen.getByText(mark)).toBeOnTheScreen();
+  for (const [level, mark] of [[0, '0'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '✓']] as const) expect(within(screen.getByTestId(`legend-${level}`)).getByText(mark)).toBeOnTheScreen();
   expect(screen.getByText('You review each word at least 5 times, with spaced repetition.')).toBeOnTheScreen();
 });
 
