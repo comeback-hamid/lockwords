@@ -121,3 +121,18 @@ Check real answers by hand with `npx tsx scripts/kai-try.ts` in `apps/server` (2
 ## Run it all locally (no cloud accounts)
 `npm run dev:up` from the repo root: checks Docker → starts local Supabase (login only, `127.0.0.1:54321`) → writes `apps/server/.env` and `apps/mobile/.env.local` if missing → creates the databases → runs migrations → starts the server on `:8787`. Then `cd apps/mobile && npm run ios`.
 Going to the cloud later = new values for `SUPABASE_URL`, `SUPABASE_JWT_ISSUER`, `DATABASE_URL` (server) and the three `EXPO_PUBLIC_*` values (app). No code change.
+
+## Widgets (iOS)
+The widget shows the learner's hard words (`docs/product.md` 7.4). What iOS allows: `docs/widget-limits.md`.
+
+```
+server                        app                          widget (its own small program)
+GET /v1/widget/plan   →   src/widgets/sync.ts     →   src/widgets/lockwords-widget.tsx
+ (words, order, looks)     updateTimeline(entries)       draws the entry of the current time
+```
+- **The server decides.** `src/widget/plan.ts` makes the slots (30 minutes each, 07:00 to 23:00, 48 hours ahead) and keeps what it handed out in `widget_plans`. iOS cannot say whether a person looked, so on the next call every kept slot whose end has passed counts as one look.
+- **The app carries.** It loads the plan when it starts and when it comes back to the front, and gives it to the widget through the app group (`expo-widgets`). The widget cannot call the server.
+- **The widget draws.** One timeline entry = one word, its meaning, the look (1 to 5) and the file of Kai's pose. After the last slot comes one "Open Lockwords" entry.
+- **A tap** opens `lockwords://review?first=<card id>`; the Review tab asks `GET /v1/review?first=` and starts the round on that word.
+- Not built: a refresh while the app is closed (the plan lasts 48 hours), and knowing whether the learner added the widget.
+
