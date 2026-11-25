@@ -103,6 +103,7 @@ Status: ⬜ not started · 🟨 in progress · ✅ done. Order follows the dev g
 | #40 | 2026-11-20 | Your decks (P2) and the deck words page (P3): filters, hard mark, Restore, Review this deck |
 | #41 | 2026-11-20 | Progress home (P1): counts, goal grid, date, Kai on the ground strip, the pixel meadow |
 | #48 | 2026-11-23 | Hard words count and full list on the server, the new Progress page (two meadows, grey grid, decks at the bottom), the word plan off Progress |
+| #69 | 2026-11-25 | Pictures for single words: a word kept in a Random Words deck gets its own picture from a background job (`src/decks/word-pictures.ts`); a count-first job for older words; more tests for the 30-word rule |
 | #3 (draft, never merge) | 2026-11-16 | Widget spike |
 
 ## Later (not v1)
