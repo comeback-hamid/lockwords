@@ -6,14 +6,14 @@ const START_HOUR = 4;
 const HOUR_MS = 3_600_000;
 
 // Minutes the zone is ahead of UTC at that moment.
-function offsetMinutes(at: Date, timeZone: string): number {
+export function offsetMinutes(at: Date, timeZone: string): number {
   const parts = new Intl.DateTimeFormat('en-US', { timeZone, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }).formatToParts(at);
   const n = (type: string) => Number(parts.find((p) => p.type === type)!.value);
   const local = Date.UTC(n('year'), n('month') - 1, n('day'), n('hour'), n('minute'), n('second'));
   return Math.round((local - at.getTime()) / 60_000);
 }
 
-function validZone(timeZone: string | undefined): string {
+export function validZone(timeZone: string | undefined): string {
   if (!timeZone) return 'UTC';
   try {
     new Intl.DateTimeFormat('en-US', { timeZone });

@@ -18,3 +18,5 @@ export function useMe() {
     () => me,
   );
 }
+
+export const getMe = () => me;

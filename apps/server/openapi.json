@@ -657,6 +657,9 @@
               "string",
               "null"
             ]
+          },
+          "lookOnly": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1211,6 +1214,54 @@
           "learning",
           "hard",
           "stages"
+        ]
+      },
+      "WidgetPlan": {
+        "type": "object",
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WidgetSlot"
+            }
+          },
+          "endsAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "slots",
+          "endsAt"
+        ]
+      },
+      "WidgetSlot": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "cardId": {
+            "type": "string"
+          },
+          "word": {
+            "type": "string"
+          },
+          "translation": {
+            "type": "string"
+          },
+          "look": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "cardId",
+          "word",
+          "translation",
+          "look"
         ]
       },
       "KaiScript": {
@@ -2493,6 +2544,14 @@
             "required": false,
             "name": "deckId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "first",
+            "in": "query"
           }
         ],
         "responses": {
@@ -3100,6 +3159,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WordPlan"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/widget/plan": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The hard words for the widget, one per 30-minute slot, for the next 48 hours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetPlan"
                 }
               }
             }

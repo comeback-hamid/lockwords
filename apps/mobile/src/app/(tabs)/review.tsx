@@ -11,8 +11,10 @@ import { LevelChain } from "@/components/level-chain";
 import { LoadError, Loading } from "@/components/load-state";
 import { Kai } from "@/kai/kai";
 import { isIntroDone } from "@/review/intro";
-import { addToRound, backFromUseIt, getRound, setRound } from "@/review/round-store";
+import { addToRound, backFromUseIt, getRound, putFirst, setOpenInTab, setRound, useOpenInTab } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
+import { syncWidget, useWidgetUrl } from "@/widgets/sync";
+import { tapped, useOpeningEnded, useTapped } from "@/widgets/tapped";
 
 const KAI_SIZE = 168;
 const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
@@ -26,24 +28,32 @@ export default function ReviewScreen() {
     summary: ReviewSummary | null;
     failed: boolean;
   }>({ cards: null, summary: null, failed: false });
-  const [inRound, setInRound] = useState(false);
+  // Whether the round is on screen lives in the round store, so every copy of this screen agrees (see there).
+  const inRound = useOpenInTab();
+  const setInRound = setOpenInTab;
 
   // Loads every time the tab comes into view, so a finished or left round shows what is true now.
   // `afterRound`: the round just ended here. Its (empty) screen stays until the new numbers are in, so the old
   // start screen does not flash by.
+  const loads = useRef(0);
   const load = useCallback((afterRound = false) => {
     if (!afterRound) setInRound(false);
+    void syncWidget(); // the hard words may have changed (a round, a removed word): the widget gets its new plan
     // The summary (name, streak, today's numbers) is an extra: without it the screen still works.
     const summary = Promise.resolve()
       .then(() => api.fetchSummary())
       .catch(() => null);
+    // A tap on the widget that comes while this load runs wins: this load's answer is then dropped.
+    const mine = ++loads.current;
+    const taps = tapped.opened();
+    const stillMine = () => mine === loads.current && taps === tapped.opened();
     Promise.all([api.fetchRound(), summary])
       .then(
-        ([cards, s]) => setState({ cards, summary: s, failed: false }),
-        () => setState({ cards: null, summary: null, failed: true }),
+        ([cards, s]) => stillMine() && setState({ cards, summary: s, failed: false }),
+        () => stillMine() && setState({ cards: null, summary: null, failed: true }),
       )
-      .then(() => setInRound(false));
-  }, []);
+      .then(() => stillMine() && setInRound(false));
+  }, [setInRound]);
   // A round that is open stays open (Hamid, 2026-11-25): coming back from another tab, from Use it or from outside
   // the app shows the same card, with the bar where it was. Words made meanwhile join at the end of the round.
   // Only when no round is open does the tab load again.
@@ -51,8 +61,48 @@ export default function ReviewScreen() {
   useEffect(() => {
     roundOpen.current = inRound;
   }, [inRound]);
+  // A tap on the widget (Hamid, 2026-11-25): the round opens at once, with the tapped word as the first card.
+  // With a round already open, the word is put on top of it.
+  const openOn = useCallback(
+    (first: string) => {
+      const { cards: inStore, index } = getRound();
+      const open = roundOpen.current && index < inStore.length;
+      tapped.startOpening();
+      // Before the first round is finished (the onboarding practice) a tap changes nothing: that round has its own
+      // screens. A word that is gone (the server's round does not start with it) opens no round either.
+      Promise.resolve()
+        .then(() => isIntroDone())
+        .then((introDone) => (introDone ? api.fetchRound(undefined, first) : null))
+        .then(
+          (cards) => {
+            if (cards?.[0]?.id !== first) return;
+            if (open) return putFirst(cards[0]);
+            setRound(cards);
+            setInRound(true);
+          },
+          () => {},
+        )
+        .finally(tapped.doneOpening);
+    },
+    [setInRound],
+  );
+  const tappedId = useTapped();
+  useEffect(() => {
+    const first = tapped.take();
+    if (first) openOn(first);
+  }, [tappedId, openOn]);
+  // A tapped word finished loading and this copy of the tab shows no round (the word was removed, the load failed,
+  // or the screen was built again meanwhile): load the tab as usual, so it never stays on "Loading".
+  const openingEnded = useOpeningEnded();
+  const seenEnded = useRef(openingEnded);
+  useEffect(() => {
+    if (seenEnded.current === openingEnded) return;
+    seenEnded.current = openingEnded;
+    if (!roundOpen.current) load();
+  }, [openingEnded, load]);
   const onFocus = useCallback(() => {
     const fromUseIt = backFromUseIt();
+    if (tapped.isOpening()) return; // the tapped word loads the round itself
     const { cards: inStore, index } = getRound();
     if (roundOpen.current && index < inStore.length) {
       if (!fromUseIt) void Promise.resolve().then(() => api.fetchRound()).then(addToRound, () => {});
@@ -62,6 +112,7 @@ export default function ReviewScreen() {
     load();
   }, [load]);
   const onRoundDone = useCallback(() => load(true), [load]);
+  const widgetUrl = useWidgetUrl();
   useFocusEffect(onFocus);
 
   async function start(cards: ReviewCard[]) {
@@ -159,6 +210,12 @@ export default function ReviewScreen() {
             ) : null}
           </>
         )}
+        {__DEV__ && widgetUrl ? (
+          // Dev builds only: where a tap on the widget goes now (the Maestro flow opens this address).
+          <Text testID="dev-widget-url" style={[type.caption, styles.dev]}>
+            {widgetUrl}
+          </Text>
+        ) : null}
         {__DEV__ && me ? (
           // Dev builds only: lets the Maestro flows check that the guest user survives a restart.
           <Text testID="dev-user-id" style={[type.caption, styles.dev]}>

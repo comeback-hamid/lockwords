@@ -1,0 +1,29 @@
+## 1. Server: the look rule and the plan
+- [x] 1.1 Tests first: `test/unit/widget-plan.test.ts` (30-minute slots, day window 07:00 to 23:00 in the learner's zone, turns in a group of 6, only hard words, fewest looks first, 5 looks then the next word, a new lap, passed slots counted once, no hard words, `401` without a token) and `test/integration/widget-plan.test.ts` (the kept plan and the looks in the database, SRS untouched). Seen failing.
+- [x] 1.2 `src/widget/plan.ts` (pure, `now` passed in), migration `0015` (one table, `widget_plans`: the slots handed out, the looks, counted until; the looks did not need a table of their own), `src/db/widget.ts`, `GET /v1/widget/plan` in `src/routes/widget.ts`, one line in `src/app.ts`. `npm run openapi`.
+- [x] 1.3 A Hard swipe sets that word's looks to 0 (test first; no existing test changed).
+
+## 2. App: carry the plan
+- [x] 2.1 `npx expo install expo-widgets` (and `expo-asset`, already inside Expo; `@expo/ui` moved to 58.0.29 so the app and the widget package use one copy). The plugin entry in `app.json` (widget "Lockwords", two lock families, app group). New dev build on the simulator `LW New words 2`.
+- [x] 2.2 Tests first: `__tests__/widget-sync.test.ts` (plan → timeline entries with look and pose, the "no hard words" entry, the last "open the app" entry, the night, nothing on web or when signed out, a failed load keeps the old timeline). Then `npm run api:gen`, `api.fetchWidgetPlan`, `src/widgets/sync.ts`, called from `src/app/_layout.tsx` on start and on return to the front, and from the Review tab every time it loads (so also after a round).
+
+## 3. The lock screen widgets
+- [x] 3.1 `src/widgets/lockwords-widget.tsx`: rectangular and inline as in Figma "Widgets" v1; Kai one-color PNG poses made by `scripts/gen-widget-kai.mjs` (`npm run widget:kai`) and copied to the shared folder by `src/widgets/kai-files.ts`.
+- [ ] 3.2 Not done: Mona Sans in the widget. Why: `expo-widgets` has no setting for fonts; the font files must be put inside the widget's own small program, which needs a config plugin of ours that changes the Xcode project of that target. The lock screen widgets use the iPhone's own font (the same as the clock and the date next to them; Apple advises it there, and the inline widget cannot use another font anyway). To look at again with the home screen widgets (`home-widgets`), where our own font matters more.
+- [x] 3.3 Tap: tests first, server (`test/unit/review-first.test.ts`: the card is first, due or not; another learner's, a known or a bad id is ignored) and app (`__tests__/review-from-widget.test.tsx`: the address `lockwords://review?first=<id>` opens the Review tab inside the round with that card on top; a look card has Next and no swipes; a tap while a round is open). Then both built. No existing test changed.
+
+## 4. O14 and docs
+- [x] 4.1 O14: test first (`__tests__/hard-words-widget-look.test.tsx`). `LockPhone` shows the widget look (also on O2, which uses the same part); the line "Hold your lock screen, tap Customize, then add Lockwords."; Figma: component "Lock widget" (Components, 03 Onboarding) and frame O14.
+- [x] 4.2 `docs/product.md` 7.4 (the look rule), `docs/architecture.md`, `apps/mobile/CLAUDE.md`, `apps/server/CLAUDE.md`, `docs/roadmap.md`.
+
+## 5. Check
+- [x] 5.1 On the simulator `LW New words 2` (iOS 26.5): the widget was added to the lock screen and showed the learner's real hard word ("la cuenta · the bill", one square, Kai). A tap on it opened Review on that word as a look card with Next. With a one-minute test timeline (not in the code) the widget changed by itself: looks 1 to 5, a new Kai pose each time, and no Kai for a long word (`docs/design/widgets/sim-five-looks.png`, `e2e/videos/lock-widgets-lock-screen.mp4`). Maestro flow `e2e/flows/lock-widgets.yaml` passes (O14, the widget's address, Review on the word): `e2e/videos/lock-widgets.mp4`.
+  - Not done: the inline widget (next to the date) was not added on the simulator; its layout is one line of text.
+  - Not done: a real change after 30 minutes was not watched. The Mac's clock was in the night hours (no slots from 23:00 to 07:00); the rule is covered by the server tests, and the widget's own change by the one-minute test.
+  - The flow was run with a private copy of the shared subflows: on main, `tapOn: "Message"` no longer finds the chat box (iOS now names it "Message Type a message…" since the voice box, PR #60). 37 steps in the repo's flows have this. Not changed here: the onboarding flows belong to another area.
+- [ ] 5.2 Not done: Hamid's iPhone. Why: a build for a real phone failed at signing. This Mac's Xcode has no Apple account signed in ("No Accounts"), so it cannot make the two things the widget needs: a profile for the widget (`com.comebackhamid.lockwords.ExpoWidgetsTarget`) and the App Groups right for the app. Blocked on Hamid: sign in to Xcode (Settings → Accounts) with his Apple ID; then it can be tried. The free team may still refuse the app group; then the paid Apple Developer account is needed. Also, the cloud server gets `GET /v1/widget/plan` only after this PR is merged and deployed.
+
+## 6. Review (a fresh agent read the diff, 2026-11-25)
+- [x] 6.1 Fixed, each with a test first: the group of 6 broke when the plan was made again; a tap before the first round is finished; a tap on a removed word started a round; a rebuilt Review screen stayed on "Loading" when the tapped word's load failed; no guard for Android; a failed copy of Kai's pictures stopped the whole sync; a broken address could throw; a look card could be swiped from code.
+- Not done: Undo of a Hard swipe does not bring that word's looks back (they start at 0 again). Small: the word only gets its 5 looks once more.
+- Not done: a plan made just before a clock change is one hour off until the app is opened again (written in `src/widget/plan.ts`).

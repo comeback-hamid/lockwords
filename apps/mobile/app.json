@@ -43,6 +43,25 @@
           "recordAudioAndroid": true,
           "enableBackgroundPlayback": false
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "Lockwords",
+              "displayName": "Lockwords",
+              "description": "Your hard words, one at a time.",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ],
+                "initialLayout": "./src/widgets/lockwords-widget.tsx"
+              }
+            }
+          ]
+        }
       ]
     ],
     "experiments": {

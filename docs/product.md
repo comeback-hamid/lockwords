@@ -164,10 +164,17 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - When the choices are fixed, show **tap answers** (stacked on the right, above the text box) with the hint "Tap an option, or type your own". Free questions (like the name) are typed.
 - Deck flow: deck card + Generate → same card while generating → deck widget (tap to open the words; Kai does not print the word list) → "Shall we practice?".
 
-### 7.4 Widgets (Figma page "Widgets", iOS only)
-- **Lock screen:** inline, rectangular and circular widgets. One tint, no color.
-- **Home screen:** small and medium widgets, full color.
-- The word widget shows **hard words first**, then the most-due words. Tap opens that card in the app.
+### 7.4 Widgets (Figma page "Widgets", v1 frames; iOS only)
+**Changed 2026-11-25 (Hamid).** What iOS allows: `docs/widget-limits.md`.
+- **The widget has one job: show the learner their hard words.** Nothing else is on it: no other words, no number of cards.
+- **Lock screen:** a rectangular widget (the word, its meaning, five squares, Kai) and an inline widget (word · meaning next to the date). One tint, no color. No circular widget: a circle is too small for a word.
+- **Home screen:** small and medium widgets, full color, in light, dark and tinted.
+- **Every hard word gets the chance to be seen 5 times.** iOS never tells an app that a person looked at a widget, so a "look" is a slot of **30 minutes** on the widget. A word has had its turn after **5 looks**. Slots run from 07:00 to 23:00 on the learner's clock. Up to 6 hard words take turns, so one word comes back about every 3 hours. When every hard word had 5 looks, the list starts again. A word swiped Hard again starts at 0 looks.
+- **A long word or meaning gets the room** (Hamid, 2026-11-25): on the lock screen, a word over 12 letters or a meaning over 14 is shown with no Kai, so the text has the whole width.
+- **Five squares** on the widget show which look it is. **Kai changes pose with every look** (waves, rests, thinks, speaks, cheers), because a widget cannot animate.
+- Looking never changes a word's level. The server makes the plan; the app only carries it to the widget.
+- **A tap opens Review with that word as the first card.** A word that is due today is a normal card. A hard word that is not due today (it was swiped Hard today and comes back tomorrow) is a **look card**: flip, sound and Use it work, a "Next" button goes on, it cannot be swiped and its level does not change.
+- With no hard words the widget says "No hard words · Swipe left in Review". If the app was not opened for 2 days it says "Open Lockwords · for your hard words".
 - v1 widgets are **see + open only**. No answering on the widget.
 - The web app has no widgets.
 - The web app in any window (2026-11-25, Figma page "Web"): under 600 px it looks like the phone; from 600 px it is one centered column; from 1024 px the three tabs are a side bar on the left. Onboarding, Use it and deck pages are one centered column with no side bar. On a wide window the review card's keys are named under the card. It can be added to a phone's home screen. Kai and the meadow move as on the phone.
@@ -192,7 +199,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - **Easy on a brand-new card goes to Stage 2** (back in 3 days). Decided 2026-11-20.
 - **A day starts at 04:00 on the learner's clock.** A word is due for its whole day, not from the hour of the last swipe.
 - **New words:** no daily limit (changed 2026-11-24, Hamid; it was 20 a day). Every word of a new deck is in Review at once.
-- **Hard:** the word goes to Stage 1 and comes back **tomorrow**, not in the same round (changed 2026-11-24, Hamid; from 2026-11-20 it came back once at the end of the round). It stays on the lock screen until it reaches Stage 3.
+- **Hard:** the word goes to Stage 1 and comes back **tomorrow**, not in the same round (changed 2026-11-24, Hamid; from 2026-11-20 it came back once at the end of the round). It stays on the lock screen until it reaches Stage 3 (how the widget shows it: 7.4).
 - A swipe counts only for a word that is in today's round. The server keeps a history of every swipe.
 
 ---

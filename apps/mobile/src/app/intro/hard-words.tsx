@@ -33,6 +33,7 @@ export default function HardWordsScreen() {
           <Kai size={84} />
         </View>
         <LockPhone word={shown.word} translation={shown.translation} highlight />
+        <Text style={[type.callout, styles.muted, styles.how]}>Hold your lock screen, tap Customize, then add Lockwords.</Text>
         {failed ? <LoadError message="Could not load your hard words." onRetry={retry} /> : null}
         {words.length ? (
           <View style={styles.group}>
@@ -60,6 +61,7 @@ const styles = StyleSheet.create({
   title: { flex: 1 },
   ink: { color: colors.text },
   muted: { color: colors.muted },
+  how: { textAlign: 'center' },
   group: { gap: space[8] },
   box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
   row: { height: 44, flexDirection: 'row', alignItems: 'center', gap: space[12], paddingHorizontal: space[16] },
