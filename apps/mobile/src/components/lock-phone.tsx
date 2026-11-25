@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { LangText } from '@/components/lang-text';
 import { colors, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 // A drawn phone top with a lock-screen word card (O2 Welcome, O14 Hard words).
@@ -16,8 +17,8 @@ export function LockPhone({ word, translation, highlight = false, height = 270 }
             <View style={styles.cardSquare} />
           </View>
           <View style={styles.cardWord}>
-            <Text style={[type.headline, styles.ink]}>{word}</Text>
-            <Text style={[type.callout, styles.muted]}>{translation}</Text>
+            <LangText style={[type.headline, styles.ink]}>{word}</LangText>
+            <LangText style={[type.callout, styles.muted]}>{translation}</LangText>
           </View>
         </View>
       </View>
