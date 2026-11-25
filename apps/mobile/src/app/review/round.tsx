@@ -101,7 +101,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
     (direction: Direction, byButton: boolean) => {
       const round = getRound();
       const current = round.cards[round.index];
-      if (!current) return;
+      if (!current || current.lookOnly) return; // a look card is never swiped
       const key = `${era}:${round.index}:${current.id}`;
       setLeaving((list) => [...list, { key, card: current, flipped: flippedId === current.id, sentOff: byButton ? direction : null }]);
       timers.current.push(setTimeout(() => setLeaving((list) => list.filter((l) => l.key !== key)), LEAVE_MS));

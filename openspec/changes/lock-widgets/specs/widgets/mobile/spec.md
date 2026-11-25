@@ -49,6 +49,10 @@ A tap on the widget while it shows a word SHALL open the app on the Review tab, 
 - **WHEN** the learner taps the widget while it shows "la cuenta"
 - **THEN** the Review tab opens with the card of "la cuenta" on top, front side up, and the rest of today's round under it
 
+#### Scenario: Before the first round is finished
+- **WHEN** the learner taps the widget before the onboarding practice round is done
+- **THEN** the Review tab opens as it is
+
 #### Scenario: Removed word
 - **WHEN** the tapped word was removed
 - **THEN** the Review tab opens as it is

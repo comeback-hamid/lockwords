@@ -35,7 +35,11 @@ The server SHALL count a look for a word for every 30-minute widget slot of that
 - **THEN** `slots` is empty
 
 ### Requirement: Widget order
-The plan SHALL hold only hard cards (the hard mark of the Review rules) that are not known and not removed, the one with the fewest looks first, then the oldest card. When every hard word has 5 looks, a new lap starts and every word counts from 0 again.
+The plan SHALL hold only hard cards (the hard mark of the Review rules) that are not known and not removed. Up to 6 words take turns: the words whose looks have started, filled up with the oldest waiting cards. In the group the word with the fewest looks is next, then the oldest card. When every hard word has 5 looks, a new lap starts and every word counts from 0 again.
+
+#### Scenario: The plan is made again
+- **WHEN** the learner has 12 hard words and the plan is asked for again every half hour
+- **THEN** the same 6 words keep their turns until one of them has 5 looks
 
 #### Scenario: Not hard
 - **WHEN** the learner has a hard word and a word due today that is not hard

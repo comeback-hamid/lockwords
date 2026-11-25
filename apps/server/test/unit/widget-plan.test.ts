@@ -35,9 +35,33 @@ test('hard words take turns in a group of 6; the 7th comes in right after one ha
   expect(ids(plan.slots.slice(0, 25))).not.toContain('c7');
 });
 
-test('fewest looks first, then the oldest card', () => {
-  const plan = makePlan([word(1, 3), word(3, 0), word(2, 0)], at('2026-11-25T07:00:00Z'), ZONE);
-  expect(plan.slots.slice(0, 3)).toMatchObject([{ cardId: 'c2', look: 1 }, { cardId: 'c3', look: 1 }, { cardId: 'c1', look: 4 }]);
+test('in the group: fewest looks first, then the oldest card', () => {
+  const plan = makePlan([word(1, 3), word(3, 0), word(2, 0), word(4, 1)], at('2026-11-25T07:00:00Z'), ZONE);
+  expect(plan.slots.slice(0, 4)).toMatchObject([{ cardId: 'c2', look: 1 }, { cardId: 'c3', look: 1 }, { cardId: 'c4', look: 2 }, { cardId: 'c1', look: 4 }]);
+});
+
+test('a word whose looks have started stays in the group before older words that wait', () => {
+  const words = [1, 2, 3, 4, 5, 6, 7].map((n) => word(n));
+  words[6]!.looks = 2; // c7, the newest card, already had 2 looks
+  const plan = makePlan(words, at('2026-11-25T07:00:00Z'), ZONE);
+  expect(new Set(ids(plan.slots.slice(0, 6)))).toEqual(new Set(['c1', 'c2', 'c3', 'c4', 'c5', 'c7'])); // c6 waits
+});
+
+// Found in review: the plan is made again every time the app opens. The same 6 words must keep their turns until
+// they have 5 looks; before, the words with 0 looks pushed in and all 12 took turns.
+test('the group of 6 holds when the plan is made again every half hour', () => {
+  const words = Array.from({ length: 12 }, (_, i) => ({ ...word(1), cardId: `c${i + 1}`, createdAt: at(`2026-11-${String(i + 1).padStart(2, '0')}T00:00:00Z`) }));
+  let state: WidgetState = emptyState(at('2026-11-25T07:00:00Z'));
+  const shown: string[] = [];
+  for (let i = 0; i < 24; i++) { // 24 slots: each of the six has 4 looks, none is done yet
+    const now = new Date(at('2026-11-25T07:00:00Z').getTime() + i * 30 * 60_000);
+    state = countPassed(state, now);
+    const plan = makePlan(words.map((w) => ({ ...w, looks: state.looks[w.cardId] ?? 0 })), now, ZONE);
+    shown.push(plan.slots[0]!.cardId);
+    state = { ...state, slots: plan.slots };
+  }
+  expect(new Set(shown)).toEqual(new Set(['c1', 'c2', 'c3', 'c4', 'c5', 'c6']));
+  expect(shown.slice(0, 7)).toEqual(['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c1']);
 });
 
 test('one word: looks 1 to 5, then a new lap starts at 1', () => {

@@ -75,3 +75,20 @@ test('a long word or a long meaning has no Kai, so the text has the whole width'
   expect(entry('la propina', 'the tip').kai).toBe('i'); // 10 letters still fit next to Kai
   expect(entry('el camarero', 'the waiter').kai).toBe('i');
 });
+
+// Found in review, 2026-11-25.
+test('Android has no widget yet: nothing is loaded', async () => {
+  const { Platform } = jest.requireActual('react-native');
+  jest.replaceProperty(Platform, 'OS', 'android');
+  await syncWidget(now);
+  expect(mockApi.fetchWidgetPlan).not.toHaveBeenCalled();
+  jest.restoreAllMocks();
+});
+
+test('Kai’s pictures cannot be copied: the words still reach the widget, with no Kai', async () => {
+  mockApi.fetchWidgetPlan.mockResolvedValue(plan);
+  jest.mocked(jest.requireMock('@/widgets/kai-files').kaiFiles).mockRejectedValueOnce(new Error('no room'));
+  await syncWidget(now);
+  const entries = mockUpdateTimeline.mock.calls[0]![0] as { props: WidgetProps }[];
+  expect(entries[0]!.props).toMatchObject({ word: 'w1', kai: '' });
+});

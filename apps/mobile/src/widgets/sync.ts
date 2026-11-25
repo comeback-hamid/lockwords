@@ -1,21 +1,25 @@
 import { useSyncExternalStore } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { api } from '@/auth/boot';
 import { getMe } from '@/auth/me-store';
 
 import { kaiFiles } from './kai-files';
 import widget from './lockwords-widget';
-import { toTimeline } from './timeline';
+import { toTimeline, type KaiFiles } from './timeline';
+
+const NO_KAI: KaiFiles = { greeting: '', idle: '', thinking: '', speaking: '', celebrate: '' };
 
 // Hands the server's plan to the widget. The widget cannot ask the server itself, so this runs when the app
 // starts, when it comes back to the front, and after a review round. It never throws and never shows an error:
 // with no connection the widget keeps what it had.
 export async function syncWidget(now = new Date()): Promise<void> {
-  if (!getMe()) return;
+  if (Platform.OS !== 'ios' || !getMe()) return; // the widget is iOS only
   try {
     const plan = await api.fetchWidgetPlan();
-    const entries = toTimeline(plan, now, await kaiFiles());
+    // Without Kai's pictures the words still go to the widget.
+    const kai = await kaiFiles().catch(() => NO_KAI);
+    const entries = toTimeline(plan, now, kai);
     widget.updateTimeline(entries);
     setShownUrl(entries.findLast((e) => e.date.getTime() <= now.getTime())?.props.url ?? null);
   } catch {

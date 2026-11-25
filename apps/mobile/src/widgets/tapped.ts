@@ -13,6 +13,7 @@ const set = (next: string | null) => {
 // taken, so a load of the usual round that started before a tap knows it lost.
 let opening = false;
 let opened = 0;
+let ended = 0;
 
 export const tapped = {
   isOpening: () => opening,
@@ -21,7 +22,12 @@ export const tapped = {
     opening = true;
     opened += 1;
   },
-  doneOpening: () => void (opening = false),
+  // The tapped word is loaded, or could not be. Every copy of the Review tab hears it (useOpeningEnded).
+  doneOpening: () => {
+    opening = false;
+    ended += 1;
+    listeners.forEach((l) => l());
+  },
   set: (cardId: string) => set(cardId),
   take: () => {
     const was = id;
@@ -30,6 +36,12 @@ export const tapped = {
   },
 };
 
+// Counts the tapped words that finished loading. A copy of the Review tab that shows no round after one of them
+// (the word was removed, the load failed, or another copy took the tap) loads the usual start.
+export function useOpeningEnded() {
+  return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => ended, () => ended);
+}
+
 export function useTapped() {
   return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => id, () => id);
 }
@@ -37,5 +49,10 @@ export function useTapped() {
 // "lockwords://review?first=<id>" → the id. Any other address → null.
 export function firstFromUrl(url: string | null): string | null {
   const match = url ? /^[a-z]+:\/\/\/?review\/?\?(?:.*&)?first=([^&#]+)/i.exec(url) : null;
-  return match ? decodeURIComponent(match[1]!) : null;
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]!);
+  } catch {
+    return null; // a broken address
+  }
 }

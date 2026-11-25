@@ -40,18 +40,26 @@ export function slotTimes(now: Date, timeZone?: string): { at: Date; end: Date }
   return times;
 }
 
-// Fewest looks first, then the oldest card.
-// Words made in the same moment keep the order they came in (the store sorts by deck position).
+// Fewest looks first, then the oldest card. Words made in the same moment keep the order they came in (the store
+// sorts by deck position).
 const inOrder = (words: HardWord[]) => [...words].sort((a, b) => a.looks - b.looks || a.createdAt.getTime() - b.createdAt.getTime());
+
+// Who takes turns, and who waits. The app asks for a new plan every time it opens, so the group must come out the
+// same each time: the words whose looks have started stay in it, and the oldest waiting words fill it up to 6.
+function pickGroup(words: HardWord[]): { group: HardWord[]; waiting: HardWord[] } {
+  const open = words.filter((w) => w.looks < LOOKS);
+  const started = inOrder(open.filter((w) => w.looks > 0)).slice(0, GROUP);
+  const rest = inOrder(open.filter((w) => !started.includes(w)));
+  const fill = rest.slice(0, GROUP - started.length);
+  return { group: inOrder([...started, ...fill]), waiting: rest.slice(fill.length) };
+}
 
 export function makePlan(words: HardWord[], now: Date, timeZone?: string): { slots: Slot[]; endsAt: Date | null } {
   if (words.length === 0) return { slots: [], endsAt: null };
   let waiting: HardWord[] = [];
   let group: HardWord[] = [];
   const startLap = (reset: boolean) => {
-    const all = inOrder(words.map((w) => ({ ...w, looks: reset ? 0 : Math.min(w.looks, LOOKS) }))).filter((w) => w.looks < LOOKS);
-    group = all.slice(0, GROUP);
-    waiting = all.slice(GROUP);
+    ({ group, waiting } = pickGroup(words.map((w) => ({ ...w, looks: reset ? 0 : Math.min(w.looks, LOOKS) }))));
   };
   startLap(false);
   const slots: Slot[] = [];

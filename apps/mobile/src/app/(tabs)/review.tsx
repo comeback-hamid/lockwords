@@ -14,7 +14,7 @@ import { isIntroDone } from "@/review/intro";
 import { addToRound, backFromUseIt, getRound, putFirst, setOpenInTab, setRound, useOpenInTab } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
 import { syncWidget, useWidgetUrl } from "@/widgets/sync";
-import { tapped, useTapped } from "@/widgets/tapped";
+import { tapped, useOpeningEnded, useTapped } from "@/widgets/tapped";
 
 const KAI_SIZE = 168;
 const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
@@ -63,36 +63,46 @@ export default function ReviewScreen() {
   }, [inRound]);
   // A tap on the widget (Hamid, 2026-11-25): the round opens at once, with the tapped word as the first card.
   // With a round already open, the word is put on top of it.
-  const openOn = useCallback((first: string) => {
-    const { cards: inStore, index } = getRound();
-    const open = roundOpen.current && index < inStore.length;
-    tapped.startOpening();
-    Promise.resolve()
-      .then(() => api.fetchRound(undefined, first))
-      .finally(tapped.doneOpening)
-      .then(
-        (cards) => {
-          if (open) {
-            if (cards[0]?.id === first) putFirst(cards[0]);
-            return;
-          }
-          setRound(cards);
-          setState((s) => ({ ...s, cards, failed: false }));
-          setInRound(cards.length > 0);
-        },
-        (e) => {
-          if (!open) setState({ cards: null, summary: null, failed: true });
-        },
-      );
-  }, [setInRound]);
+  const openOn = useCallback(
+    (first: string) => {
+      const { cards: inStore, index } = getRound();
+      const open = roundOpen.current && index < inStore.length;
+      tapped.startOpening();
+      // Before the first round is finished (the onboarding practice) a tap changes nothing: that round has its own
+      // screens. A word that is gone (the server's round does not start with it) opens no round either.
+      Promise.resolve()
+        .then(() => isIntroDone())
+        .then((introDone) => (introDone ? api.fetchRound(undefined, first) : null))
+        .then(
+          (cards) => {
+            if (cards?.[0]?.id !== first) return;
+            if (open) return putFirst(cards[0]);
+            setRound(cards);
+            setInRound(true);
+          },
+          () => {},
+        )
+        .finally(tapped.doneOpening);
+    },
+    [setInRound],
+  );
   const tappedId = useTapped();
   useEffect(() => {
     const first = tapped.take();
     if (first) openOn(first);
   }, [tappedId, openOn]);
+  // A tapped word finished loading and this copy of the tab shows no round (the word was removed, the load failed,
+  // or the screen was built again meanwhile): load the tab as usual, so it never stays on "Loading".
+  const openingEnded = useOpeningEnded();
+  const seenEnded = useRef(openingEnded);
+  useEffect(() => {
+    if (seenEnded.current === openingEnded) return;
+    seenEnded.current = openingEnded;
+    if (!roundOpen.current) load();
+  }, [openingEnded, load]);
   const onFocus = useCallback(() => {
-    if (tapped.isOpening()) return; // the tapped word loads the round itself
     const fromUseIt = backFromUseIt();
+    if (tapped.isOpening()) return; // the tapped word loads the round itself
     const { cards: inStore, index } = getRound();
     if (roundOpen.current && index < inStore.length) {
       if (!fromUseIt) void Promise.resolve().then(() => api.fetchRound()).then(addToRound, () => {});
