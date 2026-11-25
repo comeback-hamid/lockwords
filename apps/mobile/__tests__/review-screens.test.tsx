@@ -30,30 +30,31 @@ beforeEach(() => {
   mockApi.fetchSummary.mockResolvedValue(summary());
 });
 
-test('start: loading, then the count, "Hi Maya!" with the minutes, live Kai and Let’s start', async () => {
+test('start: loading, then the count, only the time under it ("~5 min"), Kai with flashcards and Let’s start', async () => {
   let answer!: (c: ReviewCard[]) => void;
   mockApi.fetchRound.mockReturnValue(new Promise((resolve) => (answer = resolve)));
   await render(<ReviewScreen />);
   expect(screen.getByText('Loading your cards…')).toBeOnTheScreen();
   await act(async () => answer(cards20));
-  await waitFor(() => expect(screen.getByRole('header', { name: '20 cards to review today' })).toBeOnTheScreen());
-  expect(screen.getByText('Hi Maya! It takes about 5 minutes. Let’s keep your words fresh 🌱')).toBeOnTheScreen();
-  expect(screen.getByTestId('kai-canvas')).toBeOnTheScreen();
+  await waitFor(() => expect(screen.getByRole('header', { name: '20 cards due today' })).toBeOnTheScreen());
+  expect(screen.getByText('~5 min')).toBeOnTheScreen();
+  expect(screen.queryByText(/Hi Maya/)).toBeNull();
+  expect(screen.getByTestId('kai-canvas').props.state).toBe('reviewing');
   expect(screen.getByRole('button', { name: 'Let’s start' })).toBeOnTheScreen();
 });
 
-test('start without a name has no "Hi" part', async () => {
+test('start without a name looks the same', async () => {
   mockApi.fetchRound.mockResolvedValue(cards20);
   mockApi.fetchSummary.mockResolvedValue(summary({ name: null }));
   await render(<ReviewScreen />);
-  await waitFor(() => expect(screen.getByText('It takes about 5 minutes. Let’s keep your words fresh 🌱')).toBeOnTheScreen());
+  await waitFor(() => expect(screen.getByText('~5 min')).toBeOnTheScreen());
 });
 
 test('the summary failing does not block the start screen', async () => {
   mockApi.fetchRound.mockResolvedValue(cards20);
   mockApi.fetchSummary.mockRejectedValue(new Error('down'));
   await render(<ReviewScreen />);
-  await waitFor(() => expect(screen.getByRole('header', { name: '20 cards to review today' })).toBeOnTheScreen());
+  await waitFor(() => expect(screen.getByRole('header', { name: '20 cards due today' })).toBeOnTheScreen());
 });
 
 test('Let’s start shows the round inside the tab (the tab bar stays); the first round ever opens full screen', async () => {
@@ -106,5 +107,5 @@ test('error: message and Try again', async () => {
   await render(<ReviewScreen />);
   await waitFor(() => expect(screen.getByText('Could not load your cards.')).toBeOnTheScreen());
   await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-  await waitFor(() => expect(screen.getByRole('header', { name: '20 cards to review today' })).toBeOnTheScreen());
+  await waitFor(() => expect(screen.getByRole('header', { name: '20 cards due today' })).toBeOnTheScreen());
 });

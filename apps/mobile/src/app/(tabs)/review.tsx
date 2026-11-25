@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import type { ReviewCard, ReviewSummary } from "@/api/client";
@@ -11,7 +11,7 @@ import { LevelChain } from "@/components/level-chain";
 import { LoadError, Loading } from "@/components/load-state";
 import { Kai } from "@/kai/kai";
 import { isIntroDone } from "@/review/intro";
-import { backFromUseIt, setRound } from "@/review/round-store";
+import { addToRound, backFromUseIt, getRound, setRound } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
 
 const KAI_SIZE = 168;
@@ -44,9 +44,21 @@ export default function ReviewScreen() {
       )
       .then(() => setInRound(false));
   }, []);
-  // Back from Use it (it opens over the tab): the round goes on where it was. Any other return loads again.
+  // A round that is open stays open (Hamid, 2026-11-25): coming back from another tab, from Use it or from outside
+  // the app shows the same card, with the bar where it was. Words made meanwhile join at the end of the round.
+  // Only when no round is open does the tab load again.
+  const roundOpen = useRef(false);
+  useEffect(() => {
+    roundOpen.current = inRound;
+  }, [inRound]);
   const onFocus = useCallback(() => {
-    if (backFromUseIt()) return;
+    const fromUseIt = backFromUseIt();
+    const { cards: inStore, index } = getRound();
+    if (roundOpen.current && index < inStore.length) {
+      if (!fromUseIt) void Promise.resolve().then(() => api.fetchRound()).then(addToRound, () => {});
+      return;
+    }
+    if (fromUseIt) return;
     load();
   }, [load]);
   const onRoundDone = useCallback(() => load(true), [load]);
@@ -80,16 +92,23 @@ export default function ReviewScreen() {
           <Loading label="Loading your cards…" />
         ) : n ? (
           <>
-            <Kai state="idle" size={KAI_SIZE} />
+            {/* Kai goes through flashcards (the `reviewing` state of the character spec). */}
+            <Kai state="reviewing" size={KAI_SIZE} />
             <Text
               accessibilityRole="header"
               style={[type.title, styles.ink, styles.center, styles.afterKai]}
             >
-              {`${plural(n, "card")} to review today`}
+              {`${plural(n, "card")} due today`}
             </Text>
+            {/* Only the time, with the "about" sign (Hamid, 2026-11-25). */}
             <Text
+              accessibilityLabel={`About ${plural(minutes, "minute")}`}
               style={[type.body, styles.muted, styles.center]}
-            >{`${summary?.name ? `Hi ${summary.name}! ` : ""}It takes about ${plural(minutes, "minute")}. Let’s keep your words fresh 🌱`}</Text>
+            >{`~${minutes} min`}</Text>
+            {/* The button sits with the text, not at the bottom of the screen. */}
+            <View style={styles.start}>
+              <ButtonPrimary label="Let’s start" onPress={() => void start(cards)} />
+            </View>
           </>
         ) : summary && !today?.words ? (
           <>
@@ -147,9 +166,6 @@ export default function ReviewScreen() {
           </Text>
         ) : null}
       </View>
-      {cards && n ? (
-        <ButtonPrimary label="Let’s start" onPress={() => void start(cards)} />
-      ) : null}
     </View>
   );
 }
@@ -185,6 +201,7 @@ const styles = StyleSheet.create({
     gap: space[12],
   },
   afterKai: { marginTop: space[24] },
+  start: { alignSelf: "stretch", marginTop: space[24] },
   counts: { flexDirection: "row", gap: space[24], marginTop: space[4] },
   count: { flexDirection: "row", alignItems: "baseline", gap: space[8] },
   ink: { color: colors.text },

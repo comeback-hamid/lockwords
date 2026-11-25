@@ -9,7 +9,7 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { Icon } from '@/components/icon';
 import { sayWord } from '@/review/speak';
 import { useSwipe } from '@/review/use-swipe';
-import { wordFit } from '@/review/word-size';
+import { wordLayout } from '@/review/word-size';
 import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 // Where a card is in the stack. `top` is the one the learner reads and moves. `under` is the next card, already
@@ -87,7 +87,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
     const t = turn.get();
     return { opacity: t < 0.5 ? 0 : 1, transform: t >= 1 ? [{ rotateY: '0deg' }] : [{ perspective: PERSPECTIVE }, { rotateY: `${interpolate(t, [0.5, 1], [-90, 0], 'clamp')}deg` }] };
   });
-  const fit = wordFit(card.word);
+  const fit = wordLayout(card.word);
 
   const imageUrl = (card as ReviewCard & { imageUrl?: string | null }).imageUrl ?? null; // the picture field of the card API
   const bare = card.word.replace(/^\S+\s+/, ''); // the word without its article, to color it in the example
@@ -189,15 +189,15 @@ function Picture({ url, share }: { url: string | null; share: `${number}%` }) {
   );
 }
 
-// The word with its level square, centered. The square sits on the first line. A long word or phrase gets a
-// smaller size before it gets a second line, and one word is never cut (src/review/word-size.ts).
+// The word with its level square, centered. The square sits on the first line. One or two lines, never three;
+// a word is never cut: the font gets smaller instead (src/review/word-size.ts).
 function Word({ card }: { card: ReviewCard }) {
-  const { size, lines } = wordFit(card.word);
+  const { size, lines } = wordLayout(card.word);
   return (
     <View style={styles.wordRow}>
       <View style={[styles.square, { marginTop: (size + tokens.wordLineGap - tokens.levelSquare) / 2, backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-      <Text numberOfLines={lines} adjustsFontSizeToFit minimumFontScale={lines === 1 ? 0.5 : 0.7} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
-        {card.word}
+      <Text accessibilityLabel={card.word} numberOfLines={lines.length} adjustsFontSizeToFit minimumFontScale={0.5} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
+        {lines.join('\n')}
       </Text>
     </View>
   );

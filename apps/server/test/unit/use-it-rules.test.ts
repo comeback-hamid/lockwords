@@ -8,9 +8,8 @@ import { UseItSchema } from '../../src/llm/use-it.js';
 import { canUseIt } from '../../src/review/srs.js';
 import { ISSUER, makeTestKeys } from '../helpers/tokens.js';
 
-test('Use it is offered from stage 3, and for every card on the learner’s first review day', () => {
-  expect([0, 1, 2, 3, 4, 5].map((stage) => canUseIt(stage, false))).toEqual([false, false, false, true, true, true]);
-  expect([0, 1, 2].map((stage) => canUseIt(stage, true))).toEqual([true, true, true]);
+test('Use it is offered on every card, always (Hamid, 2026-11-25)', () => {
+  expect(canUseIt()).toBe(true);
 });
 
 test('the judge may add one follow-up question; without one the answer is still valid', async () => {

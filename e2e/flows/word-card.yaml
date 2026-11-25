@@ -10,7 +10,7 @@ tags:
 - startRecording: word-card-flip-swipe
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - assertVisible: "10 words left"
@@ -116,7 +116,7 @@ tags:
 # The round inside the Review tab: the tab bar stays
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "1 card to review today"
+    visible: "1 card due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - assertVisible: "1 word left"

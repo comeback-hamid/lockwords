@@ -10,7 +10,7 @@ tags:
 - startRecording: use-it-rules
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - assertVisible: "la cuenta"

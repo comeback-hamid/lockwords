@@ -39,13 +39,13 @@ beforeEach(() => {
 });
 
 describe('Review tab', () => {
-  test('loading, then “N cards to review today” and Let’s start opens the round', async () => {
+  test('loading, then “N cards due today” and Let’s start opens the round', async () => {
     let answer!: (c: ReviewCard[]) => void;
     mockApi.fetchRound.mockReturnValue(new Promise((resolve) => (answer = resolve)));
     await render(<ReviewScreen />);
     expect(screen.getByText('Loading your cards…')).toBeOnTheScreen();
     await act(async () => answer(two));
-    await waitFor(() => expect(screen.getByRole('header', { name: '2 cards to review today' })).toBeOnTheScreen());
+    await waitFor(() => expect(screen.getByRole('header', { name: '2 cards due today' })).toBeOnTheScreen());
     await fireEvent.press(screen.getByRole('button', { name: 'Let’s start' }));
     // Changed 2026-11-20 (review-round-screens): the round opens inside the tab, so the tab bar stays (Figma A3).
     await waitFor(() => expect(screen.getByText('2 words left')).toBeOnTheScreen());
@@ -55,7 +55,7 @@ describe('Review tab', () => {
   test('one card is singular', async () => {
     mockApi.fetchRound.mockResolvedValue([two[0]!]);
     await render(<ReviewScreen />);
-    await waitFor(() => expect(screen.getByRole('header', { name: '1 card to review today' })).toBeOnTheScreen());
+    await waitFor(() => expect(screen.getByRole('header', { name: '1 card due today' })).toBeOnTheScreen());
   });
 
   // Changed 2026-11-20 (review-round-screens): the done screen is Figma A9, "All cards done".
@@ -71,7 +71,7 @@ describe('Review tab', () => {
     await render(<ReviewScreen />);
     await waitFor(() => expect(screen.getByText('Could not load your cards.')).toBeOnTheScreen());
     await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-    await waitFor(() => expect(screen.getByRole('header', { name: '2 cards to review today' })).toBeOnTheScreen());
+    await waitFor(() => expect(screen.getByRole('header', { name: '2 cards due today' })).toBeOnTheScreen());
   });
 });
 
