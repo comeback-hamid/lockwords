@@ -1,8 +1,8 @@
-import { colors, levelColors } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 // The pixel meadows of the Progress tab (Figma P1). Two pictures, one layout:
 //   nowMeadow  = the small one at the top: one tree per deck, one leaf per word, Kai stands on its right.
-//   goalMeadow = the big one: the forest the learner will have at the goal, at least three full trees.
+//   futureMeadow = the same place "in 3 months": the forest the learner will have then, at least three full trees.
 // Tree shapes come from `drawForest` in docs/design/pixel-meadow.html (its SPEC and FOREST).
 // Pure: numbers in, a list of blocks out. src/components/meadow-canvas.tsx draws and moves them.
 export const SPEC = {
@@ -25,10 +25,9 @@ export const KAI_CELLS = 11;
 // How each picture is laid out. `cells` = blocks across the full width, so fewer cells = bigger blocks.
 // The numbers follow the Figma frames (393 wide): 44 cells = 8.9 pt blocks, 36 cells = 10.9 pt blocks.
 const NOW = { cells: 44, slot: 9, margin: 4, reserve: KAI_CELLS } as const;
-const GOAL = { cells: 36, slot: 11, margin: 3, reserve: 0 } as const;
 const GOAL_WORDS_PER_TREE = 33; // a goal of 100 words = 3 trees
 const GOAL_MIN_TREES = 3;
-const NEW_LEAF = levelColors[1]; // a word that is in the deck but not met yet: the lightest green, as in the goal grid
+const NEW_LEAF = levelNew; // a word that is in the deck but not met yet: the lightest green, as in the words map
 
 type TreeKind = keyof typeof SPEC.trees;
 type Layout = { cells: number; slot: number; margin: number; reserve: number };
@@ -162,10 +161,11 @@ export function nowMeadow(met: number[][], deckWords: number[]): Scene {
   return layOut(trees.length ? trees : [[]], NOW);
 }
 
-// The big meadow: the forest at the goal. One full tree per 33 words of the goal, three at least, in the strong
-// greens (a mastered forest). The same goal always gives the same picture.
-export function goalMeadow(goal: number): Scene {
-  const n = Math.max(GOAL_MIN_TREES, Math.round(goal / GOAL_WORDS_PER_TREE));
+// The meadow "in 3 months" (Hamid, 2026-11-25): the forest of `words` words, one full tree per 33 words (three at
+// least), in the strong greens, with room for Kai on the right like today's meadow.
+const FUTURE = { cells: 44, slot: 9, margin: 4, reserve: KAI_CELLS } as const;
+export function futureMeadow(words: number): Scene {
+  const n = Math.max(GOAL_MIN_TREES, Math.round(words / GOAL_WORDS_PER_TREE));
   const trees = Array.from({ length: n }, (_, i) => {
     const random = rng(11 + i * 97);
     return Array.from({ length: SPEC.wordsPerDeck }, () => {
@@ -173,5 +173,5 @@ export function goalMeadow(goal: number): Scene {
       return v < 0.4 ? 5 : v < 0.75 ? 4 : 3;
     });
   });
-  return layOut(trees, GOAL);
+  return layOut(trees, FUTURE);
 }

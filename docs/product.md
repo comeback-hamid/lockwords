@@ -138,7 +138,11 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - When today's cards are done, new words join by themselves (all of them, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
-- Total words, a coded pixel meadow (1 tree per deck, grows with memory), and a goal grid with "by <date> you'll master N".
+- **A time switch at the top (changed 2026-11-25, Hamid): "Today" and "In 3 months"**, with the real date under each. The whole page follows it. Today is the real page, so its part of the switch is gold when it is chosen; the future's part is plain. Coming back to the tab always opens on Today.
+- **Today:** the total words, the legend, one coded pixel meadow (1 tree per deck, grows with memory) with Kai, the words map (1 square per word up to the goal; squares still to come are grey), and the decks.
+- **In 3 months:** the same page as it will be 90 days from now if the learner keeps the pace of the last week. "ABOUT, AT YOUR PACE" stands over the number, the number is green and rounded to ten, the counts change (words started more than 24 days before that day are mastered), the meadow is the bigger forest with Kai, and the words map has one square per word of that total. The decks stay today's decks (nobody knows the future ones); one quiet line under them says "and about N more decks by then".
+- **The legend:** a square per level in that level's own green: new = the lightest green, learning = four greens light to dark, mastered = the darkest with a tick. No numbers. In the words map a mastered word has a tick too.
+- Gone on 2026-11-25: the second, big meadow at the goal and the "by <date> you'll master N" block. They showed the same thing as the first meadow, only later.
 - Deck list → deck words (swipe left to delete a word).
 
 ### 7.3 Kai chat rules (every chat screen)

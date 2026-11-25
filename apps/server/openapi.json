@@ -1042,6 +1042,44 @@
             "items": {
               "type": "integer"
             }
+          },
+          "future": {
+            "type": "object",
+            "properties": {
+              "by": {
+                "type": "string"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "new": {
+                "type": "integer"
+              },
+              "learning": {
+                "type": "integer"
+              },
+              "mastered": {
+                "type": "integer"
+              },
+              "grid": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "moreDecks": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "by",
+              "total",
+              "new",
+              "learning",
+              "mastered",
+              "grid",
+              "moreDecks"
+            ]
           }
         },
         "required": [
@@ -1056,7 +1094,8 @@
           "grid",
           "language",
           "trees",
-          "deckWords"
+          "deckWords",
+          "future"
         ]
       },
       "WordPlan": {

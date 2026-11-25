@@ -1,5 +1,5 @@
-import { goalMeadow, KAI_CELLS, nowMeadow, type Scene } from '@/progress/meadow';
-import { colors, levelColors } from '@/theme/theme';
+import { futureMeadow, KAI_CELLS, nowMeadow, type Scene } from '@/progress/meadow';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const leaves = (m: Scene) => m.blocks.filter((b) => b.kind === 'leaf');
 const stems = (m: Scene) => m.blocks.filter((b) => b.kind === 'trunk');
@@ -25,7 +25,7 @@ describe('the small meadow (now)', () => {
   test('one leaf per word of the deck: met words in the green of their level, words not met yet in the lightest green', () => {
     const m = nowMeadow([[5, 2]], [10]);
     expect(leaves(m)).toHaveLength(10);
-    expect(leaves(m).map((b) => b.color).slice(0, 3)).toEqual([levelColors[5], levelColors[2], levelColors[1]]);
+    expect(leaves(m).map((b) => b.color).slice(0, 3)).toEqual([levelColors[5], levelColors[2], levelNew]); // a new word has its own lightest green since 2026-11-25
     expect(stems(m).every((b) => b.color === colors.subtle || b.color === colors.lineStrong)).toBe(true);
   });
 
@@ -54,9 +54,9 @@ describe('the small meadow (now)', () => {
   });
 });
 
-describe('the big meadow (the goal)', () => {
-  test('a goal of 100: three full trees of three kinds, in the strong greens', () => {
-    const m = goalMeadow(100);
+describe('the meadow in 3 months (it replaced the big goal meadow on 2026-11-25)', () => {
+  test('100 words: three full trees of three kinds, in the strong greens', () => {
+    const m = futureMeadow(100);
     expect(m.trees).toBe(3);
     expect(leaves(m)).toHaveLength(90);
     expect(new Set(leaves(m).map((b) => b.tree)).size).toBe(3);
@@ -64,24 +64,27 @@ describe('the big meadow (the goal)', () => {
     inside(m);
   });
 
-  test('never fewer than three trees; a bigger goal has more', () => {
-    expect(goalMeadow(0).trees).toBe(3);
-    expect(goalMeadow(300).trees).toBe(9);
-    inside(goalMeadow(300));
+  test('never fewer than three trees; more words have more', () => {
+    expect(futureMeadow(0).trees).toBe(3);
+    expect(futureMeadow(300).trees).toBe(9);
+    inside(futureMeadow(300));
   });
 
-  test('its trees are bigger on the screen than the small meadow’s', () => {
-    // Both pictures fill the same width, so fewer cells across = bigger blocks.
-    expect(goalMeadow(100).width).toBeLessThan(nowMeadow([levels(30)], [30]).width);
+  test('it is the same place as today’s meadow: the same width, with room for Kai on the right', () => {
+    const then = futureMeadow(320);
+    expect(then.width).toBe(nowMeadow([levels(30)], [30]).width);
+    expect(then.trees).toBe(10);
+    const trunks = then.blocks.filter((b) => b.kind === 'trunk' && b.opacity === 1); // the front row
+    expect(Math.max(...trunks.map((b) => b.x))).toBeLessThan(then.width - KAI_CELLS);
   });
 
-  test('the same goal always gives the same picture', () => {
-    expect(goalMeadow(100)).toEqual(goalMeadow(100));
+  test('the same number of words always gives the same picture', () => {
+    expect(futureMeadow(100)).toEqual(futureMeadow(100));
   });
 });
 
 test('every tree block knows its tree, its height above the ground and its place in the growth order (for the animation)', () => {
-  const m = goalMeadow(100);
+  const m = futureMeadow(100);
   for (const b of m.blocks.filter((b) => b.kind === 'leaf' || b.kind === 'trunk')) {
     expect(b.tree).toBeGreaterThanOrEqual(0);
     expect(b.lift).toBeGreaterThan(0);

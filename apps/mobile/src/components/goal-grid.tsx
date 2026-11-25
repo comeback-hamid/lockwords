@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, levelColors } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const PER_ROW = 20;
 const GAP = 2;
+const MASTERED = 5;
 
 // The goal grid (Figma P1): one square per word of the goal. A word in the bank is green by its level (a new word in
 // the lightest green, as in Figma); a word that has not come yet is grey. `levels` come from the server, highest first.
@@ -20,8 +21,11 @@ export function GoalGrid({ goal, levels }: { goal: number; levels: number[] }) {
         <View
           key={i}
           testID={level === null ? 'grid-empty' : 'grid-level'}
-          style={{ width: size, height: size, borderRadius: 2, backgroundColor: level === null ? colors.divider : (levelColors[Math.max(1, level)] ?? levelColors[1]) }}
-        />
+          style={[styles.square, { width: size, height: size, backgroundColor: level === null ? colors.divider : level < 1 ? levelNew : (levelColors[level] ?? levelColors[1]) }]}
+        >
+          {/* A mastered word has a tick (Hamid, 2026-11-25). */}
+          {level === MASTERED && size > 0 ? <Text testID="grid-tick" style={[styles.tick, { fontSize: size * 0.62, lineHeight: size }]}>✓</Text> : null}
+        </View>
       ))}
     </View>
   );
@@ -29,4 +33,6 @@ export function GoalGrid({ goal, levels }: { goal: number; levels: number[] }) {
 
 const styles = StyleSheet.create({
   grid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
+  square: { borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
+  tick: { color: colors.white, fontFamily: 'MonaSans_600SemiBold', textAlign: 'center' },
 });
