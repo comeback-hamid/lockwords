@@ -29,4 +29,7 @@ for (const pose of POSES) {
   writeFileSync(join(root, `assets/widget/kai-mono-${pose}.png`), png);
   const meta = await sharp(png).metadata();
   console.log(`kai-mono-${pose}.png ${meta.width}×${meta.height}`);
+  // The home screen widgets have color: Kai as drawn, without the ground shadow (the widget is not a ground).
+  const svg = readFileSync(join(root, `assets/kai/kai-${pose}.svg`), 'utf8').replace(/<ellipse[^>]*\/>\s*/g, '');
+  writeFileSync(join(root, `assets/widget/kai-color-${pose}.png`), await sharp(Buffer.from(svg), { density: 72 * 3 }).resize(W, H).png().toBuffer());
 }

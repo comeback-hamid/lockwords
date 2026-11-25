@@ -140,7 +140,7 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
         .where(and(kept(userId), eq(decks.status, 'ready'), eq(cards.hard, true), eq(cards.known, false)))
         .orderBy(asc(cards.createdAt), asc(cards.position))
         .limit(HARD_WORDS_MAX);
-      return rows.map((r) => ({ id: r.card.id, word: r.card.word, translation: r.card.translation, createdAt: r.card.createdAt }));
+      return rows.map((r) => ({ id: r.card.id, word: r.card.word, translation: r.card.translation, createdAt: r.card.createdAt, example: r.card.example, ...(r.card.pictureId ? { imageUrl: picturePath(r.card.pictureId) } : {}) }));
     },
     async remove(userId, id) {
       return db.transaction(async (tx) => {

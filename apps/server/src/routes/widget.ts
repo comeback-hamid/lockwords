@@ -4,11 +4,12 @@ import type { CardsStore, WidgetStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { countPassed, emptyState, makePlan } from '../widget/plan.js';
 import { UnauthorizedSchema } from './me.js';
+import { imageUrl, publicOrigin } from './pictures.js';
 
 const json = <T extends z.ZodType>(schema: T, description: string) => ({ description, content: { 'application/json': { schema } } });
 
 const WidgetSlotSchema = z
-  .object({ at: z.string(), cardId: z.string(), word: z.string(), translation: z.string(), look: z.number().int() }) // look: 1 to 5, the look this slot is for that word
+  .object({ at: z.string(), cardId: z.string(), word: z.string(), translation: z.string(), look: z.number().int(), example: z.string().optional(), imageUrl: z.string().optional() }) // look: 1 to 5, the look this slot is for that word. example and imageUrl are for the home screen widgets; imageUrl is left out when the card has no picture
   .openapi('WidgetSlot');
 const WidgetPlanSchema = z
   .object({ slots: z.array(WidgetSlotSchema), endsAt: z.string().nullable() }) // endsAt: the end of the last slot; null with no slots
@@ -36,6 +37,12 @@ export function widgetRoutes(deps: Deps) {
     const looks = Object.fromEntries(hard.filter((h) => counted.looks[h.id] !== undefined).map((h) => [h.id, counted.looks[h.id]!]));
     const plan = makePlan(hard.map((h) => ({ cardId: h.id, word: h.word, translation: h.translation, createdAt: h.createdAt, looks: looks[h.id] ?? 0 })), now, c.req.header('X-Time-Zone'));
     await deps.widget.save(userId, { slots: plan.slots.map(({ at, end, cardId, newLap }) => ({ at, end, cardId, ...(newLap ? { newLap } : {}) })), looks, countedUntil: now });
-    return c.json({ slots: plan.slots.map((s) => ({ at: s.at.toISOString(), cardId: s.cardId, word: s.word, translation: s.translation, look: s.look })), endsAt: plan.endsAt?.toISOString() ?? null }, 200);
+    const byId = new Map(hard.map((h) => [h.id, h]));
+    const origin = publicOrigin(c);
+    const slots = plan.slots.map((s) => {
+      const card = byId.get(s.cardId)!;
+      return { at: s.at.toISOString(), cardId: s.cardId, word: s.word, translation: s.translation, look: s.look, example: card.example, ...(card.imageUrl ? { imageUrl: imageUrl(origin, card.imageUrl)! } : {}) };
+    });
+    return c.json({ slots, endsAt: plan.endsAt?.toISOString() ?? null }, 200);
   });
 }

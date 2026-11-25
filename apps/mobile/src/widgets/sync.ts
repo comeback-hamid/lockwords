@@ -4,8 +4,9 @@ import { AppState, Platform } from 'react-native';
 import { api } from '@/auth/boot';
 import { getMe } from '@/auth/me-store';
 
-import { kaiFiles } from './kai-files';
+import * as kaiPictures from './kai-files';
 import widget from './lockwords-widget';
+import { savePictures } from './pictures';
 import { toTimeline, type KaiFiles } from './timeline';
 
 const NO_KAI: KaiFiles = { greeting: '', idle: '', thinking: '', speaking: '', celebrate: '' };
@@ -18,8 +19,13 @@ export async function syncWidget(now = new Date()): Promise<void> {
   try {
     const plan = await api.fetchWidgetPlan();
     // Without Kai's pictures the words still go to the widget.
-    const kai = await kaiFiles().catch(() => NO_KAI);
-    const entries = toTimeline(plan, now, kai);
+    const kai = await kaiPictures.kaiFiles().catch(() => NO_KAI);
+    // The home screen widgets: Kai in color and the word pictures. Without them the words still go out.
+    const [color, pictures] = await Promise.all([
+      Promise.resolve().then(() => kaiPictures.kaiColorFiles()).catch(() => undefined),
+      Promise.resolve().then(() => savePictures(plan.slots)).catch(() => ({})),
+    ]);
+    const entries = toTimeline(plan, now, kai, { color, pictures });
     widget.updateTimeline(entries);
     setShownUrl(entries.findLast((e) => e.date.getTime() <= now.getTime())?.props.url ?? null);
   } catch {

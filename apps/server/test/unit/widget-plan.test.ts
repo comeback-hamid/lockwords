@@ -188,3 +188,15 @@ test('a Hard swipe sets that word’s looks to 0; other swipes do not', async ()
   expect(kept!.looks).toEqual({ c2: 3 }); // c1 starts again; the slot of c2 that passed is counted on the way
   expect(saved).toHaveLength(2); // the card itself is saved as before
 });
+
+// home-widgets: the medium widget shows the example and the word's picture.
+test('a slot has the example, and the picture address only when the card has a picture', async () => {
+  hard = [
+    { id: 'c1', word: 'w1', translation: 't1', createdAt: at('2026-11-01T00:00:00Z'), example: 'An example with w1.', imageUrl: '/pictures/p1' },
+    { id: 'c2', word: 'w2', translation: 't2', createdAt: at('2026-11-02T00:00:00Z'), example: 'An example with w2.' },
+  ] as unknown as typeof hard;
+  const p = (await plan()) as unknown as { slots: { cardId: string; example?: string; imageUrl?: string }[] };
+  expect(p.slots[0]).toMatchObject({ cardId: 'c1', example: 'An example with w1.', imageUrl: 'http://localhost/pictures/p1' });
+  expect(p.slots[1]).toMatchObject({ cardId: 'c2', example: 'An example with w2.' });
+  expect('imageUrl' in p.slots[1]!).toBe(false);
+});
