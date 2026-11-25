@@ -2102,6 +2102,15 @@ export interface components {
             language: string;
             trees: number[][];
             deckWords: number[];
+            future: {
+                by: string;
+                total: number;
+                new: number;
+                learning: number;
+                mastered: number;
+                grid: number[];
+                moreDecks: number;
+            };
         };
         WordPlan: {
             goal: string;

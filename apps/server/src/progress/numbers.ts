@@ -56,3 +56,32 @@ export const treeLevels = (words: Word[]) =>
     .filter((w) => w.known || w.stage > 0)
     .map((w) => (w.known ? MASTERED_STAGE : w.stage))
     .sort(highestFirst);
+
+// "In 3 months" on the Progress tab (Hamid, 2026-11-25): the same page as today, as it will look 90 days from now
+// if the learner keeps the pace of the last week. A guess, so the total is rounded to ten and shown with "about".
+export const FUTURE_DAYS = 90;
+const DEFAULT_DECK_WORDS = 20;
+// Days from a word's first Easy to each level: level 2 at once, 3 after 3 days, 4 after 10, mastered after 24.
+const TO_LEVEL_3 = 3;
+const TO_LEVEL_4 = 10;
+
+export function futureNumbers(today: string, now: { total: number; mastered: number; decks: number }, pace: number) {
+  const total = Math.round((now.total + pace * FUTURE_DAYS) / 10) * 10;
+  // Everything started more than 24 days before that day is mastered; the rest is on its way up.
+  const learning = Math.min(total - now.mastered, pace * DAYS_TO_MASTER);
+  const mastered = total - learning;
+  const level2 = Math.min(learning, pace * TO_LEVEL_3);
+  const level3 = Math.min(learning - level2, pace * (TO_LEVEL_4 - TO_LEVEL_3));
+  const level4 = learning - level2 - level3;
+  const perDeck = now.decks > 0 && now.total > 0 ? now.total / now.decks : DEFAULT_DECK_WORDS;
+  return {
+    by: new Date(Date.parse(`${today}T00:00:00Z`) + FUTURE_DAYS * DAY_MS).toISOString().slice(0, 10),
+    total,
+    new: 0,
+    learning,
+    mastered,
+    // The words map then: one level per word, highest first.
+    grid: [...Array<number>(mastered).fill(MASTERED_STAGE), ...Array<number>(level4).fill(4), ...Array<number>(level3).fill(3), ...Array<number>(level2).fill(2)],
+    moreDecks: Math.max(0, Math.round((total - now.total) / perDeck)),
+  };
+}

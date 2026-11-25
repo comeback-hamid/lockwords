@@ -4,7 +4,7 @@ import type { PlanStore, ProfilesStore, ProgressStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { languageName } from '../llm/make-deck.js';
 import { goalWords, openItems, PLAN_SIZE, PlanItemSchema, PlanSchema, type DeckPlanner } from '../llm/plan-decks.js';
-import { bankNumbers, deckSummary, goalFor, hardCount, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
+import { bankNumbers, deckSummary, futureNumbers, goalFor, hardCount, masterBy, paceFrom, treeLevels } from '../progress/numbers.js';
 import { reviewDay } from '../review/day.js';
 import { UnauthorizedSchema } from './me.js';
 
@@ -27,6 +27,8 @@ const ProgressSchema = z
     language: z.string(),
     trees: z.array(stages),
     deckWords: z.array(z.number().int()), // how many words each tree's deck has, in the order of `trees`
+    // The page 90 days from now at the learner's pace: the day, the numbers, the words map and how many more decks.
+    future: z.object({ by: z.string(), total: z.number().int(), new: z.number().int(), learning: z.number().int(), mastered: z.number().int(), grid: stages, moreDecks: z.number().int() }),
   })
   .openapi('Progress');
 const DeckSummarySchema = z
@@ -68,7 +70,10 @@ export function progressRoutes(deps: Deps) {
       const oldestFirst = [...decks].reverse();
       const trees = oldestFirst.map((d) => treeLevels(d.words));
       const deckWords = oldestFirst.map((d) => d.words.length);
-      return c.json({ ...numbers, hard: hardCount(words), decks: decks.length, goal, masterBy: masterBy(reviewDay(now, zone).day, goal, started, paceFrom(startedLately)), language: language ? languageName(language) : '', trees, deckWords }, 200);
+      const today = reviewDay(now, zone).day;
+      const pace = paceFrom(startedLately);
+      const future = futureNumbers(today, { total: numbers.total, mastered: numbers.mastered, decks: decks.length }, pace);
+      return c.json({ ...numbers, hard: hardCount(words), decks: decks.length, goal, masterBy: masterBy(today, goal, started, pace), language: language ? languageName(language) : '', trees, deckWords, future }, 200);
     })
     .openapi(getPlan, async (c) => {
       const userId = c.get('user').id;
