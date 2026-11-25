@@ -20,7 +20,8 @@ export function pickRandomDeck(existing: readonly { id: string; count: number; r
 export type AddWordResult = { deckId: string; deckTitle: string; count: number; already: boolean };
 export type RandomWordsStore = {
   // Adds the word of one Kai message. Safe to repeat: the second call gives the first result.
-  add(userId: string, messageId: string): Promise<{ ok: true; result: AddWordResult } | { ok: false; error: 'not_found' | 'no_word' }>;
+  // `cardId`: the card this call made (none when nothing was added). The route starts its picture (decks/word-pictures.ts).
+  add(userId: string, messageId: string): Promise<{ ok: true; result: AddWordResult; cardId?: string } | { ok: false; error: 'not_found' | 'no_word' }>;
 };
 
 type Db = ReturnType<typeof createDb>['db'];
@@ -54,9 +55,9 @@ export function createRandomWordsStore(db: Db): RandomWordsStore {
         if (!word) return { ok: false as const, error: 'no_word' as const };
         if (word.result) return { ok: true as const, result: word.result };
 
-        const save = async (result: AddWordResult) => {
+        const save = async (result: AddWordResult, cardId?: string) => {
           await tx.update(kaiMessages).set({ word: { ...word, result } }).where(eq(kaiMessages.id, messageId));
-          return { ok: true as const, result };
+          return { ok: true as const, result, cardId };
         };
         // Cards the learner still has in a deck, and the place for a new one (after every card, removed ones too, so the order holds).
         const countIn = async (deckId: string) => (await tx.select({ n: sql<number>`count(*)::int` }).from(cards).where(and(eq(cards.deckId, deckId), isNull(cards.removedAt))))[0]?.n ?? 0;
@@ -82,8 +83,11 @@ export function createRandomWordsStore(db: Db): RandomWordsStore {
             .returning({ id: decks.id });
           deckId = made!.id;
         }
-        await tx.insert(cards).values({ deckId, position: await nextPosition(deckId), word: word.word, translation: word.translation, example: cardExample(word.example), exampleTranslation: word.exampleTranslation });
-        return save({ deckId, deckTitle: title, count: await countIn(deckId), already: false });
+        const [card] = await tx
+          .insert(cards)
+          .values({ deckId, position: await nextPosition(deckId), word: word.word, translation: word.translation, example: cardExample(word.example), exampleTranslation: word.exampleTranslation })
+          .returning({ id: cards.id });
+        return save({ deckId, deckTitle: title, count: await countIn(deckId), already: false }, card!.id);
       });
     },
   };
