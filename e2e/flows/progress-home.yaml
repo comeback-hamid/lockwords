@@ -1,4 +1,4 @@
-# Progress home (P1), top to bottom: the numbers, the small meadow with Kai, the goal grid, the big meadow, and the
+# Progress home (P1), top to bottom: the numbers, the meadow, the goal grid, the big meadow, and the
 # decks as short rows. No hard words on this page (Hamid, 2026-11-23). After the first round the numbers move.
 # Needs the local stack: `npm run dev:up`. Dev build.
 appId: com.comebackhamid.lockwords
@@ -13,7 +13,7 @@ tags:
 - extendedWaitUntil:
     visible: "10 cards due today"
     timeout: 20000
-# Before any review: 10 new words, one small tree with Kai next to it
+# Before any review: 10 new words, one small tree (no Kai in the meadow since 2026-11-25)
 - tapOn: "Progress"
 - extendedWaitUntil:
     visible: "words in your word bank"
@@ -23,7 +23,6 @@ tags:
 - assertVisible: "0 mastered"
 - assertNotVisible: ".*hard word.*"
 - assertVisible: "Your meadow now: 1 tree"
-- assertVisible: "Kai"
 # The link to a separate decks page and the word plan are gone
 - assertNotVisible: "1 Deck"
 - scrollUntilVisible:

@@ -1,5 +1,7 @@
 // The numbers of the Progress tab (Figma P1–P3). Pure: rows in, numbers out. Hamid's rules of 2026-11-20:
 // new = not reviewed yet; learning = stage 1 to 4; mastered = stage 5, and every "I know it" word.
+// One rule for every picture (Hamid, 2026-11-25): an "I know it" word is a mastered word everywhere, level 5. The
+// words map, the meadow and a deck's squares all draw the same levels the numbers count.
 export type Word = { stage: number; known: boolean; hard: boolean };
 
 const MASTERED_STAGE = 5;
@@ -11,6 +13,8 @@ const MAX_PACE = 20; // the daily limit of new words
 const DAY_MS = 86_400_000;
 
 const highestFirst = (a: number, b: number) => b - a;
+// The level a word is drawn with: its stage, or 5 once it is "I know it".
+export const levelOf = (w: Word) => (w.known ? MASTERED_STAGE : w.stage);
 
 export function bankNumbers(words: Word[]) {
   const toLearn = words.filter((w) => !w.known);
@@ -21,7 +25,7 @@ export function bankNumbers(words: Word[]) {
     mastered: words.filter((w) => w.known || w.stage >= MASTERED_STAGE).length,
     toLearn: toLearn.length, // the bank without "I know it" words
     started: toLearn.filter((w) => w.stage > 0).length,
-    grid: toLearn.map((w) => w.stage).sort(highestFirst), // one square per word to learn
+    grid: words.map(levelOf).sort(highestFirst), // one square per word of the bank; "I know it" = level 5
   };
 }
 
@@ -46,7 +50,7 @@ export function deckSummary(words: Word[]) {
     words: words.length,
     learning: words.filter((w) => !w.known && w.stage > 0 && w.stage < MASTERED_STAGE).length,
     hard: words.filter((w) => w.hard && !w.known).length,
-    stages: words.map((w) => (w.known ? MASTERED_STAGE : w.stage)).sort(highestFirst),
+    stages: words.map(levelOf).sort(highestFirst),
   };
 }
 

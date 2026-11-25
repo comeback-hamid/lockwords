@@ -1,8 +1,10 @@
-import { colors, levelColors, levelNew } from '@/theme/theme';
+import { colors, levelColor } from '@/theme/theme';
 
 // The pixel meadows of the Progress tab (Figma P1). Two pictures, one layout:
-//   nowMeadow  = the small one at the top: one tree per deck, one leaf per word, Kai stands on its right.
+//   nowMeadow  = today: one leaf per word of the bank, in the word's own level color. The words fill one tree, then
+//                the next (30 words a tree), so a small bank is one full tree and not many small ones.
 //   futureMeadow = the same place "in 3 months": the forest the learner will have then, at least three full trees.
+// Every green block is a word: there is no grass and no Kai in the meadow (Hamid, 2026-11-25).
 // Tree shapes come from `drawForest` in docs/design/pixel-meadow.html (its SPEC and FOREST).
 // Pure: numbers in, a list of blocks out. src/components/meadow-canvas.tsx draws and moves them.
 export const SPEC = {
@@ -20,14 +22,11 @@ export const SPEC = {
 // Many trees: several rows with depth. Each row back is smaller, sits higher and is a little paler.
 const FOREST = { shrink: 0.66, rise: 9.5, fade: 0.08, minOpacity: 0.55, tallest: 12.5 } as const;
 
-// Cells kept free on the right of the small meadow: Kai stands there.
-export const KAI_CELLS = 11;
 // How each picture is laid out. `cells` = blocks across the full width, so fewer cells = bigger blocks.
 // The numbers follow the Figma frames (393 wide): 44 cells = 8.9 pt blocks, 36 cells = 10.9 pt blocks.
-const NOW = { cells: 44, slot: 9, margin: 4, reserve: KAI_CELLS } as const;
+const NOW = { cells: 44, slot: 11, margin: 4, reserve: 0 } as const;
 const GOAL_WORDS_PER_TREE = 33; // a goal of 100 words = 3 trees
 const GOAL_MIN_TREES = 3;
-const NEW_LEAF = levelNew; // a word that is in the deck but not met yet: the lightest green, as in the words map
 
 type TreeKind = keyof typeof SPEC.trees;
 type Layout = { cells: number; slot: number; margin: number; reserve: number };
@@ -65,7 +64,7 @@ function canopyCells(kind: TreeKind) {
   return cells.sort((a, b) => a.row * 1.35 + Math.abs(a.x) * 0.9 - (b.row * 1.35 + Math.abs(b.x) * 0.9));
 }
 
-const leafColor = (level: number) => (level > 0 ? (levelColors[level] ?? NEW_LEAF) : NEW_LEAF);
+const leafColor = (level: number) => levelColor(level); // the same greens as the words map
 
 // One tree standing on the ground at column cx. `levels` = one level per word of the deck (0 = not met yet).
 function treeCells(cx: number, kind: TreeKind, allLevels: number[]): Cell[] {
@@ -121,7 +120,6 @@ function layOut(trees: number[][], layout: Layout): Scene {
   const top = rows.at(-1)!;
   const height = Math.ceil(top.off + FOREST.tallest * top.scale + 3);
   const groundY = height - 2;
-  const random = rng(7);
   const blocks: Block[] = [];
   const gap = SPEC.cell.gap;
   // Back rows first, so the front row is drawn over them.
@@ -136,12 +134,6 @@ function layOut(trees: number[][], layout: Layout): Scene {
     };
     const half = Math.ceil(W / 2 / r.scale);
     for (let x = -half; x < half; x++) put({ kind: 'ground', x, y: 0, color: colors.line, order: 0 }, W / 2, -1, 0);
-    if (k === 0) {
-      for (let x = -half + 2; x < half - 1; x++) {
-        const v = random();
-        if ((((x % SPEC.grassEvery) + SPEC.grassEvery) % SPEC.grassEvery) === 3 && v > 0.3) put({ kind: 'grass', x, y: -1, color: v > 0.7 ? levelColors[2] : levelColors[1], order: 0 }, W / 2, -1, 0);
-      }
-    }
     const center = r.trees.length % 2 === 0 ? -0.5 : 0; // center an even row
     r.trees.forEach((levels, i) => {
       const kind = SPEC.order[(r.first + i) % SPEC.order.length] as TreeKind; // a tree keeps its kind
@@ -153,17 +145,17 @@ function layOut(trees: number[][], layout: Layout): Scene {
   return { width: W, height, groundY, trees: trees.length, blocks };
 }
 
-// The small meadow: the decks as they are now. `met` = the levels of each deck's met words (oldest deck first),
-// `deckWords` = how many words each of those decks has. A word not met yet is a leaf in the lightest green.
-// There is always one tree: with no deck it is a bare stem.
-export function nowMeadow(met: number[][], deckWords: number[]): Scene {
-  const trees = met.map((levels, i) => [...levels, ...Array.from({ length: Math.max(0, (deckWords[i] ?? levels.length) - levels.length) }, () => 0)]);
+// Today's meadow. `levels` = one level per word of the bank, highest first (the server's words map list). The words
+// fill a tree to its 30 leaves, then the next tree starts. There is always one tree: with no word it is a bare stem.
+export function nowMeadow(levels: number[]): Scene {
+  const trees: number[][] = [];
+  for (let i = 0; i < levels.length; i += SPEC.wordsPerDeck) trees.push(levels.slice(i, i + SPEC.wordsPerDeck));
   return layOut(trees.length ? trees : [[]], NOW);
 }
 
 // The meadow "in 3 months" (Hamid, 2026-11-25): the forest of `words` words, one full tree per 33 words (three at
-// least), in the strong greens, with room for Kai on the right like today's meadow.
-const FUTURE = { cells: 44, slot: 9, margin: 4, reserve: KAI_CELLS } as const;
+// least), in the strong greens.
+const FUTURE = { cells: 44, slot: 11, margin: 4, reserve: 0 } as const;
 export function futureMeadow(words: number): Scene {
   const n = Math.max(GOAL_MIN_TREES, Math.round(words / GOAL_WORDS_PER_TREE));
   const trees = Array.from({ length: n }, (_, i) => {

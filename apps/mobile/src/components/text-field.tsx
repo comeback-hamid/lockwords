@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { closeKeyboard } from '@/components/chat/keyboard';
+import { fontFor } from '@/theme/script-font';
 import { colors, radius, space, type } from '@/theme/theme';
 
 type Props = { label: string; accessibilityLabel: string; value: string; onChangeText(text: string): void; maxLength?: number };
@@ -20,7 +21,7 @@ export function TextField({ label, accessibilityLabel, value, onChangeText, maxL
         returnKeyType="done"
         submitBehavior="blurAndSubmit"
         onSubmitEditing={closeKeyboard}
-        style={[type.body, styles.input]}
+        style={[type.body, styles.input, fontFor(value, type.body)]}
         selectionColor={colors.button}
       />
     </View>

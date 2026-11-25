@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LangText } from '@/components/lang-text';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +10,8 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
+import { KeyHints } from '@/platform/key-hints';
+import { useRoundKeys } from '@/platform/round-keys';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
 import { cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
@@ -143,6 +146,14 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
 
   const onStreak = streak !== null;
   const left = Math.max(0, cards.length - index);
+  // A real keyboard (the web app): Space flips, the arrows answer, Backspace takes the last swipe back.
+  useRoundKeys((action) => {
+    if (action === 'undo') return canUndo ? void undo() : undefined;
+    if (onStreak) return setStreak(null);
+    if (!card) return;
+    if (action === 'flip') setFlippedId((id) => (id === card.id ? null : card.id));
+    else commit(action, true);
+  });
   // The stack, bottom to top: the next card, the card to read, the cards that are leaving.
   const stack: { key: string; card: ReviewCard; role: CardRole; flipped: boolean; sentOff: Direction | null }[] = [];
   if (next) stack.push({ key: keyOf(index + 1, next), card: next, role: 'under', flipped: false, sentOff: null });
@@ -176,7 +187,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
         {card ? (
           <View style={styles.chip}>
             <Icon name="deck" color={colors.text2} />
-            <Text style={[type.captionStrong, styles.ink]}>{card.deckTopic}</Text>
+            <LangText style={[type.captionStrong, styles.ink]}>{card.deckTopic}</LangText>
           </View>
         ) : null}
         {/* The cards behind (Figma: Card stack, peek 1 and peek 2). */}
@@ -213,6 +224,8 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
           </>
         )}
       </View>
+      {/* A wide browser window: the keys are named under the card. Nothing on the phone. */}
+      {onStreak || !card ? null : <KeyHints />}
     </GestureHandlerRootView>
   );
 }

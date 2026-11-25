@@ -2,16 +2,18 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 
 import { bootSession } from '@/auth/boot';
 import { clearOnFreshInstall } from '@/auth/session-storage';
 import { loadOnboardingFinished, useOnboardingFinished } from '@/onboarding/finished';
+import { installPageStyle } from '@/platform/page-style';
+import { WebFrame } from '@/platform/web-frame';
 import { loadSpeechLanguage } from '@/review/speech-language';
 import { fonts } from '@/theme/fonts';
-import { colors } from '@/theme/theme';
 
 SplashScreen.preventAutoHideAsync();
+installPageStyle(); // the browser only
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fonts);
@@ -42,15 +44,6 @@ export default function RootLayout() {
     </Stack>
   );
   if (Platform.OS !== 'web') return stack;
-  // In a browser the app keeps its phone shape: one column in the middle of the page (Figma frame: 393 wide).
-  return (
-    <View style={styles.page}>
-      <View style={styles.phone}>{stack}</View>
-    </View>
-  );
+  // In a browser the page lays the app out for the window (phone, tablet, desktop): `WebFrame`.
+  return <WebFrame>{stack}</WebFrame>;
 }
-
-const styles = StyleSheet.create({
-  page: { flex: 1, alignItems: 'center', backgroundColor: colors.divider },
-  phone: { flex: 1, width: '100%', maxWidth: 430, backgroundColor: colors.canvas, overflow: 'hidden' },
-});

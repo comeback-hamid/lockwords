@@ -65,7 +65,7 @@ test('progress counts real words: new, learning, mastered (stage 5 and known), t
   await db.execute(sql`update cards set stage = 5, due_at = now() + interval '30 days' where id = ${d!.id}`);
   const p = await get<Progress>('/v1/progress');
   expect(p).toMatchObject({ total: 10, new: 6, learning: 2, mastered: 2, decks: 1, goal: 100 });
-  expect(p.grid).toEqual([5, 2, 1, 0, 0, 0, 0, 0, 0]);
+  expect(p.grid).toEqual([5, 5, 2, 1, 0, 0, 0, 0, 0, 0]); // the "I know it" word is in the map too, as mastered
   // 3 words started (a, b and the stage 5 one); 3 new words started this week → pace 5; (100 − 3) / 5 = 20 days, + 24
   expect(p.masterBy).toBe('2027-01-03');
 });

@@ -4,9 +4,9 @@ import { bankNumbers, deckSummary, futureNumbers, goalFor, masterBy, paceFrom } 
 
 const w = (stage: number, over: Partial<{ known: boolean; hard: boolean }> = {}) => ({ stage, known: false, hard: false, ...over });
 
-test('counts: new, learning, mastered; known words count as mastered and are not in the grid', () => {
+test('counts: new, learning, mastered; an "I know it" word is a mastered word, also in the grid (level 5)', () => {
   const words = [w(0), w(0), w(0), w(0), w(2), w(2), w(2), w(5), w(5), w(3, { known: true })];
-  expect(bankNumbers(words)).toEqual({ total: 10, new: 4, learning: 3, mastered: 3, toLearn: 9, started: 5, grid: [5, 5, 2, 2, 2, 0, 0, 0, 0] });
+  expect(bankNumbers(words)).toEqual({ total: 10, new: 4, learning: 3, mastered: 3, toLearn: 9, started: 5, grid: [5, 5, 5, 2, 2, 2, 0, 0, 0, 0] });
   expect(bankNumbers([])).toEqual({ total: 0, new: 0, learning: 0, mastered: 0, toLearn: 0, started: 0, grid: [] });
 });
 
