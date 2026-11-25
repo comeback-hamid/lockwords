@@ -1,12 +1,51 @@
 import { Image } from 'expo-image';
+import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 
-import { KAI_VIEWBOX, stillEffects } from './step';
+import { loopOnCanvas, sharpContext } from '@/platform/frame-loop';
+
+import { drawKaiFrame } from './draw-2d';
+import { createMemory, KAI_VIEWBOX, stepCharacter, stillEffects, type KaiInput, type KaiMemory } from './step';
 
 export type KaiCanvasProps = { state: string; playKey: number; progress?: number; still: boolean; width: number };
 
-// Kai in a browser: a still picture per state. The live character is drawn with Skia on the phone; on the web that
-// needs a large extra download (CanvasKit), so the web app shows the still poses from assets/kai.
+// Kai in a browser. It moves as on the phone: the same step function (step.ts) gives every frame, and the browser's
+// own 2D canvas draws it (draw-2d.ts). No Skia here: its web build is a 2.9 MB download before Kai could show.
+// Reduce Motion (`still`): a still picture per state, from assets/kai.
+export function KaiCanvas(props: KaiCanvasProps) {
+  return props.still ? StillKai(props) : <LiveKai {...props} />;
+}
+
+function LiveKai({ state, playKey, progress, width }: KaiCanvasProps) {
+  const [vx, vy, vw, vh] = KAI_VIEWBOX as [number, number, number, number];
+  const height = Math.round((width * vh) / vw);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  // Kai's memory lives as long as this canvas: a state change continues from the pose Kai is in.
+  const memory = useRef<KaiMemory | null>(null);
+  const input = useRef<KaiInput>({ state, playKey, progress: progress ?? -1, still: false });
+  useEffect(() => {
+    input.current = { state, playKey, progress: progress ?? -1, still: false };
+  }, [state, playKey, progress]);
+
+  useEffect(() => {
+    const el = canvas.current;
+    if (!el) return;
+    const ctx = sharpContext(el, width, height);
+    if (!ctx) return;
+    // Whole pixels per unit, as on the phone, so Kai stays crisp.
+    const u = Math.max(1, Math.floor(width / vw));
+    const ox = Math.round((width - u * vw) / 2 - vx * u), oy = Math.round((height - u * vh) / 2 - vy * u);
+    return loopOnCanvas(el, (ms) => {
+      memory.current ??= createMemory();
+      ctx.clearRect(0, 0, width, height);
+      drawKaiFrame(ctx, stepCharacter(memory.current, input.current, ms), u, ox, oy);
+    });
+  }, [width, height, vx, vy, vw, vh]);
+
+  return <canvas ref={canvas} data-testid="kai-live" style={{ width, height, display: 'block' }} />;
+}
+
+// The still poses (Reduce Motion).
 const POSE: Record<string, number> = {
   idle: require('../../assets/kai/kai-idle.svg'),
   greeting: require('../../assets/kai/kai-greeting.svg'),
@@ -23,7 +62,7 @@ const NEAREST: Record<string, keyof typeof POSE> = {
   curious: 'listening', audio: 'speaking', reviewing: 'idle',
 };
 
-export function KaiCanvas({ state, width }: KaiCanvasProps) {
+function StillKai({ state, width }: KaiCanvasProps) {
   const [vx, vy, vw, vh] = KAI_VIEWBOX;
   const height = Math.round((width * vh) / vw);
   const source = POSE[state] ?? POSE[NEAREST[state] ?? 'idle'];
