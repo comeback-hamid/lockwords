@@ -19,3 +19,14 @@ Videos (`e2e/videos/*.mp4`) are not committed; link them in the PR.
 - **A long run is started detached** (`nohup ... &`). A run tied to the desktop app is cut when the app restarts, in the middle of a recording.
 
 A flow that is on main but no longer fits the product is parked in `e2e/quarantine.txt` (with the reason) until Hamid decides. `npm run e2e` skips parked flows.
+
+## Web (Playwright)
+The web app is checked in real browsers by `e2e/web/` (added 2026-11-25). One flow, `first-run.spec.ts`, walks the whole app as a new learner: onboarding, Kai's chat, the first deck with pictures, a round (keys, mouse swipes, Undo), Use it (Enter sends, Shift+Enter is a new line), the one-time screens, a single word in New words, voice, Progress and a deck page. It runs in **Chromium, Firefox and WebKit (Safari's engine)** in a phone-size window.
+- Run: `npm run e2e:web` (all three), or `npm run e2e:web -- --project=firefox`. Add `--headed` to watch. About 3 minutes.
+- It needs the local stack (`npm run dev:up`) with the stand-in AI, as Maestro does: start the server without `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`.
+- It builds the web app (`npm run build:web`) and serves the built files (`scripts/serve-web.mjs`), so it checks what would go online, not the dev server.
+- First time on a Mac: `npx playwright install chromium firefox webkit`.
+- A video for Hamid: `LOCKWORDS_WEB_VIDEO=1 npm run e2e:web -- --project=chromium` writes `e2e/videos/web/<test>/video.webm`.
+- **It does not run in CI yet.** CI has no local Supabase for the guest login. Run it before a pull request that changes a shared screen, the chat parts, the round, or anything in `src/platform/`.
+- Not covered: Safari's voice recording (WebKit under Playwright has no stand-in microphone) and a real phone's browser. Those are checked by hand.
+- No simulator is needed, so it can run while Maestro runs.

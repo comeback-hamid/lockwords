@@ -10,15 +10,20 @@
     "test": "npm run test --workspaces",
     "test:integration": "npm run test:integration -w @lockwords/server",
     "e2e": "bash scripts/e2e.sh",
+    "e2e:web": "bash scripts/e2e-web.sh",
     "db:setup": "bash scripts/db-setup.sh",
     "spec:validate": "openspec validate --all --strict",
     "docs:html": "node scripts/docs-html.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "audit": "node scripts/audit.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "dev:up": "bash scripts/dev-up.sh"
+    "dev:up": "bash scripts/dev-up.sh",
+    "build:web": "cd apps/mobile && npx expo export -p web --output-dir dist"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }

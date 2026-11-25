@@ -26,6 +26,7 @@ jobs:
       DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # optional: without it the server makes no deck pictures
+      WEB_ORIGINS: ${{ vars.WEB_ORIGINS }} # optional: the web app's public addresses (see "Web app" in docs/architecture.md)
       DEPLOY_BRANCH: main
     steps:
       - uses: actions/checkout@v4
@@ -35,9 +36,11 @@ jobs:
       - name: Fill the app spec (secrets come from GitHub, never from git)
         run: |
           test -n "$ANTHROPIC_API_KEY" || { echo "ANTHROPIC_API_KEY secret is missing" >&2; exit 1; }
-          envsubst '$DEPLOY_BRANCH $ANTHROPIC_API_KEY $OPENAI_API_KEY' < .do/app.yaml > "$RUNNER_TEMP/app.yaml"
+          envsubst '$DEPLOY_BRANCH $ANTHROPIC_API_KEY $OPENAI_API_KEY $WEB_ORIGINS' < .do/app.yaml > "$RUNNER_TEMP/app.yaml"
           # No image key yet: leave the setting out, so the server starts and decks simply have no pictures.
           test -n "$OPENAI_API_KEY" || sed -i '/# openai-start/,/# openai-end/d' "$RUNNER_TEMP/app.yaml"
+          # The web app is not public yet: no address, so the setting is left out (the server then allows only localhost).
+          test -n "$WEB_ORIGINS" || sed -i '/# web-origins-start/,/# web-origins-end/d' "$RUNNER_TEMP/app.yaml"
       - name: Find the app
         id: app
         run: |
