@@ -53,3 +53,14 @@ The plan SHALL hold only hard cards (the hard mark of the Review rules) that are
 #### Scenario: No longer hard
 - **WHEN** a word in the kept plan reaches Stage 3 or is swiped I know it, and the plan is asked for again
 - **THEN** no slot has that word
+
+### Requirement: Plan fields for the home widgets
+Every slot of `GET /v1/widget/plan` SHALL also have `example` (the card's example sentence, as it is on the card) and `imageUrl` (the full address of the card's picture; left out when the card has none).
+
+#### Scenario: Card with a picture
+- **WHEN** the slot's card has a picture
+- **THEN** the slot has `imageUrl` and `example`
+
+#### Scenario: Card without a picture
+- **WHEN** the slot's card has no picture
+- **THEN** the slot has no `imageUrl`
