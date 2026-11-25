@@ -20,6 +20,22 @@ Videos (`e2e/videos/*.mp4`) are not committed; link them in the PR.
 
 A flow that is on main but no longer fits the product is parked in `e2e/quarantine.txt` (with the reason) until Hamid decides. `npm run e2e` skips parked flows.
 
+## Android
+The same flows run on Android: `npm run e2e -- --platform android` (or `LOCKWORDS_PLATFORM=android npm run e2e`), with `--areas` as on iOS. Added 2026-11-25.
+- **What it needs:** one running Android emulator or phone (`adb devices`), the debug build on it (`cd apps/mobile && npx expo run:android --port <your Metro port>`), Metro on that port, and the local stack. With an iOS simulator booted too, the runner picks the first Android device; `MAESTRO_DEVICE=emulator-5554` names one.
+- **The emulator reaches this Mac through adb:** `adb reverse tcp:<port> tcp:<port>` for the server, Supabase (54321) and Metro. Then `apps/mobile/.env.local` keeps its `localhost` addresses, the same as for iOS. Run it again after the emulator restarts.
+- **The Metro port is part of an Android debug build** (`--port` when it was built). `LOCKWORDS_METRO` is for iOS only.
+- **A twin file for a real platform difference:** `name.android.yaml` next to `name.yaml` (in `flows/` or `subflows/`) runs in its place on Android and never on iOS. A flow with only an `.android.yaml` file is Android only. Never change an iOS flow to make Android pass. Today's twins and why are listed at the top of each twin file.
+- **Parked on Android only:** `e2e/quarantine.android.txt` (same format as `quarantine.txt`).
+- **Videos:** `e2e/videos/android/<name>.mp4`.
+- **The first screen gets 60 seconds on Android** (15 on iOS): after a data wipe a debug build loads all its code from Metro again. The runner changes that one wait in its copy of the flows.
+- **Emulator setup that matters** (found 2026-11-25, `Pixel_9_Pro`, Android 16):
+  - Start it with `-gpu host -feature -Vulkan`. With Vulkan on, every screenshot and video was plain white on this Mac.
+  - Turn the mobile radio off and keep Wi-Fi: `adb shell cmd connectivity airplane-mode enable && adb shell svc wifi enable`. The emulator's signal bars jump between one and two bars, Maestro reads that as "the screen is still changing", and every tap waits longer.
+  - `clearKeychain` does nothing on Android, and is not needed: Android deletes an app's secure storage with its data.
+- **Why a debug build drops the splash hand-over** (`apps/mobile/plugins/with-android-debug-splash.js`): without it Android left a start animation hanging on the app's window and every Maestro tap took 12 seconds.
+- Not in CI: CI builds the Android app (job `android`), it does not run the flows on an emulator.
+
 ## Web (Playwright)
 The web app is checked in real browsers by `e2e/web/` (added 2026-11-25). One flow, `first-run.spec.ts`, walks the whole app as a new learner: onboarding, Kai's chat, the first deck with pictures, a round (keys, mouse swipes, Undo), Use it (Enter sends, Shift+Enter is a new line), the one-time screens, a single word in New words, voice, Progress and a deck page. It runs in **Chromium, Firefox and WebKit (Safari's engine)** in a phone-size window.
 - Two more flows since `web-desktop-layout`: `wide.spec.ts` (a 1440 px window in the three engines: the 480 column of onboarding, the side bar, the columns, the keys under the card, live Kai and the meadow, a word deleted with the mouse, a narrower window, reduced motion) and `touch.spec.ts` (Chrome on a Pixel with a touch screen: finger swipes, the 16 px text box, the home screen files). Projects: `chromium`, `firefox`, `webkit`, `wide-chromium`, `wide-firefox`, `wide-webkit`, `touch-chromium`.

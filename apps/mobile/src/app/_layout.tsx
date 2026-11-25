@@ -2,6 +2,7 @@ import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
@@ -61,7 +62,14 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
     </Stack>
   );
-  if (Platform.OS !== 'web') return stack;
+  // Android draws the app under the status bar and picks white icons by itself: the app is always light, so ask for dark ones.
+  if (Platform.OS !== 'web')
+    return (
+      <>
+        {stack}
+        <StatusBar style="dark" />
+      </>
+    );
   // In a browser the page lays the app out for the window (phone, tablet, desktop): `WebFrame`.
   return <WebFrame>{stack}</WebFrame>;
 }

@@ -1,0 +1,1 @@
+# Flows that `npm run e2e -- --platform android` skips, one file name per line, with the reason. Empty = nothing skipped.

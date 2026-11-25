@@ -7,7 +7,7 @@ import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatMessagesGrow, chatScrollProps, closeKeyboard, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { avoidKeyboard, chatMessagesGrow, chatScrollProps, closeKeyboard, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { useTimedCount } from '@/components/chat/deck-card';
 import { DeckIdeas } from '@/components/chat/deck-ideas';
 import { KaiHeader } from '@/components/chat/kai-header';
@@ -403,7 +403,7 @@ export default function NewWordsScreen() {
     );
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.root} behavior={avoidKeyboard()}>
       {header}
       {devId}
       <View style={styles.scroll}>

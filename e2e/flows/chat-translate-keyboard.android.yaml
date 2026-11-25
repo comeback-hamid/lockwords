@@ -1,0 +1,153 @@
+# The translation switch in every Kai chat, and the keyboard rules (Hamid's phone test, 2026-11-23).
+# A Persian speaker who learns Spanish: the switch is there from Kai's first line in onboarding, and it is the same
+# switch in the New words chat. Return closes the keyboard; a scroll of the messages (up or down) closes it too.
+# Works with the stand-in AI and with the real one: nothing here reads Kai's own words after the chat language is picked.
+# Android twin of chat-translate-keyboard.yaml. The one difference: the key that proves the keyboard is open.
+# On iOS it is named "Emoji", on Android (Gboard) "Emoji button". Keep the two files the same otherwise.
+# Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - platform
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: chat-translate-keyboard
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "I.m Kai, welcome to Lockwords"
+    timeout: 15000
+- tapOn: "Start"
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+- assertVisible: "What language do you speak?"
+- tapOn: "Persian"
+- tapOn: "Continue"
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+- assertVisible: "Your Spanish level"
+- tapOn: "Brand new"
+- tapOn: "Continue"
+- assertVisible: "Why are you learning?"
+# A text box on a question screen: Return closes the keyboard
+- scrollUntilVisible:
+    element: "Other"
+- tapOn: "Other"
+# The box takes the keyboard by itself; wait until it is up
+- extendedWaitUntil:
+    visible: "Emoji button"
+    timeout: 10000
+- inputText: "For fun"
+- pressKey: Enter
+- assertNotVisible: "Emoji button"
+- tapOn: "Continue"
+- assertVisible: "What are you into?"
+- tapOn: "Food"
+- tapOn: "Continue"
+# O10: the switch is there from Kai's first line, with the learner's own language on it
+- extendedWaitUntil:
+    visible: "Translation, on"
+    timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 20000
+# Return sends the name and closes the keyboard
+- tapOn: "Message.*"
+- inputText: "Sara"
+- assertVisible: "Emoji button"
+- pressKey: Enter
+- assertNotVisible: "Emoji button"
+- assertVisible: "You: Sara"
+# O10b: chat in the learned language, so Kai's lines get a translation under them
+- extendedWaitUntil:
+    visible: "Español"
+    timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 20000
+# The reply options are the last item of the chat: with the keyboard up they are still in view above it,
+# and a scroll of the chat (they move with it) closes the keyboard
+- tapOn: "Message.*"
+- assertVisible: "Emoji button"
+- assertVisible: "Español"
+- swipe:
+    start: 50%, 30%
+    end: 50%, 42%
+- assertNotVisible: "Emoji button"
+- tapOn: "Español"
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# The switch: off hides the translations, on shows them again (seen in the video)
+- tapOn: "Translation, on"
+- assertVisible: "Translation, off"
+- tapOn: "Translation, off"
+- assertVisible: "Translation, on"
+# A scroll of the chat closes the keyboard: down, then up
+- tapOn: "Message.*"
+- assertVisible: "Emoji button"
+- swipe:
+    start: 50%, 35%
+    end: 50%, 50%
+- assertNotVisible: "Emoji button"
+- tapOn: "Message.*"
+- assertVisible: "Emoji button"
+- swipe:
+    start: 50%, 50%
+    end: 50%, 35%
+- assertNotVisible: "Emoji button"
+# A typed topic, the first deck, and on to the app
+- tapOn: "Message.*"
+- inputText: "comida"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 20000
+- tapOn: "Generate"
+- extendedWaitUntil:
+    visible: "Open deck"
+    timeout: 90000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 20000
+- assertVisible: "Translation, on"
+- tapOn: "Message.*"
+- inputText: "yes, practice now"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "New words"
+    timeout: 40000
+# New words: the same switch, still on
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "Translation, on"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Translation, on"
+- assertVisible: "Translation, off"
+- tapOn: "Translation, off"
+- assertVisible: "Translation, on"
+# Return sends the message and closes the keyboard
+- tapOn: "Message.*"
+- inputText: "Hola Kai"
+- assertVisible: "Emoji button"
+- pressKey: Enter
+- assertNotVisible: "Emoji button"
+- assertVisible: "You: Hola Kai"
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# A scroll of the messages closes the keyboard here too
+- tapOn: "Message.*"
+- assertVisible: "Emoji button"
+- swipe:
+    start: 50%, 35%
+    end: 50%, 50%
+- assertNotVisible: "Emoji button"
+- stopRecording

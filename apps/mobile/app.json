@@ -26,13 +26,18 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/with-android-debug-splash",
       "expo-router",
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#f6f8fa",
           "image": "./assets/images/splash.png",
-          "imageWidth": 240
+          "imageWidth": 240,
+          "android": {
+            "image": "./assets/images/android-icon-foreground.png",
+            "imageWidth": 288
+          }
         }
       ],
       "expo-secure-store",

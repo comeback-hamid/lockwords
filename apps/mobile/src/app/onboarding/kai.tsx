@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Deck } from '@/api/client';
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { avoidKeyboard, chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { DeckCard, useTimedCount } from '@/components/chat/deck-card';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
@@ -269,7 +269,7 @@ function KaiChat({ loaded }: { loaded: ScriptMaps | null }) {
   const lastDeck = messages.findLastIndex((m) => m.from === 'deck');
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.root} behavior={avoidKeyboard()}>
       <KaiHeader
         pose={pose}
         progress={step === 'generating' ? made / total : step === 'drawing' ? (deck?.picturesReady ?? 0) / total : step === 'ready' ? 1 : undefined}
