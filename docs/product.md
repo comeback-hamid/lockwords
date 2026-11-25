@@ -171,6 +171,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - v1 widgets are **see + open only**. No answering on the widget.
 - The web app has no widgets.
 - The web app in any window (2026-11-25, Figma page "Web"): under 600 px it looks like the phone; from 600 px it is one centered column; from 1024 px the three tabs are a side bar on the left. Onboarding, Use it and deck pages are one centered column with no side bar. On a wide window the review card's keys are named under the card. It can be added to a phone's home screen. Kai and the meadow move as on the phone.
+- The web app and a reload (2026-11-25): a reload in the middle of onboarding starts onboarding again (as a restart of the phone app does); a reload on Use it opens Review; an address that does not exist opens the app's start.
 - The web app with a real keyboard (2026-11-25): in a chat box **Enter sends** and Shift+Enter makes a new line. In a review round **Space or Enter flips** the card, **← is Hard, ↑ is Know it, → is Easy**, and Backspace (or Z) takes the last swipe back. The mouse drags the card like a finger.
 
 ### 7.5 SRS (owned by the server)
