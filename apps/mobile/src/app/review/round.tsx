@@ -11,7 +11,7 @@ import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
 import { KeyHints } from '@/platform/key-hints';
-import { useRoundKeys } from '@/platform/round-keys';
+import { ROUND_TEST_ID, useRoundKeys } from '@/platform/round-keys';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
 import { cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
@@ -161,7 +161,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
   for (const l of leaving) stack.push({ ...l, role: 'leaving' });
 
   return (
-    <GestureHandlerRootView style={[styles.root, { paddingTop: insets.top, paddingBottom: inTab ? layout.tabBarClearance : Math.max(insets.bottom, space[16]) }]}>
+    <GestureHandlerRootView testID={ROUND_TEST_ID} style={[styles.root, { paddingTop: insets.top, paddingBottom: inTab ? layout.tabBarClearance : Math.max(insets.bottom, space[16]) }]}>
       {/* iOS swipe-back would steal the Easy swipe (right). */}
       {inTab ? null : <Stack.Screen options={{ gestureEnabled: false }} />}
       <View style={styles.top}>

@@ -1,3 +1,4 @@
+import { realpathSync } from 'node:fs';
 // A tiny static server for the built web app (apps/mobile/dist): every path that is not a file answers index.html,
 // as the real host does. Used by `npm run e2e:web`. Usage: node scripts/serve-web.mjs <dir> <port>
 import { createServer } from 'node:http';
@@ -18,7 +19,21 @@ export async function fileFor(root, urlPath) {
   return join(base, 'index.html');
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// True when this file is the script that was started (not imported by a test). Real paths are compared, so a start
+// through a linked folder (macOS: /tmp is a link to /private/tmp) counts too.
+export function isMain(started, moduleUrl) {
+  if (!started) return false;
+  const real = (p) => {
+    try {
+      return realpathSync(p);
+    } catch {
+      return p;
+    }
+  };
+  return real(started) === real(fileURLToPath(moduleUrl));
+}
+
+if (isMain(process.argv[1], import.meta.url)) {
   const [root, port] = process.argv.slice(2);
   createServer(async (req, res) => {
     try {
