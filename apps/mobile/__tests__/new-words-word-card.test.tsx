@@ -113,7 +113,7 @@ describe('Word card', () => {
     await saveSpeechLanguage('es');
     await render(<WordCard word={word()} onAdd={jest.fn()} />);
     await fireEvent.press(screen.getByRole('button', { name: 'Say the word' }));
-    expect(Speech.speak).toHaveBeenLastCalledWith('para llevar', { language: 'es', useApplicationAudioSession: false });
+    expect(Speech.speak).toHaveBeenLastCalledWith('para llevar', expect.objectContaining({ language: 'es', useApplicationAudioSession: false }));
   });
 
   test('Add: busy while it runs, then "Added" with a check and no more taps', async () => {

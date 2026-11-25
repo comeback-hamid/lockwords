@@ -7,7 +7,7 @@ import { scheduleOnUI } from 'react-native-worklets';
 
 import type { Direction, ReviewCard } from '@/api/client';
 import { Icon } from '@/components/icon';
-import { sayWord } from '@/review/speak';
+import { sayWord, warmUpSpeech } from '@/review/speak';
 import { useSwipe } from '@/review/use-swipe';
 import { wordLayout } from '@/review/word-size';
 import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
@@ -93,6 +93,10 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
   const bare = card.word.replace(/^\S+\s+/, ''); // the word without its article, to color it in the example
   const parts = card.example.split(bare);
   const say = tap(() => sayWord(card.word));
+  // The voice is loaded when the first card shows, so the first tap on the speaker does not start late.
+  useEffect(() => {
+    if (top) warmUpSpeech();
+  }, [top]);
 
   return (
     <GestureDetector gesture={pan}>
@@ -106,7 +110,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
                   <View style={styles.frontWord}>
                     <Word card={card} />
                   </View>
-                  <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={say} style={[styles.speaker, styles.speakerFront]}>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={say} style={({ pressed }) => [styles.speaker, styles.speakerFront, pressed && styles.speakerPressed]}>
                     <Icon name="speaker" color={colors.text2} />
                   </Pressable>
                   <View style={styles.frontRest} />
@@ -143,7 +147,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
                     </Pressable>
                   ) : null}
                   {/* A fixed place beside the first line, outside the word row: a long word can never push it off the card. */}
-                  <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={say} style={[styles.speaker, styles.speakerBack, { top: BACK_BODY_TOP + WORD_ROW_TOP + (fit.size + tokens.wordLineGap - tokens.speakerBack) / 2 }]}>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={say} style={({ pressed }) => [styles.speaker, styles.speakerBack, { top: BACK_BODY_TOP + WORD_ROW_TOP + (fit.size + tokens.wordLineGap - tokens.speakerBack) / 2 }, pressed && styles.speakerPressed]}>
                     <Icon name="speaker" color={colors.text2} />
                   </Pressable>
                 </View>
@@ -242,6 +246,7 @@ const styles = StyleSheet.create({
   word: { color: colors.text, textAlign: 'center', maxWidth: tokens.wordMaxWidth },
   square: { width: tokens.levelSquare, height: tokens.levelSquare, borderRadius: 3, borderWidth: 1, borderColor: colors.divider },
   speaker: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.chip },
+  speakerPressed: { backgroundColor: colors.line }, // darker while the finger is on it, so a tap is felt
   speakerFront: { width: tokens.speakerFront, height: tokens.speakerFront, marginTop: space[24] - space[4] },
   speakerBack: { position: 'absolute', right: tokens.speakerInset, width: tokens.speakerBack, height: tokens.speakerBack },
   grow: { flex: 1 },

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { KaiWord } from '@/api/client';
 import { Icon } from '@/components/icon';
-import { sayWord } from '@/review/speak';
+import { sayWord, warmUpSpeech } from '@/review/speak';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 import { directionStyle, isRtl } from './direction';
@@ -26,6 +26,8 @@ function markedExample(example: string, word: string): string {
 export function WordCard({ word, onAdd }: Props) {
   const [state, setState] = useState<State>(word.added ? 'added' : word.already ? 'already' : 'idle');
   const [failed, setFailed] = useState(false);
+  // The voice is loaded when the card shows, so the first tap on the speaker does not start late.
+  useEffect(warmUpSpeech, []);
   const example = markedExample(word.example, word.word);
   // The server's other texts never show stars either.
   const [shownWord, meaning, exampleMeaning] = [word.word, word.translation, word.exampleTranslation].map(plainText) as [string, string, string];
@@ -47,7 +49,7 @@ export function WordCard({ word, onAdd }: Props) {
     <View style={styles.card}>
       <View testID="word-row" style={[styles.wordRow, isRtl(word.word) && styles.wordRowRtl]}>
         <Text style={[type.headline, styles.word, directionStyle(shownWord)]}>{shownWord}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => sayWord(word.word)} hitSlop={space[4]} style={styles.speaker}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Say the word" onPress={() => sayWord(word.word)} hitSlop={space[4]} style={({ pressed }) => [styles.speaker, pressed && styles.speakerPressed]}>
           <Icon name="speaker" color={colors.text2} />
         </Pressable>
       </View>
@@ -86,6 +88,7 @@ const styles = StyleSheet.create({
   wordRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   wordRowRtl: { flexDirection: 'row-reverse' },
   word: { flex: 1, color: colors.text },
+  speakerPressed: { backgroundColor: colors.line }, // darker while the finger is on it
   speaker: { width: 36, height: 36, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.chip },
   ink: { color: colors.text },
   muted: { color: colors.muted },

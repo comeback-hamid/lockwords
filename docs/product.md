@@ -134,7 +134,7 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **Streak:** a day counts when at least one word was swiped. The streak card shows once a day, after half of the round, from a streak of 2 days.
 - **All cards done** screen with today's numbers: words, minutes, one level square per word, and Easy / Hard / Know it counts.
 - The tab bar stays visible during a round. Only the very first round (the onboarding practice) is full screen.
-- **No sounds in v1**, only the speaker button (decided 2026-11-20).
+- **No sounds in v1**, only the speaker button (decided 2026-11-20). The speaker says the word at once, also on the first tap (the voice is loaded when the card shows), and the button gets darker while it is pressed (2026-11-25).
 - When today's cards are done, new words join by themselves (all of them, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
