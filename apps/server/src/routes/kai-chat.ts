@@ -3,6 +3,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DecksStore, PlanStore, ProfilesStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import type { RandomWordsStore } from '../decks/random-words.js';
+import type { WordPictureJobs } from '../decks/word-pictures.js';
 import { kaiTurn, readChat, type KaiMessage, type KaiStore } from '../kai/chat.js';
 import type { KaiChat } from '../llm/kai-chat.js';
 import { UnauthorizedSchema } from './me.js';
@@ -117,7 +118,7 @@ const postAddWord = createRoute({
 
 const toMessage = (m: KaiMessage) => ({ id: m.id, from: m.from, text: m.text, translation: m.translation, createdAt: m.createdAt.toISOString(), ...(m.word ? { word: m.word } : {}), ...(m.decks?.length ? { decks: m.decks } : {}) });
 
-type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore; decks?: DecksStore; plans?: PlanStore };
+type Deps = { kai?: KaiStore; profiles?: ProfilesStore; kaiChat?: KaiChat; kaiNow?: () => Date; randomWords?: RandomWordsStore; decks?: DecksStore; plans?: PlanStore; wordPictures?: WordPictureJobs };
 
 export function kaiChatRoutes(deps: Deps) {
   const need = <K extends keyof Deps>(key: K) => {
@@ -160,7 +161,13 @@ export function kaiChatRoutes(deps: Deps) {
       const { id } = c.req.valid('param');
       // A malformed id is simply "not found".
       const added = z.uuid().safeParse(id).success ? await need('randomWords').add(c.get('user').id, id) : { ok: false as const, error: 'not_found' as const };
-      if (added.ok) return c.json(added.result, 200);
+      if (added.ok) {
+        // The word is saved. Its picture is drawn in the background: the answer never waits for it, and a job that
+        // cannot start loses only the picture.
+        const { deckId } = added.result;
+        if (added.cardId && deps.wordPictures) void Promise.resolve(added.cardId).then((cardId) => deps.wordPictures!.start(deckId, cardId)).catch(() => {});
+        return c.json(added.result, 200);
+      }
       return added.error === 'no_word' ? c.json({ error: added.error }, 409) : c.json({ error: added.error }, 404);
     });
 }

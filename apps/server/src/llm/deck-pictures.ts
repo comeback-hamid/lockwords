@@ -15,6 +15,12 @@ export const SHEET = { width: 1536, height: 1024 } as const;
 export const MAX_PER_SHEET = 30;
 const GRIDS: Grid[] = [{ cols: 4, rows: 3 }, { cols: 5, rows: 4 }, { cols: 6, rows: 5 }];
 
+// One word alone (a single word kept in a "Random Words N" deck): no sheet, one small square image. The smallest size
+// and the lowest quality the image API has. Tried against the real API on 2026-11-25: 13 s, the same look as a deck picture.
+export const SINGLE: Grid = { cols: 1, rows: 1 };
+export const SINGLE_SIZE = 1024;
+const isSingle = (items: PictureItem[], grid: Grid) => items.length === 1 && grid.cols === 1 && grid.rows === 1;
+
 export function gridFor(n: number): Grid {
   return GRIDS.find((g) => g.cols * g.rows >= n) ?? GRIDS.at(-1)!;
 }
@@ -44,6 +50,15 @@ export function sheetPrompt(items: PictureItem[], grid: Grid): string {
   ].join(' ');
 }
 
+export function singlePrompt(item: PictureItem): string {
+  return [
+    `One small, simple picture on a plain off-white (#f6f8fa) background: ${subject(item)}.`,
+    'The picture sits in the middle and fills about two thirds of the image, with a wide empty band around it.',
+    'No borders, no frames, no numbers, no letters, no words anywhere.',
+    `It shows the meaning so a language learner remembers the word: one object, or one or two people doing one thing. Colours: only near-black, white, light gray and green. No red, orange, yellow, blue or brown. Style: ${ILLUSTRATION_STYLE}`,
+  ].join(' ');
+}
+
 export const IMAGE_MODEL = 'gpt-image-2.5-sunburst';
 const IMAGE_TIMEOUT_MS = 90_000;
 type Fetch = typeof fetch;
@@ -55,7 +70,11 @@ export function openaiSheetMaker(apiKey: string, fetchFn: Fetch = fetch, model =
       const res = await fetchFn('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, prompt: sheetPrompt(items, grid), n: 1, size: `${SHEET.width}x${SHEET.height}`, quality: 'medium' }),
+        body: JSON.stringify(
+          isSingle(items, grid)
+            ? { model, prompt: singlePrompt(items[0]!), n: 1, size: `${SINGLE_SIZE}x${SINGLE_SIZE}`, quality: 'low' }
+            : { model, prompt: sheetPrompt(items, grid), n: 1, size: `${SHEET.width}x${SHEET.height}`, quality: 'medium' },
+        ),
         signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
       });
       if (!res.ok) throw new Error(`image model answered ${res.status}`);
@@ -79,9 +98,10 @@ export function fixtureSheetMaker(delayMs: number | (() => number) = 0): SheetMa
     async sheet(items, grid) {
       const wait = typeof delayMs === 'function' ? delayMs() : delayMs;
       if (wait) await new Promise((r) => setTimeout(r, wait));
-      const w = SHEET.width / grid.cols, h = SHEET.height / grid.rows;
+      const size = isSingle(items, grid) ? { width: SINGLE_SIZE, height: SINGLE_SIZE } : SHEET;
+      const w = size.width / grid.cols, h = size.height / grid.rows;
       const cells = items.map((_, i) => SHAPES[i % SHAPES.length]!((i % grid.cols) * w + w / 2, Math.floor(i / grid.cols) * h + h / 2, Math.min(w, h) / 4)).join('');
-      return sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SHEET.width}" height="${SHEET.height}"><rect width="100%" height="100%" fill="#f6f8fa"/>${cells}</svg>`)).png().toBuffer();
+      return sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size.width}" height="${size.height}"><rect width="100%" height="100%" fill="#f6f8fa"/>${cells}</svg>`)).png().toBuffer();
     },
   };
 }
