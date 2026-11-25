@@ -9,7 +9,19 @@ const set = (next: string | null) => {
   listeners.forEach((l) => l());
 };
 
+// A tapped word is being loaded (by whichever copy of the Review tab took it). `opened` counts the taps that were
+// taken, so a load of the usual round that started before a tap knows it lost.
+let opening = false;
+let opened = 0;
+
 export const tapped = {
+  isOpening: () => opening,
+  opened: () => opened,
+  startOpening: () => {
+    opening = true;
+    opened += 1;
+  },
+  doneOpening: () => void (opening = false),
   set: (cardId: string) => set(cardId),
   take: () => {
     const was = id;

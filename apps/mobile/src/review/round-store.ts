@@ -52,10 +52,18 @@ export function putFirst(card: ReviewCard) {
   set({ ...round, cards, added: false });
 }
 // Is the round on screen inside the Review tab? Kept here, not in the screen: opening the app from a widget tap can
-// build the tab's screen again, and the round must still be there.
+// build the tab's screen again while the tapped word is still loading, and the new screen must show the round too.
 let openInTab = false;
-export const setOpenInTab = (open: boolean) => void (openInTab = open);
-export const isOpenInTab = () => openInTab && round.index < round.cards.length;
+const openListeners = new Set<() => void>();
+export function setOpenInTab(open: boolean) {
+  if (openInTab === open) return;
+  openInTab = open;
+  openListeners.forEach((l) => l());
+}
+const readOpenInTab = () => openInTab;
+export function useOpenInTab() {
+  return useSyncExternalStore((l) => (openListeners.add(l), () => openListeners.delete(l)), readOpenInTab, readOpenInTab);
+}
 export const findCard = (id: string) => round.cards.find((c) => c.id === id) ?? null;
 export function useRound() {
   return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), getRound, getRound);

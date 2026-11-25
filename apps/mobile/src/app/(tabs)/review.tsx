@@ -11,7 +11,7 @@ import { LevelChain } from "@/components/level-chain";
 import { LoadError, Loading } from "@/components/load-state";
 import { Kai } from "@/kai/kai";
 import { isIntroDone } from "@/review/intro";
-import { addToRound, backFromUseIt, getRound, isOpenInTab, putFirst, setOpenInTab, setRound } from "@/review/round-store";
+import { addToRound, backFromUseIt, getRound, putFirst, setOpenInTab, setRound, useOpenInTab } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
 import { syncWidget, useWidgetUrl } from "@/widgets/sync";
 import { tapped, useTapped } from "@/widgets/tapped";
@@ -28,11 +28,9 @@ export default function ReviewScreen() {
     summary: ReviewSummary | null;
     failed: boolean;
   }>({ cards: null, summary: null, failed: false });
-  const [inRound, setInRoundState] = useState(isOpenInTab);
-  const setInRound = useCallback((open: boolean) => {
-    setOpenInTab(open);
-    setInRoundState(open);
-  }, []);
+  // Whether the round is on screen lives in the round store, so every copy of this screen agrees (see there).
+  const inRound = useOpenInTab();
+  const setInRound = setOpenInTab;
 
   // Loads every time the tab comes into view, so a finished or left round shows what is true now.
   // `afterRound`: the round just ended here. Its (empty) screen stays until the new numbers are in, so the old
@@ -47,12 +45,14 @@ export default function ReviewScreen() {
       .catch(() => null);
     // A tap on the widget that comes while this load runs wins: this load's answer is then dropped.
     const mine = ++loads.current;
+    const taps = tapped.opened();
+    const stillMine = () => mine === loads.current && taps === tapped.opened();
     Promise.all([api.fetchRound(), summary])
       .then(
-        ([cards, s]) => mine === loads.current && setState({ cards, summary: s, failed: false }),
-        () => mine === loads.current && setState({ cards: null, summary: null, failed: true }),
+        ([cards, s]) => stillMine() && setState({ cards, summary: s, failed: false }),
+        () => stillMine() && setState({ cards: null, summary: null, failed: true }),
       )
-      .then(() => mine === loads.current && setInRound(false));
+      .then(() => stillMine() && setInRound(false));
   }, [setInRound]);
   // A round that is open stays open (Hamid, 2026-11-25): coming back from another tab, from Use it or from outside
   // the app shows the same card, with the bar where it was. Words made meanwhile join at the end of the round.
@@ -63,15 +63,13 @@ export default function ReviewScreen() {
   }, [inRound]);
   // A tap on the widget (Hamid, 2026-11-25): the round opens at once, with the tapped word as the first card.
   // With a round already open, the word is put on top of it.
-  const opening = useRef(false);
   const openOn = useCallback((first: string) => {
     const { cards: inStore, index } = getRound();
     const open = roundOpen.current && index < inStore.length;
-    opening.current = true;
-    if (!open) loads.current += 1;
+    tapped.startOpening();
     Promise.resolve()
       .then(() => api.fetchRound(undefined, first))
-      .finally(() => (opening.current = false))
+      .finally(tapped.doneOpening)
       .then(
         (cards) => {
           if (open) {
@@ -93,7 +91,7 @@ export default function ReviewScreen() {
     if (first) openOn(first);
   }, [tappedId, openOn]);
   const onFocus = useCallback(() => {
-    if (opening.current) return; // the tapped word loads the round itself
+    if (tapped.isOpening()) return; // the tapped word loads the round itself
     const fromUseIt = backFromUseIt();
     const { cards: inStore, index } = getRound();
     if (roundOpen.current && index < inStore.length) {

@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import type { ReviewCard } from '@/api/client';
 import ReviewScreen from '@/app/(tabs)/review';
 import { api } from '@/auth/boot';
-import { getRound, setRound } from '@/review/round-store';
+import { getRound, setOpenInTab, setRound } from '@/review/round-store';
 import { firstFromUrl, tapped } from '@/widgets/tapped';
 
 // A tap on the widget opens Review, inside the round, with that word as the first card (Hamid, 2026-11-25).
@@ -26,6 +26,7 @@ const usual = [card(1, 'el mesero'), card(2, 'la propina')];
 beforeEach(() => {
   jest.clearAllMocks();
   setRound([]);
+  setOpenInTab(false);
   tapped.take();
   mockApi.fetchSummary.mockResolvedValue({ day: '2026-11-25', name: null, streakDays: 0, today: { words: 0, minutes: 0, easy: 0, hard: 0, known: 0, stages: [] } });
   mockApi.fetchRound.mockImplementation(async (_deckId?: string, first?: string) => (first === 'c9' ? [card(9, 'la cuenta', { lookOnly: true }), ...usual] : first === 'c2' ? [usual[1]!, usual[0]!] : usual));
@@ -79,4 +80,17 @@ test('the round cannot be loaded after a tap: the tab’s own error shows', asyn
   tapped.set('c2');
   await render(<ReviewScreen />);
   await waitFor(() => expect(screen.getByText('Could not load your cards.')).toBeOnTheScreen());
+});
+
+test('the tab’s screen is built again while the tapped word loads (as iOS does on a widget tap): the new screen shows the round', async () => {
+  let answer!: (c: ReviewCard[]) => void;
+  mockApi.fetchRound.mockImplementation((_deckId?: string, first?: string) => (first ? new Promise((resolve) => (answer = resolve)) : Promise.resolve(usual)));
+  tapped.set('c9');
+  const first = await render(<ReviewScreen />);
+  await waitFor(() => expect(mockApi.fetchRound).toHaveBeenCalledWith(undefined, 'c9'));
+  first.unmount();
+  await render(<ReviewScreen />); // the new copy starts its own load of the usual round
+  await act(async () => answer([card(9, 'la cuenta', { lookOnly: true }), ...usual]));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen());
+  expect(screen.getByText('3 words left')).toBeOnTheScreen();
 });
