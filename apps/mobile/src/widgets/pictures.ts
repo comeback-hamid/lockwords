@@ -26,7 +26,7 @@ export async function savePictures(slots: { cardId: string; imageUrl?: string }[
     [...wanted].map(async ([cardId, url]) => {
       if (!done.has(url)) {
         const file = new File(dir, pictureName(url));
-        done.set(url, file.exists ? Promise.resolve(file.uri) : File.downloadFileAsync(url, file).then(() => file.uri, () => null));
+        done.set(url, file.exists ? Promise.resolve(file.uri) : File.downloadFileAsync(url, file).then(() => file.uri, () => (file.exists ? file.uri : null))); // two syncs at once: the other one saved it
       }
       const uri = await done.get(url)!;
       if (uri) saved[cardId] = uri;

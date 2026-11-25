@@ -16,3 +16,9 @@
 - Not done: a real 30-minute change watched on the home screen (the same timeline as the lock screen widget, where five looks were watched with one-minute slots).
 - Not done: a real AI picture on the simulator. The local server makes stand-in pictures (a shape on grey), and those show in the medium widget.
 - The server test and code of 1.1 were written together, so that test was not seen failing first.
+
+## 4. Review fixes (2026-11-25, a second agent read the change)
+- [x] 4.1 Two syncs at once: a refused download whose file is there counts as saved (test).
+- [x] 4.2 The example: `~`, `[`, `]` and `\` are taken out too, so they are not read as marks (test).
+- [x] 4.3 Medium widget: the small Kai sits 14 points more to the right, so a two-line example has room. Not done: looked at again on the simulator after this move (the Maestro run had reset the home screen).
+- [x] 4.4 Tests: two cards with one picture; the slots really reach `savePictures`.

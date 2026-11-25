@@ -67,7 +67,7 @@ const Lockwords = (props: WidgetProps, environment: WidgetEnvironment) => {
         {props.picture ? (
           <ZStack alignment="bottomLeading">
             <Image uiImage={props.picture} modifiers={[resizable(), widgetAccentedRenderingMode('desaturated'), aspectRatio({ contentMode: 'fill' }), frame({ width: 126, height: 126 }), clipShape('roundedRectangle', 16), opacity(tinted ? 0.55 : 1)]} />
-            {kai(78, 56) ? <VStack modifiers={[offset({ x: -34, y: 8 })]}>{kai(78, 56)}</VStack> : null}
+            {kai(78, 56) ? <VStack modifiers={[offset({ x: -20, y: 8 })]}>{kai(78, 56)}</VStack> : null}
           </ZStack>
         ) : (
           kai(124, 88)

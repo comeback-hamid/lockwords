@@ -67,3 +67,18 @@ test('a picture that cannot be downloaded is skipped; the others are kept', asyn
   const saved = await savePictures([slot('c1', 'https://x.test/pictures/p1'), slot('c2', 'https://x.test/pictures/p2'), slot('c3')]);
   expect(saved).toEqual({ c2: 'file:///widgets/pic-p2.webp' });
 });
+
+// Found in review, 2026-11-25.
+test('two words with the same picture: one download, both get the file', async () => {
+  const saved = await savePictures([slot('c1', 'https://x.test/pictures/p1'), slot('c2', 'https://x.test/pictures/p1')]);
+  expect(mockDownload).toHaveBeenCalledTimes(1);
+  expect(saved).toEqual({ c1: 'file:///widgets/pic-p1.webp', c2: 'file:///widgets/pic-p1.webp' });
+});
+
+test('two syncs at once: the download is refused because the other sync saved the file, and the picture is still used', async () => {
+  mockDownload.mockImplementationOnce(async (_url, file) => {
+    mockFiles.add(file.name); // the other sync finished first
+    throw new Error('DestinationAlreadyExists');
+  });
+  expect(await savePictures([slot('c1', 'https://x.test/pictures/p1')])).toEqual({ c1: 'file:///widgets/pic-p1.webp' });
+});

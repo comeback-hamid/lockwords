@@ -32,7 +32,7 @@ export const roomForKai = (word: string, meaning: string) => [...word].length <=
 // The example with the word marked for bold. Like the card in Review: the word without its article is looked for.
 // Marks that are already in the sentence are taken out, so they cannot break the bold word.
 export function markWord(example: string, word: string): string {
-  const clean = example.replace(/[*_`]/g, '');
+  const clean = example.replace(/[*_`~[\]\\]/g, '');
   const bare = word.replace(/^\S+\s+/, '');
   const at = bare ? clean.indexOf(bare) : -1;
   return at < 0 ? clean : `${clean.slice(0, at)}**${bare}**${clean.slice(at + bare.length)}`;

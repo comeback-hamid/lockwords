@@ -5,8 +5,8 @@ import { markWord, poseOf, toTimeline, type WidgetProps } from '@/widgets/timeli
 const mockUpdateTimeline = jest.fn();
 jest.mock('@/widgets/lockwords-widget', () => ({ __esModule: true, default: { updateTimeline: (...a: unknown[]) => mockUpdateTimeline(...a) } }));
 jest.mock('@/widgets/kai-files', () => ({ kaiFiles: jest.fn(async () => ({ greeting: 'file:///w/kai-greeting.png', idle: 'file:///w/kai-idle.png', thinking: 'file:///w/kai-thinking.png', speaking: 'file:///w/kai-speaking.png', celebrate: 'file:///w/kai-celebrate.png' })) }));
-const mockSavePictures = jest.fn(async (): Promise<Record<string, string>> => ({}));
-jest.mock('@/widgets/pictures', () => ({ savePictures: () => mockSavePictures() }));
+const mockSavePictures = jest.fn(async (_slots: unknown): Promise<Record<string, string>> => ({}));
+jest.mock('@/widgets/pictures', () => ({ savePictures: (slots: unknown) => mockSavePictures(slots) }));
 jest.mock('@/auth/boot', () => ({ api: { fetchWidgetPlan: jest.fn() } }));
 jest.mock('@/auth/me-store', () => ({ getMe: jest.fn(() => ({ id: 'u1' })) }));
 
@@ -115,6 +115,7 @@ test('a long word keeps Kai in color: only the small lock screen widget drops Ka
 test('marks in the example cannot break the bold word', () => {
   expect(markWord('2 * 3 = *seis*', 'seis')).toBe('2  3 = **seis**');
   expect(markWord('Nothing to mark here.', 'la cuenta')).toBe('Nothing to mark here.');
+  expect(markWord('Mira [aquí](x) ~~no~~ \\ seis', 'seis')).toBe('Mira aquí(x) no  **seis**');
 });
 
 test('syncWidget saves the pictures of the plan and hands their files to the widget', async () => {
@@ -123,6 +124,7 @@ test('syncWidget saves the pictures of the plan and hands their files to the wid
   await syncWidget(now);
   const entries = mockUpdateTimeline.mock.calls[0]![0] as { props: WidgetProps }[];
   expect(entries[0]!.props).toMatchObject({ picture: 'file:///w/pic-p1.webp', example: 'An example with **w1**.' });
+  expect(mockSavePictures).toHaveBeenCalledWith([expect.objectContaining({ cardId: 'c1', imageUrl: 'https://x.test/pictures/p1' })]);
 });
 
 test('the pictures cannot be saved: the words still reach the widget', async () => {
