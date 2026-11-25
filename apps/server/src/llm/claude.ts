@@ -103,12 +103,17 @@ Answer with JSON only: {"title": string, "titleTranslation": string, "reason": s
   };
 }
 
+// The language Kai speaks in a learner's chat, and the extra ask for the translation switch (chat in the learned language).
+type Spoken = { learningLanguage: string; nativeLanguage: string; chat?: 'native' | 'target' };
+const spoken = (i: Spoken) => (i.chat === 'target' ? i.learningLanguage : i.nativeLanguage);
+const alsoTranslated = (i: Spoken) => (i.chat === 'target' ? `\nAlso give "translations": the same lines in ${i.nativeLanguage}, one per line, in the same order (same emoji, same **bold** words).` : '');
+
 export function claudeUseItJudge(apiKey: string, fetchFn: Fetch = fetch): UseItJudge {
   const ask = asker(apiKey, fetchFn);
   return {
     check: (i) =>
       ask(
-        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They wrote one sentence to practice the word "${i.word}" (${i.translation}):\n"${i.sentence}"\nJudge it kindly. "good" is true when the word is used correctly and the sentence can be understood (small mistakes are fine).\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 4 very short lines, each starting with one emoji, key words in **bold**. If good: praise, then one tip or a more natural way to say it. If not: say what is wrong and how to fix it.\nIf good, also give "followUp": one very short question (at most 6 words, in ${i.nativeLanguage}) the learner might ask next about this word or your tip, like "Why “le”?". Otherwise null.\nAnswer with JSON only: {"good": boolean, "lines": string[], "followUp": string | null}`,
+        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They wrote one sentence to practice the word "${i.word}" (${i.translation}):\n"${i.sentence}"\nJudge it kindly. "good" is true when the word is used correctly and the sentence can be understood (small mistakes are fine).\nAnswer as Kai, a friendly tutor, in ${spoken(i)}: 1 to 4 very short lines, each starting with one emoji, key words in **bold**. If good: praise, then one tip or a more natural way to say it. If not: say what is wrong and how to fix it.\nIf good, also give "followUp": one very short question (at most 6 words, in ${spoken(i)}) the learner might ask next about this word or your tip, like "Why “le”?". Otherwise null.${alsoTranslated(i)}\nAnswer with JSON only: {"good": boolean, "lines": string[], "followUp": string | null${i.chat === 'target' ? ', "translations": string[]' : ''}}`,
         UseItSchema,
       ),
   };
@@ -141,7 +146,7 @@ export function claudeWordAsker(apiKey: string, fetchFn: Fetch = fetch): WordAsk
   return {
     ask: (i) =>
       ask(
-        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They practice the word "${i.word}" (${i.translation}).${i.sentence ? `\nThey wrote: "${i.sentence}"` : ''}\nThey ask: "${i.question}"\nAnswer as Kai, a friendly tutor, in ${i.nativeLanguage}: 1 to 3 very short lines, key words in **bold**, an example in ${i.learningLanguage} when it helps. Only help with language learning; if the question is about something else, say so kindly in one line.\nAnswer with JSON only: {"lines": string[]}`,
+        `A learner who speaks ${i.nativeLanguage} is learning ${i.learningLanguage}. They practice the word "${i.word}" (${i.translation}).${i.sentence ? `\nThey wrote: "${i.sentence}"` : ''}\nThey ask: "${i.question}"\nAnswer as Kai, a friendly tutor, in ${spoken(i)}: 1 to 3 very short lines, key words in **bold**, an example in ${i.learningLanguage} when it helps. Only help with language learning; if the question is about something else, say so kindly in one line.${alsoTranslated(i)}\nAnswer with JSON only: {"lines": string[]${i.chat === 'target' ? ', "translations": string[]' : ''}}`,
         AskSchema,
       ),
   };

@@ -9,27 +9,75 @@ import { Composer } from '@/components/chat/composer';
 import { chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
+import { TranslationToggle } from '@/components/chat/translation-toggle';
+import { useTranslation } from '@/components/chat/use-translation';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
-import type { KaiPose } from '@/onboarding/kai-script';
+import { LINES, type KaiPose } from '@/onboarding/kai-script';
 import { advance, findCard } from '@/review/round-store';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
 
-type Message = { from: 'kai' | 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
-const REPLY = { example: 'Show me an example', skip: 'Skip this word', next: 'Next card' } as const;
-const CHECKING = 'Checking… 👀';
-const THINKING = 'Thinking… 💭';
+type Message = { from: 'kai'; text: string; translation?: string; status?: boolean } | { from: 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
 // Kai types every line (dots first); the word card and the "Checking" status show at once.
-const typedText = (m: Message) => (m.from === 'kai' && m.text !== CHECKING && m.text !== THINKING ? m.text : null);
+const typedText = (m: Message) => (m.from === 'kai' && !m.status ? m.text : null);
+
+// Kai's fixed lines of this chat. They come from the server in the language Kai speaks with this learner, with a
+// translation under them when that is the language they learn. Without the server: the built-in English.
+type ScriptLine = { text: string; translation?: string };
+type UseItScript = { nativeLanguage: string | null; lines: Record<string, ScriptLine> };
+const KEYS = ['useItIntro', 'useItWrite', 'useItChecking', 'useItThinking', 'useItCheckFailed', 'useItAskFailed', 'replyExample', 'replySkip', 'replyNext'] as const;
+type Key = (typeof KEYS)[number];
+const ENGLISH: UseItScript = { nativeLanguage: null, lines: Object.fromEntries(KEYS.map((key) => [key, { text: LINES[key] }])) };
+const SCRIPT_WAIT_MS = 4000;
+const loadScript = (): Promise<UseItScript> =>
+  Promise.race([
+    Promise.resolve()
+      .then(() => api.fetchUseItScript())
+      .then((s) => s ?? ENGLISH)
+      .catch(() => ENGLISH),
+    new Promise<UseItScript>((resolve) => setTimeout(() => resolve(ENGLISH), SCRIPT_WAIT_MS)),
+  ]);
 
 // Use it (Figma O13–O13c / A6): write one sentence with the word; Kai checks it.
+// The screen waits for Kai's lines (Kai and the typing dots), 4 seconds at most.
 export default function UseItScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const card = findCard(id);
-  const { messages, typing, busy, say: add, edit } = useKaiTyping<Message>(typedText, () =>
-    card ? [{ from: 'kai', text: 'Time to use a word! ✍️' }, { from: 'word' }, { from: 'kai', text: `Write one sentence with **${card.word}**. I’ll check it for you.` }] : [],
-  );
+  const [script, setScript] = useState<UseItScript | null>(null);
+  useEffect(() => {
+    let live = true;
+    void loadScript().then((s) => live && setScript(s));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!card) return <View style={styles.root} />; // opened without a round (deep link): nothing to show
+  if (!script) {
+    return (
+      <View style={styles.root}>
+        <KaiHeader pose="idle" icon="close" />
+        <View style={styles.messages}>
+          <TypingBubble />
+        </View>
+      </View>
+    );
+  }
+  return <UseItChat card={card} script={script} />;
+}
+
+function UseItChat({ card, script }: { card: NonNullable<ReturnType<typeof findCard>>; script: UseItScript }) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  // One of Kai's fixed lines, with the word put in. A key the server did not send is the English line.
+  const line = (key: Key): ScriptLine => {
+    const fill = (text: string) => text.replace('{word}', card.word);
+    const l = script.lines[key] ?? ENGLISH.lines[key]!;
+    return { text: fill(l.text), ...(l.translation ? { translation: fill(l.translation) } : {}) };
+  };
+  const kai = (key: Key, status = false): Message => ({ from: 'kai', ...line(key), ...(status ? { status } : {}) });
+  const REPLY = { example: line('replyExample').text, skip: line('replySkip').text, next: line('replyNext').text };
+  // The same translation switch as every Kai chat: one saved choice.
+  const translation = useTranslation(script.nativeLanguage);
+  const { messages, typing, busy, say: add, edit } = useKaiTyping<Message>(typedText, () => [kai('useItIntro'), { from: 'word' }, kai('useItWrite')]);
   const [options, setOptions] = useState<string[]>([REPLY.example, REPLY.skip]);
   const [pose, setPose] = useState<KaiPose>('idle');
   const [composerText, setComposerText] = useState(false); // the learner is typing: Kai listens
@@ -39,7 +87,7 @@ export default function UseItScreen() {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   useScrollToEndOnKeyboard(scroll);
   const say = (...next: Message[]) => {
-    edit((all) => all.filter((m) => !(m.from === 'kai' && (m.text === CHECKING || m.text === THINKING))));
+    edit((all) => all.filter((m) => !(m.from === 'kai' && m.status)));
     add(...next);
   };
 
@@ -47,15 +95,13 @@ export default function UseItScreen() {
     scrollChatToEnd(scroll, !busy && options.length > 0);
   }, [messages, options, typing, busy]);
 
-  if (!card) return <View style={styles.root} />; // opened without a round (deep link): nothing to show
-
   async function check(sentence: string) {
-    say({ from: 'user', text: sentence }, { from: 'kai', text: CHECKING });
+    say({ from: 'user', text: sentence }, kai('useItChecking', true));
     setOptions([]);
     setPose('thinking');
     try {
-      const result = await api.useIt(card!.id, sentence);
-      say(...result.lines.map((text): Message => ({ from: 'kai', text })), ...(result.movedUp ? [{ from: 'movedUp' } as const] : []));
+      const result = await api.useIt(card.id, sentence);
+      say(...result.lines.map((text, i): Message => ({ from: 'kai', text, translation: result.translations?.[i] })), ...(result.movedUp ? [{ from: 'movedUp' } as const] : []));
       setPose(result.good ? 'celebrate' : 'idle');
       if (result.good) {
         setCheer((n) => n + 1);
@@ -65,20 +111,20 @@ export default function UseItScreen() {
         setOptions([REPLY.example, REPLY.skip]);
       }
     } catch {
-      say({ from: 'kai', text: 'I could not check that. Try again.' });
+      say(kai('useItCheckFailed'));
       setPose('idle');
     }
   }
 
   async function ask(question: string) {
-    say({ from: 'user', text: question }, { from: 'kai', text: THINKING });
+    say({ from: 'user', text: question }, kai('useItThinking', true));
     setOptions([]);
     setPose('thinking');
     try {
-      const { lines } = await api.askAboutWord(card!.id, question, goodSentence ?? undefined);
-      say(...lines.map((text): Message => ({ from: 'kai', text })));
+      const { lines, translations } = await api.askAboutWord(card.id, question, goodSentence ?? undefined);
+      say(...lines.map((text, i): Message => ({ from: 'kai', text, translation: translations?.[i] })));
     } catch {
-      say({ from: 'kai', text: 'I could not answer that. Try again.' });
+      say(kai('useItAskFailed'));
     }
     setPose('idle');
     setOptions([REPLY.next]);
@@ -95,7 +141,8 @@ export default function UseItScreen() {
     if (text === REPLY.skip) return router.back();
     if (text === REPLY.next) return close();
     if (text === REPLY.example) {
-      say({ from: 'user', text }, { from: 'kai', text: card!.example }, { from: 'kai', text: card!.exampleTranslation });
+      // The example with its translation under it, like every Kai line.
+      say({ from: 'user', text }, { from: 'kai', text: card.example, translation: card.exampleTranslation });
       return setOptions([REPLY.skip]);
     }
     if (goodSentence !== null) return void ask(text);
@@ -104,7 +151,7 @@ export default function UseItScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" onBack={close} />
+      <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" onBack={close} right={translation.code ? <TranslationToggle code={translation.code} on={translation.on} onToggle={translation.toggle} /> : undefined} />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>
           m.from === 'word' ? (
@@ -119,7 +166,7 @@ export default function UseItScreen() {
               <Text style={[type.labelTag, styles.green]}>{`${card.word.toUpperCase()} MOVED UP A LEVEL`}</Text>
             </View>
           ) : (
-            <ChatBubble key={i} from={m.from} text={m.text} />
+            <ChatBubble key={i} from={m.from} text={m.text} translation={m.from === 'kai' ? m.translation : undefined} showTranslation={translation.on} />
           ),
         )}
         {typing ? <TypingBubble /> : null}

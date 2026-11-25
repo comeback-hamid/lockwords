@@ -70,12 +70,15 @@ export const fixtureDeckMaker: DeckMaker = {
 
 // "Good" = the sentence contains the word without its article. Real feedback needs the model.
 const ARTICLE = /^(el|la|los|las|un|una|the|a|an|le|les|der|die|das)\s+/i;
+export const standInTranslation = (line: string) => `≈ ${line}`;
 export const fixtureUseItJudge: UseItJudge = {
-  check: async ({ word, sentence }) => {
+  check: async ({ word, sentence, chat }) => {
     const bare = word.replace(ARTICLE, '');
-    return sentence.toLowerCase().includes(bare.toLowerCase())
+    const answer = sentence.toLowerCase().includes(bare.toLowerCase())
       ? { good: true, lines: ['🎉 **Great sentence!**', `👍 You used **${bare}** in the right place.`], followUp: 'Can I say it another way?' }
       : { good: false, lines: [`🤔 I can’t find **${bare}** in your sentence.`, 'Try again with the word.'] };
+    // Chat in the learned language: the stand-in's "translation" is the line with a mark in front.
+    return chat === 'target' ? { ...answer, translations: answer.lines.map(standInTranslation) } : answer;
   },
 };
 
@@ -94,7 +97,10 @@ export const fixtureScriptTranslator: ScriptTranslator = { translate: async (_la
 
 // Kai answers a question about a word: the stand-in gives one fixed, friendly answer.
 export const fixtureWordAsker: WordAsker = {
-  ask: async ({ word }) => ({ lines: [`💡 Good question! **${word.replace(ARTICLE, '')}** is the usual word here.`, 'Try it in one more sentence.'] }),
+  ask: async ({ word, chat }) => {
+    const lines = [`💡 Good question! **${word.replace(ARTICLE, '')}** is the usual word here.`, 'Try it in one more sentence.'];
+    return chat === 'target' ? { lines, translations: lines.map(standInTranslation) } : { lines };
+  },
 };
 
 const languageName = (code: string) => {

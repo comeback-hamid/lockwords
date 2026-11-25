@@ -853,6 +853,12 @@
               "type": "string"
             }
           },
+          "translations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "followUp": {
             "type": [
               "string",
@@ -916,12 +922,14 @@
           "lines": {
             "type": "array",
             "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 200
-            },
-            "minItems": 1,
-            "maxItems": 3
+              "type": "string"
+            }
+          },
+          "translations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -1224,6 +1232,38 @@
         "required": [
           "native",
           "learning"
+        ]
+      },
+      "UseItScript": {
+        "type": "object",
+        "properties": {
+          "nativeLanguage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lines": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "translation": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        },
+        "required": [
+          "nativeLanguage",
+          "lines"
         ]
       },
       "KaiReply": {
@@ -2902,7 +2942,7 @@
         },
         "responses": {
           "200": {
-            "description": "Kai's answer about the word",
+            "description": "Kai's answer about the word (with `translations`, one per line, when Kai speaks the learned language)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3123,6 +3163,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid login token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/kai/use-it-script": {
+      "get": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kai's fixed lines of the Use it chat, in the language Kai speaks with this learner; with a translation in their own language when that is the learned language",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UseItScript"
                 }
               }
             }

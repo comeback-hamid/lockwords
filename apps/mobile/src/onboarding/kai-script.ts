@@ -36,6 +36,16 @@ export const LINES = {
   picturesReady: 'All the pictures are **ready**! 🖼️ Tap your deck any time to see the words.',
   picturesFailed: 'I could not draw the pictures this time, but your deck is **ready**! Tap it any time to see the words.',
   practice: 'Shall we practice them now? 💪',
+  // The Use it chat (src/app/use-it/[id].tsx). {word} is filled in by the screen.
+  useItIntro: 'Time to use a word! ✍️',
+  useItWrite: 'Write one sentence with **{word}**. I’ll check it for you.',
+  useItChecking: 'Checking… 👀',
+  useItThinking: 'Thinking… 💭',
+  useItCheckFailed: 'I could not check that. Try again.',
+  useItAskFailed: 'I could not answer that. Try again.',
+  replyExample: 'Show me an example',
+  replySkip: 'Skip this word',
+  replyNext: 'Next card',
 } as const;
 // After Kai answers something off the script, it asks the step's question again.
 export const BACK: Record<Step, string> = {
