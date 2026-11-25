@@ -18,7 +18,7 @@ apps/mobile/   Expo app (iOS first) + widget (later, via config plugin)
 apps/server/   Hono + Drizzle + Zod + pg-boss. Owns SRS and all AI calls.
 docs/          product, screens, design, architecture, roadmap, events, clean-code, tech-debt
 openspec/      specs/<domain>/... (truth after archive), changes/ (work in progress)
-e2e/           Maestro flows (one area tag each) + videos
+e2e/           Maestro flows (one area tag each) + videos; e2e/web/ = the web app in real browsers (Playwright)
 .githooks/     pre-push: Maestro pass for this exact code
 ```
 
