@@ -1,8 +1,9 @@
 import { ideaTopics } from '../decks/ideas.js';
 
-// Kai's fixed lines in the onboarding chat (O10–O10f), in English, by key. The app has the same English copy built
+// Kai's fixed lines in the onboarding chat (O10–O10f) and in the Use it chat (the `useIt…` keys and its three tap
+// answers), in English, by key. The app has the same English copy built
 // in (apps/mobile/src/onboarding/kai-script.ts); other languages are translated from this one and kept.
-// {name} and {language} are place holders. **word** = bold.
+// {name}, {language} and {word} are place holders. **word** = bold.
 const LINES = {
   hi: 'Hi! I’m Kai 👋',
   askName: 'I’ll help you learn **{language}** words. What’s your name?',
@@ -34,6 +35,15 @@ const LINES = {
   replyPractice: 'OK, let’s practice!',
   replyWordsFirst: 'Show me the words first',
   replyTryAgain: 'Try again',
+  useItIntro: 'Time to use a word! ✍️',
+  useItWrite: 'Write one sentence with **{word}**. I’ll check it for you.',
+  useItChecking: 'Checking… 👀',
+  useItThinking: 'Thinking… 💭',
+  useItCheckFailed: 'I could not check that. Try again.',
+  useItAskFailed: 'I could not answer that. Try again.',
+  replyExample: 'Show me an example',
+  replySkip: 'Skip this word',
+  replyNext: 'Next card',
 } as const;
 
 // The deck ideas (tap answers on O10c) are part of the script too, keyed by their English text.

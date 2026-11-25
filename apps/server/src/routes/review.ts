@@ -31,7 +31,7 @@ const SwipeResultSchema = z
   .object({ id: z.string(), stage: z.number().int(), known: z.boolean(), hard: z.boolean(), backInDays: z.number().int().nullable(), again: z.boolean() })
   .openapi('SwipeResult');
 const UseItResultSchema = z
-  .object({ good: z.boolean(), lines: z.array(z.string()), followUp: z.string().nullable(), movedUp: z.boolean(), stage: z.number().int() })
+  .object({ good: z.boolean(), lines: z.array(z.string()), translations: z.array(z.string()).optional(), followUp: z.string().nullable(), movedUp: z.boolean(), stage: z.number().int() })
   .openapi('UseItResult');
 const AskFailed = error('ask_failed', 'AskFailed');
 
@@ -110,7 +110,7 @@ const postAsk = createRoute({
     body: { required: true, content: { 'application/json': { schema: z.object({ question: z.string().trim().min(1).max(300), sentence: z.string().trim().max(300).optional() }) } } },
   },
   responses: {
-    200: json(AskSchema.openapi('WordAnswer'), "Kai's answer about the word"),
+    200: json(z.object({ lines: z.array(z.string()), translations: z.array(z.string()).optional() }).openapi('WordAnswer'), "Kai's answer about the word (with `translations`, one per line, when Kai speaks the learned language)"),
     400: json(BadRequest, 'The request is not valid'),
     404: json(NotFound, 'No such card'),
     502: json(AskFailed, 'The AI call failed'),
@@ -130,6 +130,13 @@ export function reviewRoutes(deps: Deps) {
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
   });
   const clock = () => (deps.reviewNow ? deps.reviewNow() : new Date());
+  // The learner's two languages and the language Kai speaks in their chats (their own, unless they picked the learned one).
+  const spokenBy = async (userId: string) => {
+    const { learningLanguage, nativeLanguage, chatLanguage } = await need('cards').languages(userId);
+    return { learningLanguage, nativeLanguage, chat: chatLanguage === 'target' ? ('target' as const) : ('native' as const) };
+  };
+  // One translation per line, or none at all (the app shows a translation under its own line).
+  const translated = (r: { lines: string[]; translations?: string[] | null }) => (r.translations && r.translations.length === r.lines.length && r.translations.every((t) => t.trim() !== '') ? { translations: r.translations } : {});
   const forApp = (card: ReviewCard, c: Context) => {
     // imageUrl is sent only for a card that has a picture (like `meaning`).
     const { imageUrl: path, ...rest } = card;
@@ -191,9 +198,9 @@ export function reviewRoutes(deps: Deps) {
       const card = isUuid(id) ? await store.get(userId, id) : null;
       if (!card) return c.json({ error: 'not_found' as const }, 404);
       try {
-        const languages = await store.languages(userId);
+        const languages = await spokenBy(userId);
         const result = UseItSchema.parse(await need('useItJudge').check({ word: card.word, translation: card.translation, sentence: c.req.valid('json').sentence, ...languages }));
-        const answer = { good: result.good, lines: result.lines, followUp: result.good ? (result.followUp ?? null) : null };
+        const answer = { good: result.good, lines: result.lines, ...translated(result), followUp: result.good ? (result.followUp ?? null) : null };
         if (!result.good) return c.json({ ...answer, movedUp: false, stage: card.stage }, 200);
         // A good sentence counts like an Easy swipe.
         const now = clock();
@@ -231,8 +238,9 @@ export function reviewRoutes(deps: Deps) {
       if (!card) return c.json({ error: 'not_found' as const }, 404);
       try {
         const { question, sentence } = c.req.valid('json');
-        const languages = await store.languages(userId);
-        return c.json(AskSchema.parse(await need('wordAsker').ask({ word: card.word, translation: card.translation, question, sentence: sentence || undefined, ...languages })), 200);
+        const languages = await spokenBy(userId);
+        const result = AskSchema.parse(await need('wordAsker').ask({ word: card.word, translation: card.translation, question, sentence: sentence || undefined, ...languages }));
+        return c.json({ lines: result.lines, ...translated(result) }, 200);
       } catch {
         return c.json({ error: 'ask_failed' as const }, 502);
       }

@@ -150,7 +150,7 @@ export function createCardsStore(db: ReturnType<typeof createDb>['db']): CardsSt
       });
     },
     async languages(userId) {
-      const [p] = await db.select({ learningLanguage: profiles.learningLanguage, nativeLanguage: profiles.nativeLanguage }).from(profiles).where(eq(profiles.userId, userId));
+      const [p] = await db.select({ learningLanguage: profiles.learningLanguage, nativeLanguage: profiles.nativeLanguage, chatLanguage: profiles.chatLanguage }).from(profiles).where(eq(profiles.userId, userId));
       return p ?? { learningLanguage: '', nativeLanguage: '' };
     },
   };

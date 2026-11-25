@@ -42,7 +42,23 @@ const getScript = createRoute({
   },
 });
 
-type Deps = { profiles?: ProfilesStore; kaiReplier?: KaiReplier; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator };
+const USE_IT_KEYS = ['useItIntro', 'useItWrite', 'useItChecking', 'useItThinking', 'useItCheckFailed', 'useItAskFailed', 'replyExample', 'replySkip', 'replyNext'] as const;
+const UseItScript = z
+  .object({ nativeLanguage: z.string().nullable(), lines: z.record(z.string(), z.object({ text: z.string(), translation: z.string().optional() })) })
+  .openapi('UseItScript');
+const getUseItScript = createRoute({
+  method: 'get',
+  path: '/kai/use-it-script',
+  security: [{ bearer: [] }],
+  responses: {
+    200: json(UseItScript, "Kai's fixed lines of the Use it chat, in the language Kai speaks with this learner; with a translation in their own language when that is the learned language"),
+    401: json(UnauthorizedSchema, 'No valid login token'),
+  },
+});
+
+// The learner's two languages and the language Kai speaks in their chats, from the profile.
+export type ChatLanguages = (userId: string) => Promise<{ learningLanguage: string; nativeLanguage: string; chatLanguage?: string | null }>;
+type Deps = { profiles?: ProfilesStore; kaiReplier?: KaiReplier; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; chatLanguages?: ChatLanguages };
 
 // Kai reads what a learner typed in a Kai chat (O10–O10f). Nothing is saved.
 export function kaiRoutes(deps: Deps) {
@@ -72,6 +88,21 @@ export function kaiRoutes(deps: Deps) {
       const { native, learning } = c.req.valid('query');
       const [n, l] = await Promise.all([scriptIn(native), scriptIn(learning)]);
       return c.json({ native: n, learning: l }, 200);
+    })
+    // The Use it chat's fixed lines, ready to show: the same rule as every Kai chat (the learned language with the
+    // learner's own language under it, or only their own language).
+    .openapi(getUseItScript, async (c) => {
+      const p = deps.chatLanguages ? await deps.chatLanguages(c.get('user').id).catch(() => null) : null;
+      const target = p?.chatLanguage === 'target';
+      const [own, learned] = await Promise.all([p?.nativeLanguage ? scriptIn(p.nativeLanguage) : ENGLISH_SCRIPT, target && p?.learningLanguage ? scriptIn(p.learningLanguage) : null]);
+      const lines = Object.fromEntries(
+        USE_IT_KEYS.map((key) => {
+          const text = (learned ?? own)[key] ?? ENGLISH_SCRIPT[key]!;
+          const under = learned ? own[key] : undefined;
+          return [key, under && under !== text ? { text, translation: under } : { text }];
+        }),
+      );
+      return c.json({ nativeLanguage: p?.nativeLanguage || null, lines }, 200);
     })
     .openapi(postReply, async (c) => {
     const { step, text, options = [], chat = 'native' } = c.req.valid('json');

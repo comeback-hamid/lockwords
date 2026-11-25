@@ -180,12 +180,17 @@ export function createApi({ baseUrl, getToken, fetch: customFetch, deckPollMs = 
       return unwrap(await client.POST('/v1/kai/reply', { body: { step, text, options, ...(chat ? { chat } : {}) } }));
     },
     // A question about the word, after a Use it sentence. It never changes the word's level.
-    async askAboutWord(id: string, question: string, sentence?: string): Promise<{ lines: string[] }> {
+    async askAboutWord(id: string, question: string, sentence?: string): Promise<{ lines: string[]; translations?: string[] }> {
       return unwrap(await client.POST('/v1/cards/{id}/ask', { params: { path: { id } }, body: { question, sentence } }));
     },
     // The mic in the chat box: a short recording (base64) comes back as text. The server keeps nothing.
     async transcribe(audio: string, format: 'm4a' | 'mp4' | 'webm' | 'wav' | '3gp' | 'ogg'): Promise<string> {
       return unwrap(await client.POST('/v1/transcribe', { body: { audio, format } })).text;
+    },
+    // Kai's fixed lines of the Use it chat, in the language Kai speaks with this learner (with a translation when
+    // that is the language they learn).
+    async fetchUseItScript(): Promise<components['schemas']['UseItScript']> {
+      return unwrap(await client.GET('/v1/kai/use-it-script'));
     },
     async useIt(id: string, sentence: string): Promise<UseItResult> {
       return unwrap(await client.POST('/v1/cards/{id}/use-it', { params: { path: { id } }, body: { sentence } }));

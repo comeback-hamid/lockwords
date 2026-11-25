@@ -1253,7 +1253,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Kai's answer about the word */
+                /** @description Kai's answer about the word (with `translations`, one per line, when Kai speaks the learned language) */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -1495,6 +1495,50 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["BadRequest"];
+                    };
+                };
+                /** @description No valid login token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Unauthorized"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/kai/use-it-script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Kai's fixed lines of the Use it chat, in the language Kai speaks with this learner; with a translation in their own language when that is the learned language */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UseItScript"];
                     };
                 };
                 /** @description No valid login token */
@@ -2056,6 +2100,7 @@ export interface components {
         UseItResult: {
             good: boolean;
             lines: string[];
+            translations?: string[];
             followUp: string | null;
             movedUp: boolean;
             stage: number;
@@ -2072,6 +2117,7 @@ export interface components {
         };
         WordAnswer: {
             lines: string[];
+            translations?: string[];
         };
         AskFailed: {
             /** @enum {string} */
@@ -2142,6 +2188,15 @@ export interface components {
             };
             learning: {
                 [key: string]: string;
+            };
+        };
+        UseItScript: {
+            nativeLanguage: string | null;
+            lines: {
+                [key: string]: {
+                    text: string;
+                    translation?: string;
+                };
             };
         };
         KaiReply: {

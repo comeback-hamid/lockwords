@@ -83,7 +83,7 @@ export type CardsStore = {
   get(userId: string, id: string): Promise<(ReviewCard & CardState) | null>; // null also for another user's card
   save(id: string, patch: CardState): Promise<void>;
   hardWords(userId: string): Promise<{ word: string; translation: string }[]>;
-  languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string }>;
+  languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string; chatLanguage?: string | null }>; // chatLanguage: 'native' | 'target', the language Kai speaks in chats
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
@@ -114,7 +114,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/v1', reviewRoutes(deps ?? {}));
   app.route('/v1', transcribeRoutes(deps?.transcriber, deps?.cards ? (userId) => deps.cards!.languages(userId) : undefined));
   app.route('/v1', progressRoutes(deps ?? {}));
-  app.route('/v1', kaiRoutes(deps ?? {}));
+  app.route('/v1', kaiRoutes({ ...(deps ?? {}), chatLanguages: deps?.cards ? (userId) => deps.cards!.languages(userId) : undefined }));
   app.route('/v1', kaiChatRoutes(deps ?? {}));
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });
   app.doc31('/openapi.json', { openapi: '3.1.0', info: { title: 'Lockwords API', version: '1' } });
