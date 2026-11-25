@@ -26,23 +26,14 @@ tags:
 - assertVisible: "Kai"
 # The link to a separate decks page and the word plan are gone
 - assertNotVisible: "1 Deck"
+# One meadow and the future bar (2026-11-25): the bar starts on today, with the level card under it
+- assertVisible: "TODAY"
+- scrollUntilVisible:
+    element: "Drag the bar to see your future"
+    direction: DOWN
 - scrollUntilVisible:
     element: "10 of 100 words"
     direction: DOWN
-- scrollUntilVisible:
-    element: "you’ll master"
-    direction: DOWN
-- assertVisible: "BY .*"
-- scrollUntilVisible:
-    element: "new Spanish words"
-    direction: DOWN
-# The big meadow: three big trees that move in the wind
-- scrollUntilVisible:
-    element: "Your meadow at the goal: 3 trees"
-    direction: DOWN
-    centerElement: true
-- waitForAnimationToEnd:
-    timeout: 6000
 # The decks live at the bottom of the page
 - scrollUntilVisible:
     element: "You have 1 deck"
