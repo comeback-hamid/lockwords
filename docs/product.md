@@ -141,6 +141,12 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - When today's cards are done, new words join by themselves (all of them, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
+- **One meaning for every green square** (changed 2026-11-25, Hamid). A word has one color everywhere: the lightest green when it is new, the level's green for levels 1 to 4, the darkest green (with a tick where there is room) when it is mastered. An **"I know it" word is a mastered word**: it is counted as mastered and drawn dark in the words map, the meadow, the deck rows and the deck page. The numbers in the legend always match the squares.
+- **No red square for hard words, anywhere** (2026-11-25): not on the deck page, not in a list, not on a widget. The deck page keeps the "Hard N" filter and the "N HARD" text.
+- **The meadow** (2026-11-25): every leaf is one word in its level's green. The words fill one tree to its 30 leaves, then the next tree starts, so a small bank is one full tree. No Kai and no grass in the meadow: the whole width is for the trees, and every green block is a word.
+- **The time switch** (Today / In 3 months): the chosen part is a white pill with bold text and its date in green. No yellow.
+- **Above the words map**: a thin line, then one short line: "■ = 1 word · 5 spaced reviews → mastered ✓".
+- The goal of the words map is the next hundred above the whole bank (it counted only the words still to learn before).
 - **A time switch at the top (changed 2026-11-25, Hamid): "Today" and "In 3 months"**, with the real date under each. The whole page follows it. Today is the real page, so its part of the switch is gold when it is chosen; the future's part is plain. Coming back to the tab always opens on Today.
 - **Today:** the total words, the legend, one coded pixel meadow (1 tree per deck, grows with memory) with Kai, the words map (1 square per word up to the goal; squares still to come are grey), and the decks.
 - **In 3 months:** the same page as it will be 90 days from now if the learner keeps the pace of the last week. "ABOUT, AT YOUR PACE" stands over the number, the number is green and rounded to ten, the counts change (words started more than 24 days before that day are mastered), the meadow is the bigger forest with Kai, and the words map has one square per word of that total. The decks stay today's decks (nobody knows the future ones); one quiet line under them says "and about N more decks by then".

@@ -33,8 +33,9 @@ export const levelColors = ['#eff2f5', '#aceebb', '#6fdd8b', '#4ac26b', '#2da44e
 // A new word (level 0) on the Progress page: the lightest green, one step under level 1, so the legend, the words map
 // and the meadow tell new from learning (Hamid, 2026-11-25). The level square on a word card stays grey for a new word.
 export const levelNew = '#dafbe1';
-// "Today" on the Progress tab's time switch: gold says "this is real, this is now" (Figma: Time tab). Used nowhere else.
-export const gold = { bg: '#fff8c5', line: '#d4a72c', text: '#7d4e00', text2: '#9a6700' } as const;
+// The one color of a word, everywhere (Hamid, 2026-11-25): the lightest green for a new word, the level's green
+// for levels 1 to 5, and the darkest green for an "I know it" word (it is mastered).
+export const levelColor = (stage: number, known = false): string => (known ? levelColors[5] : stage < 1 ? levelNew : (levelColors[stage] ?? levelColors[5]));
 
 export const space = { 4: 4, 8: 8, 12: 12, 16: 16, 24: 24, 32: 32, 48: 48 } as const;
 

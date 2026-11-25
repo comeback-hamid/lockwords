@@ -13,7 +13,7 @@ import { LoadError, Loading } from '@/components/load-state';
 import { confirmAction } from '@/platform/dialog';
 import { useLoad } from '@/components/use-load';
 import { setRound } from '@/review/round-store';
-import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, layout, levelColor, radius, space, type } from '@/theme/theme';
 
 const DELETE_WIDTH = 86; // the red Delete button behind a word row (Figma N7)
 const plural = (n: number) => (n === 1 ? '1 word' : `${n} words`);
@@ -23,10 +23,10 @@ type Filter = 'all' | 'hard' | 'new' | 'mastered' | 'known';
 const MASTERED_STAGE = 5;
 // Which words a chip shows. Known words ("I know it") are only under Known.
 const IN_FILTER: Record<Filter, (c: Card) => boolean> = {
-  all: (c) => !c.known,
+  all: () => true, // every word of the deck; an "I know it" word is a mastered word (Hamid, 2026-11-25)
   hard: (c) => !c.known && !!c.hard,
   new: (c) => !c.known && c.stage === 0,
-  mastered: (c) => !c.known && c.stage >= MASTERED_STAGE,
+  mastered: (c) => !!c.known || c.stage >= MASTERED_STAGE,
   known: (c) => !!c.known,
 };
 const FILTER_LABEL: Record<Filter, string> = { all: 'All', hard: 'Hard', new: 'New', mastered: 'Mastered', known: 'Known' };
@@ -47,10 +47,10 @@ export default function DeckScreen() {
   const [reviewing, setReviewing] = useState(false);
   const [nothingToday, setNothingToday] = useState(false);
   const kept = deck ? deck.cards.filter((c) => !gone.has(c.id)) : [];
-  const cards = kept.filter(IN_FILTER.all); // the words to learn: every count in the head is about these
+  const cards = kept; // every word of the deck: the counts and the squares in the head are about all of them
   const shown = kept.filter(IN_FILTER[filter]);
   const chips = (['all', 'hard', 'new', 'mastered', 'known'] as const).filter((f) => f !== 'known' || kept.some(IN_FILTER.known));
-  const learning = cards.filter((c) => c.stage > 0 && c.stage < MASTERED_STAGE).length;
+  const learning = cards.filter((c) => !c.known && c.stage > 0 && c.stage < MASTERED_STAGE).length;
 
   async function restore(cardId: string) {
     setProblem(null);
@@ -137,7 +137,7 @@ export default function DeckScreen() {
               <Text style={[type.label, styles.muted]}>{`${deck.cefr} · ${plural(cards.length).toUpperCase()}`}</Text>
               <Text style={[type.label, styles.muted]}>{`${learning} LEARNING · ${cards.filter(IN_FILTER.hard).length} HARD`}</Text>
               <View style={styles.chain}>
-                <LevelChain stages={cards.map((c) => c.stage).sort((a, b) => b - a)} />
+                <LevelChain stages={cards.map((c) => (c.known ? MASTERED_STAGE : c.stage)).sort((a, b) => b - a)} />
               </View>
             </View>
             {problem ? (
@@ -172,10 +172,9 @@ export default function DeckScreen() {
                       onDelete={() => void removeWord(card.id)}
                       divider={i < shown.length - 1}
                     >
-                      <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+                      <View style={[styles.square, { backgroundColor: levelColor(card.stage, !!card.known) }]} />
                       <LangText style={[type.bodyStrong, styles.ink, styles.word]}>{card.word}</LangText>
                       <LangText style={[type.callout, styles.muted]}>{card.translation}</LangText>
-                      {card.hard && !card.known ? <View testID="hard-mark" style={styles.hardMark} /> : null}
                       {card.known ? (
                         <Pressable accessibilityRole="button" accessibilityLabel={`Restore ${card.word}`} onPress={() => void restore(card.id)} hitSlop={8}>
                           <Text style={[type.captionStrong, styles.green]}>Restore</Text>
@@ -275,7 +274,6 @@ const styles = StyleSheet.create({
   green: { color: colors.greenText },
   text2: { color: colors.text2 },
   hidden: { display: 'none' },
-  hardMark: { width: 8, height: 8, borderRadius: 2, backgroundColor: colors.hard },
   footer: { paddingHorizontal: layout.sideMargin, paddingTop: space[12], gap: space[8], backgroundColor: colors.canvas },
   center: { textAlign: 'center' },
   list: { gap: space[8] },

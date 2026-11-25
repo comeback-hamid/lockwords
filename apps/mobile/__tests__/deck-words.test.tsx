@@ -35,15 +35,15 @@ beforeEach(() => {
   jest.mocked(isIntroDone).mockResolvedValue(true);
 });
 
-test('the counts line, the chain, and the chips with their counts; known words are only under Known', async () => {
+test('the counts line, the chain, and the chips with their counts; an "I know it" word is a mastered word, with no red mark for hard words', async () => {
   await loaded();
-  expect(screen.getByText('A2 · 5 WORDS')).toBeOnTheScreen(); // the known word is not counted here
+  expect(screen.getByText('A2 · 6 WORDS')).toBeOnTheScreen(); // every word of the deck
   expect(screen.getByText('2 LEARNING · 1 HARD')).toBeOnTheScreen();
-  expect(screen.getAllByTestId('level-square')).toHaveLength(5);
-  for (const chip of ['All 5', 'Hard 1', 'New 2', 'Mastered 1', 'Known 1']) expect(screen.getByRole('button', { name: chip })).toBeOnTheScreen();
-  expect(['la carta', 'pedir', 'la cuenta', 'la propina', 'el postre', 'pagar'].map(listed)).toEqual([true, true, true, true, true, false]);
+  expect(screen.getAllByTestId('level-square')).toHaveLength(6);
+  for (const chip of ['All 6', 'Hard 1', 'New 2', 'Mastered 2', 'Known 1']) expect(screen.getByRole('button', { name: chip })).toBeOnTheScreen();
+  expect(['la carta', 'pedir', 'la cuenta', 'la propina', 'el postre', 'pagar'].map(listed)).toEqual([true, true, true, true, true, true]);
   expect(screen.getByLabelText('la cuenta, t2, hard word')).toBeOnTheScreen();
-  expect(screen.getAllByTestId('hard-mark')).toHaveLength(1);
+  expect(screen.queryAllByTestId('hard-mark')).toHaveLength(0); // no red square for hard words anywhere (Hamid, 2026-11-25)
 });
 
 test('a chip shows only its words; an empty one says so', async () => {
@@ -52,8 +52,8 @@ test('a chip shows only its words; an empty one says so', async () => {
   expect(['la carta', 'la cuenta'].map(listed)).toEqual([false, true]);
   await fireEvent.press(screen.getByRole('button', { name: 'New 2' }));
   expect(['la propina', 'el postre', 'pedir'].map(listed)).toEqual([true, true, false]);
-  await fireEvent.press(screen.getByRole('button', { name: 'Mastered 1' }));
-  expect(['la carta', 'pedir'].map(listed)).toEqual([true, false]);
+  await fireEvent.press(screen.getByRole('button', { name: 'Mastered 2' }));
+  expect(['la carta', 'pagar', 'pedir'].map(listed)).toEqual([true, true, false]);
 });
 
 test('no known words: no Known chip; a chip with no words says "No words here."', async () => {

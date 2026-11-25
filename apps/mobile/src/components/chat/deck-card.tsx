@@ -4,7 +4,7 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-nativ
 import type { Deck } from '@/api/client';
 import { LangText } from '@/components/lang-text';
 import { Icon } from '@/components/icon';
-import { colors, levelColors, opacity, radius, space, type } from '@/theme/theme';
+import { colors, levelColor, levelColors, opacity, radius, space, type } from '@/theme/theme';
 
 import { directionStyle, isRtl } from './direction';
 
@@ -105,7 +105,7 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count, pictures, hid
         <View style={styles.readyRows}>
           <View style={styles.squares}>
             {squares.map((card) => (
-              <View key={card.id} testID="level-square" style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+              <View key={card.id} testID="level-square" style={[styles.square, { backgroundColor: levelColor(card.stage) }]} />
             ))}
           </View>
           <Text style={[type.labelTag, styles.muted]}>{`${deck.wordCount} WORDS · ${inWordList ? 'IN YOUR WORD LIST' : 'ADDED TO YOUR DECKS'}`}</Text>

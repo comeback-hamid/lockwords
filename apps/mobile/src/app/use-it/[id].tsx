@@ -15,7 +15,7 @@ import { useKaiTyping } from '@/components/chat/use-kai-typing';
 import { LangText } from '@/components/lang-text';
 import { LINES, type KaiPose } from '@/onboarding/kai-script';
 import { advance, findCard } from '@/review/round-store';
-import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, layout, levelColor, levelColors, radius, space, type } from '@/theme/theme';
 
 type Message = { from: 'kai'; text: string; translation?: string; status?: boolean } | { from: 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
 // Kai types every line (dots first); the word card and the "Checking" status show at once.
@@ -157,7 +157,7 @@ function UseItChat({ card, script }: { card: NonNullable<ReturnType<typeof findC
         {messages.map((m, i) =>
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>
-              <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+              <View style={[styles.square, { backgroundColor: levelColor(card.stage) }]} />
               <LangText style={[type.bodyStrong, styles.ink]}>{card.word}</LangText>
               <LangText style={[type.callout, styles.muted]}>{card.translation}</LangText>
             </View>

@@ -3,7 +3,7 @@ import { meadowData, MOTION, paintMeadow, type Painter } from '@/progress/meadow
 
 // The meadow's motion for the browser (web-live-kai): the same numbers as the phone's canvas. Trees grow in block by
 // block, then move in the wind; leaves fall only once everything has grown; Reduce Motion gives a still picture.
-const scene = nowMeadow([[3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0]], [12]);
+const scene = nowMeadow([3, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0]);
 function recorder() {
   const blocks: { x: number; y: number; s: number; a: number }[] = [];
   let rotations = 0;
