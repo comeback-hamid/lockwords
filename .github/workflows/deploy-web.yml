@@ -1,0 +1,53 @@
+name: Deploy web app
+
+# Puts the browser version of the app on DigitalOcean App Platform as static files (app "lockwords-web").
+# Started BY HAND only (Actions → Deploy web app → Run workflow). The first run makes the web app public:
+# do not run it before Hamid says so. Steps and the address setting: "Web app" in docs/architecture.md.
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Optional. Your own address for the web app, for example app.lockwords.com (leave empty for the DigitalOcean address).'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      DEPLOY_BRANCH: main
+      WEB_DOMAIN: ${{ inputs.domain }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Fill the app spec
+        run: node scripts/web-spec.mjs .do/web.yaml "$RUNNER_TEMP/web.yaml"
+      - name: Create the app, or update it
+        id: app
+        run: |
+          id=$(doctl apps list --format ID,Spec.Name --no-header | awk '$2=="lockwords-web"{print $1}')
+          if [ -z "$id" ]; then
+            id=$(doctl apps create --spec "$RUNNER_TEMP/web.yaml" --wait --format ID --no-header)
+          else
+            doctl apps update "$id" --spec "$RUNNER_TEMP/web.yaml" --update-sources --wait
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+      - name: Check that the page answers, also on a deep link
+        run: |
+          url=$(doctl apps get "${{ steps.app.outputs.id }}" --format DefaultIngress --no-header)
+          echo "web app: $url"
+          curl --fail --silent --show-error --retry 5 --retry-delay 5 "$url/" | grep -q '<title>Lockwords'
+          curl --fail --silent --show-error "$url/review" | grep -q '<title>Lockwords'
+          {
+            echo "### The web app is at $url"
+            echo "Last step: the server must allow this address. Set the repository variable WEB_ORIGINS to it"
+            echo "(with your own domain too, comma separated), then run the workflow \"Deploy server\"."
+          } >> "$GITHUB_STEP_SUMMARY"

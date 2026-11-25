@@ -7,11 +7,13 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { bootSession } from '@/auth/boot';
 import { clearOnFreshInstall } from '@/auth/session-storage';
 import { loadOnboardingFinished, useOnboardingFinished } from '@/onboarding/finished';
+import { installPageStyle } from '@/platform/page-style';
 import { loadSpeechLanguage } from '@/review/speech-language';
 import { fonts } from '@/theme/fonts';
 import { colors } from '@/theme/theme';
 
 SplashScreen.preventAutoHideAsync();
+installPageStyle(); // the browser only
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fonts);

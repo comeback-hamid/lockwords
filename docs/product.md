@@ -162,6 +162,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - The word widget shows **hard words first**, then the most-due words. Tap opens that card in the app.
 - v1 widgets are **see + open only**. No answering on the widget.
 - The web app has no widgets.
+- The web app with a real keyboard (2026-11-25): in a chat box **Enter sends** and Shift+Enter makes a new line. In a review round **Space or Enter flips** the card, **← is Hard, ↑ is Know it, → is Easy**, and Backspace (or Z) takes the last swipe back. The mouse drags the card like a finger.
 
 ### 7.5 SRS (owned by the server)
 | Stage | Comes back after |

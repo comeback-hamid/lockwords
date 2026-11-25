@@ -6,10 +6,14 @@ export const MAX_RECORDING_MS = 90_000; // a longer talk is stopped and written
 const FORMATS = ['m4a', 'mp4', 'webm', 'wav', '3gp', 'ogg'] as const;
 type Format = (typeof FORMATS)[number];
 
-// The file type from the recording's name. A browser gives a `blob:` address with no ending: it records webm.
-export function audioFormat(uri: string): Format {
+// The file type from the recording's name. A browser gives a `blob:` address with no ending: there the type comes
+// from the recording itself (`mimeType`: Chrome and Firefox record webm or ogg, Safari records mp4).
+export function audioFormat(uri: string, mimeType = ''): Format {
   const ending = /\.(\w+)(?:\?.*)?$/.exec(uri)?.[1]?.toLowerCase();
-  return FORMATS.find((f) => f === ending) ?? (uri.startsWith('blob:') ? 'webm' : 'm4a');
+  const named = FORMATS.find((f) => f === ending);
+  if (named) return named;
+  const kind = /^audio\/(?:x-)?(\w+)/.exec(mimeType)?.[1]?.toLowerCase();
+  return FORMATS.find((f) => f === kind) ?? (uri.startsWith('blob:') ? 'webm' : 'm4a');
 }
 
 const asBase64 = (blob: Blob) =>
@@ -23,7 +27,7 @@ const asBase64 = (blob: Blob) =>
 // The recording as text. Throws when the file cannot be read or the server cannot write it.
 export async function transcribeRecording(uri: string): Promise<string> {
   const blob = await (await fetch(uri)).blob();
-  return api.transcribe(await asBase64(blob), audioFormat(uri));
+  return api.transcribe(await asBase64(blob), audioFormat(uri, blob.type));
 }
 
 // A new piece of spoken text goes after what is already in the box.
