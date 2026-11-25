@@ -1042,6 +1042,36 @@
             "items": {
               "type": "integer"
             }
+          },
+          "vocabulary": {
+            "type": "integer"
+          },
+          "level": {
+            "type": "string"
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "words": {
+                  "type": "integer"
+                },
+                "by": {
+                  "type": "string"
+                },
+                "vocabulary": {
+                  "type": "integer"
+                },
+                "level": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "words",
+                "by"
+              ]
+            }
           }
         },
         "required": [
@@ -1056,7 +1086,8 @@
           "grid",
           "language",
           "trees",
-          "deckWords"
+          "deckWords",
+          "stops"
         ]
       },
       "WordPlan": {
