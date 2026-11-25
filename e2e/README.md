@@ -22,7 +22,8 @@ A flow that is on main but no longer fits the product is parked in `e2e/quaranti
 
 ## Web (Playwright)
 The web app is checked in real browsers by `e2e/web/` (added 2026-11-25). One flow, `first-run.spec.ts`, walks the whole app as a new learner: onboarding, Kai's chat, the first deck with pictures, a round (keys, mouse swipes, Undo), Use it (Enter sends, Shift+Enter is a new line), the one-time screens, a single word in New words, voice, Progress and a deck page. It runs in **Chromium, Firefox and WebKit (Safari's engine)** in a phone-size window.
-- Run: `npm run e2e:web` (all three), or `npm run e2e:web -- --project=firefox`. Add `--headed` to watch. About 3 minutes.
+- Two more flows since `web-desktop-layout`: `wide.spec.ts` (a 1440 px window in the three engines: the 480 column of onboarding, the side bar, the columns, the keys under the card, live Kai and the meadow, a word deleted with the mouse, a narrower window, reduced motion) and `touch.spec.ts` (Chrome on a Pixel with a touch screen: finger swipes, the 16 px text box, the home screen files). Projects: `chromium`, `firefox`, `webkit`, `wide-chromium`, `wide-firefox`, `wide-webkit`, `touch-chromium`.
+- Run: `npm run e2e:web` (all three), or `npm run e2e:web -- --project=firefox`. Add `--headed` to watch. About 6 minutes for all seven.
 - It needs the local stack (`npm run dev:up`) with the stand-in AI, as Maestro does: start the server without `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`.
 - It builds the web app (`npm run build:web`) and serves the built files (`scripts/serve-web.mjs`), so it checks what would go online, not the dev server.
 - First time on a Mac: `npx playwright install chromium firefox webkit`.

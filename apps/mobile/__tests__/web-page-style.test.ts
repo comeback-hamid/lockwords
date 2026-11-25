@@ -47,3 +47,22 @@ test('on the phone nothing is added', () => {
   expect(doc.added).toHaveLength(0);
   expect(doc.listeners.dragstart).toBeUndefined();
 });
+
+// A phone's browser and a mouse (web-desktop-layout, 2026-11-25).
+test('a phone browser does not zoom the page when a text box is tapped: text boxes are 16 px on touch screens', () => {
+  expect(PAGE_CSS).toMatch(/@media \(pointer:coarse\)\{input,textarea\{font-size:16px!important\}\}/);
+});
+
+test('no grey flash on a tap, no pull of the whole page, and buttons do not select as text', () => {
+  expect(PAGE_CSS).toContain('-webkit-tap-highlight-color:transparent');
+  expect(PAGE_CSS).toContain('overscroll-behavior:none');
+  expect(PAGE_CSS).toMatch(/\[role=button\][^{]*\{[^}]*user-select:none/);
+});
+
+test('with a mouse, a button answers the pointer; a touch screen gets no stuck hover', () => {
+  expect(PAGE_CSS).toMatch(/@media \(hover:hover\)\{[^}]*\[role=button\]:hover/);
+});
+
+test('the review card can be dragged by a finger without the page scrolling under it', () => {
+  expect(PAGE_CSS).toMatch(/\[data-testid="review-card"\]\{[^}]*touch-action:none/);
+});

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+
+import { useContentWidth } from '@/platform/web-layout';
 
 import type { ChatDeck } from '@/api/client';
 import { DeckCard, type PictureCount } from '@/components/chat/deck-card';
@@ -24,7 +26,8 @@ export const ideaStep = (screenWidth: number) => screenWidth - 2 * PEEK + GAP; /
 // Figma N2–N5: the deck cards under a Kai line. Three show in a row the learner swipes sideways, with page dots.
 // One shows alone. Once a deck of the row is being made or is made, only that card shows.
 export function DeckIdeas({ decks, showTranslation, making, locked, count, drawing, onGenerate, onOpen }: Props) {
-  const { width } = useWindowDimensions();
+  // The width of the screen's column: the whole screen on a phone, the centered column in a wide browser window.
+  const width = useContentWidth();
   const [page, setPage] = useState(0);
   const stateOf = (d: ChatDeck) => (d.id === making || d.status === 'generating' ? 'generating' : d.id === drawing?.id ? 'drawing' : d.status === 'ready' ? 'ready' : d.current ? 'proposed' : 'disabled');
   const chosen = decks.filter((d) => ['generating', 'drawing', 'ready'].includes(stateOf(d)));

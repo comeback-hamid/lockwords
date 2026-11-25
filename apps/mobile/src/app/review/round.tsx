@@ -10,6 +10,7 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
+import { KeyHints } from '@/platform/key-hints';
 import { useRoundKeys } from '@/platform/round-keys';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
@@ -223,6 +224,8 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
           </>
         )}
       </View>
+      {/* A wide browser window: the keys are named under the card. Nothing on the phone. */}
+      {onStreak || !card ? null : <KeyHints />}
     </GestureHandlerRootView>
   );
 }
