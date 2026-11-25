@@ -19,8 +19,11 @@ Maestro flows run from the repo root: `npm run e2e -- --areas review`.
 The same app runs in a browser (`web-build`). Rules for code that must work there:
 - Storage: import `@/platform/key-store`, never `expo-secure-store` (it has no browser version).
 - Pop-ups: `confirmAction` / `tell` from `@/platform/dialog`, never `Alert.alert` (it does nothing on the web).
-- A file `name.web.tsx` replaces `name.tsx` in the browser: `(tabs)/_layout.web.tsx` (plain bottom tab bar), `kai/kai-canvas.web.tsx` (still Kai, no Skia).
+- A file `name.web.tsx` replaces `name.tsx` in the browser: `(tabs)/_layout.web.tsx` (our own bottom tab bar), `kai/kai-canvas.web.tsx` (still Kai, no Skia).
 - CI builds the web app (`npx expo export -p web`), so a phone-only import fails the pull request.
+- A real keyboard: `sendOnEnter` (`@/platform/enter-key`) on a multi-line text box makes Enter send and Shift+Enter a new line; `useRoundKeys` (`@/platform/round-keys`) gives the review card its keys (Space flips, arrows answer, Backspace undoes; it listens only while the round's card is on screen). Both do nothing on the phone.
+- The web tab bar is our own (`@/platform/web-tab-bar`), passed to `Tabs` as `tabBar`. `installPageStyle` (`@/platform/page-style`) adds the few page-wide CSS rules a browser needs.
+- The dev server for a browser check: `npm run web`. Do not start it with `CI=1`: Metro then stops watching files and serves old code.
 
 ## Layers
 - `src/app/`: screens only (Expo Router). `(tabs)/`: New words · Review · Progress (v1, decided 2026-11-16). Progress = the My words page as a tab. Speak comes after v1.

@@ -3,6 +3,7 @@ import { useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
+import { sendOnEnter } from '@/platform/enter-key';
 import { colors, layout, radius, space, type } from '@/theme/theme';
 
 import { directionStyle } from './direction';
@@ -20,6 +21,7 @@ const MAX_LINES = 6;
 // `defaultValue` puts a text back in the box. `canSend={false}` (Kai is still answering): the learner can keep typing,
 // the text stays in the box, and send waits. onTextChange: the screen hears typing (Kai listens while there is text).
 // Return on the keyboard sends the text (when it can) and always closes the keyboard.
+// In a browser Enter sends and Shift+Enter is a new line (`sendOnEnter`).
 // The typed text is aligned by its own script (Persian to the right).
 type Props = { placeholder: string; onSend(text: string): void; maxLength?: number; mic?: boolean; defaultValue?: string; canSend?: boolean; onTextChange?(text: string): void };
 export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defaultValue = '', canSend = true, onTextChange }: Props) {
@@ -90,6 +92,7 @@ export function Composer({ placeholder, onSend, maxLength = 80, mic = true, defa
               }}
               submitBehavior="blurAndSubmit"
               multiline
+              {...sendOnEnter(send)}
               placeholder={placeholder}
               placeholderTextColor={colors.subtle}
               maxLength={maxLength}
