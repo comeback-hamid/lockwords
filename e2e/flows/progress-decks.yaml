@@ -72,6 +72,8 @@ tags:
 - scrollUntilVisible:
     element: "Ordering food, 10 words · 9 learning"
     direction: DOWN
+# The row can first show under the floating tab bar, where a tap would hit a tab: bring it up to the end of the page.
+- scroll
 - tapOn: "Ordering food, 10 words · 9 learning"
 # P3 Deck words: counts, chips, the known word only under Known
 - extendedWaitUntil:

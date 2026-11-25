@@ -13,7 +13,7 @@ tags:
 - extendedWaitUntil:
     visible: "10 cards due today"
     timeout: 20000
-- assertVisible: "~3 min"
+- assertVisible: "About 3 minutes"
 - tapOn: "Let’s start"
 # The first round is the onboarding practice: full screen, no tab bar, no Close button
 - assertVisible: "10 words left"
@@ -92,7 +92,7 @@ tags:
 - extendedWaitUntil:
     notVisible: "Kai is typing"
     timeout: 40000
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Sí, quiero verlos"
 - tapOn: "Send"
 - hideKeyboard

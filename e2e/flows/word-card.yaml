@@ -46,21 +46,21 @@ tags:
 - assertVisible: "9 words left"
 - assertVisible: "la propina"
 - assertVisible: "Undo"
-# Hard: a slow swipe left. The hard word comes back at the end, so the count stays at 9
+# Hard: a slow swipe left. The hard word is done for today (it does not come back in the same round)
 - swipe:
     start: "50%, 45%"
     end: "10%, 45%"
     duration: 2500
 - assertVisible: "pedir"
 - extendedWaitUntil:
-    visible: "9 words left"
+    visible: "8 words left"
     timeout: 15000
 # I know it: a slow swipe up
 - swipe:
     start: "50%, 55%"
     end: "50%, 25%"
     duration: 2500
-- assertVisible: "8 words left"
+- assertVisible: "7 words left"
 - assertVisible: "el camarero"
 # A fast flick also counts, and three in a row do not wait for each other
 - swipe:
@@ -76,17 +76,14 @@ tags:
     end: "85%, 45%"
     duration: 150
 - extendedWaitUntil:
-    visible: "5 words left"
+    visible: "4 words left"
     timeout: 15000
-- tapOn: "Easy"
 - tapOn: "Easy"
 - tapOn: "Easy"
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "1 word left"
     timeout: 15000
-# The hard word is the last card
-- assertVisible: "la propina"
 - tapOn: "Easy"
 - extendedWaitUntil:
     visible: "Hard words go to your lock screen"
@@ -101,7 +98,7 @@ tags:
 - extendedWaitUntil:
     notVisible: "Kai is typing"
     timeout: 40000
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "How do I say can you bring me the bill?"
 - tapOn: "Send"
 - extendedWaitUntil:
@@ -138,7 +135,7 @@ tags:
     end: "62%, 45%"
     duration: 800
 - assertVisible: "1 word left"
-- assertNotVisible: "Message"
+- assertNotVisible: "Message.*"
 # It starts at the left edge of the screen, where iOS has its own "go back" swipe
 - swipe:
     start: "2%, 45%"
@@ -148,5 +145,5 @@ tags:
 - extendedWaitUntil:
     visible: "All cards done"
     timeout: 15000
-- assertNotVisible: "Message"
+- assertNotVisible: "Message.*"
 - stopRecording
