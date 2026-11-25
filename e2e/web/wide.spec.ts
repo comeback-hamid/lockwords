@@ -62,6 +62,24 @@ test('a wide window: one column for onboarding, a side bar and columns for the t
     expect(await moves(page, shown(page.getByTestId('meadow-live')))).toBe(true);
   });
 
+  await test.step('a deck page: a word is pulled left with the mouse and deleted', async () => {
+    await shown(page.getByRole('button', { name: /^Ordering food/ })).click();
+    await see(page, 'Review this deck');
+    const row = shown(page.getByText('el postre', { exact: true }));
+    const b = (await row.boundingBox())!;
+    await page.mouse.move(b.x + 150, b.y + b.height / 2);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) {
+      await page.mouse.move(b.x + 150 - i * 15, b.y + b.height / 2);
+      await page.waitForTimeout(20);
+    }
+    await page.mouse.up();
+    await shown(page.getByRole('button', { name: 'Delete el postre' })).click({ timeout: 10_000 });
+    await expect(page.getByText('el postre', { exact: true }).locator('visible=true')).toHaveCount(0);
+    await page.goBack();
+    await see(page, 'words in your word bank');
+  });
+
   await test.step('a narrower window: the side bar goes, the tab bar is at the bottom; phone size fills the window', async () => {
     await page.setViewportSize({ width: 800, height: 900 });
     const tab = shown(page.getByRole('tab', { name: 'Review' }));

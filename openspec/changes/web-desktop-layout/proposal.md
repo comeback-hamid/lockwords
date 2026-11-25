@@ -10,6 +10,13 @@ Three window sizes, one app:
 - The page behind everything is the app's own canvas color, so there is no visible strip.
 - The deck ideas row in the New words chat sizes its cards from the column, not from the window.
 
+Added after Hamid's go-ahead (2026-11-25: "apply all necessary change to make it a web friendly version, mobile web or desktop web"):
+- **The keys named under the card** on a wide window (Space flip, arrows, Backspace undo).
+- **A phone's browser:** finger swipes on the card, no zoom when a text box is tapped, no tap flash, no page pull.
+- **A mouse:** controls answer the pointer; the card shows it can be grabbed.
+- **Add to the home screen:** a manifest, icons, the page's description and colors (`apps/mobile/public/`).
+- **Screen readers:** the open tab is marked as selected in the browser.
+
 Nothing changes on the phone app.
 
 Out of scope: a second column on Progress or a wider chat (later, if Hamid wants more use of the width); the side bar on Use it and deck pages; web payments; the public address; live Kai (`web-live-kai`).
@@ -24,9 +31,8 @@ None.
 - App: new `src/platform/web-layout.ts` (the sizes and the rules, plain functions), `src/platform/web-frame.tsx` (the page around the app), `src/platform/web-tab-bar.tsx` (the side bar form), `src/app/(tabs)/_layout.web.tsx`, `src/app/_layout.tsx` (uses `WebFrame`), `src/components/chat/deck-ideas.tsx` (one line: the width it sizes from).
 - Server: nothing. CI: nothing new.
 - Analytics events: none.
-- Figma: new page **Web** with four frames (proposal, captured from a working prototype):
+- Figma: new page **Web** with eight frames (captured from the built web app; W5 to W8 added and W2 replaced on 2026-11-25): W2 Review with the key names https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2139-2 · W5 Use it ?node-id=2140-2 · W6 Deck page ?node-id=2141-2 · W7 Tablet ?node-id=2142-2 · W8 Phone browser ?node-id=2143-2. The first four as proposed:
   - W1 Desktop · New words: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2128-156
-  - W2 Desktop · Review: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2131-2
   - W3 Desktop · Progress: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2130-2
   - W4 Desktop · Onboarding: https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2132-2
 - Easy mode: nothing. Other languages: a right-to-left language keeps the side bar on the left in this change (the phone app has no mirrored layout either).

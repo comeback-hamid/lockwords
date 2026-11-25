@@ -31,6 +31,7 @@ export function WebTabBar({ state, dot, onOpen, side = false }: Props) {
             accessibilityRole="tab"
             accessibilityLabel={tab.label}
             accessibilityState={{ selected: open }}
+              aria-selected={open} // the browser reads this one
             onPress={() => (open ? undefined : onOpen(route.key))}
             style={styles.tab}>
             <View>
@@ -67,6 +68,7 @@ function SideBar({ state, dot, onOpen }: Props) {
               accessibilityRole="tab"
               accessibilityLabel={tab.label}
               accessibilityState={{ selected: open }}
+              aria-selected={open} // the browser reads this one
               onPress={() => (open ? undefined : onOpen(route.key))}
               style={[styles.row, open && styles.rowOpen]}>
               <View>

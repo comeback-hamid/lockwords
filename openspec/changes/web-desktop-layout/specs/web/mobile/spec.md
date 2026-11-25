@@ -50,3 +50,46 @@ The web app SHALL lay itself out by the window's width. Under 600 px: the app fi
 #### Scenario: The window gets narrower
 - **WHEN** a 1440 px window is made 800 px wide
 - **THEN** the side bar goes away and the tab bar is at the bottom
+
+### Requirement: The review card's keys are named on a wide window
+On a window 1024 px or wider the round SHALL show one quiet line under the card that names the keys: Space flip, left arrow hard, up arrow know it, right arrow easy, Backspace undo. The line does not show on a narrower window, on the streak card, or on the phone app.
+
+#### Scenario: Wide window
+- **WHEN** a round shows in a window 1440 px wide
+- **THEN** the key names show under the card
+
+#### Scenario: Phone-size window
+- **WHEN** a round shows in a window 390 px wide
+- **THEN** no key names show
+
+### Requirement: A phone's browser
+In a phone's browser the web app SHALL behave like an app: a finger swipes the review card without the page scrolling or being pulled; tapping a text box does not make the browser zoom the page (text boxes are 16 px on touch screens); a tap shows no grey flash; a long press does not select a button's text. The person can still zoom the page with two fingers.
+
+#### Scenario: Finger swipe
+- **WHEN** a finger drags the card to the left past the swipe distance in a phone's browser
+- **THEN** the card is answered Hard and the next card shows
+
+#### Scenario: Text box
+- **WHEN** the Use it text box shows on a touch screen
+- **THEN** its text is 16 px
+
+### Requirement: A mouse
+With a mouse a control (button, tab, option) SHALL get a little darker under the pointer, and the review card shows it can be grabbed. A touch screen gets no hover look.
+
+#### Scenario: Hover
+- **WHEN** the pointer is over the Start button in a desktop browser
+- **THEN** the button is drawn a little darker
+
+### Requirement: Add to the home screen
+The web app SHALL carry what a phone needs to put it on the home screen: its name, its icon in two sizes, its background color, and that it opens without the browser's bars. The page also carries a short description and the app's background color for the browser's bars, and is never white before the app draws.
+
+#### Scenario: Manifest
+- **WHEN** a browser reads the page
+- **THEN** it finds the manifest with the name Lockwords, the start address and two icons that exist
+
+### Requirement: The open tab is said to a screen reader
+In a browser the open tab SHALL be marked as selected, in the bottom bar and in the side bar.
+
+#### Scenario: Selected
+- **WHEN** New words is open in a browser
+- **THEN** its tab is marked selected and the other two are not
