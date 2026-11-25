@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: Home screen widgets
-The widget "Lockwords" SHALL offer a small and a medium home screen size that follow Figma "Widgets" (v1 frames). They follow the phone's light or dark look, use one color on a tinted or clear home screen, and have no buttons. A tap opens the word, as on the lock screen.
+The widget "Lockwords" SHALL offer a small and a medium home screen size that follow Figma "Widgets" (v1 frames). They follow the phone's light or dark look, use one color on a tinted or clear home screen, and have no buttons. They show hard words only. A tap opens Review on that word, as on the lock screen.
 
 #### Scenario: Small
-- **WHEN** the current slot is look 1 of "el mesero", not hard
-- **THEN** the small widget shows "REVIEW", "el mesero", "the waiter", one filled square of five and Kai waving
+- **WHEN** the current slot is look 1 of "el mesero"
+- **THEN** the small widget shows "HARD WORD", "el mesero", "the waiter", one filled square of five and Kai waving
 
 #### Scenario: Medium, hard word with a picture
 - **WHEN** the current slot is look 3 of the hard word "la cuenta" and its picture is saved
@@ -19,9 +19,9 @@ The widget "Lockwords" SHALL offer a small and a medium home screen size that fo
 - **WHEN** the phone is in dark mode
 - **THEN** the widget uses the dark colors of the Figma dark frame
 
-#### Scenario: The list ran out
-- **WHEN** the time is after the plan's end
-- **THEN** the widget shows "New words wait" and "Open Lockwords"
+#### Scenario: No hard words
+- **WHEN** the plan has no slots
+- **THEN** the widget shows "No hard words", "Swipe left in Review" and Kai
 
 ### Requirement: Pictures for the widget
 When the app hands over a plan, it SHALL save the picture of each slot's word as a small file (252 pixels wide and high at most) in the folder shared with the widget, once per word, and delete the files of words that are no longer in the plan. A picture that cannot be downloaded is skipped.

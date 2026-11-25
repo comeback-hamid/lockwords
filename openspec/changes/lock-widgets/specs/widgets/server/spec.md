@@ -20,27 +20,27 @@ The server SHALL count a look for a word for every 30-minute widget slot of that
 - **THEN** its stage, due date and hard mark are what they were
 
 ### Requirement: Widget plan
-`GET /v1/widget/plan` SHALL answer `200` with `{ slots, due, endsAt }` for the signed-in learner: the slots of the next 48 hours, the number of cards in today's round, and the end of the last slot. A slot has `at`, `cardId`, `word`, `translation`, `hard` and `look` (1 to 5). The server keeps the plan to count looks. The call carries the learner's time zone. Without a valid token the answer is `401`.
+`GET /v1/widget/plan` SHALL answer `200` with `{ slots, endsAt }` for the signed-in learner: the slots of the next 48 hours and the end of the last slot. A slot has `at`, `cardId`, `word`, `translation` and `look` (1 to 5). Only hard words are in the plan. The server keeps the plan to count looks. The call carries the learner's time zone. Without a valid token the answer is `401`.
 
 #### Scenario: Turns
-- **WHEN** the learner has 8 words with 0 looks
+- **WHEN** the learner has 8 hard words with 0 looks
 - **THEN** the first 6 words in the order take turns, one slot each, and the 7th word first shows in the slot after one of them had its 5th look
 
 #### Scenario: One word
-- **WHEN** the learner has one word
+- **WHEN** the learner has one hard word
 - **THEN** every slot is that word with looks 1 to 5, and after the 5th a new lap starts at look 1
 
-#### Scenario: No words
-- **WHEN** the learner has no cards
-- **THEN** `slots` is empty and `due` is 0
+#### Scenario: No hard words
+- **WHEN** the learner has cards but none is hard
+- **THEN** `slots` is empty
 
 ### Requirement: Widget order
-The plan SHALL take words in this order: hard words (fewest looks first, then the oldest card), then cards in review by the nearest due date, then new cards in deck order (oldest deck first). Cards marked known or removed are never in the plan. When every word in the order has 5 looks, a new lap starts and every word counts from 0 again.
+The plan SHALL hold only hard cards (the hard mark of the Review rules) that are not known and not removed, the one with the fewest looks first, then the oldest card. When every hard word has 5 looks, a new lap starts and every word counts from 0 again.
 
-#### Scenario: Hard first
+#### Scenario: Not hard
 - **WHEN** the learner has a hard word and a word due today that is not hard
-- **THEN** the hard word has the first slot
+- **THEN** every slot is the hard word
 
-#### Scenario: Known word
-- **WHEN** a word in the kept plan is swiped I know it and the plan is asked for again
+#### Scenario: No longer hard
+- **WHEN** a word in the kept plan reaches Stage 3 or is swiped I know it, and the plan is asked for again
 - **THEN** no slot has that word

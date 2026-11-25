@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: The app hands the plan to the widget
-On iOS the app SHALL load `GET /v1/widget/plan` and give the slots to the widget as a timeline when the app starts with a signed-in learner, when it comes back to the front, and after a review round. The last timeline entry, at `endsAt`, is the "open the app" entry. If the load fails the widget keeps what it had. The web app and Android do nothing.
+On iOS the app SHALL load `GET /v1/widget/plan` and give the slots to the widget as a timeline when the app starts with a signed-in learner, when it comes back to the front, and after a review round. The last timeline entry, at `endsAt`, is the "open the app" entry. A plan with no slots gives one "no hard words" entry. If the load fails the widget keeps what it had. The web app and Android do nothing.
 
 #### Scenario: App opened
 - **WHEN** the learner opens the app and the plan has 12 slots
@@ -12,19 +12,15 @@ On iOS the app SHALL load `GET /v1/widget/plan` and give the slots to the widget
 - **THEN** the widget timeline is not changed and no error shows
 
 ### Requirement: Lock screen widgets
-The widget "Lockwords" SHALL offer three lock screen sizes that follow Figma "Widgets" (v1 frames): rectangular, circular and inline. They use no color and have no buttons. A word or meaning that is too long gets a smaller font, then is cut with "…".
+The widget "Lockwords" SHALL offer two lock screen sizes that follow Figma "Widgets" (v1 frames): rectangular and inline. It shows hard words only, and never a number of cards. They use no color and have no buttons. A word or meaning that is too long gets a smaller font, then is cut with "…".
 
 #### Scenario: Rectangular
 - **WHEN** the current slot is a word
-- **THEN** the widget shows the word, its meaning, five squares with one filled per look so far, "HARD" if the word is hard, and Kai in one color
+- **THEN** the widget shows the word, its meaning, five squares with one filled per look so far, and Kai in one color
 
 #### Scenario: Kai's pose
 - **WHEN** the look is 1, 2, 3, 4 or 5
 - **THEN** Kai's pose is greeting, idle, thinking, speaking or celebrate
-
-#### Scenario: Circular
-- **WHEN** 12 cards are due today
-- **THEN** the circular widget shows Kai and "12"
 
 #### Scenario: Inline
 - **WHEN** the current slot is "la cuenta"
@@ -32,23 +28,23 @@ The widget "Lockwords" SHALL offer three lock screen sizes that follow Figma "Wi
 
 #### Scenario: Third look of a hard word
 - **WHEN** the current slot is look 3 of the hard word "la cuenta"
-- **THEN** the rectangular widget shows "la cuenta", "the bill", three filled squares of five, "HARD" and Kai thinking
+- **THEN** the rectangular widget shows "la cuenta", "the bill", three filled squares of five and Kai thinking
 
-#### Scenario: Before the first plan
-- **WHEN** the widget was added and the app has no plan yet
-- **THEN** it shows "New words wait" and "Open Lockwords"
+#### Scenario: No hard words
+- **WHEN** the plan has no slots, or the widget was added before the app had a plan
+- **THEN** it shows "No hard words" and "Swipe left in Review"
 
 #### Scenario: The list ran out
 - **WHEN** the time is after `endsAt`
-- **THEN** the rectangular widget shows "New words wait" and "Open Lockwords", and the circular widget shows Kai with no number
+- **THEN** it shows "Open Lockwords" and "for your hard words"
 
-### Requirement: A tap opens the word
-A tap on the rectangular or inline widget SHALL open the app on that word: the word's card alone, with flip, speaker and Use it, and an X that goes to the tabs. A tap on the circular widget opens the Review tab. A tap on the "open the app" entry opens the app where it starts. If the word cannot be loaded (removed, or no connection) the app opens the Review tab.
+### Requirement: A tap opens Review on that word
+A tap on the widget while it shows a word SHALL open the app on the Review tab, inside the round, with that word as the first card. A tap on the "No hard words" or "Open Lockwords" entry opens the Review tab as it is. If the round cannot be loaded, the Review tab shows its own error.
 
 #### Scenario: Tap on a word
 - **WHEN** the learner taps the widget while it shows "la cuenta"
-- **THEN** the app opens the card of "la cuenta", front side up
+- **THEN** the Review tab opens with the card of "la cuenta" on top, front side up, and the rest of today's round under it
 
 #### Scenario: Removed word
 - **WHEN** the tapped word was removed
-- **THEN** the Review tab opens
+- **THEN** the Review tab opens as it is

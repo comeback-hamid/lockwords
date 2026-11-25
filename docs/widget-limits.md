@@ -12,7 +12,7 @@ Where Apple's docs say nothing, this file says so.
 | 2 | **No free animation.** A widget only animates when its content changes, for 2 seconds at most. | Kai cannot move by itself. Kai gets a new still pose with every new word slot. |
 | 3 | **The widget cannot fetch.** With `expo-widgets` its code has no network and no timers. | The app gets the word plan from the server and hands it to the widget. |
 | 4 | **The lock screen has no color.** iOS turns everything into one tint. | Lock widgets are designed in white and greys. Kai needs a one-color drawing. |
-| 5 | **A lock screen widget is tiny.** 160×72 points for the big one. | One word, its meaning, five small squares, a small Kai. Nothing more fits. |
+| 5 | **A lock screen widget is tiny.** 160×72 points for the big one. | One hard word, its meaning, five small squares, a small Kai. Nothing more fits. The round one (72×72) is too small for a word, so we do not make it. |
 | 6 | **A real iPhone needs an app group on the Apple account.** | Works on the simulator. On Hamid's phone it is not sure yet (see "Signing"). |
 
 ## 1. Sizes
@@ -29,7 +29,7 @@ Sizes in points, from the HIG table "iOS dimensions":
 - Lock screen: inline (one line of text next to the date), circular, rectangular.
 - The small widget also shows in StandBy (the phone on its side while charging).
 - Sizes for the newest screens (402×874, 440×956) are not in Apple's table. The layout must stretch, not use fixed numbers.
-- **We use:** inline, circular, rectangular, small, medium (as `docs/product.md` 7.4 says). No large widget in v1.
+- **We use:** inline, rectangular, small, medium. No circular widget (Hamid, 2026-11-25: hard words only, no card count) and no large widget in v1.
 
 ## 2. Animation
 
@@ -81,7 +81,7 @@ All from AD `/widgetkit/keeping-a-widget-up-to-date`.
 
 - The app and the widget share one folder, the **app group** (`group.com.comebackhamid.lockwords`). The app writes, the widget reads.
 - With `expo-widgets` the app calls `updateTimeline(entries)`. The widget then runs alone from that list (`policy: .atEnd`).
-- The widget cannot ask the server by itself. If the app is not opened for days, the list runs out and the widget keeps its last entry. So the last entry must be a good one ("Open Lockwords for new words").
+- The widget cannot ask the server by itself. If the app is not opened for days, the list runs out and the widget keeps its last entry. So the last entry must be a good one ("Open Lockwords · for your hard words").
 - A silent push can ask iOS to reload a widget (iOS 26), but it cannot bring new words without our app code running, and it needs the paid Apple account. Not in v1.
 - `expo-widgets` cannot tell us whether the person added the widget. So the metric "Widget added" (`docs/product.md` 5) cannot be measured yet. A tap on the widget can be counted.
 

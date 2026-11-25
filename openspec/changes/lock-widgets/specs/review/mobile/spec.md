@@ -10,3 +10,16 @@ The screen "Hard words go to your lock screen" SHALL show a phone with the lock 
 #### Scenario: No hard words
 - **WHEN** the learner has no hard words
 - **THEN** the phone shows a word of the round just finished and no list
+
+## ADDED Requirements
+
+### Requirement: A round that starts with a chosen word
+When the app is opened with the address `lockwords://review?first=<id>`, the Review tab SHALL skip its start screen and show the round from `GET /v1/review?first=<id>`. A card with `lookOnly` shows "Next" in place of the three swipe buttons and cannot be swiped; "Next" goes to the next card. If a round is already open, the chosen word is put on top of it.
+
+#### Scenario: From the widget
+- **WHEN** the app opens with `lockwords://review?first=<id of "la cuenta">`
+- **THEN** the round shows "la cuenta" on top with no start screen
+
+#### Scenario: Look card
+- **WHEN** the first card has `lookOnly`
+- **THEN** it can be flipped, the speaker and Use it work, "Next" shows, and a swipe does nothing
