@@ -25,7 +25,7 @@ tags:
 # Use it
 - tapOn: "Use it"
 - assertVisible: ".*Write one sentence with la cuenta.*"
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Quiero la cuenta, por favor."
 - tapOn: "Send"
 - extendedWaitUntil:

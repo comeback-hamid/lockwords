@@ -30,7 +30,7 @@ tags:
     direction: DOWN
 # The time switch (2026-11-25): In 3 months shows the same page as it will be, then back to Today
 - scrollUntilVisible:
-    element: "In 3 months"
+    element: "In 3 months.*"
     direction: UP
 - tapOn: "In 3 months.*"
 - assertVisible: "ABOUT, AT YOUR PACE"

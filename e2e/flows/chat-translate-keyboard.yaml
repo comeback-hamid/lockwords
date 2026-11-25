@@ -52,7 +52,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 20000
 # Return sends the name and closes the keyboard
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Sara"
 - assertVisible: "Emoji"
 - pressKey: Enter
@@ -67,7 +67,7 @@ tags:
     timeout: 20000
 # The reply options are the last item of the chat: with the keyboard up they are still in view above it,
 # and a scroll of the chat (they move with it) closes the keyboard
-- tapOn: "Message"
+- tapOn: "Message.*"
 - assertVisible: "Emoji"
 - assertVisible: "Español"
 - swipe:
@@ -84,20 +84,20 @@ tags:
 - tapOn: "Translation, off"
 - assertVisible: "Translation, on"
 # A scroll of the chat closes the keyboard: down, then up
-- tapOn: "Message"
+- tapOn: "Message.*"
 - assertVisible: "Emoji"
 - swipe:
     start: 50%, 35%
     end: 50%, 50%
 - assertNotVisible: "Emoji"
-- tapOn: "Message"
+- tapOn: "Message.*"
 - assertVisible: "Emoji"
 - swipe:
     start: 50%, 50%
     end: 50%, 35%
 - assertNotVisible: "Emoji"
 # A typed topic, the first deck, and on to the app
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "comida"
 - pressKey: Enter
 - extendedWaitUntil:
@@ -114,7 +114,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 20000
 - assertVisible: "Translation, on"
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "yes, practice now"
 - pressKey: Enter
 - extendedWaitUntil:
@@ -133,7 +133,7 @@ tags:
 - tapOn: "Translation, off"
 - assertVisible: "Translation, on"
 # Return sends the message and closes the keyboard
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Hola Kai"
 - assertVisible: "Emoji"
 - pressKey: Enter
@@ -143,7 +143,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 40000
 # A scroll of the messages closes the keyboard here too
-- tapOn: "Message"
+- tapOn: "Message.*"
 - assertVisible: "Emoji"
 - swipe:
     start: 50%, 35%

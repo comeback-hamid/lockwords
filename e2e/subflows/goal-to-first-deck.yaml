@@ -16,7 +16,7 @@ appId: com.comebackhamid.lockwords
 - extendedWaitUntil:
     visible: ".*What’s your name.*"
     timeout: 20000
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Maya"
 - tapOn: "Send"
 # O10b chat language
