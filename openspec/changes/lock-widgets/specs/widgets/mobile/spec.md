@@ -18,6 +18,10 @@ The widget "Lockwords" SHALL offer two lock screen sizes that follow Figma "Widg
 - **WHEN** the current slot is a word
 - **THEN** the widget shows the word, its meaning, five squares with one filled per look so far, and Kai in one color
 
+#### Scenario: Long text has no Kai
+- **WHEN** the word has more than 12 letters or the meaning more than 14
+- **THEN** the rectangular widget shows no Kai and the text uses the whole width
+
 #### Scenario: Kai's pose
 - **WHEN** the look is 1, 2, 3, 4 or 5
 - **THEN** Kai's pose is greeting, idle, thinking, speaking or celebrate

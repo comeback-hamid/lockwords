@@ -65,3 +65,13 @@ test('the web app has no widget', () => {
   const web = jest.requireActual('@/widgets/sync.web');
   expect(web.syncWidget()).resolves.toBeUndefined();
 });
+
+// Hamid, 2026-11-25: the lock screen widget is small. A long word or meaning gets the whole width, with no Kai.
+test('a long word or a long meaning has no Kai, so the text has the whole width', () => {
+  const entry = (word: string, translation: string) => toTimeline({ slots: [{ at: '2026-11-25T09:00:00.000Z', cardId: 'c1', word, translation, look: 2 }], endsAt: '2026-11-25T09:30:00.000Z' }, now, kai)[0]!.props;
+  expect(entry('la cuenta', 'the bill').kai).toBe('i');
+  expect(entry('estar de acuerdo', 'to agree').kai).toBe(''); // a long word
+  expect(entry('acordar', 'to agree with someone').kai).toBe(''); // a long meaning
+  expect(entry('la propina', 'the tip').kai).toBe('i'); // 10 letters still fit next to Kai
+  expect(entry('el camarero', 'the waiter').kai).toBe('i');
+});

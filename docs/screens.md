@@ -100,7 +100,7 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 
 | ID | Screen | Figma |
 |---|---|---|
-| v1 (proposal 2026-11-25) | Lock Screen: inline, rectangular 160×72; one tint; hard words only | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-262) |
+| v1 (2026-11-25) | Lock Screen: inline, rectangular 160×72; one tint; hard words only | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-262) |
 | v1 | Home Screen · light: medium 338×158, small 158×158 | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-484) |
 | v1 | Home Screen · dark | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-686) |
 | v1 | Home Screen · tinted (iOS removes color) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-895) |

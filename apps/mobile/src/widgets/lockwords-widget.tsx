@@ -28,7 +28,8 @@ const Lockwords = (props: WidgetProps, environment: WidgetEnvironment) => {
           </HStack>
         ) : null}
       </VStack>
-      <Image uiImage={props.kai} modifiers={[resizable(), frame({ width: 62, height: 44 })]} />
+      {/* No Kai for a long word or meaning: the text gets the whole width. */}
+      {props.kai ? <Image uiImage={props.kai} modifiers={[resizable(), frame({ width: 62, height: 44 })]} /> : null}
     </HStack>
   );
 };
