@@ -205,7 +205,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
 
       {failed ? <Text style={[type.caption, styles.failed]}>Could not save. Try again.</Text> : null}
       {/* The streak card has no answer: the three actions are hidden while it shows. */}
-      <View style={styles.actions}>
+      <View style={[styles.actions, card?.lookOnly && styles.actionsNext]}>
         {onStreak || !card ? null : card.lookOnly ? (
           // The word tapped on the widget is not due today: it can be looked at (flip, speaker, Use it), not swiped.
           <Action
@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
   green: { color: colors.greenText },
   failed: { color: colors.hard, textAlign: 'center' },
   actions: { minHeight: layout.minTapTarget, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  actionsNext: { justifyContent: 'flex-end' },
   action: { height: layout.minTapTarget, flexDirection: 'row', alignItems: 'center', gap: space[8] },
   actionReverse: { flexDirection: 'row-reverse' },
 });

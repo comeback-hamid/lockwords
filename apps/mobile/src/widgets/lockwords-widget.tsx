@@ -1,4 +1,4 @@
-import { HStack, Image, RoundedRectangle, Spacer, Text, VStack } from '@expo/ui/swift-ui';
+import { HStack, Image, RoundedRectangle, Text, VStack } from '@expo/ui/swift-ui';
 import { font, frame, lineLimit, minimumScaleFactor, opacity, resizable, widgetURL } from '@expo/ui/swift-ui/modifiers';
 import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 
@@ -16,7 +16,8 @@ const Lockwords = (props: WidgetProps, environment: WidgetEnvironment) => {
   // Lock screen, rectangular (160×72): word, meaning, five squares for the look, Kai in one color.
   return (
     <HStack alignment="bottom" spacing={4} modifiers={[widgetURL(props.url)]}>
-      <VStack alignment="leading" spacing={2}>
+      {/* The text takes all the room, so Kai sits at the right edge. */}
+      <VStack alignment="leading" spacing={2} modifiers={[frame({ maxWidth: 10000, alignment: 'leading' })]}>
         <Text modifiers={[font({ size: 17, weight: 'semibold' }), lineLimit(1), minimumScaleFactor(0.7)]}>{props.word}</Text>
         <Text modifiers={[font({ size: 15 }), opacity(0.82), lineLimit(1), minimumScaleFactor(0.75)]}>{props.meaning}</Text>
         {props.look > 0 ? (
@@ -27,7 +28,6 @@ const Lockwords = (props: WidgetProps, environment: WidgetEnvironment) => {
           </HStack>
         ) : null}
       </VStack>
-      <Spacer />
       <Image uiImage={props.kai} modifiers={[resizable(), frame({ width: 62, height: 44 })]} />
     </HStack>
   );

@@ -50,6 +50,10 @@ tags:
 - copyTextFrom:
     id: "dev-widget-url"
 - openLink: ${maestro.copiedText}
+# The simulator asks before it opens the app from an address. A real widget tap does not ask.
+- tapOn:
+    text: "Open"
+    optional: true
 # Review opens inside the round on that word. It was swiped today, so it is a look card: Next, no swipes.
 - extendedWaitUntil:
     visible: "1 word left"
