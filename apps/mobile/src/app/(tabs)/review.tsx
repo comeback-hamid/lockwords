@@ -13,6 +13,7 @@ import { Kai } from "@/kai/kai";
 import { isIntroDone } from "@/review/intro";
 import { addToRound, backFromUseIt, getRound, putFirst, setRound } from "@/review/round-store";
 import { colors, layout, space, type } from "@/theme/theme";
+import { syncWidget, useWidgetUrl } from "@/widgets/sync";
 import { tapped, useTapped } from "@/widgets/tapped";
 
 const KAI_SIZE = 168;
@@ -34,6 +35,7 @@ export default function ReviewScreen() {
   // start screen does not flash by.
   const load = useCallback((afterRound = false) => {
     if (!afterRound) setInRound(false);
+    void syncWidget(); // the hard words may have changed (a round, a removed word): the widget gets its new plan
     // The summary (name, streak, today's numbers) is an extra: without it the screen still works.
     const summary = Promise.resolve()
       .then(() => api.fetchSummary())
@@ -94,6 +96,7 @@ export default function ReviewScreen() {
     load();
   }, [load]);
   const onRoundDone = useCallback(() => load(true), [load]);
+  const widgetUrl = useWidgetUrl();
   useFocusEffect(onFocus);
 
   async function start(cards: ReviewCard[]) {
@@ -191,6 +194,12 @@ export default function ReviewScreen() {
             ) : null}
           </>
         )}
+        {__DEV__ && widgetUrl ? (
+          // Dev builds only: where a tap on the widget goes now (the Maestro flow opens this address).
+          <Text testID="dev-widget-url" style={[type.caption, styles.dev]}>
+            {widgetUrl}
+          </Text>
+        ) : null}
         {__DEV__ && me ? (
           // Dev builds only: lets the Maestro flows check that the guest user survives a restart.
           <Text testID="dev-user-id" style={[type.caption, styles.dev]}>
