@@ -12,10 +12,9 @@ import { LevelChain } from '@/components/level-chain';
 import { LoadError, Loading } from '@/components/load-state';
 import { Meadow } from '@/components/meadow';
 import { TimeTab } from '@/components/time-tab';
-import { Kai } from '@/kai/kai';
-import { futureMeadow, KAI_CELLS, nowMeadow } from '@/progress/meadow';
+import { futureMeadow, nowMeadow } from '@/progress/meadow';
 import { savesDone } from '@/review/saver';
-import { colors, layout, levelColors, levelNew, radius, space, type } from '@/theme/theme';
+import { colors, layout, levelColor, radius, space, type } from '@/theme/theme';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 // "2027-02-23" → "Feb 23"
@@ -25,11 +24,10 @@ const todayDate = () => {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
 };
 const trees = (n: number) => `${n} ${n === 1 ? 'tree' : 'trees'}`;
-const KAI_SIZE = 64;
 const count = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
 
 // Progress tab (Figma P1 · Today / In 3 months), from top to bottom: the time switch, the numbers with the legend,
-// one meadow with Kai, the words map, and every deck as a short row. The switch shows the same page as it will be in
+// one meadow, the words map, and every deck as a short row. The switch shows the same page as it will be in
 // 3 months at the learner's pace (the server's guess): more words, a bigger forest, a greener words map. The decks
 // stay today's: nobody knows the future ones. One meadow since 2026-11-25 (Hamid): the two meadows of before showed
 // the same thing twice. Coming back to the tab always opens on Today.
@@ -40,7 +38,6 @@ export default function ProgressScreen() {
   const me = useMe();
   const [state, setState] = useState<{ progress: Progress | null; failed: boolean }>({ progress: null, failed: false });
   const [decks, setDecks] = useState<{ list: DeckSummary[] | null; failed: boolean }>({ list: null, failed: false });
-  const [cheer, setCheer] = useState(0); // a tap on Kai: he celebrates once
   const [future, setFuture] = useState(false); // the time switch: false = Today
   const loadDecks = useCallback(() => {
     api.fetchDecks().then(
@@ -63,7 +60,7 @@ export default function ProgressScreen() {
   useFocusEffect(load);
 
   const { progress, failed } = state;
-  const now = useMemo(() => (progress ? nowMeadow(progress.trees, progress.deckWords) : null), [progress]);
+  const now = useMemo(() => (progress ? nowMeadow(progress.grid) : null), [progress]);
   const then = useMemo(() => (progress ? futureMeadow(progress.future.total) : null), [progress]);
   // What the page shows: today's numbers, or the server's guess for 3 months from now.
   const shown = progress ? (future ? progress.future : progress) : null;
@@ -103,8 +100,8 @@ export default function ProgressScreen() {
             </View>
           </View>
 
-          {/* One meadow. Today: the decks as they are, one tree each. In 3 months: the forest of that many words.
-              Kai stands on the ground, on the right, in both. */}
+          {/* One meadow. Today: every word is a leaf in its level's green; the words fill one tree, then the next.
+              In 3 months: the forest of that many words. No Kai here: the whole width is for the trees. */}
           <View style={styles.bleed}>
             <Meadow
               key={future ? 'then' : 'now'}
@@ -112,15 +109,18 @@ export default function ProgressScreen() {
               scene={scene}
               label={future ? `Your meadow in 3 months: ${trees(then.trees)}` : `Your meadow now: ${trees(now.trees)}`}
               rich={future}
-            >
-              <View style={[styles.kai, { width: `${(KAI_CELLS / scene.width) * 100}%`, bottom: `${(1.6 / scene.height) * 100}%` }]}>
-                <Kai state={cheer ? 'celebrate' : 'idle'} playKey={cheer} size={KAI_SIZE} onPress={() => setCheer((n) => n + 1)} />
-              </View>
-            </Meadow>
+            />
           </View>
 
           {/* The words map: one square per word. Today it runs to the goal (empty squares are still to come);
               in 3 months every square is a word. */}
+          {/* A line, then what the map says, in one short line (Hamid, 2026-11-25). */}
+          <View style={styles.mapHead}>
+            <View style={styles.rule} />
+            <Text testID="map-note" accessibilityLabel="One square is one word. Five spaced reviews until it is mastered." style={[type.caption, styles.muted, styles.center]}>
+              {'■ = 1 word · 5 spaced reviews → mastered ✓'}
+            </Text>
+          </View>
           <GoalGrid goal={future ? shown.total : progress.goal} levels={shown.grid} />
 
           <View style={styles.decks}>
@@ -182,7 +182,7 @@ function DeckRow({ deck, divider, onPress }: { deck: DeckSummary; divider: boole
         </Text>
         <Text style={[type.caption, styles.muted]}>{numbers}</Text>
         <View style={styles.chain}>
-          <LevelChain stages={deck.stages} />
+          <LevelChain stages={deck.stages} start />
         </View>
       </View>
       <Icon name="next" size={16} color={colors.muted} />
@@ -197,7 +197,7 @@ function Count({ levels, text }: { levels: number[]; text: string }) {
     <View style={styles.count} accessible accessibilityLabel={text}>
       <View style={styles.squares}>
         {levels.map((level) => (
-          <View key={level} testID={`legend-${level}`} style={[styles.dot, level === 5 && styles.dotTick, { backgroundColor: level === 0 ? levelNew : levelColors[level] }]}>
+          <View key={level} testID={`legend-${level}`} style={[styles.dot, level === 5 && styles.dotTick, { backgroundColor: levelColor(level) }]}>
             {level === 5 ? <Text style={styles.tick}>✓</Text> : null}
           </View>
         ))}
@@ -221,7 +221,9 @@ const styles = StyleSheet.create({
   hidden: { opacity: 0 },
   // The meadows run from edge to edge of the screen (Figma), past the page's side margin.
   bleed: { alignSelf: 'stretch', marginHorizontal: -layout.sideMargin, marginTop: space[16], marginBottom: space[8] },
-  kai: { position: 'absolute', right: 0, alignItems: 'center' },
+  mapHead: { alignSelf: 'stretch', gap: space[12], marginBottom: space[4] },
+  rule: { height: 1, backgroundColor: colors.divider },
+  center: { textAlign: 'center' },
   decks: { width: '100%', gap: space[16], marginTop: space[32] },
   box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[12], padding: space[16] },

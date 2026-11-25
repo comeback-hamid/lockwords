@@ -10,7 +10,7 @@ import { Icon } from '@/components/icon';
 import { sayWord, warmUpSpeech } from '@/review/speak';
 import { useSwipe } from '@/review/use-swipe';
 import { wordLayout } from '@/review/word-size';
-import { card as tokens, colors, layout, levelColors, lift, radius, space, type } from '@/theme/theme';
+import { card as tokens, colors, layout, levelColor, lift, radius, space, type } from '@/theme/theme';
 
 // Where a card is in the stack. `top` is the one the learner reads and moves. `under` is the next card, already
 // drawn so it is there the moment the top one leaves. `leaving` is on its way off the screen.
@@ -201,7 +201,7 @@ function Word({ card }: { card: ReviewCard }) {
   const { size, lines } = wordLayout(card.word);
   return (
     <View style={styles.wordRow}>
-      <View style={[styles.square, { marginTop: (size + tokens.wordLineGap - tokens.levelSquare) / 2, backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
+      <View style={[styles.square, { marginTop: (size + tokens.wordLineGap - tokens.levelSquare) / 2, backgroundColor: levelColor(card.stage) }]} />
       <Text accessibilityLabel={card.word} numberOfLines={lines.length} adjustsFontSizeToFit minimumFontScale={0.5} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
         {lines.join('\n')}
       </Text>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, levelColors, levelNew } from '@/theme/theme';
+import { colors, levelColor } from '@/theme/theme';
 
 const PER_ROW = 20;
 const GAP = 2;
@@ -21,7 +21,7 @@ export function GoalGrid({ goal, levels }: { goal: number; levels: number[] }) {
         <View
           key={i}
           testID={level === null ? 'grid-empty' : 'grid-level'}
-          style={[styles.square, { width: size, height: size, backgroundColor: level === null ? colors.divider : level < 1 ? levelNew : (levelColors[level] ?? levelColors[1]) }]}
+          style={[styles.square, { width: size, height: size, backgroundColor: level === null ? colors.divider : levelColor(level) }]}
         >
           {/* A mastered word has a tick (Hamid, 2026-11-25). */}
           {level === MASTERED && size > 0 ? <Text testID="grid-tick" style={[styles.tick, { fontSize: size * 0.62, lineHeight: size }]}>✓</Text> : null}

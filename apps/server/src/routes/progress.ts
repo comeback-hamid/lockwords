@@ -64,8 +64,10 @@ export function progressRoutes(deps: Deps) {
       const zone = c.req.header('X-Time-Zone');
       const [decks, startedLately, language] = await Promise.all([store().decks(userId), store().startedSince(userId, reviewDay(new Date(now.getTime() - PACE_DAYS_MS), zone).day), store().learningLanguage(userId)]);
       const words = decks.flatMap((d) => d.words);
-      const { toLearn, started, ...numbers } = bankNumbers(words);
-      const goal = goalFor(toLearn);
+      const { toLearn: _notSent, started, ...numbers } = bankNumbers(words);
+      void _notSent; // the bank without "I know it" words is only used inside the numbers
+      // The goal is the next hundred above the whole bank, as the words map shows every word of it.
+      const goal = goalFor(numbers.total);
       // The meadow: one tree per deck, oldest first (the store lists newest first).
       const oldestFirst = [...decks].reverse();
       const trees = oldestFirst.map((d) => treeLevels(d.words));
