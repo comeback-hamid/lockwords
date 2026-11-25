@@ -100,6 +100,15 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 
 | ID | Screen | Figma |
 |---|---|---|
+| v1 (proposal 2026-11-25) | Lock Screen: inline, rectangular 160×72, circular 72×72; one tint | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-262) |
+| v1 | Home Screen · light: medium 338×158, small 158×158 | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-484) |
+| v1 | Home Screen · dark | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-686) |
+| v1 | Home Screen · tinted (iOS removes color) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-895) |
+| v1 | Story · one word, five looks | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-1102) |
+| v1 | Story · lock screen states | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-1481) |
+| v1 | Story · medium widget states | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2122-1800) |
+| v1 | Components · 08b Widgets v1 (and "Kai mono") | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2121-1007) |
+| OLD | The two rows below are the design before 2026-11-25 (answer buttons, "words due"). Not v1. | |
 |  | iPhone · Lock Screen (inline, rectangular 160×72, circular 72×72; one tint) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=284-184) |
 |  | iPhone · Home Screen (medium 338×158, small 158×158; full color, buttons work) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=284-244) |
 
