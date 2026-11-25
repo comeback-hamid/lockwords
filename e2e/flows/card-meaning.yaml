@@ -11,7 +11,7 @@ tags:
 - runFlow: ../subflows/advanced-to-goal.yaml
 - runFlow: ../subflows/goal-to-first-deck.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - assertVisible: "la cuenta"

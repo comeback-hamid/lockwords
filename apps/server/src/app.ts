@@ -112,7 +112,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/v1', languageRoutes(deps?.languageChecker));
   app.route('/v1', deckRoutes(deps ?? {}));
   app.route('/v1', reviewRoutes(deps ?? {}));
-  app.route('/v1', transcribeRoutes(deps?.transcriber));
+  app.route('/v1', transcribeRoutes(deps?.transcriber, deps?.cards ? (userId) => deps.cards!.languages(userId) : undefined));
   app.route('/v1', progressRoutes(deps ?? {}));
   app.route('/v1', kaiRoutes(deps ?? {}));
   app.route('/v1', kaiChatRoutes(deps ?? {}));

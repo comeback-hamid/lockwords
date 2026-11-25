@@ -11,7 +11,7 @@ tags:
 # O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 # New words: Kai opens the chat and says who they are
 - tapOn: "New words"
@@ -40,7 +40,7 @@ tags:
 - inputText: "Vamos a practicar"
 - tapOn: "Send"
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 40000
 # Back on New words the chat is still there
 - tapOn: "New words"

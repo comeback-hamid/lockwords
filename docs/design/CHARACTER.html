@@ -93,7 +93,7 @@
   /* ---------- v1.1 effects. Loop effects run all the time. "Synced" effects play once per cycle; the renderer restarts them. ---------- */
   svg[data-fx="rain"] .fx-rain,svg[data-fx="levelup"] .fx-levelup,svg[data-fx="star"] .fx-star,svg[data-fx="tree"] .fx-tree,
   svg[data-fx="stack"] .fx-stack,svg[data-fx="plant"] .fx-plant,svg[data-fx="toss"] .fx-toss,svg[data-fx="idea"] .fx-idea,
-  svg[data-fx="note"] .fx-note,svg[data-fx="heart"] .fx-heart,svg[data-fx="lines"] .fx-lines,svg[data-fx="scan"] .fx-scan{opacity:1}
+  svg[data-fx="note"] .fx-note,svg[data-fx="heart"] .fx-heart,svg[data-fx="lines"] .fx-lines,svg[data-fx="scan"] .fx-scan,svg[data-fx="cards"] .fx-cards{opacity:1}
   .lf2{fill:var(--leaf)} .lfh2,.idb,.scn{fill:var(--leafHi)} .mut{fill:var(--muted)} .ph{fill:none;stroke:var(--accent);stroke-width:.35}
   @keyframes rain{0%{opacity:0;transform:translateY(0) rotate(0)}12%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateY(21px) rotate(90deg)}}
   @keyframes stk{0%{opacity:0;transform:translateY(-4px)}12%{opacity:1;transform:translateY(0)}78%{opacity:1}88%,100%{opacity:0}}
@@ -119,6 +119,13 @@
   svg[data-fx="plant"] .plt{animation:plant var(--cyc,2.6s) linear 1 both;transform-origin:50% 100%}
   svg[data-fx="toss"] .tb2{animation:tossb var(--cyc,2.4s) linear 1 both} svg[data-fx="toss"] .ph{animation:tossp var(--cyc,2.4s) linear 1 both}
   svg[data-fx="idea"] .idb{animation:ideab var(--cyc,2.4s) linear 1 both} svg[data-fx="idea"] .idr{animation:idear var(--cyc,2.4s) linear 1 both}
+  /* cards: the top flashcard leaves to the right (Easy), the next one comes from the card behind, then it leaves to the left (Hard) */
+  .cdl{fill:var(--line)} .cds{fill:var(--surface)} .cdc{fill:var(--chip)} .cdt{fill:var(--text)}
+  @keyframes cardgo{0%,35%{opacity:1;transform:translate(0,0)}39%{opacity:1;transform:translate(1.4px,-.5px)}45%{opacity:0;transform:translate(3.4px,-.9px)}
+    46%{opacity:0;transform:translate(.6px,-.6px)}52%,84%{opacity:1;transform:translate(0,0)}88%{opacity:1;transform:translate(-1.4px,-.7px)}
+    93%{opacity:0;transform:translate(-3.4px,-1.3px)}94%{opacity:0;transform:translate(.6px,-.6px)}100%{opacity:1;transform:translate(0,0)}}
+  @keyframes cardsp{0%,38%{opacity:0;transform:scale(0)}43%{opacity:1;transform:scale(1.2)}52%,100%{opacity:0;transform:scale(.4)}}
+  svg[data-fx="cards"] .cd{animation:cardgo var(--cyc,5.6s) linear 1 both} svg[data-fx="cards"] .cdp{animation:cardsp var(--cyc,5.6s) linear 1 both}
   .grid .grp{grid-column:1/-1;margin:18px 0 0;font-size:16px} .grid .grp span{font-weight:400;font-size:13px;margin-left:6px}
   .grpl{flex-basis:100%;margin-top:6px} .grpl:first-child{margin-top:0}
   @media (prefers-reduced-motion:reduce){.fx *{animation:none!important}}
@@ -600,9 +607,10 @@ export function CharacterView({ width }) {
     "note": "two music notes float up, top right",
     "heart": "a small pixel heart, top right, beats twice per 1.4 s",
     "lines": "3 short text lines flow in from the left, toward the eyes",
-    "scan": "4 frame corners around the body; a light line moves down and up over the body, drawn on top of it"
+    "scan": "4 frame corners around the body; a light line moves down and up over the body, drawn on top of it",
+    "cards": "synced. Two small flashcards above the right hand, one behind the other. The top card flies off to the right at 35% to 45% of the cycle with two sparkle pixels, the next card moves forward at 46% to 52%, flies off to the left at 84% to 93%, and the next one moves forward again. Reduce Motion: the two cards stay, still."
   },
-  "syncedEffects": ["levelup", "star", "tree", "plant", "toss", "idea"],
+  "syncedEffects": ["levelup", "star", "tree", "plant", "toss", "idea", "cards"],
   "timeline": {
     "text": "A state with 'keys' is a short planned move. frames[i].at is a time from 0 to 1 inside durationMs. Each frame lists only the pose numbers that differ from the state's base pose (poseDefaults + pose). Between two frames every number is blended with the easing of the later frame. After durationMs the last frame holds for restMs, then this page plays it again. In the app, play it once and go to returnsTo.",
     "ease": {
@@ -617,7 +625,7 @@ export function CharacterView({ width }) {
   "chat": {
     "order": ["idle", "greeting", "listening", "thinking", "speaking", "wordUsed", "gentleNo", "confused", "celebrate", "nudge", "sleeping", "offline",
       "levelUp", "streak", "deckDone", "milestone", "allDone", "cheer",
-      "reading", "searching", "scanning", "making", "planting", "sendHard", "idea",
+      "reading", "searching", "scanning", "making", "planting", "sendHard", "idea", "reviewing",
       "yes", "wink", "shy", "proud", "oops", "waiting", "audio",
       "curious", "poke",
       "enter", "leave", "wake", "goodnight"],
@@ -826,6 +834,26 @@ export function CharacterView({ width }) {
           {"at": 0.6, "pose": {"leaf": 28, "eyeSy": 1.2, "armR": -2.6, "mouth": 1, "mouthH": 0.8}},
           {"at": 1, "pose": {"leaf": 24, "eyeSy": 1.1, "armR": -2.4, "mouth": 1, "mouthW": 1.2, "mouthH": 0.6}}]},
         "fx": "idea", "holdMs": 1000, "returnsTo": "speaking"
+      },
+      "reviewing": {
+        "group": "Work", "label": "Reviewing", "when": "The Review tab's start screen: cards are due and the learner has not started yet.",
+        "look": "Holds up a small flashcard and reads it. Flicks it away to the right with a tiny hop and a smile. Squints at the next card for longer, flicks it away to the left and watches it go. Then the next card. It never stops.", "driven": "Timeline, 5600 ms, loops",
+        "pose": {"armR": -3, "eyeDx": 0.6, "eyeDy": -0.5, "leaf": 8},
+        "keys": {"durationMs": 5600, "restMs": 0, "frames": [
+          {"at": 0, "pose": {}},
+          {"at": 0.1, "pose": {"eyeDx": 0.75, "eyeDy": -0.65}},
+          {"at": 0.22, "pose": {"eyeDx": 0.5, "eyeDy": -0.35, "leaf": 12}},
+          {"at": 0.31, "pose": {"lean": -3, "armR": -2.8, "eyeSy": 1.1}},
+          {"at": 0.38, "ease": "out", "pose": {"lean": 6, "armR": -3.2, "armRx": 1.4, "lift": -0.7, "eyeDx": 0.9, "eyeDy": -0.6, "mouth": 1, "mouthW": 1.3, "mouthH": 0.6, "leaf": 18}},
+          {"at": 0.45, "pose": {"eyeDx": 0.9, "eyeSy": 0.5, "mouth": 1, "mouthW": 1.3, "mouthH": 0.6, "leaf": 14}},
+          {"at": 0.53, "pose": {}},
+          {"at": 0.63, "pose": {"eyeDx": 0.7, "eyeDy": -0.65, "eyeSy": 0.85, "leafTilt": -6}},
+          {"at": 0.75, "pose": {"lean": -2, "eyeDx": 0.45, "eyeDy": -0.3, "eyeSy": 0.85, "leafTilt": -6}},
+          {"at": 0.81, "pose": {"lean": 4, "armR": -3.3, "eyeSy": 0.9}},
+          {"at": 0.87, "ease": "out", "pose": {"lean": -7, "armR": -2.2, "eyeDx": -0.2, "eyeDy": -0.7, "leaf": -4}},
+          {"at": 0.93, "pose": {"lean": -2, "eyeDx": -0.5, "eyeDy": -0.8, "mouth": 1, "mouthW": 0.8, "mouthH": 0.5, "leaf": 2}},
+          {"at": 1, "pose": {}}]},
+        "fx": "cards"
       },
       "yes": {
         "group": "Feelings", "label": "Yes", "when": "Sprout agrees or confirms: 'Got it', 'Saved', 'Good question'.",
@@ -1194,6 +1222,9 @@ function markup(){
   const lines = [[2.6, 2.6], [4.6, 1.8], [6.6, 2.2]].map(([y, w], i) => rect('px ln', [-4.6, y, w, .7], `style="animation-delay:${-i * .5}s"`)).join('');
   const corners = [[.2, .4, 1.6, .4], [.2, .4, .4, 1.6], [16.2, .4, 1.6, .4], [17.4, .4, .4, 1.6],
     [.2, 10.3, 1.6, .4], [.2, 9.1, .4, 1.6], [16.2, 10.3, 1.6, .4], [17.4, 9.1, .4, 1.6]].map(r => rect('px', r)).join('');
+  const cards = rect('cdl', [16.9, -3, 3.4, 4.7], 'rx=".5"') + rect('cdc', [17.2, -2.7, 2.8, 4.1], 'rx=".3"') +
+    `<g class="cd">${rect('cdl', [16.3, -2.4, 3.4, 4.7], 'rx=".5"')}${rect('cds', [16.6, -2.1, 2.8, 4.1], 'rx=".3"')}${rect('cdp0', [16.9, -1.8, 2.2, 1.3], 'style="fill:var(--sq0)"')}` +
+    `${rect('cdt', [17.1, .1, 1.8, .5])}${rect('mut', [17.1, 1, 1.1, .4])}</g>` + rect('px cdp', [21.4, -4.2, .7, .7]) + rect('px cdp', [21.9, .6, .7, .7]);
   return `<svg viewBox="${vb}" shape-rendering="crispEdges" role="img">
     <ellipse class="shadow" cx="${c.shadow.center[0]}" cy="${c.shadow.center[1]}" rx="${c.shadow.rx}" ry="${c.shadow.ry}"/>
     <g class="fx fx-in">${pixels('inl', -4.6, .5)}${pixels('inr', 21.8, -.5)}</g>
@@ -1211,6 +1242,7 @@ function markup(){
     <g class="fx fx-idea">${idea}</g>
     <g class="fx fx-note">${[0, 1].map(i => `<text class="t nt" x="17.2" y="1.5" style="font-size:4px;animation-delay:${i * 1.1}s">♪</text>`).join('')}</g>
     <g class="fx fx-heart"><g class="hrt">${heart}</g></g><g class="fx fx-lines">${lines}</g><g class="fx fx-scan">${corners}</g>
+    <g class="fx fx-cards">${cards}</g>
     <g class="pose">
       <g class="sprout">${rect('stem', c.stem)}
         <g class="leaf ll">${rect('lf', c.leafLeft[0])}${rect('lfh', c.leafLeft[1])}</g>

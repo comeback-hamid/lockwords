@@ -11,7 +11,7 @@ tags:
 - startRecording: progress-home
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 # Before any review: 10 new words, one small tree with Kai next to it
 - tapOn: "Progress"

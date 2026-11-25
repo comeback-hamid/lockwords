@@ -11,7 +11,7 @@ tags:
 - startRecording: progress-decks
 - runFlow: ../subflows/finish-onboarding.yaml
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 # The first round: one Hard, one "I know it", the rest Easy
 - tapOn: "Let’s start"

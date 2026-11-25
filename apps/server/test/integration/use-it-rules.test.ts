@@ -61,7 +61,7 @@ test('a weak sentence changes nothing and has no follow-up', async () => {
   expect(await eventsOf(a!.id)).toEqual([]);
 });
 
-test('later days: Use it is offered from stage 3 only, and a card below it does not move', async () => {
+test('later days: Use it is offered on every card, and a good sentence moves any card of the round', async () => {
   await userWith(2);
   const [a, b] = await round();
   await swipe(a!.id, 'easy'); // day 1: stage 2
@@ -69,8 +69,8 @@ test('later days: Use it is offered from stage 3 only, and a card below it does 
   await db.execute(sql`update cards set stage = 3, due_at = ${new Date('2026-11-23T09:00:00Z')} where id = ${b!.id}`);
   now = new Date('2026-11-23T10:00:00Z'); // both are due
   const later = await round();
-  expect(Object.fromEntries(later.map((c) => [c.word, c.canUseIt]))).toEqual({ palabra0: false, palabra1: true });
-  expect(await useIt(a!.id, 'Mi palabra0 otra vez.')).toMatchObject({ good: true, movedUp: false, stage: 2 });
+  expect(Object.fromEntries(later.map((c) => [c.word, c.canUseIt]))).toEqual({ palabra0: true, palabra1: true });
+  expect(await useIt(a!.id, 'Mi palabra0 otra vez.')).toMatchObject({ good: true, movedUp: true, stage: 3 });
   expect(await useIt(b!.id, 'Mi palabra1 otra vez.')).toMatchObject({ good: true, movedUp: true, stage: 4 });
 });
 

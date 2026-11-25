@@ -130,15 +130,10 @@ export function reviewRoutes(deps: Deps) {
     defaultHook: (result, c) => (result.success ? undefined : c.json({ error: 'bad_request' as const }, 400)),
   });
   const clock = () => (deps.reviewNow ? deps.reviewNow() : new Date());
-  // The learner's first review day (the onboarding practice): Use it shows on every card. A store with no history says no.
-  const isFirstDay = async (userId: string, day: string) => {
-    const store = need('cards');
-    return store.reviewedBefore ? !(await store.reviewedBefore(userId, day)) : false;
-  };
-  const forApp = (card: ReviewCard, firstDay: boolean, c: Context) => {
+  const forApp = (card: ReviewCard, c: Context) => {
     // imageUrl is sent only for a card that has a picture (like `meaning`).
     const { imageUrl: path, ...rest } = card;
-    return ReviewCardSchema.parse({ ...rest, canUseIt: canUseIt(card.stage, firstDay), ...(path ? { imageUrl: imageUrl(publicOrigin(c), path) } : {}) });
+    return ReviewCardSchema.parse({ ...rest, canUseIt: canUseIt(), ...(path ? { imageUrl: imageUrl(publicOrigin(c), path) } : {}) });
   };
   return app
     .openapi(getReview, async (c) => {
@@ -146,9 +141,9 @@ export function reviewRoutes(deps: Deps) {
       const today = reviewDay(now, c.req.header('X-Time-Zone'));
       const { deckId } = c.req.valid('query');
       if (deckId !== undefined && !isUuid(deckId)) return c.json({ cards: [] }, 200); // not a deck id: no such deck, an empty round
-      const [round, firstDay] = await Promise.all([need('cards').round(c.get('user').id, now, today, deckId), isFirstDay(c.get('user').id, today.day)]);
+      const round = await need('cards').round(c.get('user').id, now, today, deckId);
       // Only what the app needs: due dates and flags stay on the server.
-      return c.json({ cards: round.map((r) => forApp(r, firstDay, c)) }, 200);
+      return c.json({ cards: round.map((r) => forApp(r, c)) }, 200);
     })
     .openapi(getHardWords, async (c) => c.json({ words: await need('cards').hardWords(c.get('user').id) }, 200))
     .openapi(postSwipe, async (c) => {
@@ -176,7 +171,7 @@ export function reviewRoutes(deps: Deps) {
       const store = need('cards');
       const { day } = reviewDay(clock(), c.req.header('X-Time-Zone'));
       const card = store.undoLast ? await store.undoLast(c.get('user').id, day) : null;
-      return card ? c.json({ card: forApp(card, await isFirstDay(c.get('user').id, day), c) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
+      return card ? c.json({ card: forApp(card, c) }, 200) : c.json({ error: 'nothing_to_undo' as const }, 409);
     })
     .openapi(getSummary, async (c) => {
       const store = need('cards');
@@ -212,8 +207,8 @@ export function reviewRoutes(deps: Deps) {
         }
         // Once per card per day, only for a card of today's round, and only when Use it is offered for it.
         const { day, end } = reviewDay(now, c.req.header('X-Time-Zone'));
-        const [today, firstDay] = await Promise.all([store.today(userId, id, day), isFirstDay(userId, day)]);
-        const movedUp = card.stage < 5 && !today.usedItToday && canSwipe(card, today, end) && canUseIt(card.stage, firstDay);
+        const today = await store.today(userId, id, day);
+        const movedUp = card.stage < 5 && !today.usedItToday && canSwipe(card, today, end);
         if (movedUp) await store.saveSwipe(userId, id, { kind: 'use_it', day, at: now, before: { stage: card.stage, known: card.known, hard: card.hard, dueAt: card.dueAt }, after });
         return c.json({ ...answer, movedUp, stage: movedUp ? next.stage : card.stage }, 200);
       } catch {

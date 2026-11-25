@@ -12,7 +12,7 @@ tags:
 - runFlow: ../subflows/finish-onboarding.yaml
 # Review tab: the start of the first round
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - assertVisible: "10 words left"

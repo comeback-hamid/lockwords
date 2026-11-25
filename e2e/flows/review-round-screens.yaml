@@ -11,9 +11,9 @@ tags:
 - runFlow: ../subflows/finish-onboarding.yaml
 # A2 start: the count, the name from the Kai chat
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
-- assertVisible: "Hi Maya! It takes about 3 minutes.*"
+- assertVisible: "~3 min"
 - tapOn: "Let’s start"
 # The first round is the onboarding practice: full screen, no tab bar, no Close button
 - assertVisible: "10 words left"
@@ -109,7 +109,7 @@ tags:
 # The second round runs inside the Review tab: the tab bar stays (Figma A3)
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "20 cards to review today"
+    visible: "20 cards due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - assertVisible: "20 words left"
@@ -120,10 +120,11 @@ tags:
     visible: "19 words left"
     timeout: 15000
 - assertVisible: "Undo"
-# Leaving by the tab bar and coming back shows the start screen with the cards that are left
+# Leaving by the tab bar and coming back: the round goes on where it was (Hamid, 2026-11-25)
 - tapOn: "Progress"
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: "19 cards to review today"
+    visible: "19 words left"
     timeout: 20000
+- assertVisible: "Undo"
 - stopRecording

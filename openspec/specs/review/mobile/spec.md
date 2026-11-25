@@ -6,11 +6,11 @@ The Review tab, the card round, and the one-time screens after the very first ro
 ## Requirements
 
 ### Requirement: Review tab start
-The Review tab SHALL load today's round and the summary and show: with cards, live Kai, "N cards to review today" (or "1 card to review today"), "Hi <name>! It takes about M minutes. Let’s keep your words fresh 🌱" (no "Hi" part without a name) and the button "Let’s start"; with no cards, the done screen; while loading, a quiet loading line; on error, a message and "Try again". Nothing is locked.
+The Review tab SHALL load today's round and the summary and show: with cards, live Kai, Kai going through flashcards (state `reviewing`), "N cards due today" (or "1 card due today"), only the time under it ("~M min") and the button "Let’s start" right under the text (changed 2026-11-25); with no cards, the done screen; while loading, a quiet loading line; on error, a message and "Try again". Nothing is locked.
 
 #### Scenario: Cards waiting
 - **WHEN** the server lists 20 cards and the name is Maya
-- **THEN** "20 cards to review today", "Hi Maya! It takes about 5 minutes. Let’s keep your words fresh 🌱" and "Let’s start" show
+- **THEN** "20 cards due today", "~5 min" and "Let’s start" show
 
 #### Scenario: Nothing to review
 - **WHEN** the server lists no cards
@@ -33,7 +33,7 @@ A round SHALL show one card at a time: a progress bar, "N words left", the deck 
 
 #### Scenario: Leaving a round
 - **WHEN** the user taps another tab during a round and comes back
-- **THEN** the Review tab shows the start screen with the cards that are left
+- **THEN** the round goes on at the same card, with the progress bar where it was (changed 2026-11-25); words made meanwhile join at the end
 
 #### Scenario: First round
 - **WHEN** the user is in their very first round

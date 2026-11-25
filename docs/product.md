@@ -103,6 +103,12 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 ### 7.2 Tabs: New words · Review · Progress
 **Changed 2026-11-16:** v1 has no Speak tab. **My words moves into the tab bar** in Speak's place, as the **Progress** tab (chart icon, `Icon/24/graph`). There is no My words button in the top bar any more. Speak comes back as a tab in a later version.
 
+**Every Kai chat (onboarding, New words, Use it)** (added 2026-11-24 and 25):
+- **Voice in the text box.** A mic sits in the box. Tap it: the box becomes a recorder, like Telegram: X on the left throws the recording away, the wave of the voice moves in the middle with a clock, Stop on the right ends it. The words land in the box as text; the learner can change them, then sends. A recording stops by itself at 90 seconds. The sound is kept nowhere.
+- **Two languages only.** The learner speaks the language they learn or their own. The model is told both; if it hears a third language, the recording is written once more as the learner's own language.
+- **The text box grows** with its text up to six lines, then scrolls inside.
+- The red dot on the Review tab (new words wait there) is a small dot on the icon.
+
 **New words (Figma page "New words"):** one ongoing **chat with Kai**. **Changed 2026-11-17** (Hamid's voice note and answers).
 - **Kai is an agent with memory.** Kai knows the learner's level, goal, interests, their words and the chat history, and saves what the learner says about themselves. Kai never asks for the goal; Kai may guess it.
 - **Kai does not always offer decks.** Kai can praise what the learner practiced, talk about one of their words (meaning, use, culture), or lead them to Review. Kai offers deck ideas when the learner asks, or when they practiced and need new words. Always around the learner's words and level, and brief.
@@ -118,9 +124,12 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **Deck size:** the first deck in onboarding has 10 words. A deck made here has **10 to 30 words**; Kai decides the number for each deck (Hamid, 2026-11-17).
 
 **Review (Figma page "Review"):** one stack of all words due today, in one round.
+- **Start screen** (changed 2026-11-25): Kai goes through flashcards (its `reviewing` animation), "N cards due today", under it only the time like "~2 min", and the "Let's start" button right under the text.
+- **A round that is open stays open** (changed 2026-11-25): the learner can go to another tab or out of the app and come back to the same card, with the progress bar where it was. Words made meanwhile join at the end of the round. Only after the app was closed does the start screen show again, with the cards that are left.
+- **The card** (changed 2026-11-24 and 25): the picture takes half of the front and 42 % of the back. The level square sits on the first line of the word. The word takes one line, or two for a long phrase, **never three**; a word is **never cut in the middle**: the font gets smaller instead. The swipe labels (EASY, HARD, KNOW IT) are frames with their note inside ("BACK IN 3 DAYS", "GOES TO YOUR LOCK SCREEN", "WON'T SHOW AGAIN").
 - Card front: picture, level square, word, sound. Back: meaning or translation, example, **Use it**. Learners in the top level band (B2 and above) get the **meaning in the language they learn**; everyone else gets the translation (decided 2026-11-20).
 - Swipes: → Easy (up one stage) · ← Hard (back to stage 1 + goes to the lock screen) · ↑ I know it (never shown again, can be restored).
-- **Use it** is a short Kai chat: write a sentence with the word → thumbs-up, then short kind feedback. **No score.** Pronunciation is never scored.
+- **Use it** is on **every card, always** (changed 2026-11-25; before, from Stage 3). It is a short Kai chat: write or say a sentence with the word → thumbs-up, then short kind feedback. **No score.** Pronunciation is never scored. Closing it (X or "Next card") goes back into the round; after a good sentence the word is done for today.
 - **Undo:** right after a swipe, "Undo" takes that one swipe back (decided 2026-11-20). Bringing back older "I know it" words comes with the Progress tab.
 - **Streak:** a day counts when at least one word was swiped. The streak card shows once a day, after half of the round, from a streak of 2 days.
 - **All cards done** screen with today's numbers: words, minutes, one level square per word, and Easy / Hard / Know it counts.
@@ -155,13 +164,13 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 | New (waiting) | — |
 | Stage 1 | 1 day |
 | Stage 2 | 3 days |
-| Stage 3 | 7 days (Use it starts here) |
+| Stage 3 | 7 days |
 | Stage 4 | 14 days |
 | Stage 5 / mastered | 30 days |
 | Known (↑ I know it) | never (can be restored) |
 
 - A good Use it sentence moves a word up one stage, **once per word per day**. A weak one keeps it where it is. Only a left swipe sends a word back to Stage 1.
-- **Use it is offered from Stage 3.** In the very first round (the onboarding practice) it is offered on every word (decided 2026-11-20).
+- **Use it is offered on every word, always** (changed 2026-11-25, Hamid; from 2026-11-20 it started at Stage 3).
 - After a good sentence the learner can **ask Kai about the word** (a suggested question, or their own). Questions never change the level.
 - v1 is online: review needs a connection. The widget still shows the last words it got.
 - **Easy on a brand-new card goes to Stage 2** (back in 3 days). Decided 2026-11-20.

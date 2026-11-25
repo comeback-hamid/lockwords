@@ -127,7 +127,7 @@ tags:
 - assertNotVisible: "Drawing the pictures…"
 - tapOn: "OK, let’s practice!"
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 # New words: a deck Kai offers gets its pictures the same way
 - tapOn: "New words"
@@ -187,7 +187,7 @@ tags:
     timeout: 20000
 - tapOn: "Review"
 - extendedWaitUntil:
-    visible: ".* cards to review today"
+    visible: ".* cards due today"
     timeout: 20000
 - tapOn: "Let’s start"
 - extendedWaitUntil:

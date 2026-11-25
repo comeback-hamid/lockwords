@@ -60,6 +60,6 @@ tags:
     timeout: 60000
 - tapOn: "OK, let’s practice!"
 - extendedWaitUntil:
-    visible: "10 cards to review today"
+    visible: "10 cards due today"
     timeout: 20000
 - stopRecording
