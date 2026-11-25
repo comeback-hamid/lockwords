@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 import { imageUrl, publicOrigin } from './pictures.js';
 
-import type { CardsStore, ReviewCard } from '../app.js';
+import type { CardsStore, ReviewCard, WidgetStore } from '../app.js';
 import type { AuthUser } from '../auth.js';
 import { AskSchema, type WordAsker } from '../llm/ask-word.js';
 import type { UseItJudge } from '../llm/use-it.js';
@@ -10,6 +10,7 @@ import { UseItSchema } from '../llm/use-it.js';
 import { reviewDay } from '../review/day.js';
 import { applySwipe, canSwipe, canUseIt } from '../review/srs.js';
 import { streakDays, todayNumbers } from '../review/summary.js';
+import { resetLooks } from '../widget/plan.js';
 import { UnauthorizedSchema } from './me.js';
 
 const json = <T extends z.ZodType>(schema: T, description: string) => ({ description, content: { 'application/json': { schema } } });
@@ -25,7 +26,7 @@ const idParam = z.object({ id: z.string() });
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 export const ReviewCardSchema = z
-  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean(), meaning: z.string().optional(), imageUrl: z.string().nullable().optional() }) // imageUrl: the card's picture (a WebP address); left out when the card has none
+  .object({ id: z.string(), deckId: z.string(), deckTopic: z.string(), word: z.string(), translation: z.string(), example: z.string(), exampleTranslation: z.string(), stage: z.number().int(), canUseIt: z.boolean(), meaning: z.string().optional(), imageUrl: z.string().nullable().optional(), lookOnly: z.boolean().optional() }) // lookOnly: the card asked for with `first` is not due today: it can be looked at, not swiped. imageUrl: the card's picture (a WebP address); left out when the card has none
   .openapi('ReviewCard');
 const SwipeResultSchema = z
   .object({ id: z.string(), stage: z.number().int(), known: z.boolean(), hard: z.boolean(), backInDays: z.number().int().nullable(), again: z.boolean() })
@@ -35,7 +36,7 @@ const UseItResultSchema = z
   .openapi('UseItResult');
 const AskFailed = error('ask_failed', 'AskFailed');
 
-const getReview = createRoute({ method: 'get', path: '/review', security, request: { query: z.object({ deckId: z.string().optional() }) }, responses: { 200: json(z.object({ cards: z.array(ReviewCardSchema) }).openapi('Round'), "Today's cards"), ...unauthorized } });
+const getReview = createRoute({ method: 'get', path: '/review', security, request: { query: z.object({ deckId: z.string().optional(), first: z.string().optional() }) }, responses: { 200: json(z.object({ cards: z.array(ReviewCardSchema) }).openapi('Round'), "Today's cards"), ...unauthorized } });
 const getHardWords = createRoute({
   method: 'get',
   path: '/hard-words',
@@ -118,7 +119,7 @@ const postAsk = createRoute({
   },
 });
 
-type Deps = { cards?: CardsStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; reviewNow?: () => Date };
+type Deps = { cards?: CardsStore; widget?: WidgetStore; useItJudge?: UseItJudge; wordAsker?: WordAsker; reviewNow?: () => Date };
 
 export function reviewRoutes(deps: Deps) {
   const need = <K extends keyof Deps>(key: K) => {
@@ -146,11 +147,19 @@ export function reviewRoutes(deps: Deps) {
     .openapi(getReview, async (c) => {
       const now = clock();
       const today = reviewDay(now, c.req.header('X-Time-Zone'));
-      const { deckId } = c.req.valid('query');
+      const { deckId, first } = c.req.valid('query');
       if (deckId !== undefined && !isUuid(deckId)) return c.json({ cards: [] }, 200); // not a deck id: no such deck, an empty round
       const round = await need('cards').round(c.get('user').id, now, today, deckId);
       // Only what the app needs: due dates and flags stay on the server.
-      return c.json({ cards: round.map((r) => forApp(r, c)) }, 200);
+      const cards = round.map((r) => forApp(r, c));
+      // `first`: the word tapped on the widget is the first card. Due today = a normal card, moved to the front.
+      // Not due today (a hard word swiped today comes back tomorrow) = a look card: a swipe on it is still refused.
+      if (first === undefined || !isUuid(first)) return c.json({ cards }, 200);
+      const at = cards.findIndex((r) => r.id === first);
+      if (at >= 0) return c.json({ cards: [cards[at]!, ...cards.slice(0, at), ...cards.slice(at + 1)] }, 200);
+      const card = await need('cards').get(c.get('user').id, first);
+      if (!card || card.known) return c.json({ cards }, 200);
+      return c.json({ cards: [{ ...forApp(card, c), lookOnly: true }, ...cards] }, 200);
     })
     .openapi(getHardWords, async (c) => c.json({ words: await need('cards').hardWords(c.get('user').id) }, 200))
     .openapi(postSwipe, async (c) => {
@@ -164,14 +173,21 @@ export function reviewRoutes(deps: Deps) {
       const { day, end } = reviewDay(now, c.req.header('X-Time-Zone'));
       const { backInDays, ...next } = applySwipe(card, direction, now);
       // A store with no history (some tests) cannot tell what happened today: it saves the swipe as it comes.
+      // A word swiped Hard again starts its widget looks at 0.
+      const afterHard = async () => {
+        const kept = direction === 'hard' && deps.widget ? await deps.widget.get(userId) : null;
+        if (kept) await deps.widget!.save(userId, resetLooks(kept, id, now));
+      };
       if (!store.today || !store.saveSwipe) {
         await store.save(id, next);
+        await afterHard();
         return c.json({ id, stage: next.stage, known: next.known, hard: next.hard, backInDays, again: false }, 200);
       }
       const today = await store.today(userId, id, day);
       if (!canSwipe(card, today, end)) return c.json({ error: 'not_due' as const }, 409);
       const before = { stage: card.stage, known: card.known, hard: card.hard, dueAt: card.dueAt };
       await store.saveSwipe(userId, id, { kind: direction, day, at: now, before, after: next });
+      await afterHard();
       return c.json({ id, stage: next.stage, known: next.known, hard: next.hard, backInDays, again: false }, 200); // `again` stays in the answer for older app builds: a card never comes back the same day now
     })
     .openapi(postUndo, async (c) => {

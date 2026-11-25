@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: A round with a first card
-`GET /v1/review` SHALL take `first=<cardId>`. When that card belongs to the learner and is not known or removed, it is the first card of the round, and the rest of today's round follows in its usual order. A card that is due today is a normal card. (open: Hamid decides) A card that is not due today comes with `lookOnly: true`: it can be flipped, heard and used in Use it, a swipe on it is still refused, and its level does not change. An unknown, removed or known id is ignored.
+`GET /v1/review` SHALL take `first=<cardId>`. When that card belongs to the learner and is not known or removed, it is the first card of the round, and the rest of today's round follows in its usual order. A card that is due today is a normal card. A card that is not due today (Hamid, 2026-11-25: look only) comes with `lookOnly: true`: it can be flipped, heard and used in Use it, a swipe on it is still refused, and its level does not change. An unknown, removed or known id is ignored.
 
 #### Scenario: Due today
 - **WHEN** the round is asked for with `first` = a hard card that is due today

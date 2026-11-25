@@ -27,6 +27,8 @@ import { meRoutes } from './routes/me.js';
 import { onboardingRoutes } from './routes/onboarding.js';
 import { progressRoutes } from './routes/progress.js';
 import { reviewRoutes } from './routes/review.js';
+import { widgetRoutes } from './routes/widget.js';
+import type { WidgetState } from './widget/plan.js';
 import { transcribeRoutes } from './routes/transcribe.js';
 import type { Transcriber } from './llm/transcribe.js';
 import { wordTestRoutes } from './routes/word-test.js';
@@ -66,6 +68,8 @@ export type PicturesStore = {
   read(id: string): Promise<Buffer | null>;
 };
 export type ReviewCard = { id: string; deckId: string; deckTopic: string; word: string; translation: string; example: string; exampleTranslation: string; stage: number; meaning?: string; imageUrl?: string | null }; // imageUrl: the stored path, the route makes it a full address
+// The widget's kept plan and looks: one row per learner (src/widget/plan.ts).
+export type WidgetStore = { get(userId: string): Promise<WidgetState | null>; save(userId: string, state: WidgetState): Promise<void> };
 export type CardsStore = {
   round(userId: string, now: Date, today?: ReviewDay, deckId?: string): Promise<(ReviewCard & CardState)[]>; // today = due by review day and the daily new-word limit
   // What the learner did with this card today, for the "is it in today's round" check. Stores without history leave both out.
@@ -83,11 +87,12 @@ export type CardsStore = {
   get(userId: string, id: string): Promise<(ReviewCard & CardState) | null>; // null also for another user's card
   save(id: string, patch: CardState): Promise<void>;
   hardWords(userId: string): Promise<{ word: string; translation: string }[]>;
+  widgetWords?(userId: string): Promise<{ id: string; word: string; translation: string; createdAt: Date }[]>; // the hard words, for the widget plan
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string; chatLanguage?: string | null }>; // chatLanguage: 'native' | 'target', the language Kai speaks in chats
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };
 // Everything after users is optional so tests of other routes do not have to fake it.
-export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; transcriber?: Transcriber; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore; pictures?: PicturesStore };
+export type AppDeps = AuthSettings & { users: UsersStore; profiles?: ProfilesStore; decks?: DecksStore; deckMaker?: DeckMaker; cards?: CardsStore; widget?: WidgetStore; transcriber?: Transcriber; useItJudge?: UseItJudge; wordAsker?: WordAsker; kaiReplier?: KaiReplier; deckJobs?: DeckJobs; deckWaitMs?: number; wordTests?: WordTestStore; wordPackMaker?: WordPackMaker; languageChecker?: LanguageChecker; kai?: KaiStore; kaiChat?: KaiChat; kaiNow?: () => Date; reviewNow?: () => Date; webOrigins?: string[]; progress?: ProgressStore; plans?: PlanStore; deckPlanner?: DeckPlanner; kaiScripts?: KaiScriptStore; scriptTranslator?: ScriptTranslator; randomWords?: RandomWordsStore; pictures?: PicturesStore };
 
 // Without deps (some unit tests) every /v1 route answers 401.
 export function createApp(deps?: AppDeps) {
@@ -114,6 +119,7 @@ export function createApp(deps?: AppDeps) {
   app.route('/v1', reviewRoutes(deps ?? {}));
   app.route('/v1', transcribeRoutes(deps?.transcriber, deps?.cards ? (userId) => deps.cards!.languages(userId) : undefined));
   app.route('/v1', progressRoutes(deps ?? {}));
+  app.route('/v1', widgetRoutes(deps ?? {}));
   app.route('/v1', kaiRoutes({ ...(deps ?? {}), chatLanguages: deps?.cards ? (userId) => deps.cards!.languages(userId) : undefined }));
   app.route('/v1', kaiChatRoutes(deps ?? {}));
   app.openAPIRegistry.registerComponent('securitySchemes', 'bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' });

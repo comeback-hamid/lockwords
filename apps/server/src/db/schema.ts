@@ -93,6 +93,17 @@ export const deckPlans = pgTable('deck_plans', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// The widget plan (src/widget/plan.ts): the slots the server handed out, and how many looks each hard word had.
+// One row per learner, replaced on every call. Looks never touch the cards table.
+export const widgetPlans = pgTable('widget_plans', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  slots: jsonb('slots').$type<{ at: string; end: string; cardId: string; newLap?: true }[]>().notNull(),
+  looks: jsonb('looks').$type<Record<string, number>>().notNull(),
+  countedUntil: timestamp('counted_until', { withTimezone: true }).notNull(),
+});
+
 // Kai's onboarding script in one language, translated once by the AI and kept (src/kai/script.ts).
 export const kaiScripts = pgTable('kai_scripts', {
   language: text('language').primaryKey(), // the name or code as the app sends it, trimmed, lower case

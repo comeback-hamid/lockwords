@@ -7,6 +7,7 @@ import { createApp } from './app.js';
 import { createCardsStore } from './db/cards.js';
 import { createKaiScriptStore } from './db/kai-scripts.js';
 import { createPlanStore } from './db/plans.js';
+import { createWidgetStore } from './db/widget.js';
 import { createProgressStore } from './db/progress.js';
 import { createDb } from './db/client.js';
 import { createDecksStore } from './db/decks.js';
@@ -61,6 +62,7 @@ const app = createApp({
   kaiScripts: createKaiScriptStore(db),
   progress: createProgressStore(db),
   plans: createPlanStore(db),
+  widget: createWidgetStore(db),
   deckPlanner: env.ANTHROPIC_API_KEY ? claudeDeckPlanner(env.ANTHROPIC_API_KEY) : fixtureDeckPlanner,
   scriptTranslator: env.ANTHROPIC_API_KEY ? claudeScriptTranslator(env.ANTHROPIC_API_KEY) : fixtureScriptTranslator,
   kai: createKaiStore(db),
