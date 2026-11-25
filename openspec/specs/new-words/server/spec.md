@@ -190,6 +190,21 @@ The AI SHALL be told to give a word card when the learner asks how to say someth
 - **WHEN** the message has no word, or belongs to another user
 - **THEN** the answer is `409` for the first and `404` for the second
 
+### Requirement: A picture for the added word
+After a word is added as a new card, the server SHALL draw one picture for that card in a background job, in the illustration style of deck pictures, and save it as the card's picture (`imageUrl` on the card in the deck and in Review). The answer to `add-word` SHALL NOT wait for the picture. A failed picture SHALL keep the word. A word that was not added (`already: true`, or the same message again) SHALL start no picture. The deck's `picturesStatus` is not changed.
+
+#### Scenario: Picture after the add
+- **WHEN** a user adds a word and the image model takes some seconds
+- **THEN** the answer comes at once with the card saved and no `imageUrl`, and a moment later the card has its own `imageUrl`
+
+#### Scenario: The image model is down
+- **WHEN** a user adds a word and the image model fails
+- **THEN** the word is in the deck with no picture, and the next added word still gets its own picture
+
+#### Scenario: Older words
+- **WHEN** the older-words job runs for a Random Words deck that has words with no picture
+- **THEN** those words get pictures from one sheet, and words that already have a picture are not drawn again
+
 ### Requirement: Kai offers decks
 A Kai answer SHALL be able to carry 1 or 3 deck ideas, each with `topic` (1–80 characters), `title` in the learning language, `titleTranslation` in the native language, `reason` (at most 30 characters) and `wordCount` (10 to 30, chosen by Kai for that deck). The server SHALL save each idea as the caller's deck in state `proposed`, with the profile's CEFR level, and link them to Kai's last line of that turn. Any other number of ideas is treated as a failed AI call.
 

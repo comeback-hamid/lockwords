@@ -117,7 +117,7 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - **Kai does not always offer decks.** Kai can praise what the learner practiced, talk about one of their words (meaning, use, culture), or lead them to Review. Kai offers deck ideas when the learner asks, or when they practiced and need new words. Always around the learner's words and level, and brief.
 - **Deck ideas:** three at a time, as cards with **Generate**. On the first visit Kai asks before showing them. A made deck is **in the word list at once** (no "Add to My words" step). Kai then says it is in Review, the **Review tab gets a red dot**, and the options are "Let's practice" (Kai takes them to Review after one second) and "Make another deck".
 - **My own deck:** the learner says what they need; Kai asks at most one short question with tap answers, then shows the deck card. No form.
-- **Single words:** Kai answers "How do I say…?" with a word card (word, sound, meaning, example) and the button **Add to Random Words 1**. "Random Words 1" is a deck for single words from the app or daily life. It takes 30 words; then "Random Words 2", and so on.
+- **Single words:** Kai answers "How do I say…?" with a word card (word, sound, meaning, example) and the button **Add to Random Words 1**. "Random Words 1" is a deck for single words from the app or daily life. It takes 30 words; then "Random Words 2", and so on (a removed word frees its place; a deck number is never used twice). **Every single word gets a picture (2026-11-25):** the word is saved at once, its picture is drawn in the background in the same style as deck pictures and shows on the card when it is ready (about 15 seconds). If the picture fails, the word stays, with no picture.
 - **Questions:** free language questions. Kai only helps with language learning.
 - **No fixed buttons** for "My own deck", "How do I say…?" or "I have a question". Kai brings them up in the talk.
 - **Translation:** every Kai message has a translation under it (a line, then smaller text). One on/off button next to Kai. It starts **on for A1 and A2** learners and **off for B1 and above** (the learner's level, not the deck's). On: messages and deck titles show a translation. Off: none do. **Every Kai chat has this button (2026-11-23):** the onboarding chat shows it from Kai's first line (the app knows the learner's language by then), and it is the same saved choice as here. A line Kai says in the learner's own language has nothing under it.
@@ -164,6 +164,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - The word widget shows **hard words first**, then the most-due words. Tap opens that card in the app.
 - v1 widgets are **see + open only**. No answering on the widget.
 - The web app has no widgets.
+- The web app with a real keyboard (2026-11-25): in a chat box **Enter sends** and Shift+Enter makes a new line. In a review round **Space or Enter flips** the card, **← is Hard, ↑ is Know it, → is Easy**, and Backspace (or Z) takes the last swipe back. The mouse drags the card like a finger.
 
 ### 7.5 SRS (owned by the server)
 | Stage | Comes back after |

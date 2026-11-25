@@ -58,3 +58,9 @@ export async function cutSheet(sheet: Buffer, grid: Grid, count: number): Promis
     }),
   );
 }
+
+// A single word's picture: the square image cut to the shape of a deck picture (5 : 4, from the middle) and made small.
+export const WORD_PICTURE = { width: 512, height: 410 } as const;
+export async function cutSingle(image: Buffer): Promise<Buffer> {
+  return sharp(image).resize(WORD_PICTURE.width, WORD_PICTURE.height, { fit: 'cover', position: 'centre' }).webp({ quality: 88 }).toBuffer();
+}
