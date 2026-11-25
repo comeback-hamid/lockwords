@@ -1,6 +1,6 @@
 import type { PicturesStore } from '../app.js';
-import { gridFor, sheetSizes, type PictureItem, type SheetMaker } from '../llm/deck-pictures.js';
-import { cutSheet } from './cut-sheet.js';
+import { gridFor, sheetSizes, SINGLE, type PictureItem, type SheetMaker } from '../llm/deck-pictures.js';
+import { cutSheet, cutSingle } from './cut-sheet.js';
 import { FAST_FAILURE_MS } from './jobs.js';
 
 // The pictures of a deck, made right after its words. The deck is already ready and in Review: this only adds pictures.
@@ -9,10 +9,13 @@ export type PictureTodo = PictureItem & { cardId: string };
 export type PictureDeps = { pictures: PicturesStore; sheetMaker: SheetMaker; now?: () => number };
 
 // One sheet: draw, cut, save. One more try only when the first one failed fast (like the words, vocab-engine 2.4).
-async function drawSheet({ pictures, sheetMaker, now = Date.now }: PictureDeps, deckId: string, items: PictureTodo[]): Promise<boolean> {
-  const grid = gridFor(items.length);
+// One item alone is not a sheet: it is one small image (a single word, decks/word-pictures.ts).
+export async function drawSheet({ pictures, sheetMaker, now = Date.now }: PictureDeps, deckId: string, items: PictureTodo[]): Promise<boolean> {
+  const single = items.length === 1;
+  const grid = single ? SINGLE : gridFor(items.length);
   const once = async () => {
-    const cut = await cutSheet(await sheetMaker.sheet(items, grid), grid, items.length);
+    const sheet = await sheetMaker.sheet(items, grid);
+    const cut = single ? [await cutSingle(sheet)] : await cutSheet(sheet, grid, items.length);
     await pictures.save(deckId, items.map((item, i) => ({ cardId: item.cardId, data: cut[i]! })));
   };
   const started = now();

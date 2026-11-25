@@ -18,6 +18,7 @@ import { createProfilesStore } from './db/profiles.js';
 import { createUsersStore } from './db/users.js';
 import { createWordTestStore } from './db/word-tests.js';
 import { createQueuedDeckJobs } from './decks/queued-jobs.js';
+import { createQueuedWordPictureJobs } from './decks/word-pictures.js';
 import { loadEnv } from './env.js';
 import { fixtureLanguageChecker } from './llm/check-language.js';
 import { claudeDeckMaker, claudeDeckPlanner, claudeKaiChat, claudeKaiReplier, claudeLanguageChecker, claudeScriptTranslator, claudeUseItJudge, claudeWordAsker } from './llm/claude.js';
@@ -67,6 +68,8 @@ const app = createApp({
   scriptTranslator: env.ANTHROPIC_API_KEY ? claudeScriptTranslator(env.ANTHROPIC_API_KEY) : fixtureScriptTranslator,
   kai: createKaiStore(db),
   randomWords: createRandomWordsStore(db),
+  // A single word kept from the chat gets its picture in a job (no image model = no job, no picture).
+  wordPictures: sheetMaker ? await createQueuedWordPictureJobs(boss, { pictures, sheetMaker }) : undefined,
   kaiChat: env.ANTHROPIC_API_KEY ? claudeKaiChat(env.ANTHROPIC_API_KEY) : fixtureKaiChat,
   wordTests: createWordTestStore(db),
   // No key = a typed language gets no word test (the listed 13 always have one).
