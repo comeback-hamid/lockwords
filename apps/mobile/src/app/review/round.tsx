@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LangText } from '@/components/lang-text';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -185,7 +186,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
         {card ? (
           <View style={styles.chip}>
             <Icon name="deck" color={colors.text2} />
-            <Text style={[type.captionStrong, styles.ink]}>{card.deckTopic}</Text>
+            <LangText style={[type.captionStrong, styles.ink]}>{card.deckTopic}</LangText>
           </View>
         ) : null}
         {/* The cards behind (Figma: Card stack, peek 1 and peek 2). */}

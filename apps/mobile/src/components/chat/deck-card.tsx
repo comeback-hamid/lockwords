@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Deck } from '@/api/client';
+import { LangText } from '@/components/lang-text';
 import { Icon } from '@/components/icon';
 import { colors, levelColor, levelColors, opacity, radius, space, type } from '@/theme/theme';
 
@@ -71,18 +72,18 @@ export function DeckCard({ deck, state, onGenerate, onOpen, count, pictures, hid
         {state === 'ready' && !listed ? <Text style={[type.labelTag, styles.green]}>JUST NOW</Text> : null}
       </View>
       <View>
-        <Text style={[type.bodyStrong, styles.title, isRtl(deck.title) && styles.titleRtl, directionStyle(deck.title)]}>{`“${deck.title}”`}</Text>
+        <LangText style={[type.bodyStrong, styles.title, isRtl(deck.title) && styles.titleRtl, directionStyle(deck.title)]}>{`“${deck.title}”`}</LangText>
         {showTranslation && deck.titleTranslation ? (
-          <Text testID="deck-title-translation" style={[type.caption, styles.muted, styles.translation, directionStyle(deck.titleTranslation)]}>
+          <LangText testID="deck-title-translation" style={[type.caption, styles.muted, styles.translation, directionStyle(deck.titleTranslation)]}>
             {deck.titleTranslation}
-          </Text>
+          </LangText>
         ) : null}
       </View>
       {state === 'disabled' ? (
-        <Text style={[type.caption, styles.muted, directionStyle(deck.reason)]}>{deck.reason}</Text>
+        <LangText style={[type.caption, styles.muted, directionStyle(deck.reason)]}>{deck.reason}</LangText>
       ) : state === 'proposed' ? (
         <View style={styles.row}>
-          <Text style={[type.caption, styles.muted, directionStyle(deck.reason)]}>{deck.reason}</Text>
+          <LangText style={[type.caption, styles.muted, directionStyle(deck.reason)]}>{deck.reason}</LangText>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Generate"

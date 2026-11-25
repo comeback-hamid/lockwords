@@ -6,10 +6,13 @@ import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTi
 import { scheduleOnUI } from 'react-native-worklets';
 
 import type { Direction, ReviewCard } from '@/api/client';
+import { directionStyle } from '@/components/chat/direction';
 import { Icon } from '@/components/icon';
+import { LangText } from '@/components/lang-text';
 import { sayWord, warmUpSpeech } from '@/review/speak';
 import { useSwipe } from '@/review/use-swipe';
 import { wordLayout } from '@/review/word-size';
+import { fontFor } from '@/theme/script-font';
 import { card as tokens, colors, layout, levelColor, lift, radius, space, type } from '@/theme/theme';
 
 // Where a card is in the stack. `top` is the one the learner reads and moves. `under` is the next card, already
@@ -124,19 +127,19 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
                   <View style={styles.head}>
                     <Word card={card} />
                     {/* Higher levels read the meaning in the language they learn (Figma O12c); others the translation. */}
-                    <Text style={[type.headline, styles.text2, styles.center]}>{card.meaning ?? card.translation}</Text>
+                    <LangText style={[type.headline, styles.text2, styles.center]}>{card.meaning ?? card.translation}</LangText>
                   </View>
                   <View style={styles.rule} />
                   <View style={styles.example}>
-                    <Text accessibilityLabel={card.example} style={[type.body, styles.ink]}>
+                    <Text accessibilityLabel={card.example} style={[type.body, styles.ink, fontFor(card.example, type.body), directionStyle(card.example)]}>
                       {parts.map((part, i) => (
                         <Text key={i}>
                           {part}
-                          {i < parts.length - 1 ? <Text style={[type.bodyStrong, styles.green]}>{bare}</Text> : null}
+                          {i < parts.length - 1 ? <Text style={[type.bodyStrong, styles.green, fontFor(card.example, type.bodyStrong)]}>{bare}</Text> : null}
                         </Text>
                       ))}
                     </Text>
-                    <Text style={[type.callout, styles.muted]}>{card.exampleTranslation}</Text>
+                    <LangText style={[type.callout, styles.muted, directionStyle(card.exampleTranslation)]}>{card.exampleTranslation}</LangText>
                   </View>
                   <View style={styles.grow} />
                   {/* The server says when Use it is offered (from level 3, and on the first day). */}
@@ -202,7 +205,7 @@ function Word({ card }: { card: ReviewCard }) {
   return (
     <View style={styles.wordRow}>
       <View style={[styles.square, { marginTop: (size + tokens.wordLineGap - tokens.levelSquare) / 2, backgroundColor: levelColor(card.stage) }]} />
-      <Text accessibilityLabel={card.word} numberOfLines={lines.length} adjustsFontSizeToFit minimumFontScale={0.5} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }]}>
+      <Text accessibilityLabel={card.word} numberOfLines={lines.length} adjustsFontSizeToFit minimumFontScale={0.5} style={[type.wordXL, styles.word, { fontSize: size, lineHeight: size + tokens.wordLineGap }, fontFor(card.word, type.wordXL)]}>
         {lines.join('\n')}
       </Text>
     </View>

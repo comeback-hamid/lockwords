@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LangText } from '@/components/lang-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Deck } from '@/api/client';
@@ -130,9 +131,9 @@ export default function DeckScreen() {
         ) : (
           <>
             <View style={styles.head}>
-              <Text accessibilityRole="header" style={[type.title, styles.ink]}>
+              <LangText accessibilityRole="header" style={[type.title, styles.ink]}>
                 {deck.topic}
-              </Text>
+              </LangText>
               <Text style={[type.label, styles.muted]}>{`${deck.cefr} · ${plural(cards.length).toUpperCase()}`}</Text>
               <Text style={[type.label, styles.muted]}>{`${learning} LEARNING · ${cards.filter(IN_FILTER.hard).length} HARD`}</Text>
               <View style={styles.chain}>
@@ -172,8 +173,8 @@ export default function DeckScreen() {
                       divider={i < shown.length - 1}
                     >
                       <View style={[styles.square, { backgroundColor: levelColor(card.stage, !!card.known) }]} />
-                      <Text style={[type.bodyStrong, styles.ink, styles.word]}>{card.word}</Text>
-                      <Text style={[type.callout, styles.muted]}>{card.translation}</Text>
+                      <LangText style={[type.bodyStrong, styles.ink, styles.word]}>{card.word}</LangText>
+                      <LangText style={[type.callout, styles.muted]}>{card.translation}</LangText>
                       {card.known ? (
                         <Pressable accessibilityRole="button" accessibilityLabel={`Restore ${card.word}`} onPress={() => void restore(card.id)} hitSlop={8}>
                           <Text style={[type.captionStrong, styles.green]}>Restore</Text>
