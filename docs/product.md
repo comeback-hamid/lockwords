@@ -103,6 +103,8 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 ### 7.2 Tabs: New words · Review · Progress
 **Changed 2026-11-16:** v1 has no Speak tab. **My words moves into the tab bar** in Speak's place, as the **Progress** tab (chart icon, `Icon/24/graph`). There is no My words button in the top bar any more. Speak comes back as a tab in a later version.
 
+**Fonts for every language** (decided 2026-11-25, Hamid): Latin text uses Mona Sans. The Arabic script (Persian, Arabic, Urdu) uses **Vazirmatn** at the same weights. Every other script (Russian, Greek, Chinese, Japanese, Korean, Hebrew, Hindi, Thai and more) uses the phone's own font for that script at the same weight. One rule in code: `apps/mobile/src/theme/script-font.ts`.
+
 **Every Kai chat (onboarding, New words, Use it)** (added 2026-11-24 and 25):
 - **Translation switch in every chat, with one behavior** (Use it added 2026-11-25). The switch sits at the top right with the learner's language code. Kai speaks the language picked in onboarding (the learned language or the learner's own). When Kai speaks the learned language, each Kai line has the same line in the learner's own language under a thin divider; the switch shows or hides those lines. The choice is one saved setting for all chats.
 - **Voice in the text box.** A mic sits in the box. Tap it: the box becomes a recorder, like Telegram: X on the left throws the recording away, the wave of the voice moves in the middle with a clock, Stop on the right ends it. The words land in the box as text; the learner can change them, then sends. A recording stops by itself at 90 seconds. The sound is kept nowhere.
@@ -139,6 +141,12 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - When today's cards are done, new words join by themselves (all of them, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
+- **One meaning for every green square** (changed 2026-11-25, Hamid). A word has one color everywhere: the lightest green when it is new, the level's green for levels 1 to 4, the darkest green (with a tick where there is room) when it is mastered. An **"I know it" word is a mastered word**: it is counted as mastered and drawn dark in the words map, the meadow, the deck rows and the deck page. The numbers in the legend always match the squares.
+- **No red square for hard words, anywhere** (2026-11-25): not on the deck page, not in a list, not on a widget. The deck page keeps the "Hard N" filter and the "N HARD" text.
+- **The meadow** (2026-11-25): every leaf is one word in its level's green. The words fill one tree to its 30 leaves, then the next tree starts, so a small bank is one full tree. No Kai and no grass in the meadow: the whole width is for the trees, and every green block is a word.
+- **The time switch** (Today / In 3 months): the chosen part is a white pill with bold text and its date in green. No yellow.
+- **Above the words map**: a thin line, then one short line: "■ = 1 word · 5 spaced reviews → mastered ✓".
+- The goal of the words map is the next hundred above the whole bank (it counted only the words still to learn before).
 - **A time switch at the top (changed 2026-11-25, Hamid): "Today" and "In 3 months"**, with the real date under each. The whole page follows it. Today is the real page, so its part of the switch is gold when it is chosen; the future's part is plain. Coming back to the tab always opens on Today.
 - **Today:** the total words, the legend, one coded pixel meadow (1 tree per deck, grows with memory) with Kai, the words map (1 square per word up to the goal; squares still to come are grey), and the decks.
 - **In 3 months:** the same page as it will be 90 days from now if the learner keeps the pace of the last week. "ABOUT, AT YOUR PACE" stands over the number, the number is green and rounded to ten, the counts change (words started more than 24 days before that day are mastered), the meadow is the bigger forest with Kai, and the words map has one square per word of that total. The decks stay today's decks (nobody knows the future ones); one quiet line under them says "and about N more decks by then".
@@ -169,6 +177,8 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - With no hard words the widget says "No hard words · Swipe left in Review". If the app was not opened for 2 days it says "Open Lockwords · for your hard words".
 - v1 widgets are **see + open only**. No answering on the widget.
 - The web app has no widgets.
+- The web app in any window (2026-11-25, Figma page "Web"): under 600 px it looks like the phone; from 600 px it is one centered column; from 1024 px the three tabs are a side bar on the left. Onboarding, Use it and deck pages are one centered column with no side bar. On a wide window the review card's keys are named under the card. It can be added to a phone's home screen. Kai and the meadow move as on the phone.
+- The web app and a reload (2026-11-25): a reload in the middle of onboarding starts onboarding again (as a restart of the phone app does); a reload on Use it opens Review; an address that does not exist opens the app's start.
 - The web app with a real keyboard (2026-11-25): in a chat box **Enter sends** and Shift+Enter makes a new line. In a review round **Space or Enter flips** the card, **← is Hard, ↑ is Know it, → is Easy**, and Backspace (or Z) takes the last swipe back. The mouse drags the card like a finger.
 
 ### 7.5 SRS (owned by the server)

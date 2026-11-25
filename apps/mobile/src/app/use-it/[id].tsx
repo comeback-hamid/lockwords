@@ -12,9 +12,11 @@ import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { useTranslation } from '@/components/chat/use-translation';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
+import { LangText } from '@/components/lang-text';
 import { LINES, type KaiPose } from '@/onboarding/kai-script';
 import { advance, findCard } from '@/review/round-store';
-import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
+import { colors, layout, levelColor, levelColors, radius, space, type } from '@/theme/theme';
+import { NoRound } from '@/platform/no-round';
 
 type Message = { from: 'kai'; text: string; translation?: string; status?: boolean } | { from: 'user'; text: string } | { from: 'word' } | { from: 'movedUp' };
 // Kai types every line (dots first); the word card and the "Checking" status show at once.
@@ -50,7 +52,7 @@ export default function UseItScreen() {
       live = false;
     };
   }, []);
-  if (!card) return <View style={styles.root} />; // opened without a round (deep link): nothing to show
+  if (!card) return <NoRound />; // opened without a round (a deep link; a reload in the browser): see NoRound
   if (!script) {
     return (
       <View style={styles.root}>
@@ -156,9 +158,9 @@ function UseItChat({ card, script }: { card: NonNullable<ReturnType<typeof findC
         {messages.map((m, i) =>
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>
-              <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-              <Text style={[type.bodyStrong, styles.ink]}>{card.word}</Text>
-              <Text style={[type.callout, styles.muted]}>{card.translation}</Text>
+              <View style={[styles.square, { backgroundColor: levelColor(card.stage) }]} />
+              <LangText style={[type.bodyStrong, styles.ink]}>{card.word}</LangText>
+              <LangText style={[type.callout, styles.muted]}>{card.translation}</LangText>
             </View>
           ) : m.from === 'movedUp' ? (
             <View key={i} style={styles.movedUp}>

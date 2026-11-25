@@ -1,13 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, levelColors, space } from '@/theme/theme';
+import { colors, levelColor, space } from '@/theme/theme';
 
 // Figma: progress is a chain of level squares, one per word, shaded by the word's level. Never a bar.
-export function LevelChain({ stages }: { stages: number[] }) {
+// `start`: the squares begin at the left (in a list row); without it they are centered.
+export function LevelChain({ stages, start = false }: { stages: number[]; start?: boolean }) {
   return (
-    <View style={styles.chain} accessibilityLabel={`${stages.length} words`}>
+    <View style={[styles.chain, start && styles.start]} accessibilityLabel={`${stages.length} words`}>
       {stages.map((stage, i) => (
-        <View key={i} testID="level-square" style={[styles.square, { backgroundColor: levelColors[stage] ?? levelColors[0] }]} />
+        <View key={i} testID="level-square" style={[styles.square, { backgroundColor: levelColor(stage) }]} />
       ))}
     </View>
   );
@@ -15,5 +16,6 @@ export function LevelChain({ stages }: { stages: number[] }) {
 
 const styles = StyleSheet.create({
   chain: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space[4] },
+  start: { justifyContent: 'flex-start' },
   square: { width: 10, height: 10, borderRadius: 2, borderWidth: 1, borderColor: colors.divider },
 });

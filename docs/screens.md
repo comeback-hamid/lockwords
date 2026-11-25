@@ -137,3 +137,17 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 | Flashcard · rules (picture shares, word lines, Use it on every card) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2070-4259) |
 | Review page note "Round rules" | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2105-827) |
 | Tab bar with the small red dot on Review | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2104-1180) |
+
+## Web (the web app only; Figma page "Web", approved 2026-11-25)
+The web app shows the phone screens above. These frames say how they sit in a browser window.
+
+| # | Screen | Figma |
+|---|---|---|
+| W1 | Desktop (1024 px and wider) · New words: side bar on the left, the chat as a 600 px column | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2128-156) |
+| W2 | Desktop · Review: the card in a 480 px column, the keys named under it | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2139-2) |
+| W3 | Desktop · Progress | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2130-2) |
+| W4 | Desktop · Onboarding: one centered 480 px column, no side bar | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2132-2) |
+| W5 | Desktop · Use it (480 px column, no side bar) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2140-2) |
+| W6 | Desktop · Deck page (480 px column, no side bar) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2141-2) |
+| W7 | Tablet (600 to 1023 px) · New words: one centered column, the tab bar under it | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2142-2) |
+| W8 | Phone browser (under 600 px) · Review: as the phone | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2143-2) |

@@ -1,4 +1,4 @@
-import { futureMeadow, KAI_CELLS, nowMeadow, type Scene } from '@/progress/meadow';
+import { futureMeadow, nowMeadow, type Scene } from '@/progress/meadow';
 import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const leaves = (m: Scene) => m.blocks.filter((b) => b.kind === 'leaf');
@@ -13,38 +13,43 @@ const inside = (m: Scene) => {
   }
 };
 
-describe('the small meadow (now)', () => {
-  test('no decks: the ground and one small tree, a bare stem', () => {
-    const m = nowMeadow([], []);
+describe('today’s meadow (Hamid, 2026-11-25: every leaf is a word; the words fill one tree, then the next)', () => {
+  test('no words: the ground and one small tree, a bare stem', () => {
+    const m = nowMeadow([]);
     expect(leaves(m)).toHaveLength(0);
     expect(stems(m).length).toBeGreaterThan(0);
     expect(m.trees).toBe(1);
     expect(m.blocks.some((b) => b.kind === 'ground')).toBe(true);
   });
 
-  test('one leaf per word of the deck: met words in the green of their level, words not met yet in the lightest green', () => {
-    const m = nowMeadow([[5, 2]], [10]);
+  test('one leaf per word, in the green of its level: mastered the darkest, a new word the lightest', () => {
+    const m = nowMeadow([5, 2, 0, 0, 0, 0, 0, 0, 0, 0]);
     expect(leaves(m)).toHaveLength(10);
-    expect(leaves(m).map((b) => b.color).slice(0, 3)).toEqual([levelColors[5], levelColors[2], levelNew]); // a new word has its own lightest green since 2026-11-25
+    expect(leaves(m).map((b) => b.color).slice(0, 3)).toEqual([levelColors[5], levelColors[2], levelNew]);
     expect(stems(m).every((b) => b.color === colors.subtle || b.color === colors.lineStrong)).toBe(true);
   });
 
-  test('a tree holds 30 leaves at most; a deck of 1 to 3 words is a sprout', () => {
-    expect(leaves(nowMeadow([levels(45)], [45]))).toHaveLength(30);
-    expect(leaves(nowMeadow([[]], [2]))).toHaveLength(2);
-    expect(stems(nowMeadow([[]], [2]))).toHaveLength(2);
+  test('a tree is full at 30 words, then the next one starts: 68 words are two full trees and one of 8', () => {
+    const m = nowMeadow(levels(68));
+    expect(m.trees).toBe(3);
+    const perTree = [0, 1, 2].map((t) => leaves(m).filter((b) => b.tree === t).length);
+    expect(perTree).toEqual([30, 30, 8]);
+    expect(nowMeadow(levels(30)).trees).toBe(1);
+    expect(nowMeadow(levels(31)).trees).toBe(2);
+    expect(stems(nowMeadow(levels(2)))).toHaveLength(2); // 1 to 3 words: a sprout
   });
 
-  test('one tree per deck; every block is inside the picture and none stands where Kai stands', () => {
-    const m = nowMeadow([levels(30), levels(12), [], levels(2)], [30, 12, 10, 2]);
-    expect(m.trees).toBe(4);
-    expect(leaves(m)).toHaveLength(30 + 12 + 10 + 2);
+  test('every green block is a word: no grass; every block is inside the picture and the trees use the whole width', () => {
+    const m = nowMeadow(levels(68));
+    expect(m.blocks.some((b) => b.kind === 'grass')).toBe(false);
+    expect(m.blocks.filter((b) => b.kind !== 'ground' && b.kind !== 'trunk')).toHaveLength(68);
     inside(m);
-    for (const b of m.blocks.filter((b) => b.kind === 'leaf' || b.kind === 'trunk')) expect(b.x + b.size).toBeLessThanOrEqual(m.width - KAI_CELLS);
+    const xs = leaves(m).map((b) => b.x + b.size / 2);
+    expect(Math.abs((Math.min(...xs) + Math.max(...xs)) / 2 - m.width / 2)).toBeLessThan(3); // around the middle: no place kept for Kai
   });
 
-  test('many decks make rows: the rows behind are smaller and paler', () => {
-    const m = nowMeadow(Array.from({ length: 14 }, () => levels(30)), Array.from({ length: 14 }, () => 30));
+  test('many words make rows: the rows behind are smaller and paler', () => {
+    const m = nowMeadow(levels(14 * 30));
     const sizes = [...new Set(leaves(m).map((b) => Number(b.size.toFixed(3))))].sort((a, b) => b - a);
     expect(sizes.length).toBeGreaterThan(1);
     const back = leaves(m).filter((b) => Number(b.size.toFixed(3)) === sizes.at(-1));
@@ -70,12 +75,11 @@ describe('the meadow in 3 months (it replaced the big goal meadow on 2026-11-25)
     inside(futureMeadow(300));
   });
 
-  test('it is the same place as today’s meadow: the same width, with room for Kai on the right', () => {
+  test('it is the same place as today’s meadow: the same width, the whole width for the trees', () => {
     const then = futureMeadow(320);
-    expect(then.width).toBe(nowMeadow([levels(30)], [30]).width);
+    expect(then.width).toBe(nowMeadow(levels(30)).width);
     expect(then.trees).toBe(10);
-    const trunks = then.blocks.filter((b) => b.kind === 'trunk' && b.opacity === 1); // the front row
-    expect(Math.max(...trunks.map((b) => b.x))).toBeLessThan(then.width - KAI_CELLS);
+    inside(then);
   });
 
   test('the same number of words always gives the same picture', () => {

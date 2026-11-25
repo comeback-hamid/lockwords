@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LangText } from '@/components/lang-text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/auth/boot';
@@ -40,9 +41,8 @@ export default function HardWordsScreen() {
             <View style={styles.box}>
               {words.slice(0, 5).map((w, i, list) => (
                 <View key={w.word} style={[styles.row, i < list.length - 1 && styles.divider]}>
-                  <View style={styles.dot} />
-                  <Text style={[type.body, styles.ink, styles.word]}>{w.word}</Text>
-                  <Text style={[type.callout, styles.muted]}>{w.translation}</Text>
+                  <LangText style={[type.body, styles.ink, styles.word]}>{w.word}</LangText>
+                  <LangText style={[type.callout, styles.muted]}>{w.translation}</LangText>
                 </View>
               ))}
             </View>
@@ -66,6 +66,5 @@ const styles = StyleSheet.create({
   box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
   row: { height: 44, flexDirection: 'row', alignItems: 'center', gap: space[12], paddingHorizontal: space[16] },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.divider },
-  dot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.hard },
   word: { flex: 1 },
 });

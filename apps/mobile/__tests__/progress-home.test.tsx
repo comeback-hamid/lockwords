@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import type { DeckSummary, Progress } from '@/api/client';
 import ProgressScreen from '@/app/(tabs)/progress';
 import { api } from '@/auth/boot';
-import { colors, gold, levelColors, levelNew } from '@/theme/theme';
+import { colors, levelColors, levelNew } from '@/theme/theme';
 
 const mockRouter = { push: jest.fn(), navigate: jest.fn() };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useFocusEffect: (fn: () => void) => jest.requireActual('react').useEffect(fn, [fn]) }));
@@ -57,12 +57,13 @@ test('the order from top to bottom: numbers, one meadow with Kai, the words map,
   expect([...at].sort((a, b) => a - b)).toEqual(at);
 });
 
-test('the small meadow: one tree per deck with a leaf per word, and a small live Kai next to it', async () => {
+test('today’s meadow: the words fill one tree, then the next; no Kai in it', async () => {
   await show(progress());
   const now = screen.getByTestId('meadow-now');
   expect(screen.getByLabelText('Your meadow now: 2 trees')).toBeOnTheScreen();
-  expect(now).toContainElement(screen.getByTestId('kai-canvas'));
-  expect(screen.getByTestId('kai-canvas').props.state).toBe('idle');
+  expect(now).toBeOnTheScreen();
+  expect(screen.queryByTestId('kai-canvas')).toBeNull();
+  expect(screen.getByText('■ = 1 word · 5 spaced reviews → mastered ✓')).toBeOnTheScreen();
 });
 
 test('no decks yet: the small meadow still has one tree', async () => {
@@ -84,7 +85,7 @@ test('In 3 months: the number in green with "about", the counts, a bigger meadow
   for (const text of ['0 new', '110 learning', '210 mastered', 'and about 9 more decks by then']) expect(screen.getByText(text)).toBeOnTheScreen();
   expect(screen.getByLabelText('Your meadow in 3 months: 10 trees')).toBeOnTheScreen();
   expect(screen.queryByTestId('meadow-now')).toBeNull();
-  expect(within(screen.getByTestId('meadow-future')).getByTestId('kai-canvas')).toBeOnTheScreen();
+  expect(within(screen.getByTestId('meadow-future')).queryByTestId('kai-canvas')).toBeNull();
   expect(screen.getAllByTestId('grid-level')).toHaveLength(320);
   expect(screen.queryAllByTestId('grid-empty')).toHaveLength(0);
   expect(screen.getByRole('button', { name: /^Ordering food/ })).toBeOnTheScreen(); // today's decks stay
@@ -94,11 +95,11 @@ test('In 3 months: the number in green with "about", the counts, a bigger meadow
   expect(StyleSheet.flatten(screen.getByText('ABOUT, AT YOUR PACE').props.style).opacity).toBe(0);
 });
 
-test('Today is the real page: its part of the switch is gold when chosen, and plain when the future is shown', async () => {
+test('the chosen part of the switch is a white pill with bold text, in the app’s own colors (no yellow)', async () => {
   await show(progress());
-  expect(StyleSheet.flatten(tab(/^Today/).props.style)).toMatchObject({ backgroundColor: gold.bg, borderColor: gold.line });
+  expect(StyleSheet.flatten(tab(/^Today/).props.style)).toMatchObject({ backgroundColor: colors.surface, borderColor: colors.line });
   await fireEvent.press(tab(/^In 3 months/));
-  expect(StyleSheet.flatten(tab(/^Today/).props.style).backgroundColor).not.toBe(gold.bg);
+  expect(StyleSheet.flatten(tab(/^Today/).props.style).backgroundColor).not.toBe(colors.surface);
   expect(StyleSheet.flatten(tab(/^In 3 months/).props.style).backgroundColor).toBe(colors.surface);
 });
 

@@ -22,7 +22,7 @@ tags:
 - extendedWaitUntil:
     notVisible: "Kai is typing"
     timeout: 40000
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Quiero un mazo sobre el hotel"
 - tapOn: "Send"
 - hideKeyboard
@@ -160,7 +160,7 @@ tags:
 - extendedWaitUntil:
     notVisible: "Close"
     timeout: 20000
-- assertVisible: "Message"
+- assertVisible: "Message.*"
 - tapOn: "Review"
 - extendedWaitUntil:
     visible: "10 cards due today"

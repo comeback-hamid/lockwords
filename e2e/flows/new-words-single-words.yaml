@@ -22,7 +22,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 40000
 # Ask how to say a word: Kai answers with a word card that names the deck
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "How do I say umbrella?"
 - tapOn: "Send"
 - assertVisible: "You: How do I say umbrella\\?"

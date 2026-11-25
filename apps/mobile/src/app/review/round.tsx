@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LangText } from '@/components/lang-text';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +10,8 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
-import { useRoundKeys } from '@/platform/round-keys';
+import { KeyHints } from '@/platform/key-hints';
+import { ROUND_TEST_ID, useRoundKeys } from '@/platform/round-keys';
 import { Flashcard, type CardRole } from '@/review/flashcard';
 import { isIntroDone } from '@/review/intro';
 import { advance, cameBack, getRound, leftForUseIt, putBack, swiped, undone, useRound } from '@/review/round-store';
@@ -159,7 +161,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
   for (const l of leaving) stack.push({ ...l, role: 'leaving' });
 
   return (
-    <GestureHandlerRootView style={[styles.root, { paddingTop: insets.top, paddingBottom: inTab ? layout.tabBarClearance : Math.max(insets.bottom, space[16]) }]}>
+    <GestureHandlerRootView testID={ROUND_TEST_ID} style={[styles.root, { paddingTop: insets.top, paddingBottom: inTab ? layout.tabBarClearance : Math.max(insets.bottom, space[16]) }]}>
       {/* iOS swipe-back would steal the Easy swipe (right). */}
       {inTab ? null : <Stack.Screen options={{ gestureEnabled: false }} />}
       <View style={styles.top}>
@@ -185,7 +187,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
         {card ? (
           <View style={styles.chip}>
             <Icon name="deck" color={colors.text2} />
-            <Text style={[type.captionStrong, styles.ink]}>{card.deckTopic}</Text>
+            <LangText style={[type.captionStrong, styles.ink]}>{card.deckTopic}</LangText>
           </View>
         ) : null}
         {/* The cards behind (Figma: Card stack, peek 1 and peek 2). */}
@@ -236,6 +238,8 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
           </>
         )}
       </View>
+      {/* A wide browser window: the keys are named under the card. Nothing on the phone. */}
+      {onStreak || !card ? null : <KeyHints />}
     </GestureHandlerRootView>
   );
 }

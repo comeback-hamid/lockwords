@@ -60,7 +60,7 @@ tags:
     visible: ".*Write one sentence with la cuenta.*"
     timeout: 15000
 # Kai listens while the learner types
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Quiero la cuenta, por favor."
 - waitForAnimationToEnd:
     timeout: 3000

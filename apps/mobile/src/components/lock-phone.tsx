@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { LangText } from '@/components/lang-text';
 import { colors, levelColors, lift, radius, space, type } from '@/theme/theme';
 
 // A drawn phone top with a lock-screen word card (O2 Welcome, O14 Hard words).
@@ -12,12 +13,12 @@ export function LockPhone({ word, translation, highlight = false, height = 270 }
         <Text style={[type.lockClock, styles.ink]}>9:41</Text>
         {/* The lock screen widget as it looks on a phone (Figma "Widgets", v1): word, meaning, five squares for the looks. */}
         <View testID="lock-widget" style={[styles.card, highlight && styles.cardOn]}>
-          <Text style={[type.headline, styles.ink]} numberOfLines={1} adjustsFontSizeToFit>
+          <LangText style={[type.headline, styles.ink]} numberOfLines={1} adjustsFontSizeToFit>
             {word}
-          </Text>
-          <Text style={[type.callout, styles.muted]} numberOfLines={1}>
+          </LangText>
+          <LangText style={[type.callout, styles.muted]} numberOfLines={1}>
             {translation}
-          </Text>
+          </LangText>
           <View accessible accessibilityLabel="Look 1 of 5" style={styles.looks}>
             {[1, 2, 3, 4, 5].map((n) => (
               <View key={n} style={[styles.look, n === 1 && styles.lookOn]} />
