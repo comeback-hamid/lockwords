@@ -8,6 +8,7 @@ import { api } from '@/auth/boot';
 import { useMe } from '@/auth/me-store';
 import { GoalGrid } from '@/components/goal-grid';
 import { Icon } from '@/components/icon';
+import { LangText } from '@/components/lang-text';
 import { LevelChain } from '@/components/level-chain';
 import { LoadError, Loading } from '@/components/load-state';
 import { Meadow } from '@/components/meadow';
@@ -177,9 +178,9 @@ function DeckRow({ deck, divider, onPress }: { deck: DeckSummary; divider: boole
         <Icon name="deck" size={24} color={colors.greenText} />
       </View>
       <View style={styles.rowText}>
-        <Text style={[type.bodyStrong, styles.ink]} numberOfLines={1}>
+        <LangText style={[type.bodyStrong, styles.ink]} numberOfLines={1}>
           {deck.topic}
-        </Text>
+        </LangText>
         <Text style={[type.caption, styles.muted]}>{numbers}</Text>
         <View style={styles.chain}>
           <LevelChain stages={deck.stages} />

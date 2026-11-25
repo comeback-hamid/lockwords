@@ -12,6 +12,7 @@ import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
 import { useTranslation } from '@/components/chat/use-translation';
 import { useKaiTyping } from '@/components/chat/use-kai-typing';
+import { LangText } from '@/components/lang-text';
 import { LINES, type KaiPose } from '@/onboarding/kai-script';
 import { advance, findCard } from '@/review/round-store';
 import { colors, layout, levelColors, radius, space, type } from '@/theme/theme';
@@ -157,8 +158,8 @@ function UseItChat({ card, script }: { card: NonNullable<ReturnType<typeof findC
           m.from === 'word' ? (
             <View key={i} accessible accessibilityLabel={`Kai: ${card.word}, ${card.translation}`} style={styles.word}>
               <View style={[styles.square, { backgroundColor: levelColors[card.stage] ?? levelColors[0] }]} />
-              <Text style={[type.bodyStrong, styles.ink]}>{card.word}</Text>
-              <Text style={[type.callout, styles.muted]}>{card.translation}</Text>
+              <LangText style={[type.bodyStrong, styles.ink]}>{card.word}</LangText>
+              <LangText style={[type.callout, styles.muted]}>{card.translation}</LangText>
             </View>
           ) : m.from === 'movedUp' ? (
             <View key={i} style={styles.movedUp}>

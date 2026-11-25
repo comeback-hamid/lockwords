@@ -2,6 +2,7 @@ import {
   JetBrainsMono_500Medium,
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
+import { Vazirmatn_400Regular, Vazirmatn_500Medium, Vazirmatn_600SemiBold } from '@expo-google-fonts/vazirmatn';
 import {
   MonaSans_400Regular,
   MonaSans_500Medium,
@@ -16,4 +17,8 @@ export const fonts = {
   MonaSans_600SemiBold,
   JetBrainsMono_500Medium,
   JetBrainsMono_700Bold,
+  // Persian, Arabic and every other language in the Arabic script (src/theme/script-font.ts).
+  Vazirmatn_400Regular,
+  Vazirmatn_500Medium,
+  Vazirmatn_600SemiBold,
 };

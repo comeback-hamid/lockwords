@@ -103,6 +103,8 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 ### 7.2 Tabs: New words · Review · Progress
 **Changed 2026-11-16:** v1 has no Speak tab. **My words moves into the tab bar** in Speak's place, as the **Progress** tab (chart icon, `Icon/24/graph`). There is no My words button in the top bar any more. Speak comes back as a tab in a later version.
 
+**Fonts for every language** (decided 2026-11-25, Hamid): Latin text uses Mona Sans. The Arabic script (Persian, Arabic, Urdu) uses **Vazirmatn** at the same weights. Every other script (Russian, Greek, Chinese, Japanese, Korean, Hebrew, Hindi, Thai and more) uses the phone's own font for that script at the same weight. One rule in code: `apps/mobile/src/theme/script-font.ts`.
+
 **Every Kai chat (onboarding, New words, Use it)** (added 2026-11-24 and 25):
 - **Translation switch in every chat, with one behavior** (Use it added 2026-11-25). The switch sits at the top right with the learner's language code. Kai speaks the language picked in onboarding (the learned language or the learner's own). When Kai speaks the learned language, each Kai line has the same line in the learner's own language under a thin divider; the switch shows or hides those lines. The choice is one saved setting for all chats.
 - **Voice in the text box.** A mic sits in the box. Tap it: the box becomes a recorder, like Telegram: X on the left throws the recording away, the wave of the voice moves in the middle with a clock, Stop on the right ends it. The words land in the box as text; the learner can change them, then sends. A recording stops by itself at 90 seconds. The sound is kept nowhere.
