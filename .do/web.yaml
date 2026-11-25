@@ -1,0 +1,20 @@
+# DigitalOcean App Platform spec for the Lockwords WEB APP (static files, Frankfurt). Its own app, apart from the
+# server's (.do/app.yaml), so nothing here can touch the server or the phone app.
+# Used only by .github/workflows/deploy-web.yml, which is started by hand. NOT public until Hamid says so.
+# App Platform builds the browser version of apps/mobile and serves the files. Every path answers index.html
+# (the app is one page; the router reads the address).
+name: lockwords-web
+region: fra
+
+static_sites:
+  - name: web
+    git:
+      repo_clone_url: https://github.com/comeback-hamid/lockwords.git
+      branch: ${DEPLOY_BRANCH}
+    source_dir: /
+    environment_slug: node-js
+    # The buildpack installs the packages (npm ci) first. No EXPO_PUBLIC_* values are set, so the build talks to the
+    # cloud server (apps/mobile/src/config/backend.ts).
+    build_command: npm run build:web
+    output_dir: apps/mobile/dist
+    catchall_document: index.html

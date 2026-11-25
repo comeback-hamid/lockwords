@@ -16,7 +16,8 @@
     "test:scripts": "node --test scripts/*.test.mjs",
     "audit": "node scripts/audit.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "dev:up": "bash scripts/dev-up.sh"
+    "dev:up": "bash scripts/dev-up.sh",
+    "build:web": "cd apps/mobile && npx expo export -p web --output-dir dist"
   },
   "engines": {
     "node": ">=22"
