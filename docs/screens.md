@@ -118,3 +118,13 @@ Rules for every screen and for every Kai chat are in `docs/product.md` (sections
 |  | Components · 07 Progress & paywall | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=287-183) |
 |  | Components · 08 Widgets | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=287-185) |
 |  | Components · 09 Image assets | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=128-859) |
+
+## Added 2026-11-25 (phone test 4)
+| What | Figma node |
+|---|---|
+| Kai pose `reviewing` (holds flashcards; the Review start screen A2) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2100-984) |
+| Composer states: typing 3 lines, typing 6 lines, recording, writing, error note | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=207-838) |
+| Stamp (swipe label with the note inside) and the "SWIPE LABELS" examples | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=59-813) |
+| Flashcard · rules (picture shares, word lines, Use it on every card) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2070-4259) |
+| Review page note "Round rules" | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2105-827) |
+| Tab bar with the small red dot on Review | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2104-1180) |

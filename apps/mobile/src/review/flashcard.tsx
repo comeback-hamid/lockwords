@@ -115,7 +115,7 @@ export const Flashcard = memo(function Flashcard({ card, role, flipped, easyDays
               </Face>
 
               <Face testID="card-back" style={backStyle} shown={flipped}>
-                <Picture url={imageUrl} share={tokens.pictureBack} />
+                <Picture url={imageUrl} share={tokens.pictureBack} gives />
                 <View style={styles.backBody}>
                   <View style={styles.head}>
                     <Word card={card} />
@@ -175,9 +175,11 @@ function Face({ testID, style, shown, children }: { testID: string; style: Style
 }
 
 // The top of the card, on both sides: the word's picture, or a quiet placeholder while there is none.
-function Picture({ url, share }: { url: string | null; share: `${number}%` }) {
+// `gives` (the back): when the text under it needs more room than is left, the picture gets shorter, so the Use it
+// button is never pushed off the card (a small phone, a long meaning and example).
+function Picture({ url, share, gives = false }: { url: string | null; share: `${number}%`; gives?: boolean }) {
   return (
-    <View testID="card-picture" style={[styles.picture, { height: share }]}>
+    <View testID="card-picture" style={[styles.picture, { height: share }, gives && styles.pictureGives]}>
       {url ? (
         <Image testID="card-image" source={{ uri: url }} contentFit="cover" transition={150} style={styles.fill} accessibilityElementsHidden />
       ) : (
@@ -231,7 +233,9 @@ const styles = StyleSheet.create({
   frontBody: { flex: 1, alignItems: 'center', paddingHorizontal: space[24] - space[4], paddingBottom: space[24] },
   frontWord: { flex: 3, justifyContent: 'flex-end', paddingTop: space[16] },
   frontRest: { flex: 2 },
-  backBody: { flex: 1, gap: space[16], paddingHorizontal: space[24] - space[4], paddingTop: BACK_BODY_TOP, paddingBottom: space[24] },
+  pictureGives: { flexShrink: 1, minHeight: '20%' },
+  // As tall as its text needs, and it takes the room that is left: the picture gives way, the text does not.
+  backBody: { flexGrow: 1, flexShrink: 0, gap: space[16], paddingHorizontal: space[24] - space[4], paddingTop: BACK_BODY_TOP, paddingBottom: space[24] },
   head: { alignItems: 'center', gap: space[4] },
   example: { gap: space[8] - 2 },
   wordRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: space[12], paddingTop: WORD_ROW_TOP },
