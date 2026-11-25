@@ -1,5 +1,5 @@
 # DigitalOcean App Platform spec for the Lockwords server (Frankfurt).
-# The deploy workflow (.github/workflows/deploy.yml) fills ${DEPLOY_BRANCH}, ${ANTHROPIC_API_KEY} and ${OPENAI_API_KEY},
+# The deploy workflow (.github/workflows/deploy.yml) fills ${DEPLOY_BRANCH}, ${ANTHROPIC_API_KEY}, ${OPENAI_API_KEY} and ${WEB_ORIGINS},
 # then runs `doctl apps update`. Never write a secret value in this file.
 name: lockwords
 region: fra
@@ -48,6 +48,12 @@ services:
         type: SECRET
         value: ${OPENAI_API_KEY}
       # openai-end
+      # web-origins-start (the web app's addresses that may call the server from a browser, comma separated; from the
+      # GitHub Actions variable WEB_ORIGINS; the deploy workflow removes these lines while that variable is empty)
+      - key: WEB_ORIGINS
+        scope: RUN_TIME
+        value: "${WEB_ORIGINS}"
+      # web-origins-end
 
 jobs:
   # Runs the Drizzle migrations before each deploy. A failed migration stops the deploy.
