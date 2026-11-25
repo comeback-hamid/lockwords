@@ -21,7 +21,7 @@ tags:
 - tapOn: "Use it"
 - assertVisible: ".*Write one sentence with la cuenta.*"
 # A weak sentence: Kai says what is missing, the two options stay
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "No tengo dinero."
 - tapOn: "Send"
 - extendedWaitUntil:
@@ -30,7 +30,7 @@ tags:
 - assertVisible: "Show me an example"
 - assertVisible: "Skip this word"
 # A good sentence: the word moves up, and Kai offers a follow-up question
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Quiero la cuenta, por favor."
 - tapOn: "Send"
 - extendedWaitUntil:
@@ -45,7 +45,7 @@ tags:
     timeout: 20000
 - assertVisible: "Next card"
 # A typed question is a question too
-- tapOn: "Ask Kai about this word…"
+- tapOn: ".*Ask Kai about this word…"
 - inputText: "Is it formal?"
 - tapOn: "Send"
 - extendedWaitUntil:

@@ -64,7 +64,7 @@ tags:
     visible: ".*What’s your name.*"
     timeout: 20000
 # A question instead of a name: Kai answers, then asks again
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Why do you need my name?"
 - tapOn: "Send"
 - extendedWaitUntil:
@@ -74,7 +74,7 @@ tags:
     visible: ".*So, what’s your name.*"
     timeout: 20000
 # A name in a sentence
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "I'm Maya"
 - tapOn: "Send"
 - extendedWaitUntil:

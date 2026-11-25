@@ -32,7 +32,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 60000
 # Persian text: right-aligned in the composer and in the bubble (seen in the video)
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "سلام"
 - tapOn: "Send"
 - extendedWaitUntil:
@@ -46,7 +46,7 @@ tags:
     times: 30
     commands:
       - evalScript: ${output.n = (output.n || 0) + 1}
-      - tapOn: "Message"
+      - tapOn: "Message.*"
       - inputText: "Hola ${output.n}"
       # No check of the bubble here: a long answer from the real AI (a word card) pushes it off the screen at once.
       - tapOn: "Send"

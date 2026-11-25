@@ -28,7 +28,7 @@ tags:
 - tapOn: "Translation, off"
 - assertVisible: "Translation, on"
 # Say something; Kai answers
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Hola Kai"
 - tapOn: "Send"
 - assertVisible: "You: Hola Kai"
@@ -36,7 +36,7 @@ tags:
     notVisible: "Kai is typing"
     timeout: 40000
 # Ask to practice: Kai says it takes us to Review, then the Review tab opens by itself
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Vamos a practicar"
 - tapOn: "Send"
 - extendedWaitUntil:

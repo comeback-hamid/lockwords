@@ -24,7 +24,7 @@ tags:
     timeout: 40000
 - assertNotVisible: "Generate"
 # Yes: N2 three deck ideas in a row
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Sí, quiero verlos"
 - tapOn: "Send"
 - hideKeyboard
@@ -103,9 +103,9 @@ tags:
 # N4b "Let's practice": Kai says it takes us to Review, then the Review tab opens by itself
 # The chat needs a moment to come back: wait for the message box before tapping it (this step failed about 1 run in 3).
 - extendedWaitUntil:
-    visible: "Message"
+    visible: "Message.*"
     timeout: 20000
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Vamos a practicar"
 - tapOn: "Send"
 - hideKeyboard
@@ -117,9 +117,9 @@ tags:
 - tapOn: "New words"
 # The chat needs a moment to come back: wait for the message box before tapping it (this step failed about 1 run in 3).
 - extendedWaitUntil:
-    visible: "Message"
+    visible: "Message.*"
     timeout: 20000
-- tapOn: "Message"
+- tapOn: "Message.*"
 - inputText: "Quiero un mazo sobre trabajar en una cafetería"
 - tapOn: "Send"
 - hideKeyboard
@@ -130,7 +130,7 @@ tags:
     when:
       notVisible: "Generate"
     commands:
-      - tapOn: "Message"
+      - tapOn: "Message.*"
       - inputText: "Palabras sueltas, 10 palabras. Hazlo así, por favor."
       - tapOn: "Send"
       - hideKeyboard
