@@ -2102,6 +2102,14 @@ export interface components {
             language: string;
             trees: number[][];
             deckWords: number[];
+            vocabulary?: number;
+            level?: string;
+            stops: {
+                words: number;
+                by: string;
+                vocabulary?: number;
+                level?: string;
+            }[];
         };
         WordPlan: {
             goal: string;

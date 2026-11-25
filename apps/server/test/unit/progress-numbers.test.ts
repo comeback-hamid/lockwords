@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 
-import { bankNumbers, deckSummary, goalFor, masterBy, paceFrom } from '../../src/progress/numbers.js';
+import { bankNumbers, deckSummary, futureStops, goalFor, levelFor, masterBy, paceFrom } from '../../src/progress/numbers.js';
 
 const w = (stage: number, over: Partial<{ known: boolean; hard: boolean }> = {}) => ({ stage, known: false, hard: false, ...over });
 
@@ -29,4 +29,18 @@ test('date: days to start the missing words at that pace, plus 24 days', () => {
 
 test('a deck: words, learning, hard, levels highest first (known counts as 5)', () => {
   expect(deckSummary([w(0), w(2, { hard: true }), w(1), w(4, { known: true }), w(5)])).toEqual({ words: 5, learning: 2, hard: 1, stages: [5, 5, 2, 1, 0] });
+});
+
+test('the future bar: each stop has its day at the learner’s pace, and the level of the vocabulary by then', () => {
+  const stops = futureStops('2026-11-20', 30, 10, 2000);
+  expect(stops.map((s) => s.words)).toEqual([100, 200, 500, 1000]);
+  expect(stops[0]).toEqual({ words: 100, by: '2026-12-21', vocabulary: 2100, level: 'A2' }); // 7 days to start 70 words + 24
+  expect(stops[2]).toMatchObject({ vocabulary: 2500, level: 'B1' });
+  expect(stops[3]!.by > stops[2]!.by).toBe(true);
+  // No word test: no vocabulary and no level, only the days.
+  expect(futureStops('2026-11-20', 0, 5, null)[0]).toEqual({ words: 100, by: '2027-01-03' });
+});
+
+test('the level for a vocabulary size follows the word test’s table, and never promises C2', () => {
+  expect([0, 1499, 1500, 2499, 2500, 3249, 3250, 3749, 3750, 9000].map(levelFor)).toEqual(['A1', 'A1', 'A2', 'A2', 'B1', 'B1', 'B2', 'B2', 'C1', 'C1']);
 });

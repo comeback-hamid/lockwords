@@ -129,7 +129,9 @@ Screen details are in Figma. Behavior details go in `openspec/` when we build ea
 - When today's cards are done, new words join by themselves (all of them, oldest deck first).
 
 **Progress (Figma page "Progress", P1–P3):** the user's word bank ("My words"), progress and decks.
-- Total words, a coded pixel meadow (1 tree per deck, grows with memory), and a goal grid with "by <date> you'll master N".
+- Total words, **one** coded pixel meadow (1 tree per deck, grows with memory; grey trees = still to grow before the next stop), the **future bar**, a level card and the goal grid.
+- **Future bar (changed 2026-11-25, Hamid; before it the page had two meadows, now and at the goal, and a "by <date> you'll master N" block).** The bar is the progress bar: dark green up to today's words, with stops at 100, 200, 500 and 1,000 words (equal steps). The learner drags the handle forward to a stop: the forest grows to that size (a bigger forest is drawn smaller, as if the view moves back), the big number shows the stop, the line above it says "ABOUT <day>, AT YOUR PACE", and the level card shows the level and one sentence about what they can do then. Letting go puts everything back on today.
+- **The level is honest.** It is the vocabulary found by the word test plus the words learned here, read from the word test's level table. It never says C2. With no word test the card shows only the words. A day in another year shows only the month and the year.
 - Deck list → deck words (swipe left to delete a word).
 
 ### 7.3 Kai chat rules (every chat screen)
