@@ -35,7 +35,7 @@ On the web the tab bar SHALL be at the bottom with New words, Review and Progres
 - **THEN** the bar is at the bottom and does not cover the screen's content
 
 ### Requirement: Kai on the web
-On the web Kai SHALL move as on the phone: every state of the character spec plays with the same timing, one-shot states (greeting, celebrate, oops and the like) return by themselves, and `talking` and `listening` show over a resting state. Kai is drawn from the same character data and the same step function as on the phone, with no extra download before it shows. With the system's reduced motion setting on, Kai is a still pose for the current state. A Kai that is not on screen (a hidden browser tab, a screen under another screen) does not draw.
+On the web Kai SHALL move as on the phone: the same states, the same timing, one-shot states that return by themselves, and `talking` and `listening` over a resting state. Kai is drawn from the phone's character data and step function, with no extra download. With the system's reduced motion setting on, Kai is a still pose. A Kai that is not on screen does not draw.
 
 #### Scenario: Kai waves on Hello
 - **WHEN** a person opens the web app for the first time
