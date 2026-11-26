@@ -21,7 +21,7 @@ GRADLE_USER_HOME=~/.config/lockwords/gradle-home npm run android:release
 ## Install the APK
 - Emulator or a phone on USB: `adb install -r apps/mobile/build/android/Lockwords-<version>.apk`.
 - A phone without a cable: send the file, open it on the phone, allow "install unknown apps" for the app that opened it.
-- A debug build of Lockwords on the same device has another signature: remove it first (`adb uninstall com.comebackhamid.lockwords`).
+- A debug build of Lockwords on the same device has another signature: remove it first (`adb uninstall ai.dailydoses.lockwords`).
 
 ## Before the Play Store (waits for Hamid)
 1. A Google Play developer account (25 US dollars, once) and the app's listing.

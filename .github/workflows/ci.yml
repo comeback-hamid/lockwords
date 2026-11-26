@@ -53,6 +53,7 @@ jobs:
   # No upload key here, so nothing in this job is signed for the Play Store (docs/android-release.md).
   android:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,7 +70,9 @@ jobs:
         working-directory: apps/mobile
       - uses: gradle/actions/setup-gradle@v4
       - name: Android debug build
-        run: ./gradlew app:assembleDebug -x lint -x test -PreactNativeArchitectures=x86_64
+        # Two workers: with all cores the hosted runner ran out of memory twice and lost its connection
+        # (the job then hangs for 30 to 50 minutes instead of failing).
+        run: ./gradlew app:assembleDebug -x lint -x test -PreactNativeArchitectures=x86_64 --max-workers 2
         working-directory: apps/mobile/android
       - uses: actions/upload-artifact@v4
         with:

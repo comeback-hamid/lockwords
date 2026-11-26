@@ -6,7 +6,7 @@ import { join } from 'node:path';
 // first tab, not the word. The plugin edits the generated MainActivity; this checks the text it writes.
 const { keepNewIntent } = require('../plugins/with-android-keep-new-intent') as { keepNewIntent: (source: string) => string };
 
-const ACTIVITY = `package com.comebackhamid.lockwords
+const ACTIVITY = `package ai.dailydoses.lockwords
 
 import android.os.Build
 import android.os.Bundle
