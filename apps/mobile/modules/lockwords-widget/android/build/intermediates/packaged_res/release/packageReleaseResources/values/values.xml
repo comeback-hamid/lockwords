@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lw_brand">#116329</color>
+    <color name="lw_card">#ffffff</color>
+    <color name="lw_empty">#eff2f5</color>
+    <color name="lw_green_1">#aceebb</color>
+    <color name="lw_green_2">#6fdd8b</color>
+    <color name="lw_green_3">#4ac26b</color>
+    <color name="lw_green_4">#2da44e</color>
+    <color name="lw_green_5">#116329</color>
+    <color name="lw_label">#d1242f</color>
+    <color name="lw_muted">#59636e</color>
+    <color name="lw_text">#1f2328</color>
+    <string name="lw_kai">Kai</string>
+    <string name="lw_label_brand">LOCKWORDS</string>
+    <string name="lw_label_hard">HARD WORD</string>
+    <string name="lw_widget_description">Your hard words, one at a time.</string>
+    <string name="lw_widget_name">Lockwords</string>
+</resources>

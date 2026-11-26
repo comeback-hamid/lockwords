@@ -27,6 +27,7 @@
     },
     "plugins": [
       "./plugins/with-android-debug-splash",
+      "./plugins/with-android-keep-new-intent",
       "expo-router",
       [
         "expo-splash-screen",

@@ -87,8 +87,9 @@ class HardWordsWidget : AppWidgetProvider() {
     private fun views(context: Context, entry: Entry, medium: Boolean, id: Int): RemoteViews {
       val isWord = entry.kind == "word"
       val v = RemoteViews(context.packageName, if (medium) R.layout.lw_widget_medium else R.layout.lw_widget_small)
-      v.setTextViewText(R.id.lw_label, context.getString(if (isWord) R.string.lw_label_hard else R.string.lw_label_brand))
-      v.setTextColor(R.id.lw_label, context.getColor(if (isWord) R.color.lw_label else R.color.lw_brand))
+      // The label: HARD WORD for a word, LOCKWORDS else (two views, so each keeps its theme color in light and dark).
+      v.setViewVisibility(R.id.lw_label, if (isWord) View.VISIBLE else View.GONE)
+      v.setViewVisibility(R.id.lw_label_brand, if (isWord) View.GONE else View.VISIBLE)
       v.setTextViewText(R.id.lw_word, entry.word)
       v.setTextViewText(R.id.lw_meaning, entry.meaning)
       if (medium) {

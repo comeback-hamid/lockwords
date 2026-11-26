@@ -32,7 +32,7 @@ test('the layouts use only views Android allows in a widget', () => {
     const tags = [...read(`modules/lockwords-widget/android/src/main/res/layout/${layout}.xml`).matchAll(/<([A-Za-z.]+)[\s>]/g)].map((m) => m[1]!).filter((t) => t !== 'xml');
     expect(tags.filter((t) => !allowed.has(t))).toEqual([]);
     // Every id the Kotlin code sets is in the layout.
-    for (const id of ['lw_root', 'lw_label', 'lw_word', 'lw_meaning', 'lw_squares', 'lw_sq1', 'lw_sq5', 'lw_kai']) expect(read(`modules/lockwords-widget/android/src/main/res/layout/${layout}.xml`)).toContain(`@+id/${id}"`);
+    for (const id of ['lw_root', 'lw_label', 'lw_label_brand', 'lw_word', 'lw_meaning', 'lw_squares', 'lw_sq1', 'lw_sq5', 'lw_kai']) expect(read(`modules/lockwords-widget/android/src/main/res/layout/${layout}.xml`)).toContain(`@+id/${id}"`);
   }
   expect(read('modules/lockwords-widget/android/src/main/res/layout/lw_widget_medium.xml')).toContain('@+id/lw_example"');
 });
@@ -42,4 +42,6 @@ test('the widget wakes every 30 minutes (one word slot) and opens the app from a
   const provider = read('modules/lockwords-widget/android/src/main/java/com/comebackhamid/lockwords/widget/HardWordsWidget.kt');
   expect(provider).toContain('setOnClickPendingIntent(R.id.lw_root');
   expect(provider).toContain('Intent.ACTION_VIEW');
+  // Colors come from the theme (light and dark), never from code: a color set from code stays when the phone's look changes.
+  expect(provider).not.toContain('setTextColor');
 });

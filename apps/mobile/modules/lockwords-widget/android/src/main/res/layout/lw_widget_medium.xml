@@ -15,8 +15,22 @@
     android:layout_height="match_parent"
     android:layout_weight="1"
     android:orientation="vertical">
+    <!-- Two labels, one shown: HARD WORD (red) for a word, LOCKWORDS (green) else. Their colors come from the
+         theme here, not from code, so they follow light and dark by themselves. -->
     <TextView
       android:id="@+id/lw_label"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:visibility="gone"
+      android:fontFamily="monospace"
+      android:letterSpacing="0.05"
+      android:maxLines="1"
+      android:text="@string/lw_label_hard"
+      android:textColor="@color/lw_label"
+      android:textSize="11sp"
+      android:textStyle="bold" />
+    <TextView
+      android:id="@+id/lw_label_brand"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:fontFamily="monospace"
