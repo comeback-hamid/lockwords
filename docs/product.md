@@ -164,7 +164,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - When the choices are fixed, show **tap answers** (stacked on the right, above the text box) with the hint "Tap an option, or type your own". Free questions (like the name) are typed.
 - Deck flow: deck card + Generate → same card while generating → deck widget (tap to open the words; Kai does not print the word list) → "Shall we practice?".
 
-### 7.4 Widgets (Figma page "Widgets", v1 frames; iOS only)
+### 7.4 Widgets (Figma page "Widgets", v1 frames; iOS, and the home screen widget on Android)
 **Changed 2026-11-25 (Hamid).** What iOS allows: `docs/widget-limits.md`.
 - **The widget has one job: show the learner their hard words.** Nothing else is on it: no other words, no number of cards.
 - **Lock screen:** a rectangular widget (the word, its meaning, five squares, Kai) and an inline widget (word · meaning next to the date). One tint, no color. No circular widget: a circle is too small for a word.
@@ -176,6 +176,7 @@ Copy the onboarding chat. Check the Onboarding page in Figma before designing a 
 - **A tap opens Review with that word as the first card.** A word that is due today is a normal card. A hard word that is not due today (it was swiped Hard today and comes back tomorrow) is a **look card**: flip, sound and Use it work, a "Next" button goes on, it cannot be swiped and its level does not change.
 - With no hard words the widget says "No hard words · Swipe left in Review". If the app was not opened for 2 days it says "Open Lockwords · for your hard words".
 - v1 widgets are **see + open only**. No answering on the widget.
+- **Android** (added 2026-11-25): one home screen widget with the same rule: hard words only, 5 looks per word in 30-minute slots, Kai's pose follows the look, a tap opens Review on that word. It is 2 by 2 cells (the small look: label, word, meaning, five squares, Kai); made 4 cells wide it shows the medium look with the example sentence. Light and dark follow the phone. **Android phones have no lock screen widgets**, so there is none there, and the one-time screen after the first round says "Hold your home screen, tap Widgets, then add Lockwords." Not on Android yet: the word's picture on the medium widget.
 - The web app has no widgets.
 - The web app in any window (2026-11-25, Figma page "Web"): under 600 px it looks like the phone; from 600 px it is one centered column; from 1024 px the three tabs are a side bar on the left. Onboarding, Use it and deck pages are one centered column with no side bar. On a wide window the review card's keys are named under the card. It can be added to a phone's home screen. Kai and the meadow move as on the phone.
 - The web app and a reload (2026-11-25): a reload in the middle of onboarding starts onboarding again (as a restart of the phone app does); a reload on Use it opens Review; an address that does not exist opens the app's start.

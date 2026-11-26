@@ -31,6 +31,7 @@
     },
     "plugins": [
       "./plugins/with-android-debug-splash",
+      "./plugins/with-android-keep-new-intent",
       "./plugins/with-android-release-signing",
       "expo-router",
       [

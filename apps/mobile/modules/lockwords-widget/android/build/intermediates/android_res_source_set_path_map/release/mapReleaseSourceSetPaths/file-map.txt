@@ -1,0 +1,9 @@
+com.comebackhamid.lockwords.widget.lockwords-widget-pngs-0 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/build/generated/res/pngs/release
+com.comebackhamid.lockwords.widget.lockwords-widget-updated_navigation_xml-1 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/build/generated/updated_navigation_xml/release
+com.comebackhamid.lockwords.widget.lockwords-widget-mergeReleaseResources-2 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/build/intermediates/incremental/release/mergeReleaseResources/merged.dir
+com.comebackhamid.lockwords.widget.lockwords-widget-mergeReleaseResources-3 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/build/intermediates/incremental/release/mergeReleaseResources/stripped.dir
+com.comebackhamid.lockwords.widget.lockwords-widget-release-4 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/build/intermediates/merged_res/release/mergeReleaseResources
+com.comebackhamid.lockwords.widget.lockwords-widget-release-5 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/build/intermediates/packaged_res/release/packageReleaseResources
+com.comebackhamid.lockwords.widget.lockwords-widget-main-6 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/res
+com.comebackhamid.lockwords.widget.lockwords-widget-release-7 /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/release/res
+gradleHome-0 /Users/hamidrezazadeh/.config/lockwords/gradle-home

@@ -143,3 +143,17 @@ GET /v1/widget/plan   →   src/widgets/sync.ts     →   src/widgets/lockwords-
 - **A tap** opens `lockwords://review?first=<card id>`; the Review tab asks `GET /v1/review?first=` and starts the round on that word.
 - Not built: a refresh while the app is closed (the plan lasts 48 hours), and knowing whether the learner added the widget.
 
+
+
+### The Android home screen widget
+Android phones have no lock screen widgets, so Android gets the home screen widget only. The same server plan, another last step:
+```
+server                        app                               widget (native code in the app)
+GET /v1/widget/plan   →   src/widgets/sync.android.ts   →   modules/lockwords-widget (Kotlin)
+ (words, order, looks)     setEntries(JSON)                    keeps the entries, draws the one for "now"
+```
+- **Why our own native code:** `expo-widgets` on Android (SDK 58) cannot open the app from a tap and has no timed entries (read from its source, 2026-11-25). The widget is a local Expo module (`apps/mobile/modules/lockwords-widget`): Expo links it by itself, and its own `AndroidManifest.xml` adds the widget to the app. The generated `android/` folder is not edited.
+- **The app carries** the same entries as on iOS (`toTimeline`), as JSON: when, the word, its meaning, the look, the example, where a tap goes. Kai's poses are pictures inside the widget (`npm run widget:kai` writes them for both platforms).
+- **The widget draws without the app.** It keeps the entries on the phone, shows the newest one that has started, and wakes itself at the start of the next one (an alarm that may be 2 minutes late; Android also wakes it every 30 minutes). After the last slot it says "Open Lockwords".
+- **A tap** opens `lockwords://review?first=<card id>`, as on iOS.
+- **Checks:** Jest for the app side and for the native files that must match (colors, Kai's pictures, allowed views); the Maestro flow `home-widget.android.yaml` reads the address back from the widget's own code. The widget's look on a home screen was checked by eye on the emulator.

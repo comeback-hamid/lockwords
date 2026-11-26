@@ -31,5 +31,8 @@ for (const pose of POSES) {
   console.log(`kai-mono-${pose}.png ${meta.width}×${meta.height}`);
   // The home screen widgets have color: Kai as drawn, without the ground shadow (the widget is not a ground).
   const svg = readFileSync(join(root, `assets/kai/kai-${pose}.svg`), 'utf8').replace(/<ellipse[^>]*\/>\s*/g, '');
-  writeFileSync(join(root, `assets/widget/kai-color-${pose}.png`), await sharp(Buffer.from(svg), { density: 72 * 3 }).resize(W, H).png().toBuffer());
+  const color = await sharp(Buffer.from(svg), { density: 72 * 3 }).resize(W, H).png().toBuffer();
+  writeFileSync(join(root, `assets/widget/kai-color-${pose}.png`), color);
+  // The Android widget is native code and takes its pictures from its own resources: the same file, under an Android name.
+  writeFileSync(join(root, `modules/lockwords-widget/android/src/main/res/drawable-nodpi/lw_kai_${pose}.png`), color);
 }
