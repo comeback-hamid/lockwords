@@ -12,6 +12,7 @@ import { useLoad } from '@/components/use-load';
 import { Kai } from '@/kai/kai';
 import { getRound } from '@/review/round-store';
 import { colors, layout, radius, space, type } from '@/theme/theme';
+import { widgetHowTo } from '@/widgets/how-to';
 
 // O14: after the first round, show where hard words go.
 export default function HardWordsScreen() {
@@ -33,7 +34,7 @@ export default function HardWordsScreen() {
           <Kai size={84} />
         </View>
         <LockPhone word={shown.word} translation={shown.translation} highlight />
-        <Text style={[type.callout, styles.muted, styles.how]}>Hold your lock screen, tap Customize, then add Lockwords.</Text>
+        <Text style={[type.callout, styles.muted, styles.how]}>{widgetHowTo()}</Text>
         {failed ? <LoadError message="Could not load your hard words." onRetry={retry} /> : null}
         {words.length ? (
           <View style={styles.group}>

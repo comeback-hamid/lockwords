@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="lw_widget_name">Lockwords</string>
+  <string name="lw_widget_description">Your hard words, one at a time.</string>
+  <string name="lw_label_hard">HARD WORD</string>
+  <string name="lw_label_brand">LOCKWORDS</string>
+  <string name="lw_kai">Kai</string>
+</resources>

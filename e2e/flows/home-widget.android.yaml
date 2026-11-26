@@ -1,0 +1,68 @@
+# Android only (the iOS flow is lock-widgets.yaml; Android phones have no lock screen widgets).
+# The app side of the Android home screen widget: the one-time screen says how to add it, the plan reaches the
+# widget's own code, and the address a widget tap opens (lockwords://review?first=<id>) starts Review on that hard
+# word. The address on the Review tab's dev-only line is read back from the widget's native code, so it proves the
+# whole way: app → stored plan → the widget's pick for "now".
+# Needs the local stack: `npm run dev:up`. Dev build with the widget module (modules/lockwords-widget).
+appId: com.comebackhamid.lockwords
+tags:
+  - widget
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: android-home-widget
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards due today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- assertVisible: "la cuenta"
+# One hard word, the rest easy
+- tapOn: "Hard"
+- extendedWaitUntil:
+    visible: "9 words left"
+    timeout: 15000
+- repeat:
+    times: 9
+    commands:
+      - tapOn: "Easy"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+# O14: the phone shows the word as the widget shows it, and how to add the widget on Android
+- assertVisible:
+    id: "lock-widget"
+- assertVisible: "Look 1 of 5"
+- assertVisible: "Hold your home screen, tap Widgets, then add Lockwords."
+- assertVisible: "YOUR HARD WORDS · 1"
+- tapOn: "Continue"
+- tapOn: "Continue"
+- tapOn: "Close"
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "All cards done"
+    timeout: 15000
+# The widget now shows the hard word. A tap on it opens this address.
+- extendedWaitUntil:
+    visible:
+      id: "dev-widget-url"
+    timeout: 15000
+- copyTextFrom:
+    id: "dev-widget-url"
+- openLink: ${maestro.copiedText}
+# Review opens inside the round on that word. It was swiped today, so it is a look card: Next, no swipes.
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+- assertVisible: "la cuenta"
+- assertVisible: "NEXT"
+- assertNotVisible: "EASY"
+- tapOn: "la cuenta"
+- assertVisible: "the bill"
+- tapOn: "Next"
+- extendedWaitUntil:
+    visible: "All cards done"
+    timeout: 15000
+- stopRecording
