@@ -1,7 +1,8 @@
-// Makes the app icon from Kai's own drawing (assets/kai/kai-greeting.svg). Run: npm run icon:app
+// Makes the app icon: two word cards, a dark one on top of a green one, on white (Hamid's sketch, 2026-11-25).
+// Run: npm run icon:app
 // iOS gets three looks (light, dark, tinted); iOS draws the corners and, for dark and tinted, the background.
 // Also the favicon and the web app's icons (public/icons). Android's adaptive icon files are not made here.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -9,31 +10,32 @@ import sharp from 'sharp';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = process.env.ICON_OUT ?? join(root, 'assets/images');
 const SIZE = 1024;
-const UNIT = 38; // one Kai pixel on the 1024 icon; Kai is 18 wide, so 684 across
-const kai = readFileSync(join(root, 'assets/kai/kai-greeting.svg'), 'utf8')
-  .replace(/<\/?svg[^>]*>/g, '')
-  .replace(/<ellipse[^>]*\/>\s*/g, ''); // no ground shadow: the icon is not a ground
+const CARD = 480; // one card's side
+const STEP = 210; // how far the green card sits down and to the right of the dark one
+const RADIUS = 110;
+const START = (SIZE - CARD - STEP) / 2; // the pair sits in the middle
+const INK = '#1f2328'; // theme text
+const GREEN = '#4ac26b'; // level 3 green
 
-/** Kai in the middle of a square. Kai's box is x 0..18, y -2.5..10.5, so its middle is (9, 4). */
-const kaiAt = (body) => `<g shape-rendering="crispEdges" transform="translate(${SIZE / 2} ${SIZE / 2 - 14}) scale(${UNIT}) translate(-9 -4)">${body}</g>`;
+const card = (at, fill) => `<rect x="${at}" y="${at}" width="${CARD}" height="${CARD}" rx="${RADIUS}" fill="${fill}"/>`;
+/** The green card behind, the other card on top. */
+const cards = (top, back) => card(START + STEP, back) + card(START, top);
 const svg = (inside) => `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">${inside}</svg>`;
 
-const light = svg(
-  `<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0fff4"/><stop offset="1" stop-color="#aceebb"/></linearGradient></defs>` +
-    `<rect width="${SIZE}" height="${SIZE}" fill="url(#bg)"/>${kaiAt(kai)}`,
-);
-const dark = svg(kaiAt(kai)); // see-through: iOS puts its own dark background behind
-// Tinted: iOS colors the picture by brightness, so Kai is white and the face is a darker grey.
-const tinted = svg(kaiAt(kai.replace(/fill="#1f2328"/g, 'fill="#5a5a5a"').replace(/fill="#(?!5a5a5a)[0-9a-f]{6}"/gi, 'fill="#ffffff"')));
+const light = svg(`<rect width="${SIZE}" height="${SIZE}" fill="#ffffff"/>${cards(INK, GREEN)}`);
+// Dark: see-through, iOS puts its own dark background behind. A dark card would vanish there, so the top card is white.
+const dark = svg(cards('#ffffff', GREEN));
+// Tinted: iOS colors the picture by brightness. The top card is white, the card behind is grey.
+const tinted = svg(cards('#ffffff', '#8c8c8c'));
 
 const png = (source) => sharp(Buffer.from(source)).png().toBuffer();
-writeFileSync(join(out, 'icon.png'), await sharp(await png(light)).flatten({ background: '#aceebb' }).png().toBuffer());
+const flat = await sharp(await png(light)).flatten({ background: '#ffffff' }).png().toBuffer();
+writeFileSync(join(out, 'icon.png'), flat);
 writeFileSync(join(out, 'icon-dark.png'), await png(dark));
 writeFileSync(join(out, 'icon-tinted.png'), await png(tinted));
-writeFileSync(join(out, 'favicon.png'), await sharp(await png(light)).resize(48, 48).png().toBuffer());
+writeFileSync(join(out, 'favicon.png'), await sharp(flat).resize(48, 48).png().toBuffer());
 // The web app's icons (a phone's home screen, the install prompt): the light look, with no see-through part.
 if (!process.env.ICON_OUT) {
-  const flat = await sharp(await png(light)).flatten({ background: '#aceebb' }).png().toBuffer();
   for (const [name, size] of [['apple-touch-icon', 180], ['icon-192', 192], ['icon-512', 512]]) {
     writeFileSync(join(root, `public/icons/${name}.png`), await sharp(flat).resize(size, size).png().toBuffer());
   }
