@@ -19,7 +19,7 @@ cp android/app/build/outputs/bundle/release/app-release.aab "$out/Lockwords-$ver
 sdk=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 signer=$(ls "$sdk"/build-tools/*/apksigner 2>/dev/null | sort | tail -1)
 if [[ -n "$signer" ]]; then
-  who=$("$signer" verify --print-certs "$out/Lockwords-$version.apk" | sed -n 's/^Signer #1 certificate DN: //p')
+  who=$("$signer" verify --print-certs "$out/Lockwords-$version.apk" | sed -n 's/^.*[Ss]igner.*certificate DN: //p' | head -1)
   echo "signed by: $who"
   [[ "$who" == *"Android Debug"* ]] && echo "This is the DEBUG key: fine for a test, not for the Play Store (docs/android-release.md)." >&2
 fi

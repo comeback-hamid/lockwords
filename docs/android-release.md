@@ -8,7 +8,8 @@ GRADLE_USER_HOME=~/.config/lockwords/gradle-home npm run android:release
 ```
 - Output: `apps/mobile/build/android/Lockwords-<version>.apk` and `.aab` (not in git).
 - The app in these files talks to **the cloud** (the script empties the three `EXPO_PUBLIC_*` values, so a `.env.local` cannot leak in).
-- The script says who signed the APK. "Android Debug" means the upload key was not found.
+- Sizes on 2026-11-25: the APK is about 160 MB and the AAB about 120 MB. They hold the code for four chip types and are not shrunk; from the Play Store a phone downloads only its own part.
+- The script says who signed the APK ("CN=Lockwords" is the upload key). "Android Debug" means the upload key was not found.
 - On this Mac `GRADLE_USER_HOME` is needed for two reasons: Google's package server (see `apps/mobile/CLAUDE.md`, "Android") and the upload key.
 
 ## The upload key (never in git)
