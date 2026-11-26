@@ -28,6 +28,14 @@ e2e/           Maestro flows (one area tag each) + videos; e2e/web/ = the web ap
 7. `/opsx:archive` as the last commit → squash merge. Tiny fixes skip OpenSpec.
 More than ~10 tasks in a change → split it.
 
+### A change Hamid asks for (from 2026-11-26)
+iOS first, all platforms before merge. The three platforms share one codebase, so the change is already on Android and the web.
+1. Build it. Run only **quick checks**: unit tests for the changed part, typecheck, one look on the simulator. Install it on Hamid's iPhone. Do not merge.
+2. **Hamid checks it on his iPhone** and says yes, or asks for more (back to 1).
+3. After his yes, **deep checks on every platform** on the same branch: all Jest and server tests, the Maestro flows of the area on iOS and on Android, the browser tests (`npm run e2e:web`). Fix only what acts differently on a platform; never build the change again.
+4. Merge when CI is green. Then deliver everywhere: the server deploys by itself, a Release build on Hamid's iPhone, a new Android APK, the web deploy.
+Step 3 may run in another session while Hamid sends the next change. A new feature still needs his OK on the spec first (Checkpoint 1); this flow replaces Checkpoint 2 for these changes.
+
 ## Always
 - Tests first: write the test, run it, see it fail for the expected reason, then build.
 - Run the checks yourself and report the output. Never ask a human to run them. The checks say "done", not you.
