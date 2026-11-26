@@ -1,0 +1,112 @@
+# Android twin of progress-decks.yaml (2026-11-25). It is here because the iOS file is out of date, not because Android
+# differs: since PR #76 (Hamid, 2026-11-25) an "I know it" word is a mastered word and stays in the deck's counts and
+# in "All", so the deck page says 10 words, not 9. The iOS file still expects 9 and may not be changed by an agent.
+# When the iOS file follows the rule, delete this twin.
+# Progress: the total, the deck rows at the bottom of the page, the deck words page with filters (P3), Restore, and
+# "Review this deck".
+# Needs the local stack: `npm run dev:up`. Dev build.
+appId: com.comebackhamid.lockwords
+tags:
+  - my-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: progress-decks
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards due today"
+    timeout: 20000
+# The first round: one Hard, one "I know it", the rest Easy
+- tapOn: "Let’s start"
+- assertVisible: "la cuenta"
+- tapOn: "Hard"
+- extendedWaitUntil:
+    visible: "la propina"
+    timeout: 15000
+- tapOn: "Know it"
+- extendedWaitUntil:
+    visible: "8 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "7 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "6 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "5 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "4 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "3 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "2 words left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "Hard words go to your lock screen"
+    timeout: 15000
+- tapOn: "Continue"
+- tapOn: "Continue"
+- tapOn: "Close"
+# Progress tab: the total, and the decks as short rows at the bottom of the page
+- tapOn: "Progress"
+- extendedWaitUntil:
+    visible: "words in your word bank"
+    timeout: 15000
+- assertVisible: "10"
+- scrollUntilVisible:
+    element: "You have 1 deck"
+    direction: DOWN
+    timeout: 60000
+- scrollUntilVisible:
+    element: "Ordering food, 10 words · 9 learning"
+    direction: DOWN
+# The row can first show under the floating tab bar, where a tap would hit a tab: bring it up to the end of the page.
+- scroll
+- tapOn: "Ordering food, 10 words · 9 learning"
+# P3 Deck words: counts, chips; the known word is in All, under Mastered and under Known
+- extendedWaitUntil:
+    visible: "A1 · 10 WORDS"
+    timeout: 15000
+- assertVisible: "9 LEARNING · 1 HARD"
+- assertVisible: "All 10"
+- assertVisible: "Mastered 1"
+- assertVisible: "la cuenta, the bill, hard word"
+- assertVisible: "la propina, the tip.*"
+- tapOn: "Hard 1"
+- assertVisible: "la cuenta, the bill, hard word"
+- assertNotVisible: "pedir, to order"
+# Restore the "I know it" word
+- tapOn: "Known 1"
+- assertVisible: "la propina, the tip"
+- tapOn: "Restore la propina"
+- extendedWaitUntil:
+    notVisible: "Known 1"
+    timeout: 15000
+- assertVisible: "All 10"
+# Review this deck: only the restored word is left today; this round has a Close button
+- tapOn: "Review this deck"
+- extendedWaitUntil:
+    visible: "1 word left"
+    timeout: 15000
+- assertVisible: "la propina"
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "All 10"
+    timeout: 15000
+- stopRecording

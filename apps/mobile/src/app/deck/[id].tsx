@@ -13,6 +13,7 @@ import { LoadError, Loading } from '@/components/load-state';
 import { confirmAction } from '@/platform/dialog';
 import { useLoad } from '@/components/use-load';
 import { setRound } from '@/review/round-store';
+import { nameWhenShown } from '@/platform/hidden-name';
 import { colors, layout, levelColor, radius, space, type } from '@/theme/theme';
 
 const DELETE_WIDTH = 86; // the red Delete button behind a word row (Figma N7)
@@ -231,7 +232,7 @@ function SwipeRow({ label, deleteLabel, open, onOpen, onClose, onDelete, divider
     <View style={[styles.rowWrap, divider && styles.divider]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={deleteLabel}
+        accessibilityLabel={nameWhenShown(deleteLabel, open)}
         accessibilityElementsHidden={!open}
         importantForAccessibility={open ? 'yes' : 'no-hide-descendants'}
         onPress={onDelete}

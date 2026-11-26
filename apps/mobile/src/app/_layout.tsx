@@ -13,7 +13,6 @@ import { installPageStyle } from '@/platform/page-style';
 import { WebFrame } from '@/platform/web-frame';
 import { loadSpeechLanguage } from '@/review/speech-language';
 import { fonts } from '@/theme/fonts';
-import { colors } from '@/theme/theme';
 import { startWidgetSync } from '@/widgets/sync';
 import { firstFromUrl, tapped } from '@/widgets/tapped';
 

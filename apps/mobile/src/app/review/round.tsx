@@ -10,6 +10,7 @@ import type { Direction, ReviewCard } from '@/api/client';
 import { api } from '@/auth/boot';
 import { Icon, type IconName } from '@/components/icon';
 import { Kai } from '@/kai/kai';
+import { useBlockBack } from '@/platform/back';
 import { KeyHints } from '@/platform/key-hints';
 import { ROUND_TEST_ID, useRoundKeys } from '@/platform/round-keys';
 import { Flashcard, type CardRole } from '@/review/flashcard';
@@ -38,6 +39,7 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
   const { cards, index } = useRound();
   const card = cards[index];
   const next = cards[index + 1];
+  useBlockBack(card !== undefined); // Android: Back (and the edge swipe that is Back) does not leave a round
   const easyDays = useEasyDays();
   // Which card is flipped (by id), so a new card always starts on its front.
   const [flippedId, setFlippedId] = useState<string | null>(null);
@@ -80,13 +82,20 @@ export default function RoundScreen({ inTab = false, onDone }: { inTab?: boolean
   }, [inTab]);
 
   // Past the last card (by a swipe here or by "Next card" in Use it), and every swipe saved: leave the round.
+  // `pending` alone is not enough: on a swipe the card's place changes at once and `pending` goes up a moment later,
+  // so for one render the round looked done while its last swipe was still on its way. The Review tab then asked the
+  // server too early and showed "1 card due today" again (found on Android, 2026-11-25). So the saver has the last word.
   const done = index >= cards.length && pending === 0;
   useEffect(() => {
     if (!done) return;
-    if (onDone) return onDone();
     let on = true;
-    // The very first finished round shows the one-time screens (hard words → trial → paywall).
-    isIntroDone().then((seen) => on && router.replace(seen || cards.length === 0 ? '/(tabs)/review' : '/intro/hard-words'));
+    void savesDone().then(() => {
+      const round = getRound();
+      if (!on || round.index < round.cards.length) return; // a newer render took over, or a failed save put the card back
+      if (onDone) return onDone();
+      // The very first finished round shows the one-time screens (hard words → trial → paywall).
+      void isIntroDone().then((seen) => on && router.replace(seen || cards.length === 0 ? '/(tabs)/review' : '/intro/hard-words'));
+    });
     return () => {
       on = false;
     };

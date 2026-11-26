@@ -20,7 +20,8 @@ export default function TabsLayout() {
   if (!finished) return <Redirect href={startRoute(false)} />;
   return (
     // Figma Tab bar: Icon/24 glyphs exported from Figma (assets/tabs), muted when idle and green when selected.
-    <NativeTabs backgroundColor={colors.surface} labelStyle={{ selected: { color: colors.text } }} iconColor={{ default: colors.muted, selected: colors.button }}>
+    // Android (Material tab bar): the pill behind the chosen icon is our light green, not the system's purple.
+    <NativeTabs backgroundColor={colors.surface} labelStyle={{ selected: { color: colors.text } }} iconColor={{ default: colors.muted, selected: colors.button }} indicatorColor={colors.greenBg} rippleColor={colors.greenBg}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>New words</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon src={require('../../../assets/tabs/new-words.png')} renderingMode="template" />

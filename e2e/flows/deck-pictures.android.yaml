@@ -1,0 +1,223 @@
+# Deck pictures and the deck card's arrow column (2026-11-23).
+# Onboarding: the first deck's words are made, then Kai draws the pictures: the card counts them, Kai invites a
+# question and answers it, then says the pictures are ready; the ready card has the arrow column and opens the deck.
+# New words: the same for a deck Kai offers. Needs the local stack and a server with FIXTURE_PICTURE_MS (about 30000) and no OPENAI_API_KEY in its environment,
+# so the wait can be seen. Works with the stand-in AI and with the real one.
+# Android twin of deck-pictures.yaml. The one difference: in the New words chat it pulls the chat down to the card
+# before it checks "Drawing the pictures…" (see the note at that step). Keep the two files the same otherwise.
+appId: com.comebackhamid.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: deck-pictures
+# O0 Hello: Kai says welcome
+- extendedWaitUntil:
+    visible: "Start"
+    timeout: 30000
+- tapOn: "Start"
+# O1 I'm learning
+- assertVisible: "What do you want to learn?"
+- tapOn: "Spanish"
+- tapOn: "Continue"
+# O1c I speak
+- assertVisible: "What language do you speak?"
+- tapOn: "English"
+- tapOn: "Continue"
+# O2 Welcome
+- assertVisible: "Learn a word every time you unlock."
+- tapOn: "Get started"
+# O3 Level
+- assertVisible: "Your Spanish level"
+- tapOn: "Some basics"
+- tapOn: "Continue"
+# O4–O7 Word test (docs/vocab-engine.md): 5 basic words + 1 intermediate word → no advanced page → ≈ 150, A1
+- assertVisible: "BASIC WORDS"
+- tapOn: "la casa"
+- tapOn: "la noche"
+- tapOn: "comer"
+- tapOn: "la familia"
+- tapOn: "la mano"
+- assertVisible: "5 SELECTED"
+- runFlow: ../subflows/next-page.yaml
+- assertVisible: "INTERMEDIATE WORDS"
+- tapOn: "el reloj"
+- runFlow: ../subflows/next-page.yaml
+- extendedWaitUntil:
+    visible: "YOU ALREADY KNOW"
+    timeout: 15000
+- assertVisible: "About level A1"
+- extendedWaitUntil:
+    visible: "150"
+    timeout: 5000
+- tapOn: "Continue"
+# O8 Goal
+- assertVisible: "Why are you learning?"
+- tapOn: "Travel"
+- tapOn: "Continue"
+# O9 Interests
+- assertVisible: "What are you into?"
+- tapOn: "Food"
+- tapOn: "Music"
+- assertVisible: "2 SELECTED"
+- tapOn: "Continue"
+# O10 Kai asks the name
+- extendedWaitUntil:
+    visible: ".*What’s your name.*"
+    timeout: 20000
+- tapOn: "Message.*"
+- inputText: "Maya"
+- tapOn: "Send"
+# O10b chat language
+- assertVisible: ".*Nice to meet you, Maya.*"
+- tapOn: "English"
+# O10c what Kai does, pick your words
+- extendedWaitUntil:
+    visible: "Ordering food"
+    timeout: 20000
+- tapOn: "Ordering food"
+# O10d deck card
+- extendedWaitUntil:
+    visible: "Generate"
+    timeout: 20000
+# The Generate button cannot be tapped while Kai still types the line under the card. Wait for that line, then tap.
+- extendedWaitUntil:
+    visible: ".*Tap Generate.*"
+    timeout: 20000
+- tapOn: "Generate"
+# The words are made; now the pictures. The card counts them and cannot be opened yet.
+- extendedWaitUntil:
+    visible: ".*drawing a picture for each one.*"
+    timeout: 60000
+- assertVisible: "Drawing the pictures…"
+- assertVisible: ".* / 10 PICTURES"
+- assertNotVisible: "Open deck"
+- extendedWaitUntil:
+    visible: ".*Meanwhile, ask me a question.*"
+    timeout: 20000
+# The learner uses the wait: a question to Kai
+- tapOn: "Message.*"
+- inputText: "la cuenta?"
+- tapOn: "Send"
+# (On a slow Mac the pictures can be done before the question is typed: then Kai answers the last step instead.)
+- extendedWaitUntil:
+    visible: ".*Your pictures are almost ready.*"
+    timeout: 20000
+    optional: true
+# The pictures are ready: Kai says so, and the card can be opened (it has the arrow column)
+- extendedWaitUntil:
+    visible: ".*All the pictures are ready.*"
+    timeout: 120000
+- extendedWaitUntil:
+    visible: ".*Shall we practice them now.*"
+    timeout: 20000
+- repeat:
+    times: 6
+    while:
+      notVisible: "Open deck"
+    commands:
+      - swipe:
+          start: "50%, 26%"
+          end: "50%, 45%"
+          duration: 400
+      - waitForAnimationToEnd
+- assertVisible: "Open deck"
+- assertVisible:
+    id: "deck-open-column"
+- assertNotVisible: "Drawing the pictures…"
+- tapOn: "OK, let’s practice!"
+- extendedWaitUntil:
+    visible: "10 cards due today"
+    timeout: 20000
+# New words: a deck Kai offers gets its pictures the same way
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Message.*"
+- inputText: "Sí, quiero verlos"
+- tapOn: "Send"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Deck 1 of 3"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+- tapOn: "Generate"
+# Android: Kai's next lines push the card up, out of the chat's window, and Maestro on Android does not count a card
+# that is scrolled out (on iOS it does). So wait for Kai's line, then pull the chat down until the card shows.
+- extendedWaitUntil:
+    visible: ".*drawing a picture for each one.*"
+    timeout: 180000
+- repeat:
+    times: 6
+    while:
+      notVisible: "Drawing the pictures…"
+    commands:
+      - swipe:
+          start: "50%, 26%"
+          end: "50%, 45%"
+          duration: 400
+      - waitForAnimationToEnd
+- assertVisible: "Drawing the pictures…"
+- assertNotVisible: "Open deck"
+# Kai's "the pictures are ready" lines, then the card with the arrow column
+- extendedWaitUntil:
+    visible: "Open deck"
+    timeout: 120000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 60000
+- waitForAnimationToEnd
+# The arrow column opens the deck (pull the chat down until the card shows, then tap the column)
+- repeat:
+    times: 4
+    while:
+      notVisible: "Close"
+    commands:
+      - swipe:
+          start: "50%, 40%"
+          end: "50%, 60%"
+          duration: 400
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "deck-open-column"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Close"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: ".* WORDS"
+    timeout: 20000
+# The word cards show their pictures (the stand-in draws plain shapes): start the round and look at two cards
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "Message.*"
+    timeout: 20000
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: ".* cards due today"
+    timeout: 20000
+- tapOn: "Let’s start"
+- extendedWaitUntil:
+    visible: "la cuenta"
+    timeout: 20000
+- waitForAnimationToEnd
+# Flip the card: the back has the picture too
+- tapOn: "la cuenta"
+- extendedWaitUntil:
+    visible: "the bill"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn: "Easy"
+- extendedWaitUntil:
+    visible: "la propina"
+    timeout: 20000
+- waitForAnimationToEnd
+- stopRecording
