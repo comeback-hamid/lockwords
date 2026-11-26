@@ -50,6 +50,7 @@ jobs:
 
   # The Android app must build. A debug build for one chip type (the emulator's) keeps it short.
   # android/ is generated (CNG), so the job makes it first. The APK is kept for 7 days to try on a phone or emulator.
+  # No upload key here, so nothing in this job is signed for the Play Store (docs/android-release.md).
   android:
     runs-on: ubuntu-latest
     steps:

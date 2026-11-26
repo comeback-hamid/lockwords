@@ -18,7 +18,8 @@
     "audit": "node scripts/audit.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
     "dev:up": "bash scripts/dev-up.sh",
-    "build:web": "cd apps/mobile && npx expo export -p web --output-dir dist"
+    "build:web": "cd apps/mobile && npx expo export -p web --output-dir dist",
+    "android:release": "bash scripts/android-release.sh"
   },
   "engines": {
     "node": ">=22"
