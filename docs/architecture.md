@@ -138,7 +138,8 @@ GET /v1/widget/plan   →   src/widgets/sync.ts     →   src/widgets/lockwords-
 ```
 - **The server decides.** `src/widget/plan.ts` makes the slots (30 minutes each, 07:00 to 23:00, 48 hours ahead) and keeps what it handed out in `widget_plans`. iOS cannot say whether a person looked, so on the next call every kept slot whose end has passed counts as one look.
 - **The app carries.** It loads the plan when it starts and when it comes back to the front, and gives it to the widget through the app group (`expo-widgets`). The widget cannot call the server.
-- **The widget draws.** One timeline entry = one word, its meaning, the look (1 to 5) and the file of Kai's pose. After the last slot comes one "Open Lockwords" entry.
+- **Pictures.** The plan's slots also carry `example` and `imageUrl`. The widget cannot load from the network, so the app saves each word picture (WebP, as the server sends it) and Kai's poses as files in the shared folder (`src/widgets/pictures.ts`, `kai-files.ts`) and deletes the pictures of words that left the plan.
+- **The widget draws.** One layout file, four sizes: inline and rectangular on the lock screen, small and medium on the home screen (light, dark, tinted). One timeline entry = one word, its meaning, the look (1 to 5) and the file of Kai's pose. After the last slot comes one "Open Lockwords" entry.
 - **A tap** opens `lockwords://review?first=<card id>`; the Review tab asks `GET /v1/review?first=` and starts the round on that word.
 - Not built: a refresh while the app is closed (the plan lasts 48 hours), and knowing whether the learner added the widget.
 

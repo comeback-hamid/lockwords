@@ -88,7 +88,7 @@ export type CardsStore = {
   get(userId: string, id: string): Promise<(ReviewCard & CardState) | null>; // null also for another user's card
   save(id: string, patch: CardState): Promise<void>;
   hardWords(userId: string): Promise<{ word: string; translation: string }[]>;
-  widgetWords?(userId: string): Promise<{ id: string; word: string; translation: string; createdAt: Date }[]>; // the hard words, for the widget plan
+  widgetWords?(userId: string): Promise<{ id: string; word: string; translation: string; createdAt: Date; example: string; imageUrl?: string | null }[]>; // the hard words, for the widget plan. imageUrl: the stored picture path
   languages(userId: string): Promise<{ learningLanguage: string; nativeLanguage: string; chatLanguage?: string | null }>; // chatLanguage: 'native' | 'target', the language Kai speaks in chats
   remove?(userId: string, id: string): Promise<boolean>; // false = no such card for this user (or already removed)
 };

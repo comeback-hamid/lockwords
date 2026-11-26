@@ -2238,6 +2238,8 @@ export interface components {
             word: string;
             translation: string;
             look: number;
+            example?: string;
+            imageUrl?: string;
         };
         KaiScript: {
             native: {

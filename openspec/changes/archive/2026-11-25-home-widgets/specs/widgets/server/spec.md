@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Plan fields for the home widgets
-Every slot of `GET /v1/widget/plan` SHALL also have `example` (the card's example sentence, with the word marked `**like this**`) and `imageUrl` (the card's picture; left out when the card has none).
+Every slot of `GET /v1/widget/plan` SHALL also have `example` (the card's example sentence, as it is on the card) and `imageUrl` (the full address of the card's picture; left out when the card has none).
 
 #### Scenario: Card with a picture
 - **WHEN** the slot's card has a picture

@@ -60,7 +60,9 @@
               "ios": {
                 "supportedFamilies": [
                   "accessoryRectangular",
-                  "accessoryInline"
+                  "accessoryInline",
+                  "systemSmall",
+                  "systemMedium"
                 ],
                 "initialLayout": "./src/widgets/lockwords-widget.tsx"
               }

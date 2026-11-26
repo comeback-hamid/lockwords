@@ -13,27 +13,43 @@ const SOURCES: Record<KaiPose, number> = {
   speaking: require('../../assets/widget/kai-mono-speaking.png'),
   celebrate: require('../../assets/widget/kai-mono-celebrate.png'),
 };
+// The same poses in Kai's own colors, for the home screen widgets.
+const COLOR_SOURCES: Record<KaiPose, number> = {
+  greeting: require('../../assets/widget/kai-color-greeting.png'),
+  idle: require('../../assets/widget/kai-color-idle.png'),
+  thinking: require('../../assets/widget/kai-color-thinking.png'),
+  speaking: require('../../assets/widget/kai-color-speaking.png'),
+  celebrate: require('../../assets/widget/kai-color-celebrate.png'),
+};
 const VERSION = 1; // raise when the pictures change, so the old files are replaced
 
 let ready: Promise<KaiFiles> | null = null;
+let readyColor: Promise<KaiFiles> | null = null;
 
 // Copies the poses into the folder the widget can read (once per app start) and answers their addresses.
 export function kaiFiles(): Promise<KaiFiles> {
-  ready ??= copyAll().catch((e) => {
+  ready ??= copyAll(SOURCES, 'mono').catch((e) => {
     ready = null;
     throw e;
   });
   return ready;
 }
+export function kaiColorFiles(): Promise<KaiFiles> {
+  readyColor ??= copyAll(COLOR_SOURCES, 'color').catch((e) => {
+    readyColor = null;
+    throw e;
+  });
+  return readyColor;
+}
 
-async function copyAll(): Promise<KaiFiles> {
+async function copyAll(sources: Record<KaiPose, number>, kind: 'mono' | 'color'): Promise<KaiFiles> {
   const dir = new Directory(widgetsDirectory);
   if (!dir.exists) dir.create({ intermediates: true, idempotent: true });
   const entries = await Promise.all(
-    (Object.keys(SOURCES) as KaiPose[]).map(async (pose) => {
-      const target = new File(dir, `kai-mono-${pose}-v${VERSION}.png`);
+    (Object.keys(sources) as KaiPose[]).map(async (pose) => {
+      const target = new File(dir, `kai-${kind}-${pose}-v${VERSION}.png`);
       if (!target.exists) {
-        const asset = await Asset.fromModule(SOURCES[pose]).downloadAsync();
+        const asset = await Asset.fromModule(sources[pose]).downloadAsync();
         new File(asset.localUri!).copy(target);
       }
       return [pose, target.uri] as const;
