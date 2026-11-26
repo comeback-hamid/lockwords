@@ -1,0 +1,77 @@
+# Android twin of new-words-single-words.yaml. The one difference: after the question is sent it pulls the chat down
+# to the learner's own line before it checks it (see the note at that step). Keep the two files the same otherwise.
+# New words: a single word. Ask Kai how to say something, get a word card, add it to Random Words 1, see it in Review, and after a restart.
+# Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's word differs, the steps do not).
+appId: ai.dailydoses.lockwords
+tags:
+  - new-words
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- startRecording: new-words-single-words
+# O1–O10f: onboarding up to the first deck (shared steps). Lands on the Review tab.
+- runFlow: ../subflows/finish-onboarding.yaml
+- extendedWaitUntil:
+    visible: "10 cards due today"
+    timeout: 90000
+# New words: Kai opens the chat
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- extendedWaitUntil:
+    notVisible: "Kai is typing"
+    timeout: 40000
+# Ask how to say a word: Kai answers with a word card that names the deck
+- tapOn: "Message.*"
+- inputText: "How do I say umbrella?"
+- tapOn: "Send"
+# Android: a step takes about 3 seconds there, so Kai's word card is often on screen already and has pushed the
+# learner's own line up, out of the chat's window (Maestro on Android does not count a line that is scrolled out;
+# on iOS it does). So pull the chat down to the line, then go back down to the card.
+- repeat:
+    times: 6
+    while:
+      notVisible: "You: How do I say umbrella\\?"
+    commands:
+      - swipe:
+          start: "50%, 26%"
+          end: "50%, 45%"
+          duration: 400
+      - waitForAnimationToEnd
+- assertVisible: "You: How do I say umbrella\\?"
+- extendedWaitUntil:
+    visible: ".*Kai.*"
+    timeout: 40000
+- scrollUntilVisible:
+    element: "Add to Random Words 1"
+    direction: DOWN
+    timeout: 40000
+- assertVisible: "Say the word"
+- tapOn: "Say the word"
+# Add it: the button says "Added"
+- tapOn: "Add to Random Words 1"
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 20000
+# The Review tab has its red dot now (dev builds say so in a line Maestro can read)
+- assertVisible: "review dot on"
+- assertNotVisible: "Add to Random Words 1"
+# A tap on the card (not on a button) puts the keyboard away, so the tab bar shows again
+- tapOn:
+    id: "word-card-divider"
+# Review has the new word: 10 cards of the first deck and this one
+- tapOn: "Review"
+- extendedWaitUntil:
+    visible: "11 cards due today"
+    timeout: 20000
+# After a restart the card still says "Added"
+- stopApp
+- launchApp
+- tapOn: "New words"
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 20000
+- assertVisible: "You: How do I say umbrella\\?"
+- stopRecording

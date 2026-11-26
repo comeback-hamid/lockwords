@@ -71,17 +71,22 @@ tags:
 - assertVisible: "el camarero"
 # A fast flick also counts, and three in a row do not wait for each other
 # (Android: Maestro is here 0.2 s after the last swipe, and a debug build needs about 0.3 s to give the next card
-# its gesture. So the first flick waits for the screen to rest; the three flicks then follow each other as on iOS.)
+# its gesture; on a busy Mac it needs longer, and one of the three flicks was lost in about one run of three.
+# So on Android each flick waits for the screen to rest. "Three in a row do not wait" is checked on iOS and by Jest.)
 - waitForAnimationToEnd:
     timeout: 2000
 - swipe:
     start: "50%, 45%"
     end: "85%, 45%"
     duration: 150
+- waitForAnimationToEnd:
+    timeout: 2000
 - swipe:
     start: "50%, 45%"
     end: "85%, 45%"
     duration: 150
+- waitForAnimationToEnd:
+    timeout: 2000
 - swipe:
     start: "50%, 45%"
     end: "85%, 45%"
