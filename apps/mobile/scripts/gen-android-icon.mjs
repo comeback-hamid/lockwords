@@ -1,8 +1,13 @@
-// Writes the Android launcher icon from Kai's still pose (assets/kai/kai-idle.svg): Kai on the app's background.
-// Run: npm run android-icon:gen. Android cuts the icon to its own shape (circle, squircle…), so Kai stays inside the
-// middle 61 % of the picture ("safe zone" of an adaptive icon). No picture tools needed: Kai is only rectangles.
+// Writes Android's own pictures (iOS and the web get theirs from scripts/gen-app-icon.mjs). Run: npm run android-icon:gen
+// 1. The launcher icon: the app icon's two word cards (a dark card on top of a green one, Hamid's sketch, 2026-11-25),
+//    as an "adaptive icon": a see-through front picture over a white background. Android cuts the icon to its own
+//    shape (circle, squircle…), so the cards stay inside the middle 61 % of the picture, the part every shape keeps.
+// 2. The themed icon (Android 13+): the same cards in one color, the system tints them.
+// 3. The splash picture: Kai from assets/kai/kai-idle.svg. Android cuts the splash to a circle, so the iOS picture
+//    with the name under Kai does not fit; Kai alone does. No picture tools needed for it: Kai is only rectangles.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
+import sharp from 'sharp';
 
 const SIZE = 1024;
 const UNIT = 30; // one Kai block in pixels: Kai is 18 blocks wide = 540 px, inside the 624 px safe zone
@@ -63,7 +68,19 @@ function png(px) {
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 const out = (name, px) => writeFileSync(new URL(`../assets/images/${name}`, import.meta.url), png(px));
-out('android-icon-foreground.png', draw((r) => [...rgb(r.fill), 255]));
-// The themed icon (Android 13+): one flat shape, the system colors it. The eyes are holes.
-out('android-icon-monochrome.png', draw((r) => (r.fill === EYES ? null : [0, 0, 0, 255])));
-console.log('wrote the Android icon (foreground and monochrome)');
+out('splash-android.png', draw((r) => [...rgb(r.fill), 255]));
+
+// The two cards, with the measures of scripts/gen-app-icon.mjs made smaller to fit the safe zone:
+// the pair is 480 px wide (690 px in the iOS icon), so its rounded corners stay inside a circle of 61 %.
+const K = 480 / 690;
+const CARD = 480 * K; // one card's side
+const STEP = 210 * K; // how far the green card sits down and to the right of the dark one
+const RADIUS = 110 * K;
+const START = (SIZE - CARD - STEP) / 2;
+const card = (at, fill, opacity = 1) => `<rect x="${at}" y="${at}" width="${CARD}" height="${CARD}" rx="${RADIUS}" fill="${fill}" fill-opacity="${opacity}"/>`;
+const picture = (inside) => `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">${inside}</svg>`;
+const write = async (name, inside) => writeFileSync(new URL(`../assets/images/${name}`, import.meta.url), await sharp(Buffer.from(picture(inside))).png().toBuffer());
+await write('android-icon-foreground.png', card(START + STEP, '#4ac26b') + card(START, '#1f2328'));
+// One color: the card behind is half as strong, so the two cards still read as two.
+await write('android-icon-monochrome.png', card(START + STEP, '#000000', 0.5) + card(START, '#000000'));
+console.log('wrote the Android icon (two cards: foreground and monochrome) and the Android splash (Kai)');
