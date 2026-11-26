@@ -27,3 +27,4 @@ e2e/videos/*
 .kotlin/
 *.jks
 *.orig.*
+apps/mobile/build/
