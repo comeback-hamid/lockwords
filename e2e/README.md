@@ -27,6 +27,7 @@ The same flows run on Android: `npm run e2e -- --platform android` (or `LOCKWORD
 - **The Metro port is part of an Android debug build** (`--port` when it was built). `LOCKWORDS_METRO` is for iOS only.
 - **A twin file for a real platform difference:** `name.android.yaml` next to `name.yaml` (in `flows/` or `subflows/`) runs in its place on Android and never on iOS. A flow with only an `.android.yaml` file is Android only. Never change an iOS flow to make Android pass. Today's twins and why are listed at the top of each twin file.
 - **Parked on Android only:** `e2e/quarantine.android.txt` (same format as `quarantine.txt`).
+- **Twins today:** `chat-translate-keyboard`, `word-card`, `deck-pictures`, `progress-decks`, `new-words-single-words`; `home-widget` is Android only.
 - **Videos:** `e2e/videos/android/<name>.mp4`.
 - **`hideKeyboard` is the Back key on Android.** With the keyboard already closed, Back leaves the screen: from the Review tab it opens the first tab, from the first tab it leaves the app. So the runner makes every `hideKeyboard` of a flow run only while the keyboard is open (it looks for the keyboard's "Emoji button" key). Found with `new-words-decks`: Kai had already opened Review, the late Back went to New words again.
 - **Maestro on Android also lists views that are hidden from screen readers.** A check that something hidden "is not visible" can fail there with a correct app. Two fixes so far: a hidden control has no name on Android until it shows (`nameWhenShown`, `src/platform/hidden-name.ts`: the Delete button of a word row); `word-card` has a twin without the "card under the top card" check.
@@ -35,6 +36,8 @@ The same flows run on Android: `npm run e2e -- --platform android` (or `LOCKWORD
 - **Emulator setup that matters** (found 2026-11-25, `Pixel_9_Pro`, Android 16):
   - Start it with `-gpu host -feature -Vulkan`. With Vulkan on, every screenshot and video was plain white on this Mac.
   - Turn the mobile radio off and keep Wi-Fi: `adb shell cmd connectivity airplane-mode enable && adb shell svc wifi enable`. The emulator's signal bars jump between one and two bars, Maestro reads that as "the screen is still changing", and every tap waits longer.
+  - Turn stylus handwriting off: `adb shell settings put secure stylus_handwriting_enabled 0`. In the middle of a long run the Google keyboard opened its "Try out your stylus" screen and no typed text reached the app any more (six flows failed at "Send", 2026-11-26).
+  - Never read the screen with `adb shell uiautomator dump` while Maestro runs: both use Android's one automation service, and the running flow fails.
   - `clearKeychain` does nothing on Android, and is not needed: Android deletes an app's secure storage with its data.
 - **Why a debug build drops the splash hand-over** (`apps/mobile/plugins/with-android-debug-splash.js`): without it Android left a start animation hanging on the app's window and every Maestro tap took 12 seconds.
 - Not in CI: CI builds the Android app (job `android`), it does not run the flows on an emulator.
