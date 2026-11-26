@@ -28,3 +28,4 @@ e2e/videos/*
 *.jks
 *.orig.*
 apps/mobile/build/
+apps/mobile/modules/*/android/build/

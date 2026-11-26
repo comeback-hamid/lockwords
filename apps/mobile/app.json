@@ -24,7 +24,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.comebackhamid.lockwords"
+      "package": "ai.dailydoses.lockwords"
     },
     "web": {
       "output": "single",

@@ -39,7 +39,7 @@ test('the layouts use only views Android allows in a widget', () => {
 
 test('the widget wakes every 30 minutes (one word slot) and opens the app from a tap', () => {
   expect(read('modules/lockwords-widget/android/src/main/res/xml/lw_widget_info.xml')).toContain('android:updatePeriodMillis="1800000"');
-  const provider = read('modules/lockwords-widget/android/src/main/java/com/comebackhamid/lockwords/widget/HardWordsWidget.kt');
+  const provider = read('modules/lockwords-widget/android/src/main/java/ai/dailydoses/lockwords/widget/HardWordsWidget.kt');
   expect(provider).toContain('setOnClickPendingIntent(R.id.lw_root');
   expect(provider).toContain('Intent.ACTION_VIEW');
   // Colors come from the theme (light and dark), never from code: a color set from code stays when the phone's look changes.

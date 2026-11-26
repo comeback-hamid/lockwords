@@ -1,6 +1,6 @@
 {
   "platforms": ["android"],
   "android": {
-    "modules": ["com.comebackhamid.lockwords.widget.LockwordsWidgetModule"]
+    "modules": ["ai.dailydoses.lockwords.widget.LockwordsWidgetModule"]
   }
 }
