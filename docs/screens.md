@@ -151,3 +151,10 @@ The web app shows the phone screens above. These frames say how they sit in a br
 | W6 | Desktop · Deck page (480 px column, no side bar) | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2141-2) |
 | W7 | Tablet (600 to 1023 px) · New words: one centered column, the tab bar under it | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2142-2) |
 | W8 | Phone browser (under 600 px) · Review: as the phone | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2143-2) |
+
+## App icon
+Page "App icon" (added 2026-11-25). Made in code by `npm run icon:app`.
+
+| | Frame | Figma |
+|---|---|---|
+|  | App icon: light, dark, tinted | [open](https://www.figma.com/design/HSABWihDUDlsVz85aixHiT/?node-id=2169-157) |
