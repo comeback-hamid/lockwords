@@ -62,6 +62,7 @@
     "test": "jest",
     "api:gen": "npx -y openapi-typescript@7 ../server/openapi.json -o src/api/schema.ts",
     "widget:kai": "node scripts/gen-widget-kai.mjs",
+    "icon:app": "node scripts/gen-app-icon.mjs",
     "icons:gen": "node scripts/gen-icons.mjs",
     "android-icon:gen": "node scripts/gen-android-icon.mjs"
   },
