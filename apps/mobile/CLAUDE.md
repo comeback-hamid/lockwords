@@ -48,6 +48,7 @@ The same app runs on Android (since 2026-11-25). Package `com.comebackhamid.lock
 - **The tab bar** is Material's on Android: `indicatorColor` and `rippleColor` on `NativeTabs` are our light green. It is a normal bar under the screen, so `layout.tabBarClearance` is 0 there (92 on iOS, where the bar floats).
 - **Back** is the system's: it closes the keyboard, goes back one screen, opens the first tab from another tab, and leaves the app from the first tab. No screen changes that.
 - **Secure storage** is deleted with the app's data on Android (on iOS the Keychain stays), so `clearOnFreshInstall` finds nothing to clear there. It still runs: it costs nothing.
+- **The Android home screen widget** is native code in `modules/lockwords-widget` (Kotlin, its own layouts; see its README and `docs/architecture.md`). The app's side: `src/widgets/sync.android.ts` (Android's copy of `sync.ts`) and `android-widget.ts`. `src/widgets/sync.ts` stays iOS only. A change in `modules/` needs a new Android build. Kai's pictures there are written by `npm run widget:kai`.
 - **Maestro on Android:** `npm run e2e -- --platform android` (see `e2e/README.md`, "Android").
 
 ## Layers

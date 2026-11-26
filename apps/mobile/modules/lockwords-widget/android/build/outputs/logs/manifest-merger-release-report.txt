@@ -1,0 +1,38 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:1:1-16:12
+INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:1:1-16:12
+	package
+		INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:1:11-69
+application
+ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:2:3-15:17
+receiver#com.comebackhamid.lockwords.widget.HardWordsWidget
+ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:4:5-14:16
+	android:label
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:7:7-45
+	android:exported
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:6:7-30
+	android:name
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:5:7-38
+intent-filter#action:name:android.appwidget.action.APPWIDGET_UPDATE
+ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:8:7-10:23
+action#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:9:9-76
+	android:name
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:9:17-73
+meta-data#android.appwidget.provider
+ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:11:7-13:50
+	android:resource
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:13:9-47
+	android:name
+		ADDED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml:12:9-50
+uses-sdk
+INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml
+INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/hamidrezazadeh/apps/lockwords-android-widget/apps/mobile/modules/lockwords-widget/android/src/main/AndroidManifest.xml
