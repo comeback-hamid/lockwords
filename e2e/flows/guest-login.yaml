@@ -1,5 +1,5 @@
 # Needs the local stack: `npm run dev:up` (Supabase + server). Dev build only (the user id line shows in dev builds).
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---

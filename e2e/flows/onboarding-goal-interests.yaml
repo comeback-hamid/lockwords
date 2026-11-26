@@ -1,6 +1,6 @@
 # O8 Goal (Other with a reason) and O9 Interests (20 tiles, 1 to 5 picked). Figma O8b, O9b.
 # Needs the local stack (Supabase login + server). Dev build only.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---

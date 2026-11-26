@@ -1,6 +1,6 @@
 # Live Kai (kai-character): O0 Hello (a very big Kai waves), O2 waves (a big Kai, the word in the learned language), tapping Kai waves again, then the chat header Kai moves with each step.
 # Needs the local stack (server + Supabase login). Dev build only.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - kai
 ---

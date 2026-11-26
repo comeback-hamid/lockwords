@@ -1,6 +1,6 @@
 # O1–O1c languages: 13 languages + Other, a typed language checked by the server (fixture), O1c blocks the learned language.
 # Needs the local stack (server without ANTHROPIC_API_KEY = the fixture checker). Dev build only.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---

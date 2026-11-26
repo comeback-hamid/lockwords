@@ -1,6 +1,6 @@
 # Smoke test: a fresh install opens on O0 Hello (Kai says welcome), Start opens the first question,
 # and a restart before onboarding is finished opens Hello again.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - platform
 ---

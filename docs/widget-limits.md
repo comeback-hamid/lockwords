@@ -13,7 +13,7 @@ Where Apple's docs say nothing, this file says so.
 | 3 | **The widget cannot fetch.** With `expo-widgets` its code has no network and no timers. | The app gets the word plan from the server and hands it to the widget. |
 | 4 | **The lock screen has no color.** iOS turns everything into one tint. | Lock widgets are designed in white and greys. Kai needs a one-color drawing. |
 | 5 | **A lock screen widget is tiny.** 160×72 points for the big one. | One hard word, its meaning, five small squares, a small Kai. Nothing more fits. The round one (72×72) is too small for a word, so we do not make it. |
-| 6 | **A real iPhone needs an app group on the Apple account.** | Works on the simulator. On Hamid's phone it is not sure yet (see "Signing"). |
+| 6 | **A real iPhone needs an app group on the Apple account.** | Works on the simulator. On Hamid's phone the build with the app group installs (2026-11-26, paid team; see "Signing"). |
 
 ## 1. Sizes
 
@@ -79,7 +79,7 @@ All from AD `/widgetkit/keeping-a-widget-up-to-date`.
 
 ## 7. How data gets to the widget
 
-- The app and the widget share one folder, the **app group** (`group.com.comebackhamid.lockwords`). The app writes, the widget reads.
+- The app and the widget share one folder, the **app group** (`group.ai.dailydoses.lockwords`). The app writes, the widget reads.
 - With `expo-widgets` the app calls `updateTimeline(entries)`. The widget then runs alone from that list (`policy: .atEnd`).
 - The widget cannot ask the server by itself. If the app is not opened for days, the list runs out and the widget keeps its last entry. So the last entry must be a good one ("Open Lockwords · for your hard words").
 - A silent push can ask iOS to reload a widget (iOS 26), but it cannot bring new words without our app code running, and it needs the paid Apple account. Not in v1.
@@ -98,8 +98,10 @@ All from AD `/widgetkit/keeping-a-widget-up-to-date`.
 - Changing the word needs no new build. Adding the widget needs **one new dev build**.
 - Not tested then: a real iPhone, Mona Sans, pictures, a timeline with many entries, a tap that opens a word.
 
-## 10. Signing (checked 2026-11-25)
+## 10. Signing (2026-11-26)
 
-- Hamid's iPhone build is signed with a **free personal Apple team** (a 7-day profile made by Xcode; the current one ends on 2026-11-28).
-- That profile covers the app only. The widget is a second small program and needs its own ID, plus the app group on both.
-- Not tried yet. It may work with the free team, or it may need the paid Apple Developer account. **Until it is tried, we do not promise the widget on the real phone.**
+- The iPhone app is `ai.dailydoses.lockwords`, signed by Hamid's **paid Apple team** (`2GZW9557HC`, in `app.json` as `appleTeamId`).
+- The widget is a second small program with its own ID (`ai.dailydoses.lockwords.ExpoWidgetsTarget`). Both have the app group. Xcode made both profiles.
+- A signed Release build with all four widgets was installed on Hamid's iPhone on 2026-11-26. **Not seen yet:** the widgets on the real lock screen and home screen (no agent can see the phone).
+- The first ID, `com.comebackhamid.lockwords`, belongs to a free personal team of another Apple account. A free team's ID cannot be moved or deleted, so the paid team could not use it. Android still uses that name as its package.
+- How to make the build: `apps/mobile/CLAUDE.md`, "A build for a real iPhone".

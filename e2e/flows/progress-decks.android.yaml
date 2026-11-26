@@ -5,7 +5,7 @@
 # Progress: the total, the deck rows at the bottom of the page, the deck words page with filters (P3), Restore, and
 # "Review this deck".
 # Needs the local stack: `npm run dev:up`. Dev build.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - my-words
 ---

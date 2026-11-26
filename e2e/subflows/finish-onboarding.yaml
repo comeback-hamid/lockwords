@@ -1,6 +1,6 @@
 # Shared steps: a fresh install goes through onboarding (O1–O10f) and lands on the Review tab.
 # Used with runFlow. Not run alone (scripts/e2e.sh only runs e2e/flows).
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 ---
 # O0 Hello: Kai says welcome
 - extendedWaitUntil:
