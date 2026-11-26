@@ -48,6 +48,7 @@ The same app runs on Android (since 2026-11-25). Package `com.comebackhamid.lock
 - **The tab bar** is Material's on Android: `indicatorColor` and `rippleColor` on `NativeTabs` are our light green. It is a normal bar under the screen, so `layout.tabBarClearance` is 0 there (92 on iOS, where the bar floats).
 - **Back** is the system's: it closes the keyboard, goes back one screen, opens the first tab from another tab, and leaves the app from the first tab. No screen changes that.
 - **Secure storage** is deleted with the app's data on Android (on iOS the Keychain stays), so `clearOnFreshInstall` finds nothing to clear there. It still runs: it costs nothing.
+- **A release build:** `npm run android:release` from the repo root (`docs/android-release.md`). `plugins/with-android-release-signing.js` signs it with the upload key when the key's Gradle properties are set; the key is never in git.
 - **Maestro on Android:** `npm run e2e -- --platform android` (see `e2e/README.md`, "Android").
 
 ## Layers
