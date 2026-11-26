@@ -7,7 +7,7 @@
 - [x] 2.2 `__tests__/android-widget-files.test.ts`: the pictures and colors match the iOS widget, only allowed views, the 30-minute refresh and the tap are there.
 
 ## 3. Check and docs
-- [ ] 3.1 On the emulator: a new Android build; `home-widget.android.yaml`; the widget on the home screen, small and medium, light and dark, a tap opens the word.
+- [x] 3.1 On the emulator: a new Android build; `home-widget.android.yaml` passes; the widget on the home screen, small and medium, light and dark; a tap opens the word, also after Android ended the app's process; the word changed by itself at the next slot with the app closed.
 - [x] 3.2 `docs/product.md` 7.4, `docs/architecture.md`, `apps/mobile/CLAUDE.md`, `docs/roadmap.md`.
 
 ## Notes
