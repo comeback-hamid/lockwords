@@ -1,6 +1,6 @@
 # Word test, situation 1: starting from zero. "Brand new" skips the test (docs/vocab-engine.md 1.4).
 # Needs the local stack: `npm run dev:up`.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---

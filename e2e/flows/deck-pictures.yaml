@@ -3,7 +3,7 @@
 # question and answers it, then says the pictures are ready; the ready card has the arrow column and opens the deck.
 # New words: the same for a deck Kai offers. Needs the local stack and a server with FIXTURE_PICTURE_MS (about 30000) and no OPENAI_API_KEY in its environment,
 # so the wait can be seen. Works with the stand-in AI and with the real one.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - new-words
 ---

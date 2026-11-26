@@ -1,7 +1,7 @@
 # Progress home (P1), top to bottom: the numbers, the meadow, the goal grid, the big meadow, and the
 # decks as short rows. No hard words on this page (Hamid, 2026-11-23). After the first round the numbers move.
 # Needs the local stack: `npm run dev:up`. Dev build.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - my-words
 ---

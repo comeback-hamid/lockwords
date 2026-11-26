@@ -5,7 +5,7 @@
 # Android twin of chat-translate-keyboard.yaml. The one difference: the key that proves the keyboard is open.
 # On iOS it is named "Emoji", on Android (Gboard) "Emoji button". Keep the two files the same otherwise.
 # Needs the local stack: `npm run dev:up`. Dev build.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - platform
 ---

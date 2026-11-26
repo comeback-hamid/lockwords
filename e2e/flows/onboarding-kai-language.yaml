@@ -2,7 +2,7 @@
 # chat starts, and again follows the picked chat language. The stand-in translator returns the English lines, so the
 # texts here are English; the steps and the server call are the real ones. (Other languages: see the screen tests.)
 # Needs the local stack: `npm run dev:up`. Dev build.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---

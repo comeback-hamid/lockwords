@@ -13,7 +13,8 @@
         "dark": "./assets/images/icon-dark.png",
         "tinted": "./assets/images/icon-tinted.png"
       },
-      "bundleIdentifier": "com.comebackhamid.lockwords",
+      "bundleIdentifier": "ai.dailydoses.lockwords",
+      "appleTeamId": "2GZW9557HC",
       "supportsTablet": false
     },
     "android": {

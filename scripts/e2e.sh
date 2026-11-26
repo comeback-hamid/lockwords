@@ -50,6 +50,13 @@ done
 # Android: `hideKeyboard` is the Back key. With the keyboard already closed, Back leaves the screen (from the Review tab
 # it opens the first tab, from the first tab it leaves the app), and a flow goes wrong for no real reason. So on Android
 # a flow presses it only while the keyboard is open ("Emoji button" is a key of the Android keyboard).
+# The flows name the app by its iPhone ID. Android has its own package (apps/mobile/app.json), so an Android run gets
+# that one in its copies of the flows.
+if [[ "$platform" == android ]]; then
+  ANDROID_APP_ID=$(node -p "require('./apps/mobile/app.json').expo.android.package")
+  export ANDROID_APP_ID
+  find "$src/flows" "$src/subflows" -name '*.yaml' -exec perl -pi -e 's/^appId: .*$/appId: $ENV{ANDROID_APP_ID}/' {} +
+fi
 if [[ "$platform" == android ]]; then
   find "$src/flows" "$src/subflows" -name '*.yaml' -exec perl -0pi -e \
     's/(visible: "I\.m Kai, welcome to Lockwords"\n\s+timeout: )15000/${1}60000/g;

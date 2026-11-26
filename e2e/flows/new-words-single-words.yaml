@@ -1,6 +1,6 @@
 # New words: a single word. Ask Kai how to say something, get a word card, add it to Random Words 1, see it in Review, and after a restart.
 # Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's word differs, the steps do not).
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - new-words
 ---

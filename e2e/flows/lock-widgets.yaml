@@ -2,7 +2,7 @@
 # (lockwords://review?first=<id>) starts Review on that hard word. Maestro cannot tap a widget on the lock screen,
 # so the flow reads the address from a dev-only line on the Review tab.
 # Needs the local stack: `npm run dev:up`. Dev build with the widget (expo-widgets).
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - widget
 ---

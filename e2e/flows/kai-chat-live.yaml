@@ -1,7 +1,7 @@
 # Kai chat live (kai-chat-live): Kai types with dots, answers a question off the script and asks again,
 # reads a name in a sentence, a tapped option rises into the chat, then the deck is made.
 # Needs the local stack (server without an AI key uses the fixture Kai reply). Dev build only.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - kai
 ---

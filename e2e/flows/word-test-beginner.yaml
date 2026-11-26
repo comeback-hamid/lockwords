@@ -1,6 +1,6 @@
 # Word test, situation 2: a beginner. Basic + intermediate pages only (3 or fewer intermediate words → no advanced page).
 # Needs the local stack: `npm run dev:up`.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---

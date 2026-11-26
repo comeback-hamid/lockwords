@@ -1,6 +1,6 @@
 # Word test, situation 3: an advanced learner. All four pages: 15+ advanced words open the EXPERT page.
 # All of A and B, 16 of C, 8 of D → ≈ 4,600, C1 (checked with the engine). Needs the local stack: `npm run dev:up`.
-appId: com.comebackhamid.lockwords
+appId: ai.dailydoses.lockwords
 tags:
   - onboarding
 ---
