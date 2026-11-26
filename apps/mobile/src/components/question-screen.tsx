@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
 import type { ComponentRef, ReactNode, Ref } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { avoidKeyboard } from '@/components/chat/keyboard';
 import { TOTAL_STEPS } from '@/onboarding/flow';
 import { colors, layout, space, type } from '@/theme/theme';
 
@@ -26,7 +27,7 @@ export function QuestionScreen({ step, back = true, title, children, button, lin
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
-    <KeyboardAvoidingView style={[styles.root, { paddingTop: insets.top }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.root, { paddingTop: insets.top }]} behavior={avoidKeyboard()}>
       <View style={styles.topBar}>
         <View style={styles.back}>
           {back ? (

@@ -14,9 +14,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#f6f8fa",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -27,13 +26,18 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/with-android-debug-splash",
       "expo-router",
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#f6f8fa",
           "image": "./assets/images/splash.png",
-          "imageWidth": 240
+          "imageWidth": 240,
+          "android": {
+            "image": "./assets/images/android-icon-foreground.png",
+            "imageWidth": 288
+          }
         }
       ],
       "expo-secure-store",
@@ -41,6 +45,7 @@
         "expo-audio",
         {
           "microphonePermission": "Lockwords uses the microphone when you tap the mic to speak your message. It turns your voice into text.",
+          "recordAudioAndroid": true,
           "enableBackgroundPlayback": false
         }
       ],

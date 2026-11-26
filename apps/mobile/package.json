@@ -54,7 +54,7 @@
   "scripts": {
     "start": "expo start",
     "ios": "expo run:ios",
-    "android": "expo run:android",
+    "android": "expo run:android --variant debugOptimized",
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
@@ -62,7 +62,8 @@
     "test": "jest",
     "api:gen": "npx -y openapi-typescript@7 ../server/openapi.json -o src/api/schema.ts",
     "widget:kai": "node scripts/gen-widget-kai.mjs",
-    "icons:gen": "node scripts/gen-icons.mjs"
+    "icons:gen": "node scripts/gen-icons.mjs",
+    "android-icon:gen": "node scripts/gen-android-icon.mjs"
   },
   "private": true,
   "jest": {

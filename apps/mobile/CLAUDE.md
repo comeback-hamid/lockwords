@@ -6,6 +6,7 @@ Expo SDK 58, React Native 0.88, TypeScript strict, Expo Router (routes in `src/a
 ```bash
 npx expo install <package>   # ALWAYS, never npm install here
 npm run ios                  # dev build on the iOS simulator (npx expo run:ios)
+npm run android              # optimized dev build on the Android emulator (see "Android" below)
 npm start                    # dev server for an existing dev build
 npm test                     # Jest + React Native Testing Library
 npm run typecheck            # tsc --noEmit
@@ -33,6 +34,21 @@ The same app runs in a browser (`web-build`). Rules for code that must work ther
 - The web tab bar is our own (`@/platform/web-tab-bar`), passed to `Tabs` as `tabBar`. `installPageStyle` (`@/platform/page-style`) adds the few page-wide CSS rules a browser needs.
 - Browsers differ: Firefox drags a picture by itself (off, `installPageStyle`); Safari records mp4 and the others webm or ogg (`audioFormat(uri, blob.type)`); the mic note for a browser is `micRefused()` (`@/platform/dialog`).
 - The dev server for a browser check: `npm run web`. Do not start it with `CI=1`: Metro then stops watching files and serves old code.
+
+## Android
+The same app runs on Android (since 2026-11-25). Package `com.comebackhamid.lockwords`. Rules for code that must work there:
+- **Build:** `npx expo run:android --variant debugOptimized --port <your Metro port>` (the port becomes part of the build). Use `debugOptimized`, not plain `debug`: the app draws Kai and the meadow on the UI thread, and with unoptimized native code the Progress meadow runs at 8 frames a second. `android/` is generated: Android setup goes in `app.json` and in the config plugins in `plugins/`.
+- **This Mac's network gets 404 from `dl.google.com`** (Google's package and SDK server; found 2026-11-25). Builds here use Google's other address through a local Gradle folder that is not in git: start every Gradle or Expo Android command with `GRADLE_USER_HOME=~/.config/lockwords/gradle-home` (its `init.d/google-mirror.init.gradle` adds `https://edgedl.me.gvt1.com/edgedl/android/maven2`). New SDK parts (a platform, build tools, an NDK) are downloaded by hand from `https://edgedl.me.gvt1.com/edgedl/android/repository/` and checked against the SHA-1 in `repository2-3.xml` there. CI (GitHub) uses Google directly.
+- **The emulator:** `emulator -avd Pixel_9_Pro -gpu host -feature -Vulkan` (with Vulkan every screenshot is white), then `adb reverse tcp:<port> tcp:<port>` for the server, Supabase (54321) and Metro, so `.env.local` keeps its `localhost` addresses.
+- **The icon** is Kai on the app's background: `npm run android-icon:gen` draws `assets/images/android-icon-foreground.png` and `-monochrome.png` from `assets/kai/kai-idle.svg`. The same picture is the Android splash (`app.json`, `expo-splash-screen` → `android`): Android cuts the splash to a circle, so the iOS picture with the name under Kai does not fit.
+- **Edge to edge:** Android draws the app under the status bar and the keyboard. So: every screen with a text box passes `behavior={avoidKeyboard()}` (`components/chat/keyboard.ts`) to its `KeyboardAvoidingView`; the root layout asks for dark status bar icons (`<StatusBar style="dark" />`).
+- **A chat scrolls to its end with `scrollChatToEnd` only.** On Android it scrolls again on the next frame, because the list does not know its new height yet in the same frame (the reply options stayed under the text box).
+- **`plugins/with-android-debug-splash.js`:** debug builds only. It lets Android remove the splash by itself. Without it a debug build left a start animation hanging on the window, and every tap from a test tool took 12 seconds. Release builds keep Expo's fade.
+- **A control that is hidden from screen readers but still on the screen** (a button under a row, a card under a card) keeps its name for test tools on Android. Give it `accessibilityLabel={nameWhenShown(name, shown)}` (`src/platform/hidden-name.ts`).
+- **The tab bar** is Material's on Android: `indicatorColor` and `rippleColor` on `NativeTabs` are our light green. It is a normal bar under the screen, so `layout.tabBarClearance` is 0 there (92 on iOS, where the bar floats).
+- **Back** is the system's: it closes the keyboard, goes back one screen, opens the first tab from another tab, and leaves the app from the first tab. No screen changes that.
+- **Secure storage** is deleted with the app's data on Android (on iOS the Keychain stays), so `clearOnFreshInstall` finds nothing to clear there. It still runs: it costs nothing.
+- **Maestro on Android:** `npm run e2e -- --platform android` (see `e2e/README.md`, "Android").
 
 ## Layers
 - `src/app/`: screens only (Expo Router). `(tabs)/`: New words · Review · Progress (v1, decided 2026-11-16). Progress = the My words page as a tab. Speak comes after v1.

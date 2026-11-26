@@ -1,12 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/auth/boot';
 import { ChatBubble, TypingBubble } from '@/components/chat/chat-bubble';
 import { Composer } from '@/components/chat/composer';
-import { chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
+import { avoidKeyboard, chatMessagesGrow, chatScrollProps, scrollChatToEnd, useScrollToEndOnKeyboard } from '@/components/chat/keyboard';
 import { KaiHeader } from '@/components/chat/kai-header';
 import { ReplyOptions } from '@/components/chat/reply-options';
 import { TranslationToggle } from '@/components/chat/translation-toggle';
@@ -152,7 +152,7 @@ function UseItChat({ card, script }: { card: NonNullable<ReturnType<typeof findC
   }
 
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.root} behavior={avoidKeyboard()}>
       <KaiHeader pose={pose} talking={typing} listening={composerText} icon="close" onBack={close} right={translation.code ? <TranslationToggle code={translation.code} on={translation.on} onToggle={translation.toggle} /> : undefined} />
       <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.messages, chatMessagesGrow]} {...chatScrollProps}>
         {messages.map((m, i) =>

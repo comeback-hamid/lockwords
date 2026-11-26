@@ -44,6 +44,8 @@ export const opacity = { disabled: 0.4 } as const;
 
 export const radius = { badge: 6, control: 12, sheet: 16, card: 20, pill: 999 } as const;
 
+export const tabBarClearanceFor = (os: string) => (os === 'ios' ? 92 : 0);
+
 export const layout = {
   frameWidth: 393,
   sideMargin: 20,
@@ -51,8 +53,8 @@ export const layout = {
   minTapTarget: 44,
   kaiHeaderHeight: 176,
   // The iOS tab bar floats over the screen. A tab screen with a control at the bottom keeps this much room under it.
-  // In a browser the tab bar is a normal bar under the screen, so nothing has to be kept free.
-  tabBarClearance: Platform.OS === 'web' ? 0 : 92,
+  // On Android and in a browser the tab bar is a normal bar under the screen, so nothing has to be kept free.
+  tabBarClearance: tabBarClearanceFor(Platform.OS),
 } as const;
 
 // The word card (Figma: Flashcard, Flashcard · back, Flashcard · rules).

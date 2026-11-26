@@ -1,0 +1,3 @@
+# Flows that `npm run e2e -- --platform android` skips, one file name per line, with the reason. Empty = nothing skipped.
+# lock-widgets.yaml: the iOS lock screen widget. Android has no lock screen widgets; its home screen widget has its own flow.
+lock-widgets.yaml

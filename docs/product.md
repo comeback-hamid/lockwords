@@ -69,7 +69,7 @@ A **minimal flashcard app for any language**.
 
 | In v1 | Not in v1 (later) |
 |---|---|
-| iOS app + web app | Android |
+| iOS app + Android app + web app (Android added 2026-11-25, Hamid: the same app with every function of the iOS app) | |
 | Onboarding with level + word test + first deck with Kai | Web-to-app funnel (buy on web, then app) |
 | New words tab: chat with Kai, daily deck ideas, own deck by talking | Sharing decks (link / QR) + web deck maker for teachers |
 | Kai free questions ("How do I say…?", "I have a question") | Add my own single word |
