@@ -1,7 +1,7 @@
 # Removing words and a deck. Make a deck in the New words chat, open it, swipe three words left and delete them,
 # see the count and Review follow; then remove the whole deck and see Review and the chat follow.
 # Needs the local stack: `npm run dev:up`. Dev build. Written for the stand-in AI (its deck of 12 has these words).
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - my-words
 ---

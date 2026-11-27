@@ -13,9 +13,13 @@
         "dark": "./assets/images/icon-dark.png",
         "tinted": "./assets/images/icon-tinted.png"
       },
-      "bundleIdentifier": "ai.dailydoses.lockwords",
-      "appleTeamId": "2GZW9557HC",
-      "supportsTablet": false
+      "bundleIdentifier": "com.dailydoses.lockwords",
+      "appleTeamId": "977V8PWS54",
+      "supportsTablet": false,
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +28,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "ai.dailydoses.lockwords"
+      "package": "com.dailydoses.lockwords"
     },
     "web": {
       "output": "single",

@@ -1,4 +1,4 @@
-package ai.dailydoses.lockwords.widget
+package com.dailydoses.lockwords.widget
 
 import org.json.JSONArray
 

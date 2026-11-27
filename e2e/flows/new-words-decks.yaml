@@ -1,7 +1,7 @@
 # New words: decks. First visit (Kai asks first), yes, swipe the three ideas, Generate, the deck is ready and in the word list,
 # the Review dot, "Let's practice" lands on Review; then the learner asks for their own deck.
 # Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's words differ, the steps do not).
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - new-words
 ---

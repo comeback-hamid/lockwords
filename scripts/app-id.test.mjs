@@ -8,9 +8,9 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 const app = JSON.parse(read('apps/mobile/app.json')).expo;
 
-test('the iPhone app has the ID of the paid Apple team', () => {
-  assert.equal(app.ios.bundleIdentifier, 'ai.dailydoses.lockwords');
-  assert.equal(app.ios.appleTeamId, '2GZW9557HC');
+test('the iPhone app has the ID of the Daily Doses Apple team', () => {
+  assert.equal(app.ios.bundleIdentifier, 'com.dailydoses.lockwords');
+  assert.equal(app.ios.appleTeamId, '977V8PWS54');
 });
 
 test('every Maestro flow and subflow names the app by its iPhone ID', () => {

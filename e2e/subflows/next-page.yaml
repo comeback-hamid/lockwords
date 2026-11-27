@@ -1,5 +1,5 @@
 # Leave a word test page: "See all words ↓" first when some words are below the screen, then Continue.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 ---
 - runFlow:
     when:

@@ -5,7 +5,7 @@
 # so the wait can be seen. Works with the stand-in AI and with the real one.
 # Android twin of deck-pictures.yaml. The one difference: in the New words chat it pulls the chat down to the card
 # before it checks "Drawing the pictures…" (see the note at that step). Keep the two files the same otherwise.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - new-words
 ---

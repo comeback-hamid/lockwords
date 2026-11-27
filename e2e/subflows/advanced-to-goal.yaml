@@ -1,6 +1,6 @@
 # A fresh install as an advanced learner, up to O8 Goal: all four word-test pages → ≈ 4,600, C1 (the top deck band).
 # Used with runFlow.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 ---
 - runFlow: to-level.yaml
 - tapOn: "Advanced"
