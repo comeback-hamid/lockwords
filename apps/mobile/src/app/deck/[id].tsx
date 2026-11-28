@@ -172,15 +172,17 @@ export default function DeckScreen() {
                       onClose={() => setOpenId((now) => (now === card.id ? null : now))}
                       onDelete={() => void removeWord(card.id)}
                       divider={i < shown.length - 1}
+                      trailing={
+                        card.known ? (
+                          <Pressable accessibilityRole="button" accessibilityLabel={`Restore ${card.word}`} onPress={() => void restore(card.id)} hitSlop={8}>
+                            <Text style={[type.captionStrong, styles.green]}>Restore</Text>
+                          </Pressable>
+                        ) : null
+                      }
                     >
                       <View style={[styles.square, { backgroundColor: levelColor(card.stage, !!card.known) }]} />
                       <LangText style={[type.bodyStrong, styles.ink, styles.word]}>{card.word}</LangText>
                       <LangText style={[type.callout, styles.muted]}>{card.translation}</LangText>
-                      {card.known ? (
-                        <Pressable accessibilityRole="button" accessibilityLabel={`Restore ${card.word}`} onPress={() => void restore(card.id)} hitSlop={8}>
-                          <Text style={[type.captionStrong, styles.green]}>Restore</Text>
-                        </Pressable>
-                      ) : null}
                     </SwipeRow>
                   ))}
                 </View>
@@ -199,11 +201,12 @@ export default function DeckScreen() {
   );
 }
 
-type SwipeRowProps = { label: string; deleteLabel: string; open: boolean; onOpen(): void; onClose(): void; onDelete(): void; divider: boolean; children: ReactNode };
+type SwipeRowProps = { label: string; deleteLabel: string; open: boolean; onOpen(): void; onClose(): void; onDelete(): void; divider: boolean; trailing?: ReactNode; children: ReactNode };
 
 // One word row. A pull to the left slides it away and shows the red Delete button behind it (the same PanResponder way as the review card).
-// Screen readers get the same thing as the row's "Delete" action.
-function SwipeRow({ label, deleteLabel, open, onOpen, onClose, onDelete, divider, children }: SwipeRowProps) {
+// Screen readers get the same thing as the row's "Delete" action. `trailing` (Restore) sits next to the row, not inside it:
+// on iOS an `accessible` row hides every button inside it from screen readers and test tools.
+function SwipeRow({ label, deleteLabel, open, onOpen, onClose, onDelete, divider, trailing, children }: SwipeRowProps) {
   const [x] = useState(() => new Animated.Value(0));
   const live = useRef({ open, onOpen, onClose });
   useEffect(() => {
@@ -240,7 +243,7 @@ function SwipeRow({ label, deleteLabel, open, onOpen, onClose, onDelete, divider
       >
         <Text style={[type.bodyStrong, styles.deleteLabel]}>Delete</Text>
       </Pressable>
-      <Animated.View {...pan.panHandlers} style={{ transform: [{ translateX: x }] }}>
+      <Animated.View {...pan.panHandlers} style={[styles.slide, { transform: [{ translateX: x }] }]}>
         <Pressable
           accessible
           accessibilityLabel={label}
@@ -251,10 +254,11 @@ function SwipeRow({ label, deleteLabel, open, onOpen, onClose, onDelete, divider
           onPress={() => {
             if (open) onClose();
           }}
-          style={styles.row}
+          style={[styles.row, !!trailing && styles.rowBeforeTrailing]}
         >
           {children}
         </Pressable>
+        {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
       </Animated.View>
     </View>
   );
@@ -282,7 +286,10 @@ const styles = StyleSheet.create({
   muted: { color: colors.muted },
   box: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.control, backgroundColor: colors.surface, overflow: 'hidden' },
   rowWrap: { backgroundColor: colors.surface },
-  row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[12], paddingHorizontal: space[16], backgroundColor: colors.surface },
+  row: { flex: 1, minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[12], paddingHorizontal: space[16], backgroundColor: colors.surface },
+  slide: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface },
+  rowBeforeTrailing: { paddingRight: 0 },
+  trailing: { paddingLeft: space[12], paddingRight: space[16] },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.divider },
   delete: { position: 'absolute', top: 0, bottom: 0, right: 0, width: DELETE_WIDTH, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.hard },
   deleteLabel: { color: colors.white },

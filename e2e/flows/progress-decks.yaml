@@ -75,14 +75,14 @@ tags:
 # The row can first show under the floating tab bar, where a tap would hit a tab: bring it up to the end of the page.
 - scroll
 - tapOn: "Ordering food, 10 words · 9 learning"
-# P3 Deck words: counts, chips, the known word only under Known
+# P3 Deck words: counts, chips. "All" counts the "I know it" word too (Hamid, 2026-11-25)
 - extendedWaitUntil:
-    visible: "A1 · 9 WORDS"
+    visible: "A1 · 10 WORDS"
     timeout: 15000
 - assertVisible: "9 LEARNING · 1 HARD"
-- assertVisible: "All 9"
+- assertVisible: "All 10"
 - assertVisible: "la cuenta, the bill, hard word"
-- assertNotVisible: "la propina, the tip"
+- assertVisible: "la propina, the tip"
 - tapOn: "Hard 1"
 - assertVisible: "la cuenta, the bill, hard word"
 - assertNotVisible: "pedir, to order"
