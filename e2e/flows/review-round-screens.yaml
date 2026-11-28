@@ -1,6 +1,6 @@
 # The Review screens: the first round with Undo, the done screen with numbers, then a second round inside the tab
 # (the tab bar stays). Needs the local stack: `npm run dev:up`. Dev build.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - review
 ---

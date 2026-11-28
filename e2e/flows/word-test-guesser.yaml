@@ -1,6 +1,6 @@
 # Word test, situation 4: a guesser. 3 of the 6 made-up words ticked → "Were you guessing?" once, then an honest retry.
 # Needs the local stack: `npm run dev:up`.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - onboarding
 ---

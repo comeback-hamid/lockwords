@@ -1,5 +1,5 @@
 # A fresh install up to O3 Level (Spanish, speaks English).
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 ---
 # O0 Hello: Kai says welcome
 - extendedWaitUntil:
