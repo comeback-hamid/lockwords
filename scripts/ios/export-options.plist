@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>method</key><string>app-store-connect</string><key>destination</key><string>upload</string>
+<key>teamID</key><string>977V8PWS54</string><key>signingStyle</key><string>manual</string>
+<key>signingCertificate</key><string>Apple Distribution</string>
+<key>provisioningProfiles</key><dict>
+<key>com.dailydoses.lockwords</key><string>Lockwords AppStore</string>
+<key>com.dailydoses.lockwords.ExpoWidgetsTarget</key><string>Lockwords Widgets AppStore</string></dict>
+<key>manageAppVersionAndBuildNumber</key><false/><key>uploadSymbols</key><true/>
+</dict></plist>
+P
+xcodebuild -exportArchive -archivePath $OUT/Lockwords.xcarchive -exportPath $OUT/export -exportOptionsPlist $OUT/export.plist \
+  -authenticationKeyPath "$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" >> "$1" 2>&1
+echo "export exit $?" >> "$1"

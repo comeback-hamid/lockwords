@@ -1,6 +1,6 @@
 {
   "platforms": ["android"],
   "android": {
-    "modules": ["ai.dailydoses.lockwords.widget.LockwordsWidgetModule"]
+    "modules": ["com.dailydoses.lockwords.widget.LockwordsWidgetModule"]
   }
 }

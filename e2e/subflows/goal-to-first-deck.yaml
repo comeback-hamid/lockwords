@@ -1,6 +1,6 @@
 # O8 Goal → O10f: goal, interests, the Kai chat and the first deck. Lands on the Review tab.
 # Used with runFlow.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 ---
 # O8 Goal
 - assertVisible: "Why are you learning?"

@@ -2,7 +2,7 @@
 # screen page (O2) with a big Kai and the sample word in the language the learner picked (English, for a Persian
 # speaker), then Use it: Kai talks while its lines are typed and listens while the learner types.
 # Needs the local stack (server + Supabase login). Dev build only. The splash picture needs a new native build.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - onboarding
 ---

@@ -7,7 +7,7 @@
 # (`__tests__/review-card.test.tsx`). Keep the two files the same otherwise.
 # The word card: picture on top, flip, the three swipes with the growing label, a long phrase, and a swipe to the
 # right inside the Review tab that does not change the tab. Needs the local stack: `npm run dev:up`. Dev build.
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - review
 ---

@@ -1,6 +1,6 @@
 # New words: the chat with Kai. First visit, translation switch, a message, Kai leads to Review, the history after a restart.
 # Needs the local stack: `npm run dev:up`. Dev build. Works with the stand-in AI and with the real one (Kai's words differ, the steps do not).
-appId: ai.dailydoses.lockwords
+appId: com.dailydoses.lockwords
 tags:
   - new-words
 ---

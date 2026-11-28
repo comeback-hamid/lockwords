@@ -79,7 +79,7 @@ All from AD `/widgetkit/keeping-a-widget-up-to-date`.
 
 ## 7. How data gets to the widget
 
-- The app and the widget share one folder, the **app group** (`group.ai.dailydoses.lockwords`). The app writes, the widget reads.
+- The app and the widget share one folder, the **app group** (`group.com.dailydoses.lockwords`). The app writes, the widget reads.
 - With `expo-widgets` the app calls `updateTimeline(entries)`. The widget then runs alone from that list (`policy: .atEnd`).
 - The widget cannot ask the server by itself. If the app is not opened for days, the list runs out and the widget keeps its last entry. So the last entry must be a good one ("Open Lockwords · for your hard words").
 - A silent push can ask iOS to reload a widget (iOS 26), but it cannot bring new words without our app code running, and it needs the paid Apple account. Not in v1.
@@ -99,6 +99,8 @@ All from AD `/widgetkit/keeping-a-widget-up-to-date`.
 - Not tested then: a real iPhone, Mona Sans, pictures, a timeline with many entries, a tap that opens a word.
 
 ## 10. Signing (2026-11-26)
+
+- **Changed 2026-11-27:** the app is `com.dailydoses.lockwords` on the Moosepath team (`977V8PWS54`), the widget `com.dailydoses.lockwords.ExpoWidgetsTarget`, signed by hand for TestFlight (`docs/testflight.md`). The lines below are the first setup.
 
 - The iPhone app is `ai.dailydoses.lockwords`, signed by Hamid's **paid Apple team** (`2GZW9557HC`, in `app.json` as `appleTeamId`).
 - The widget is a second small program with its own ID (`ai.dailydoses.lockwords.ExpoWidgetsTarget`). Both have the app group. Xcode made both profiles.

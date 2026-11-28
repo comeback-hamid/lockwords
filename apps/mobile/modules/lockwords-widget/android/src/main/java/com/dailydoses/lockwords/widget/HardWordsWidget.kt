@@ -1,4 +1,4 @@
-package ai.dailydoses.lockwords.widget
+package com.dailydoses.lockwords.widget
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -47,7 +47,7 @@ class HardWordsWidget : AppWidgetProvider() {
   }
 
   companion object {
-    private const val ACTION_NEXT = "ai.dailydoses.lockwords.widget.NEXT"
+    private const val ACTION_NEXT = "com.dailydoses.lockwords.widget.NEXT"
     private const val MEDIUM_FROM_DP = 220 // from this width the medium layout fits (the example sentence, a bigger Kai)
     private const val WAKE_WINDOW_MS = 2 * 60 * 1000L // Android may be this late; an exact alarm would need a permission
 
